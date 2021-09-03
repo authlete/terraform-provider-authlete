@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 
+	"github.com/authlete/authlete-go/api"
+	"github.com/authlete/authlete-go/conf"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -26,11 +28,41 @@ func init() {
 func New(version string) func() *schema.Provider {
 	return func() *schema.Provider {
 		p := &schema.Provider{
-			DataSourcesMap: map[string]*schema.Resource{
-				"scaffolding_data_source": dataSourceScaffolding(),
+			Schema: map[string]*schema.Schema{
+				"api_server": {
+					Type:        schema.TypeString,
+					Required:    false,
+					Optional:    true,
+					DefaultFunc: schema.EnvDefaultFunc("AUTHLETE_API_SERVER", "https://api.authlete.com"),
+				},
+				"service_owner_key": {
+					Type:        schema.TypeString,
+					Required:    true,
+					Optional:    false,
+					DefaultFunc: schema.EnvDefaultFunc("AUTHLETE_SO_KEY", ""),
+				},
+				"service_owner_secret": {
+					Type:        schema.TypeString,
+					Required:    true,
+					Optional:    false,
+					DefaultFunc: schema.EnvDefaultFunc("AUTHLETE_SO_SECRET", ""),
+				},
+				"api_key": {
+					Type:        schema.TypeString,
+					Required:    false,
+					Optional:    true,
+					DefaultFunc: schema.EnvDefaultFunc("AUTHLETE_API_KEY", ""),
+				},
+				"api_secret": {
+					Type:        schema.TypeString,
+					Required:    false,
+					Optional:    true,
+					DefaultFunc: schema.EnvDefaultFunc("AUTHLETE_API_SECRET", ""),
+				},
 			},
+
 			ResourcesMap: map[string]*schema.Resource{
-				"scaffolding_resource": resourceScaffolding(),
+				"authlete_service": resourceService(),
 			},
 		}
 
@@ -44,14 +76,39 @@ type apiClient struct {
 	// Add whatever fields, client or connection info, etc. here
 	// you would need to setup to communicate with the upstream
 	// API.
+	api_server           string
+	service_owner_key    string
+	service_owner_secret string
+	api_key              string
+	api_secret           string
+
+	authleteClient api.AuthleteApi
 }
 
 func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	return func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	return func(ctx context.Context, data *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		// Setup a User-Agent for your API client (replace the provider name for yours):
 		// userAgent := p.UserAgent("terraform-provider-scaffolding", version)
 		// TODO: myClient.UserAgent = userAgent
 
-		return &apiClient{}, nil
+		api_server := data.Get("api_server").(string)
+		service_owner_key := data.Get("service_owner_key").(string)
+		service_owner_secret := data.Get("service_owner_secret").(string)
+
+		api_key := data.Get("api_key").(string)
+		api_secret := data.Get("api_secret").(string)
+
+		cnf := conf.AuthleteSimpleConfiguration{}
+		cnf.SetBaseUrl(api_server)
+		cnf.SetServiceOwnerApiKey(service_owner_key)
+		cnf.SetServiceOwnerApiSecret(service_owner_secret)
+		cnf.SetServiceApiKey(api_key)
+		cnf.SetServiceApiSecret(api_secret)
+
+		apiCliente := api.New(&cnf)
+
+		return &apiClient{api_server: api_server, service_owner_key: service_owner_key,
+			service_owner_secret: service_owner_key, api_key: api_key, api_secret: api_secret,
+			authleteClient: apiCliente}, nil
 	}
 }

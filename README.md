@@ -15,35 +15,26 @@ Once you've written your provider, you'll want to [publish it on the Terraform R
 
 ## Requirements
 
+-   [Authlete account](https://so.authlete.com/accounts/signup)
 -	[Terraform](https://www.terraform.io/downloads.html) >= 0.13.x
 -	[Go](https://golang.org/doc/install) >= 1.15
+
 
 ## Building The Provider
 
 1. Clone the repository
 1. Enter the repository directory
-1. Build the provider using the Go `install` command: 
+1. Build the provider using the make `install` command: 
 ```sh
-$ go install
+$ go mod tidy
+$ make install
 ```
-
-## Adding Dependencies
-
-This provider uses [Go modules](https://github.com/golang/go/wiki/Modules).
-Please see the Go documentation for the most up to date information about using Go modules.
-
-To add a new dependency `github.com/author/dependency` to your Terraform provider:
-
-```
-go get github.com/author/dependency
-go mod tidy
-```
-
-Then commit the changes to `go.mod` and `go.sum`.
 
 ## Using the provider
 
-Fill this in for each provider
+This provider support managing the services and its configuration from terraform script.
+
+The provider can also generate random RSA and EC (including Ed25519 and  X235519) keys that will reside only on Authlete side.
 
 ## Developing the Provider
 
@@ -58,5 +49,8 @@ In order to run the full suite of Acceptance tests, run `make testacc`.
 *Note:* Acceptance tests create real resources, and often cost money to run.
 
 ```sh
+$ export AUTHLETE_API_SERVER="https://fapidev-api.authlete.net"
+$ export AUTHLETE_SO_SECRET="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+$ export AUTHLETE_SO_KEY="XXXXXXXXXXXXXX"
 $ make testacc
 ```
