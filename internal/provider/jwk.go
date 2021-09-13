@@ -159,20 +159,49 @@ type JWKStruct struct {
 	Y   string   `json:"y,omitempty"`
 }
 
-func generateOKPKey(crv string) (jwk.Key, error) {
+func generateOKPKey(newKey map[string]interface{}) (JWKStruct, error) {
 
+	var okpKey jwk.Key
+	var crv = newKey["crv"].(string)
+	var err error
 	if crv == "Ed25519" {
 		_, privateKey, _ := ed25519.GenerateKey(rand.Reader)
-		return jwk.New(privateKey)
+		okpKey, err = jwk.New(privateKey)
 	} else if crv == "X25519" {
 		_, privateKey, _ := x25519.GenerateKey(rand.Reader)
-		return jwk.New(privateKey)
+		okpKey, err = jwk.New(privateKey)
 	}
 
-	return nil, errors.New("generating keys using " + crv + " is not implemented")
+	var element = JWKStruct{
+		Kid: newKey["kid"].(string),
+		Alg: newKey["alg"].(string),
+		Use: newKey["use"].(string),
+		Crv: newKey["crv"].(string),
+	}
+
+	if err != nil {
+		return element, err
+	} else {
+		jsonContent, _ := json.Marshal(okpKey)
+
+		err = json.Unmarshal(jsonContent, &element)
+
+		return element, err
+
+	}
+
 }
 
-func generateECKey(crv string) (jwk.Key, error) {
+func generateECKey(newKey map[string]interface{}) (JWKStruct, error) {
+
+	var crv = newKey["crv"].(string)
+
+	element := JWKStruct{
+		Kid: newKey["kid"].(string),
+		Alg: newKey["alg"].(string),
+		Use: newKey["use"].(string),
+		Crv: newKey["crv"].(string),
+	}
 
 	var curve elliptic.Curve
 	if crv == "P-256" {
@@ -182,27 +211,110 @@ func generateECKey(crv string) (jwk.Key, error) {
 	} else if crv == "P-384" {
 		curve = elliptic.P521()
 	} else {
-		return nil, errors.New("generating keys using " + crv + " is not implemented")
+		return element, errors.New("generating keys using " + crv + " is not implemented")
 	}
 
 	raw, err := ecdsa.GenerateKey(curve, rand.Reader)
 	if err != nil {
 		fmt.Printf("failed to generate new ECDSA privatre key: %s\n", err)
-		return nil, err
+		return element, err
 	}
 
-	return jwk.New(raw)
+	ecKey, err := jwk.New(raw)
+
+	if err != nil {
+		return element, err
+
+	} else {
+
+		jsonContent, _ := json.Marshal(ecKey)
+
+		err = json.Unmarshal(jsonContent, &element)
+		return element, err
+	}
 
 }
 
-func generateRSAKey(keySize int) (jwk.Key, error) {
-	raw, err := rsa.GenerateKey(rand.Reader, keySize)
-	if err != nil {
-		fmt.Printf("failed to generate new RSA privatre key: %s\n", err)
-		return nil, err
+func generateRSAKey(keyMap map[string]interface{}) (JWKStruct, error) {
+
+	element := JWKStruct{
+		Kid: keyMap["kid"].(string),
+		Alg: keyMap["alg"].(string),
+		Use: keyMap["use"].(string),
 	}
 
-	return jwk.New(raw)
+	keySize, _ := keyMap["key_size"].(int)
+	raw, err := rsa.GenerateKey(rand.Reader, keySize)
+
+	rsaKey, err := jwk.New(raw)
+
+	if err != nil {
+		return element, err
+	} else {
+
+		jsonContent, _ := json.Marshal(rsaKey)
+
+		err = json.Unmarshal(jsonContent, &element)
+		return element, err
+	}
+}
+
+func generateKey(keyDef map[string]interface{}, diags diag.Diagnostics) JWKStruct {
+	var alg = keyDef["alg"].(string)
+	var crv = keyDef["crv"].(string)
+	var element JWKStruct
+	var err error
+	if alg == "RS256" || alg == "PS256" ||
+		alg == "RS384" || alg == "PS384" ||
+		alg == "RS512" || alg == "PS512" ||
+		alg == "RSA-OAEP" || alg == "RSA-OAEP-256" {
+
+		if keyDef["d"] != "" || keyDef["e"] != "" ||
+			keyDef["n"] != "" || keyDef["p"] != "" || keyDef["q"] != "" {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Random key configured and key provided",
+				Detail:   "key with id " + keyDef["kid"].(string) + " is a random key but some key attributes are provided. Those key attributes will be overwritten.",
+			})
+		}
+
+		element, err = generateRSAKey(keyDef)
+		if err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+
+	} else if crv == "Ed25519" || crv == "X25519" {
+		if keyDef["d"] != "" || keyDef["x"] != "" {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Random key configured and key provided",
+				Detail:   "key with id " + keyDef["kid"].(string) + " is a random key but some key attributes are provided. Those key attributes will be overwritten.",
+			})
+		}
+
+		element, err = generateOKPKey(keyDef)
+
+		if err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	} else if alg == "ES256" || alg == "ES256K" || alg == "ES384" || alg == "ES512" ||
+		alg == "ECDH-ES" || alg == "ECDH-ES+A128KW" || alg == "ECDH-ES+A192KW" || alg == "ECDH-ES+A256KW" {
+
+		if keyDef["d"] != "" || keyDef["x"] != "" {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Random key configured and key provided",
+				Detail:   "key with id " + keyDef["kid"].(string) + " is a random key but some key attributes are provided. Those key attributes will be overwritten.",
+			})
+		}
+
+		element, err = generateECKey(keyDef)
+		if err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+	}
+
+	return element
 }
 
 func getAsString(newKey jwk.Key, key string) (string, bool) {
@@ -221,107 +333,9 @@ func mapJWKS(vals *schema.Set, diags diag.Diagnostics) (string, diag.Diagnostics
 
 		//fmt.Println(val1["kid"].(string))
 		var element JWKStruct
+
 		if val1["generate"] != nil && val1["generate"].(bool) {
-
-			var alg = val1["alg"].(string)
-			var crv = val1["crv"].(string)
-
-			if alg == "RS256" || alg == "PS256" ||
-				alg == "RS384" || alg == "PS384" ||
-				alg == "RS512" || alg == "PS512" ||
-				alg == "RSA-OAEP" || alg == "RSA-OAEP-256" {
-
-				if val1["d"] != "" || val1["e"] != "" ||
-					val1["n"] != "" || val1["p"] != "" || val1["q"] != "" {
-					diags = append(diags, diag.Diagnostic{
-						Severity: diag.Warning,
-						Summary:  "Random key configured and key provided",
-						Detail:   "key with id " + val1["kid"].(string) + " is a random key but some key attributes are provided. Those key attributes will be overwritten.",
-					})
-				}
-
-				keySize := val1["key_size"].(int)
-
-				rsaKey, err := generateRSAKey(keySize)
-				if err != nil {
-					diags = append(diags, diag.FromErr(err)...)
-				} else {
-
-					jsonContent, _ := json.Marshal(rsaKey)
-					element = JWKStruct{
-						Kid: val1["kid"].(string),
-						Alg: val1["alg"].(string),
-						Use: val1["use"].(string),
-					}
-
-					err = json.Unmarshal(jsonContent, &element)
-					if err != nil {
-						diags = append(diags, diag.FromErr(err)...)
-					}
-				}
-
-			} else if crv == "Ed25519" || crv == "X25519" {
-				if val1["d"] != "" || val1["x"] != "" {
-					diags = append(diags, diag.Diagnostic{
-						Severity: diag.Warning,
-						Summary:  "Random key configured and key provided",
-						Detail:   "key with id " + val1["kid"].(string) + " is a random key but some key attributes are provided. Those key attributes will be overwritten.",
-					})
-				}
-
-				okpKey, err := generateOKPKey(crv)
-
-				if err != nil {
-					diags = append(diags, diag.FromErr(err)...)
-				} else {
-					jsonContent, _ := json.Marshal(okpKey)
-					element = JWKStruct{
-						Kid: val1["kid"].(string),
-						Alg: val1["alg"].(string),
-						Use: val1["use"].(string),
-						Crv: val1["crv"].(string),
-					}
-
-					err = json.Unmarshal(jsonContent, &element)
-					if err != nil {
-						diags = append(diags, diag.FromErr(err)...)
-					}
-
-				}
-			} else if alg == "ES256" || alg == "ES256K" || alg == "ES384" || alg == "ES512" ||
-				alg == "ECDH-ES" || alg == "ECDH-ES+A128KW" || alg == "ECDH-ES+A192KW" || alg == "ECDH-ES+A256KW" {
-
-				if val1["d"] != "" || val1["x"] != "" {
-					diags = append(diags, diag.Diagnostic{
-						Severity: diag.Warning,
-						Summary:  "Random key configured and key provided",
-						Detail:   "key with id " + val1["kid"].(string) + " is a random key but some key attributes are provided. Those key attributes will be overwritten.",
-					})
-				}
-
-				ecKey, err := generateECKey(crv)
-
-				if err != nil {
-					diags = append(diags, diag.FromErr(err)...)
-
-				} else {
-
-					jsonContent, _ := json.Marshal(ecKey)
-					element = JWKStruct{
-						Kid: val1["kid"].(string),
-						Alg: val1["alg"].(string),
-						Use: val1["use"].(string),
-						Crv: val1["crv"].(string),
-					}
-
-					err = json.Unmarshal(jsonContent, &element)
-					if err != nil {
-						diags = append(diags, diag.FromErr(err)...)
-					}
-
-				}
-			}
-
+			element = generateKey(val1, diags)
 		} else {
 
 			element = JWKStruct{
@@ -352,9 +366,7 @@ func mapJWKS(vals *schema.Set, diags diag.Diagnostics) (string, diag.Diagnostics
 
 	jsonString, _ := json.Marshal(toFormat)
 
-	var toReturn = string(jsonString)
-	//fmt.Println(toReturn)
-	return toReturn, diags
+	return string(jsonString), diags
 }
 
 func mapArray(x5c []interface{}) []string {
@@ -365,6 +377,26 @@ func mapArray(x5c []interface{}) []string {
 	return x5cAux
 }
 
+func findKey(kid string, existingKeys []JWKStruct, diags diag.Diagnostics) interface{} {
+
+	for _, aKey := range existingKeys {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "key: " + aKey.Kid,
+			Detail:   "key: " + aKey.Kid + " => " + kid,
+		})
+		if aKey.Kid == kid {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "found key: " + aKey.Kid,
+				Detail:   "key: " + aKey.Kid + " => " + kid,
+			})
+			return aKey
+		}
+	}
+	return nil
+}
+
 func updateJWKS(vals *schema.Set, jwks string, diags diag.Diagnostics) (string, diag.Diagnostics) {
 
 	var keysArray = []JWKStruct{}
@@ -372,38 +404,49 @@ func updateJWKS(vals *schema.Set, jwks string, diags diag.Diagnostics) (string, 
 	var keysMap map[string][]JWKStruct
 	json.Unmarshal([]byte(jwks), &keysMap)
 
-	//var keys = keysMap["keys"]
+	var keys = keysMap["keys"]
+
+	diags = append(diags, diag.Diagnostic{
+		Severity: diag.Warning,
+		Summary:  "existing keys",
+		Detail:   " keys: " + fmt.Sprint(keys),
+	})
 
 	for _, aKey := range vals.List() {
 		var val1 = aKey.(map[string]interface{})
 
-		fmt.Println(val1["kid"].(string))
+		var element JWKStruct
 
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Warning,
-			Summary:  "Creating a new key",
-			Detail:   "Creating a new key with id " + val1["kid"].(string),
-		})
-		var element = JWKStruct{
-			Kid: val1["kid"].(string),
-			Alg: val1["alg"].(string),
-			Use: val1["use"].(string),
-			Kty: val1["kty"].(string),
-			Crv: val1["crv"].(string),
-			D:   val1["d"].(string),
-			Dp:  val1["dp"].(string),
-			Dq:  val1["dq"].(string),
-			E:   val1["e"].(string),
-			K:   val1["k"].(string),
-			N:   val1["n"].(string),
-			P:   val1["p"].(string),
-			Q:   val1["q"].(string),
-			Qi:  val1["qi"].(string),
-			X:   val1["x"].(string),
-			X5c: mapArray(val1["x5c"].([]interface{})),
-			Y:   val1["y"].(string),
+		if val1["generate"] != nil && val1["generate"].(bool) {
+			var raw = findKey(val1["kid"].(string), keys, diags)
+			if raw == nil {
+				element = generateKey(val1, diags)
+			} else {
+				element = raw.(JWKStruct)
+			}
+
+		} else {
+
+			element = JWKStruct{
+				Kid: val1["kid"].(string),
+				Alg: val1["alg"].(string),
+				Use: val1["use"].(string),
+				Kty: val1["kty"].(string),
+				Crv: val1["crv"].(string),
+				D:   val1["d"].(string),
+				Dp:  val1["dp"].(string),
+				Dq:  val1["dq"].(string),
+				E:   val1["e"].(string),
+				K:   val1["k"].(string),
+				N:   val1["n"].(string),
+				P:   val1["p"].(string),
+				Q:   val1["q"].(string),
+				Qi:  val1["qi"].(string),
+				X:   val1["x"].(string),
+				X5c: mapArray(val1["x5c"].([]interface{})),
+				Y:   val1["y"].(string),
+			}
 		}
-
 		keysArray = append(keysArray, element)
 
 	}
@@ -413,12 +456,6 @@ func updateJWKS(vals *schema.Set, jwks string, diags diag.Diagnostics) (string, 
 
 	jsonString, _ := json.Marshal(toFormat)
 
-	fmt.Println(string(jsonString))
-	diags = append(diags, diag.Diagnostic{
-		Severity: diag.Warning,
-		Summary:  "Creating a JWKS",
-		Detail:   "Creating a new JWKS " + string(jsonString),
-	})
 	toReturn = string(jsonString)
 	return toReturn, diags
 }

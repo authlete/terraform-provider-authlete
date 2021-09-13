@@ -50,15 +50,16 @@ resource "authlete_service" "prod" {
   n   = "mNywhmlsFCh5bJ2hn2Fhu7-P4_y3z-OqFiDZllO5afW4-5co0ROFHJk--x8Wbu8SE_YaHxWwxBB4ExI5lMMkLKoh4z9LZ4Vnw1WdigKDXPYmd4VJNsEgdvrr52VCC9bmIbkY2QAyRwRa44LiknjRsXfHUMD-kTyeWePMQfQJbXo4o_xpHj0RzRf21hNMjXygsvnIJ7x4F9F3umZi5xUnugbncbbO-KRRIzTpT5MrmUe201w7h4ywdSkBGTZhSyIqfmSJfvsCNThD7eQKCi-B-AsoGGp_bB5dBcSZX03WwpSrg6xC9_8DkhZLmcyo-09gGSgAUYCBB8PzNs8TVGiJIQ"
         
    } 
+
 jwk {
-	kid = "kid3"
+	kid = "kid9"
 	alg = "RS256" 
 	use = "sig" 
 	generate = true
-  
+  key_size = 1024
 }
 jwk {
-	kid = "kid4"
+	kid = "kid13"
 	alg = "RS256" 
 	use = "sig" 
 	generate = true

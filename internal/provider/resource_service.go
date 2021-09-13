@@ -225,7 +225,7 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta int
 			Detail:   "Updating Description name to " + d.Get("description").(string),
 		})
 
-		srv.JwksUri, diags = updateJWKS(d.Get("jwk").(*schema.Set), srv.JwksUri, diags)
+		srv.Jwks, diags = updateJWKS(d.Get("jwk").(*schema.Set), srv.Jwks, diags)
 	}
 	if d.HasChange("registration_endpoint") {
 		srv.RegistrationEndpoint = d.Get("registration_endpoint").(string)
