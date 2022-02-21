@@ -1,8 +1,7 @@
-default: testacc
 
 TEST?=$$(go list ./... | grep -v 'vendor')
 HOSTNAME=registry.terraform.io
-NAMESPACE=dcreado
+NAMESPACE=authlete
 NAME=authlete
 BINARY=terraform-provider-${NAME}
 VERSION=1.0

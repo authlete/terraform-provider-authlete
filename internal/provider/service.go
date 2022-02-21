@@ -6,135 +6,136 @@ import (
 
 	"github.com/authlete/authlete-go/dto"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceService() *schema.Resource {
+func service() *schema.Resource {
 	return &schema.Resource{
 		Description: `A Service in Authlete platform is mapped to one OIDC Server `,
 
-		CreateContext: resourceServiceCreate,
-		ReadContext:   resourceServiceRead,
-		UpdateContext: resourceServiceUpdate,
-		DeleteContext: resourceServiceDelete,
+		CreateContext: serviceCreate,
+		ReadContext:   serviceRead,
+		UpdateContext: serviceUpdate,
+		DeleteContext: serviceDelete,
 
 		Schema: map[string]*schema.Schema{
 			"service_name":                                 {Type: schema.TypeString, Required: true},
 			"issuer":                                       {Type: schema.TypeString, Required: true},
 			"description":                                  {Type: schema.TypeString, Required: false, Optional: true},
 			"api_secret":                                   {Type: schema.TypeString, Computed: true},
-			"jwk":                                          createJWKSchema(),
-			"supported_revocation_auth_methods":            createClientAuthSchema(),
-			"authorization_endpoint":                       {Type: schema.TypeString, Required: false, Optional: true},
-			"token_endpoint":                               {Type: schema.TypeString, Required: false, Optional: true},
-			"revocation_endpoint":                          {Type: schema.TypeString, Required: false, Optional: true},
-			"user_info_endpoint":                           {Type: schema.TypeString, Required: false, Optional: true},
-			"jwks_uri":                                     {Type: schema.TypeString, Required: false, Optional: true},
-			"registration_endpoint":                        {Type: schema.TypeString, Required: false, Optional: true},
-			"registration_management_endpoint":             {Type: schema.TypeString, Required: false, Optional: true},
-			"supported_scopes":                             createSupportedScopeSchema(),
-			"supported_response_types":                     createResponseTypeSchema(),
-			"supported_grant_types":                        createGrantTypeSchema(),
-			"supported_acrs":                               createStringColSchema(),
-			"supported_token_auth_methods":                 createClientAuthSchema(),
-			"supported_displays":                           createSupportedDisplaySchema(),
-			"supported_claim_types":                        createSupportedClaimTypesSchema(),
-			"supported_claims":                             createStringColSchema(),
-			"service_documentation":                        {Type: schema.TypeString, Required: false, Optional: true},
-			"supported_claim_locales":                      createStringColSchema(),
-			"supported_ui_locales":                         createStringColSchema(),
-			"policy_uri":                                   {Type: schema.TypeString, Required: false, Optional: true},
-			"tos_uri":                                      {Type: schema.TypeString, Required: false, Optional: true},
+			"clients_per_developer":                        {Type: schema.TypeInt, Required: false, Optional: true},
+			"client_id_alias_enabled":                      {Type: schema.TypeBool, Required: false, Optional: true, Default: false},
+			"attributes":                                   createAttributeSchema(),
+			"supported_custom_client_metadata":             createStringColSchema(),
 			"authentication_callback_endpoint":             {Type: schema.TypeString, Required: false, Optional: true},
 			"authentication_callback_api_key":              {Type: schema.TypeString, Required: false, Optional: true},
 			"authentication_callback_api_secret":           {Type: schema.TypeString, Required: false, Optional: true},
-			"supported_snses":                              createSNSSchema(),
-			"sns_credentials":                              createSNSCredentialsSchema(),
+			"supported_acrs":                               createStringColSchema(),
 			"developer_authentication_callback_endpoint":   {Type: schema.TypeString, Required: false, Optional: true},
 			"developer_authentication_callback_api_key":    {Type: schema.TypeString, Required: false, Optional: true},
 			"developer_authentication_callback_api_secret": {Type: schema.TypeString, Required: false, Optional: true},
-			"clients_per_developer":                        {Type: schema.TypeInt, Required: false, Optional: true},
-			"direct_authorization_endpoint_enabled":        {Type: schema.TypeBool, Required: false, Optional: true},
-			"direct_token_endpoint_enabled":                {Type: schema.TypeBool, Required: false, Optional: true},
-			"direct_revocation_endpoint_enabled":           {Type: schema.TypeBool, Required: false, Optional: true},
-			"direct_user_info_endpoint_enabled":            {Type: schema.TypeBool, Required: false, Optional: true},
-			"direct_jwks_endpoint_enabled":                 {Type: schema.TypeBool, Required: false, Optional: true},
-			"direct_introspection_endpoint_enabled":        {Type: schema.TypeBool, Required: false, Optional: true},
-			"single_access_token_per_subject":              {Type: schema.TypeBool, Required: false, Optional: true},
-			"pkce_required":                                {Type: schema.TypeBool, Required: false, Optional: true},
-			"pkce_s256_required":                           {Type: schema.TypeBool, Required: false, Optional: true},
-			"refresh_token_kept":                           {Type: schema.TypeBool, Required: false, Optional: true},
-			"refresh_token_duration_kept":                  {Type: schema.TypeBool, Required: false, Optional: true},
+			"supported_grant_types":                        createGrantTypeSchema(),
+			"supported_response_types":                     createResponseTypeSchema(),
+			"supported_authorization_detail_types":         createStringColSchema(),
+			"supported_service_profiles":                   createSupportedFrameworkSchema(),
 			"error_description_omitted":                    {Type: schema.TypeBool, Required: false, Optional: true},
 			"error_uri_omitted":                            {Type: schema.TypeBool, Required: false, Optional: true},
-			"client_id_aliase_enabled":                     {Type: schema.TypeBool, Required: false, Optional: true},
-			"supported_service_profiles":                   createSupportedFrameworkSchema(),
-			"tls_client_certificate_bound_access_tokens":   {Type: schema.TypeBool, Required: false, Optional: true},
-			"introspection_endpoint":                       {Type: schema.TypeString, Required: false, Optional: true},
-			"supported_introspection_auth_methods":         createClientAuthSchema(),
-			"mutual_tls_validate_pki_cert_chain":           {Type: schema.TypeBool, Required: false, Optional: true},
-			//TODO: change this to proper process pem files
-			"trusted_root_certificates":                     createStringColSchema(),
-			"dynamic_registration_supported":                {Type: schema.TypeBool, Required: false, Optional: true},
+			"authorization_endpoint":                       {Type: schema.TypeString, Required: false, Optional: true},
+			"direct_authorization_endpoint_enabled":        {Type: schema.TypeBool, Required: false, Optional: true, Default: false},
+			"supported_ui_locales":                         createStringColSchema(),
+
+			"jwk":                                           createJWKSchema(),
+			"token_endpoint":                                {Type: schema.TypeString, Required: false, Optional: true},
+			"revocation_endpoint":                           {Type: schema.TypeString, Required: false, Optional: true},
+			"user_info_endpoint":                            {Type: schema.TypeString, Required: false, Optional: true},
+			"pushed_auth_req_endpoint":                      {Type: schema.TypeString, Required: false, Optional: true},
+			"introspection_endpoint":                        {Type: schema.TypeString, Required: false, Optional: true},
+			"registration_endpoint":                         {Type: schema.TypeString, Required: false, Optional: true},
+			"registration_management_endpoint":              {Type: schema.TypeString, Required: false, Optional: true},
 			"end_session_endpoint":                          {Type: schema.TypeString, Required: false, Optional: true},
-			"access_token_type":                             {Type: schema.TypeString, Required: false, Optional: true},
-			"access_token_sign_alg":                         createSignAlgorithmSchema(),
-			"access_token_duration":                         {Type: schema.TypeInt, Required: false, Optional: true},
-			"refresh_token_duration":                        {Type: schema.TypeInt, Required: false, Optional: true},
-			"id_token_duration":                             {Type: schema.TypeInt, Required: false, Optional: true},
-			"authorization_response_duration":               {Type: schema.TypeInt, Required: false, Optional: true},
-			"pushed_auth_req_duration":                      {Type: schema.TypeInt, Required: false, Optional: true},
-			"access_token_signature_key_id":                 {Type: schema.TypeString, Required: false, Optional: true},
-			"authorization_signature_key_id":                {Type: schema.TypeString, Required: false, Optional: true},
-			"id_token_signature_key_id":                     {Type: schema.TypeString, Required: false, Optional: true},
-			"user_info_signature_key_id":                    {Type: schema.TypeString, Required: false, Optional: true},
-			"supported_backchannel_token_delivery_modes":    createBackchannelDeliverySchema(),
-			"backchannel_authentication_endpoint":           {Type: schema.TypeString, Required: false, Optional: true},
-			"backchannel_user_code_parameter_supported":     {Type: schema.TypeBool, Required: false, Optional: true},
-			"backchannel_auth_req_id_duration":              {Type: schema.TypeInt, Required: false, Optional: true},
-			"backcannel_polling_interval":                   {Type: schema.TypeInt, Required: false, Optional: true},
-			"backchannel_binding_message_required_in_fapi":  {Type: schema.TypeBool, Required: false, Optional: true},
-			"allowable_clock_skew":                          {Type: schema.TypeInt, Required: false, Optional: true},
 			"device_authorization_endpoint":                 {Type: schema.TypeString, Required: false, Optional: true},
 			"device_verification_uri":                       {Type: schema.TypeString, Required: false, Optional: true},
-			"device_verification_uri_complete":              {Type: schema.TypeString, Required: false, Optional: true},
-			"device_flow_code_duration":                     {Type: schema.TypeInt, Required: false, Optional: true},
-			"device_flow_polling_interval":                  {Type: schema.TypeInt, Required: false, Optional: true},
-			"user_code_charset":                             createUserCodeCharsetSchema(),
-			"user_code_length":                              {Type: schema.TypeInt, Required: false, Optional: true},
-			"pushed_auth_req_endpoint":                      {Type: schema.TypeString, Required: false, Optional: true},
-			"mtls_endpoint_aliases":                         createMtlsEndpointSchema(),
-			"supported_authorization_data_types":            createStringColSchema(),
-			"supported_trust_frameworks":                    createStringColSchema(),
-			"supported_evidence":                            createStringColSchema(),
-			"supported_identity_documents":                  createStringColSchema(),
-			"supported_verification_methods":                createStringColSchema(),
-			"supported_verified_claims":                     createStringColSchema(),
-			"missing_client_id_allowed":                     {Type: schema.TypeBool, Required: false, Optional: true},
+			"scope_required":                                {Type: schema.TypeBool, Required: false, Optional: true},
 			"par_required":                                  {Type: schema.TypeBool, Required: false, Optional: true},
+			"pkce_required":                                 {Type: schema.TypeBool, Required: false, Optional: true},
+			"pkce_s256_required":                            {Type: schema.TypeBool, Required: false, Optional: true},
 			"request_object_required":                       {Type: schema.TypeBool, Required: false, Optional: true},
 			"traditional_request_object_processing_applied": {Type: schema.TypeBool, Required: false, Optional: true},
-			"claim_shortcut_restrictive":                    {Type: schema.TypeBool, Required: false, Optional: true},
-			"scope_required":                                {Type: schema.TypeBool, Required: false, Optional: true},
+			"supported_revocation_auth_methods":             createClientAuthSchema(),
+			"jwks_uri":                                      {Type: schema.TypeString, Required: false, Optional: true},
+			"supported_scopes":                              createSupportedScopeSchema(),
+			"supported_token_auth_methods":                  createClientAuthSchema(),
+			"supported_displays":                            createSupportedDisplaySchema(),
+			"supported_claim_types":                         createSupportedClaimTypesSchema(),
+			"supported_claims":                              createStringColSchema(),
+			"service_documentation":                         {Type: schema.TypeString, Required: false, Optional: true},
+			"supported_claim_locales":                       createStringColSchema(),
+			"policy_uri":                                    {Type: schema.TypeString, Required: false, Optional: true},
+			"tos_uri":                                       {Type: schema.TypeString, Required: false, Optional: true},
+
+			"single_access_token_per_subject": {Type: schema.TypeBool, Required: false, Optional: true, Default: true},
+
+			"refresh_token_kept":          {Type: schema.TypeBool, Required: false, Optional: true},
+			"refresh_token_duration_kept": {Type: schema.TypeBool, Required: false, Optional: true},
+
+			"tls_client_certificate_bound_access_tokens": {Type: schema.TypeBool, Required: false, Optional: true},
+			"supported_introspection_auth_methods":       createClientAuthSchema(),
+			"mutual_tls_validate_pki_cert_chain":         {Type: schema.TypeBool, Required: false, Optional: true},
+			//TODO: change this to proper process pem files
+			"trusted_root_certificates":                    createStringColSchema(),
+			"dynamic_registration_supported":               {Type: schema.TypeBool, Required: false, Optional: true},
+			"access_token_type":                            {Type: schema.TypeString, Required: false, Optional: true},
+			"access_token_sign_alg":                        createSignAlgorithmSchema(),
+			"access_token_duration":                        {Type: schema.TypeInt, Required: false, Optional: true},
+			"refresh_token_duration":                       {Type: schema.TypeInt, Required: false, Optional: true},
+			"id_token_duration":                            {Type: schema.TypeInt, Required: false, Optional: true},
+			"authorization_response_duration":              {Type: schema.TypeInt, Required: false, Optional: true},
+			"pushed_auth_req_duration":                     {Type: schema.TypeInt, Required: false, Optional: true},
+			"access_token_signature_key_id":                {Type: schema.TypeString, Required: false, Optional: true},
+			"authorization_signature_key_id":               {Type: schema.TypeString, Required: false, Optional: true},
+			"id_token_signature_key_id":                    {Type: schema.TypeString, Required: false, Optional: true},
+			"user_info_signature_key_id":                   {Type: schema.TypeString, Required: false, Optional: true},
+			"supported_backchannel_token_delivery_modes":   createBackchannelDeliverySchema(),
+			"backchannel_authentication_endpoint":          {Type: schema.TypeString, Required: false, Optional: true},
+			"backchannel_user_code_parameter_supported":    {Type: schema.TypeBool, Required: false, Optional: true},
+			"backchannel_auth_req_id_duration":             {Type: schema.TypeInt, Required: false, Optional: true},
+			"backcannel_polling_interval":                  {Type: schema.TypeInt, Required: false, Optional: true},
+			"backchannel_binding_message_required_in_fapi": {Type: schema.TypeBool, Required: false, Optional: true},
+			"allowable_clock_skew":                         {Type: schema.TypeInt, Required: false, Optional: true},
+			"device_verification_uri_complete":             {Type: schema.TypeString, Required: false, Optional: true},
+			"device_flow_code_duration":                    {Type: schema.TypeInt, Required: false, Optional: true},
+			"device_flow_polling_interval":                 {Type: schema.TypeInt, Required: false, Optional: true},
+			"user_code_charset":                            createUserCodeCharsetSchema(),
+			"user_code_length":                             {Type: schema.TypeInt, Required: false, Optional: true},
+			"mtls_endpoint_aliases":                        createMtlsEndpointSchema(),
+			"supported_authorization_data_types":           createStringColSchema(),
+			"supported_trust_frameworks":                   createStringColSchema(),
+			"supported_evidence":                           createStringColSchema(),
+			"supported_identity_documents":                 createStringColSchema(),
+			"supported_verification_methods":               createStringColSchema(),
+			"supported_verified_claims":                    createStringColSchema(),
+			"missing_client_id_allowed":                    {Type: schema.TypeBool, Required: false, Optional: true},
+			"claim_shortcut_restrictive":                   {Type: schema.TypeBool, Required: false, Optional: true},
+
+			"direct_token_endpoint_enabled":         {Type: schema.TypeBool, Required: false, Optional: true, Default: false},
+			"direct_revocation_endpoint_enabled":    {Type: schema.TypeBool, Required: false, Optional: true, Default: false},
+			"direct_user_info_endpoint_enabled":     {Type: schema.TypeBool, Required: false, Optional: true, Default: false},
+			"direct_jwks_endpoint_enabled":          {Type: schema.TypeBool, Required: false, Optional: true, Default: false},
+			"direct_introspection_endpoint_enabled": {Type: schema.TypeBool, Required: false, Optional: true, Default: false},
 			/**/
 		},
 	}
 }
 
-func resourceServiceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	// use the meta value to retrieve your client from the provider configure method
-	// client := meta.(*apiClient)
+func serviceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 
 	client := meta.(*apiClient)
 
 	var diags diag.Diagnostics
 
-	diags = append(diags, diag.Diagnostic{
-		Severity: diag.Warning,
-		Summary:  "Creating a new service",
-		Detail:   "Creating a new service",
-	})
+	tflog.Trace(ctx, "Creating a new service")
 
 	newServiceDto, diags := dataToService(d, diags)
 
@@ -143,6 +144,7 @@ func resourceServiceCreate(ctx context.Context, d *schema.ResourceData, meta int
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	tflog.Trace(ctx, "Service created")
 
 	api_key := newService.ApiKey
 	api_secret := newService.ApiSecret
@@ -150,17 +152,17 @@ func resourceServiceCreate(ctx context.Context, d *schema.ResourceData, meta int
 	d.SetId(strconv.FormatUint(api_key, 10))
 	d.Set("api_secret", api_secret)
 
-	return resourceServiceReadInternal(ctx, d, meta, diags)
+	return serviceReadInternal(ctx, d, meta, diags)
 
 }
 
-func resourceServiceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func serviceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 
 	var diags diag.Diagnostics
-	return resourceServiceReadInternal(ctx, d, meta, diags)
+	return serviceReadInternal(ctx, d, meta, diags)
 }
 
-func resourceServiceReadInternal(ctx context.Context, d *schema.ResourceData, meta interface{}, diags diag.Diagnostics) diag.Diagnostics {
+func serviceReadInternal(ctx context.Context, d *schema.ResourceData, meta interface{}, diags diag.Diagnostics) diag.Diagnostics {
 	client := meta.(*apiClient)
 
 	_, err := client.authleteClient.GetService(d.Id())
@@ -172,7 +174,7 @@ func resourceServiceReadInternal(ctx context.Context, d *schema.ResourceData, me
 	return diags
 }
 
-func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func serviceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 
 	var diags diag.Diagnostics
 
@@ -192,12 +194,24 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta int
 			Detail:   "Updating service name to " + d.Get("service_name").(string),
 		})
 	}
+
+	//if d.HasChange("attributes") {
+	//	srv.Attributes = mapAttributes(d.Get("Attributes").(*schema.Set))
+	//}
 	if d.HasChange("description") {
 		srv.Description = d.Get("description").(string)
 	}
 	if d.HasChange("issuer") {
 		srv.Issuer = d.Get("issuer").(string)
 	}
+	if d.HasChange("client_id_alias_enabled") {
+		srv.ClientIdAliaseEnabled = d.Get("client_id_alias_enabled").(bool)
+	}
+
+	if d.HasChange("supported_acrs") {
+		srv.SupportedAcrs = mapSetToString(d.Get("supported_acrs").(*schema.Set))
+	}
+
 	if d.HasChange("authorization_endpoint") {
 		srv.AuthorizationEndpoint = d.Get("authorization_endpoint").(string)
 	}
@@ -242,9 +256,7 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta int
 	if d.HasChange("supported_grant_types") {
 		srv.SupportedGrantTypes = mapGrantTypes(d.Get("supported_grant_types").(*schema.Set))
 	}
-	if d.HasChange("supported_acrs") {
-		srv.SupportedAcrs = mapSetToString(d.Get("supported_acrs").(*schema.Set))
-	}
+
 	if d.HasChange("supported_token_auth_methods") {
 		srv.SupportedTokenAuthMethods = mapClientAuthMethods(d.Get("supported_token_auth_methods").(*schema.Set))
 	}
@@ -281,12 +293,7 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta int
 	if d.HasChange("authentication_callback_api_secret") {
 		srv.AuthenticationCallbackApiSecret = d.Get("authentication_callback_api_secret").(string)
 	}
-	if d.HasChange("supported_snses") {
-		srv.SupportedSnses = mapSNS(d.Get("supported_snses").(*schema.Set))
-	}
-	if d.HasChange("sns_credentials") {
-		srv.SnsCredentials = mapSNSCredentials(d.Get("sns_credentials").(*schema.Set))
-	}
+
 	if d.HasChange("developer_authentication_callback_endpoint") {
 		srv.DeveloperAuthenticationCallbackEndpoint = d.Get("developer_authentication_callback_endpoint").(string)
 	}
@@ -337,9 +344,6 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta int
 	}
 	if d.HasChange("error_uri_omitted") {
 		srv.ErrorUriOmitted = d.Get("error_uri_omitted").(bool)
-	}
-	if d.HasChange("client_id_aliase_enabled") {
-		srv.ClientIdAliaseEnabled = d.Get("client_id_aliase_enabled").(bool)
 	}
 	if d.HasChange("supported_service_profiles") {
 		srv.SupportedServiceProfiles = mapSupportedFramework(d.Get("supported_service_profiles").(*schema.Set))
@@ -450,7 +454,7 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta int
 		srv.MtlsEndpointAliases = mapMtlsEndpoint(d.Get("mtls_endpoint_aliases").(*schema.Set))
 	}
 	if d.HasChange("supported_authorization_data_types") {
-		srv.SupportedAuthorizationDataTypes = mapSetToString(d.Get("supported_authorization_data_types").(*schema.Set))
+		srv.SupportedAuthorizationDetailsTypes = mapSetToString(d.Get("supported_authorization_data_types").(*schema.Set))
 	}
 	if d.HasChange("supported_trust_frameworks") {
 		srv.SupportedTrustFrameworks = mapSetToString(d.Get("supported_trust_frameworks").(*schema.Set))
@@ -494,7 +498,7 @@ func resourceServiceUpdate(ctx context.Context, d *schema.ResourceData, meta int
 	return diags
 }
 
-func resourceServiceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func serviceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// use the meta value to retrieve your client from the provider configure method
 	// client := meta.(*apiClient)
 
@@ -516,6 +520,24 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*dto.Serv
 	newServiceDto.ServiceName = data.Get("service_name").(string)
 	newServiceDto.Description = data.Get("description").(string)
 	newServiceDto.Issuer = data.Get("issuer").(string)
+	newServiceDto.Description = data.Get("description").(string)
+	newServiceDto.ClientsPerDeveloper = uint16(data.Get("clients_per_developer").(int))
+	newServiceDto.ClientIdAliaseEnabled = data.Get("client_id_alias_enabled").(bool)
+	newServiceDto.Attributes = mapAttributes(data.Get("attribute").(*schema.Set))
+	newServiceDto.SupportedCustomClientMetadata = mapSetToString(data.Get("supported_custom_client_metadata").(*schema.Set))
+	newServiceDto.AuthenticationCallbackEndpoint = data.Get("authentication_callback_endpoint").(string)
+	newServiceDto.AuthenticationCallbackApiKey = data.Get("authentication_callback_api_key").(string)
+	newServiceDto.AuthenticationCallbackApiSecret = data.Get("authentication_callback_api_secret").(string)
+	newServiceDto.SupportedAcrs = mapSetToString(data.Get("supported_acrs").(*schema.Set))
+	newServiceDto.DeveloperAuthenticationCallbackEndpoint = data.Get("developer_authentication_callback_endpoint").(string)
+	newServiceDto.DeveloperAuthenticationCallbackApiKey = data.Get("developer_authentication_callback_api_key").(string)
+	newServiceDto.DeveloperAuthenticationCallbackApiSecret = data.Get("developer_authentication_callback_api_secret").(string)
+	newServiceDto.SupportedGrantTypes = mapGrantTypes(data.Get("supported_grant_types").(*schema.Set))
+	newServiceDto.SupportedResponseTypes = mapResponseTypes(data.Get("supported_response_types").(*schema.Set))
+	newServiceDto.SupportedAuthorizationDetailsTypes = mapSetToString(data.Get("supported_authorization_detail_types").(*schema.Set))
+
+	newServiceDto.SupportedServiceProfiles = mapSupportedFramework(data.Get("supported_service_profiles").(*schema.Set))
+
 	newServiceDto.AuthorizationEndpoint = data.Get("authorization_endpoint").(string)
 	newServiceDto.TokenEndpoint = data.Get("token_endpoint").(string)
 	newServiceDto.RevocationEndpoint = data.Get("revocation_endpoint").(string)
@@ -526,9 +548,6 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*dto.Serv
 	newServiceDto.RegistrationEndpoint = data.Get("registration_endpoint").(string)
 	newServiceDto.RegistrationManagementEndpoint = data.Get("registration_management_endpoint").(string)
 	newServiceDto.SupportedScopes = mapSupportedScope(data.Get("supported_scopes").(*schema.Set))
-	newServiceDto.SupportedResponseTypes = mapResponseTypes(data.Get("supported_response_types").(*schema.Set))
-	newServiceDto.SupportedGrantTypes = mapGrantTypes(data.Get("supported_grant_types").(*schema.Set))
-	newServiceDto.SupportedAcrs = mapSetToString(data.Get("supported_acrs").(*schema.Set))
 	newServiceDto.SupportedTokenAuthMethods = mapClientAuthMethods(data.Get("supported_token_auth_methods").(*schema.Set))
 	newServiceDto.SupportedDisplays = mapSupportedDisplay(data.Get("supported_displays").(*schema.Set))
 	newServiceDto.SupportedClaimTypes = mapClaimTypes(data.Get("supported_claim_types").(*schema.Set))
@@ -538,15 +557,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*dto.Serv
 	newServiceDto.SupportedUiLocales = mapSetToString(data.Get("supported_ui_locales").(*schema.Set))
 	newServiceDto.PolicyUri = data.Get("policy_uri").(string)
 	newServiceDto.TosUri = data.Get("tos_uri").(string)
-	newServiceDto.AuthenticationCallbackEndpoint = data.Get("authentication_callback_endpoint").(string)
-	newServiceDto.AuthenticationCallbackApiKey = data.Get("authentication_callback_api_key").(string)
-	newServiceDto.AuthenticationCallbackApiSecret = data.Get("authentication_callback_api_secret").(string)
-	newServiceDto.SupportedSnses = mapSNS(data.Get("supported_snses").(*schema.Set))
-	newServiceDto.SnsCredentials = mapSNSCredentials(data.Get("sns_credentials").(*schema.Set))
-	newServiceDto.DeveloperAuthenticationCallbackEndpoint = data.Get("developer_authentication_callback_endpoint").(string)
-	newServiceDto.DeveloperAuthenticationCallbackApiKey = data.Get("developer_authentication_callback_api_key").(string)
-	newServiceDto.DeveloperAuthenticationCallbackApiSecret = data.Get("developer_authentication_callback_api_secret").(string)
-	newServiceDto.ClientsPerDeveloper = uint16(data.Get("clients_per_developer").(int))
+
 	newServiceDto.DirectAuthorizationEndpointEnabled = data.Get("direct_authorization_endpoint_enabled").(bool)
 	newServiceDto.DirectTokenEndpointEnabled = data.Get("direct_token_endpoint_enabled").(bool)
 	newServiceDto.DirectRevocationEndpointEnabled = data.Get("direct_revocation_endpoint_enabled").(bool)
@@ -560,8 +571,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*dto.Serv
 	newServiceDto.RefreshTokenDurationKept = data.Get("refresh_token_duration_kept").(bool)
 	newServiceDto.ErrorDescriptionOmitted = data.Get("error_description_omitted").(bool)
 	newServiceDto.ErrorUriOmitted = data.Get("error_uri_omitted").(bool)
-	newServiceDto.ClientIdAliaseEnabled = data.Get("client_id_aliase_enabled").(bool)
-	newServiceDto.SupportedServiceProfiles = mapSupportedFramework(data.Get("supported_service_profiles").(*schema.Set))
+
 	newServiceDto.TlsClientCertificateBoundAccessTokens = data.Get("tls_client_certificate_bound_access_tokens").(bool)
 	newServiceDto.IntrospectionEndpoint = data.Get("introspection_endpoint").(string)
 	newServiceDto.SupportedIntrospectionAuthMethods = mapClientAuthMethods(data.Get("supported_introspection_auth_methods").(*schema.Set))
@@ -569,7 +579,6 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*dto.Serv
 	newServiceDto.TrustedRootCertificates = mapSetToString(data.Get("trusted_root_certificates").(*schema.Set))
 	newServiceDto.DynamicRegistrationSupported = data.Get("dynamic_registration_supported").(bool)
 	newServiceDto.EndSessionEndpoint = data.Get("end_session_endpoint").(string)
-	newServiceDto.Description = data.Get("description").(string)
 	newServiceDto.AccessTokenType = data.Get("access_token_type").(string)
 	newServiceDto.AccessTokenSignAlg = mapSignAlgorithms(data.Get("access_token_sign_alg").(string))
 	newServiceDto.AccessTokenDuration = uint64(data.Get("access_token_duration").(int))
@@ -597,7 +606,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*dto.Serv
 	newServiceDto.UserCodeLength = uint8(data.Get("user_code_length").(int))
 	newServiceDto.PushedAuthReqEndpoint = data.Get("pushed_auth_req_endpoint").(string)
 	newServiceDto.MtlsEndpointAliases = mapMtlsEndpoint(data.Get("mtls_endpoint_aliases").(*schema.Set))
-	newServiceDto.SupportedAuthorizationDataTypes = mapSetToString(data.Get("supported_authorization_data_types").(*schema.Set))
+	newServiceDto.SupportedAuthorizationDetailsTypes = mapSetToString(data.Get("supported_authorization_data_types").(*schema.Set))
 	newServiceDto.SupportedTrustFrameworks = mapSetToString(data.Get("supported_trust_frameworks").(*schema.Set))
 	newServiceDto.SupportedEvidence = mapSetToString(data.Get("supported_evidence").(*schema.Set))
 	newServiceDto.SupportedIdentityDocuments = mapSetToString(data.Get("supported_identity_documents").(*schema.Set))

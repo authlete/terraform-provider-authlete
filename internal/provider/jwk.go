@@ -54,6 +54,7 @@ func createJWKSchema() *schema.Schema {
 				"crv": {
 					Type:     schema.TypeString,
 					Optional: true,
+					Default:  "P-256",
 					ValidateFunc: validation.StringInSlice([]string{
 						"P-256", "P-384", "P-521",
 						"secp256k1", "Ed25519", "X25519",
@@ -177,6 +178,7 @@ func generateOKPKey(newKey map[string]interface{}) (JWKStruct, error) {
 		Alg: newKey["alg"].(string),
 		Use: newKey["use"].(string),
 		Crv: newKey["crv"].(string),
+		Kty: "OKP",
 	}
 
 	if err != nil {
@@ -201,6 +203,7 @@ func generateECKey(newKey map[string]interface{}) (JWKStruct, error) {
 		Alg: newKey["alg"].(string),
 		Use: newKey["use"].(string),
 		Crv: newKey["crv"].(string),
+		Kty: "EC",
 	}
 
 	var curve elliptic.Curve
@@ -241,6 +244,7 @@ func generateRSAKey(keyMap map[string]interface{}) (JWKStruct, error) {
 		Kid: keyMap["kid"].(string),
 		Alg: keyMap["alg"].(string),
 		Use: keyMap["use"].(string),
+		Kty: "RSA",
 	}
 
 	keySize, _ := keyMap["key_size"].(int)
@@ -283,21 +287,7 @@ func generateKey(keyDef map[string]interface{}, diags diag.Diagnostics) JWKStruc
 			diags = append(diags, diag.FromErr(err)...)
 		}
 
-	} else if crv == "Ed25519" || crv == "X25519" {
-		if keyDef["d"] != "" || keyDef["x"] != "" {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Random key configured and key provided",
-				Detail:   "key with id " + keyDef["kid"].(string) + " is a random key but some key attributes are provided. Those key attributes will be overwritten.",
-			})
-		}
-
-		element, err = generateOKPKey(keyDef)
-
-		if err != nil {
-			diags = append(diags, diag.FromErr(err)...)
-		}
-	} else if alg == "ES256" || alg == "ES256K" || alg == "ES384" || alg == "ES512" ||
+	} else if alg == "ES256" || alg == "ES384" || alg == "ES512" ||
 		alg == "ECDH-ES" || alg == "ECDH-ES+A128KW" || alg == "ECDH-ES+A192KW" || alg == "ECDH-ES+A256KW" {
 
 		if keyDef["d"] != "" || keyDef["x"] != "" {
@@ -312,6 +302,28 @@ func generateKey(keyDef map[string]interface{}, diags diag.Diagnostics) JWKStruc
 		if err != nil {
 			diags = append(diags, diag.FromErr(err)...)
 		}
+	} else if crv == "Ed25519" || crv == "X25519" {
+		//EC curves
+
+		if keyDef["d"] != "" || keyDef["x"] != "" {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "Random key configured and key provided",
+				Detail:   "key with id " + keyDef["kid"].(string) + " is a random key but some key attributes are provided. Those key attributes will be overwritten.",
+			})
+		}
+
+		element, err = generateOKPKey(keyDef)
+
+		if err != nil {
+			diags = append(diags, diag.FromErr(err)...)
+		}
+
+	} else if alg == "ES256K" {
+		//bitcoin curve
+		//TODO: implement the key generation using
+		//https://pkg.go.dev/github.com/decred/dcrd/dcrec/secp256k1/v4#section-documentation
+
 	}
 
 	return element

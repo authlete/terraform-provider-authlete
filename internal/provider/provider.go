@@ -62,7 +62,7 @@ func New(version string) func() *schema.Provider {
 			},
 
 			ResourcesMap: map[string]*schema.Resource{
-				"authlete_service": resourceService(),
+				"authlete_service": service(),
 			},
 		}
 

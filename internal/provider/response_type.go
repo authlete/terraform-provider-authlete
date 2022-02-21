@@ -9,7 +9,8 @@ import (
 func createResponseTypeSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
-		Optional: true,
+		Optional: false,
+		Required: true,
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
