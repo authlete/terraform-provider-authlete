@@ -23,13 +23,14 @@ func createAttributeSchema() *schema.Schema {
 func mapAttributes(entry *schema.Set) []dto.Pair {
 	var entries = []dto.Pair{}
 
-	for _, v := range entry.List() {
-		var keypair = v.(map[string]interface{})
-		entries = append(entries, dto.Pair{
-			Key:   keypair["key"].(string),
-			Value: keypair["value"].(string),
-		})
+	if entry != nil {
+		for _, v := range entry.List() {
+			var keypair = v.(map[string]interface{})
+			entries = append(entries, dto.Pair{
+				Key:   keypair["key"].(string),
+				Value: keypair["value"].(string),
+			})
+		}
 	}
-
 	return entries
 }
