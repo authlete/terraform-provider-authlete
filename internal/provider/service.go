@@ -273,9 +273,10 @@ func serviceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	if d.HasChange("iss_response_parameter") {
 		srv.IssSuppressed = d.Get("iss_response_suppressed").(bool)
 	}
-	if d.HasChange("ignore_port_loopback_redirect") {
+	/*if d.HasChange("ignore_port_loopback_redirect") {
 		srv.LoopbackRedirectionUriVariable = d.Get("ignore_port_loopback_redirect").(bool)
 	}
+	*/
 	if d.HasChange("token_endpoint") {
 		srv.TokenEndpoint = d.Get("token_endpoint").(string)
 	}
@@ -428,9 +429,10 @@ func serviceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	if d.HasChange("dynamic_registration_supported") {
 		srv.DynamicRegistrationSupported = d.Get("dynamic_registration_supported").(bool)
 	}
-	if d.HasChange("dcr_scope_used_as_requestable") {
+	/*if d.HasChange("dcr_scope_used_as_requestable") {
 		srv.DcrScopeUsedAsRequestable = d.Get("dcr_scope_used_as_requestable").(bool)
 	}
+	*/
 	if d.HasChange("registration_endpoint") {
 		srv.RegistrationEndpoint = d.Get("registration_endpoint").(string)
 	}
@@ -563,7 +565,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*dto.Serv
 	newServiceDto.PkceS256Required = data.Get("pkce_s256_required").(bool)
 	newServiceDto.AuthorizationResponseDuration = uint64(data.Get("authorization_response_duration").(int))
 	newServiceDto.IssSuppressed = data.Get("iss_response_suppressed").(bool)
-	newServiceDto.LoopbackRedirectionUriVariable = data.Get("ignore_port_loopback_redirect").(bool)
+	//newServiceDto.LoopbackRedirectionUriVariable = data.Get("ignore_port_loopback_redirect").(bool)
 	newServiceDto.TokenEndpoint = data.Get("token_endpoint").(string)
 	newServiceDto.DirectTokenEndpointEnabled = data.Get("direct_token_endpoint_enabled").(bool)
 	newServiceDto.SupportedTokenAuthMethods = mapClientAuthMethods(data.Get("supported_token_auth_methods").(*schema.Set))
@@ -614,7 +616,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*dto.Serv
 	newServiceDto.UserInfoEndpoint = data.Get("user_info_endpoint").(string)
 	newServiceDto.DirectUserInfoEndpointEnabled = data.Get("direct_user_info_endpoint_enabled").(bool)
 	newServiceDto.DynamicRegistrationSupported = data.Get("dynamic_registration_supported").(bool)
-	newServiceDto.DcrScopeUsedAsRequestable = data.Get("dcr_scope_used_as_requestable").(bool)
+	//newServiceDto.DcrScopeUsedAsRequestable = data.Get("dcr_scope_used_as_requestable").(bool)
 	newServiceDto.RegistrationEndpoint = data.Get("registration_endpoint").(string)
 	newServiceDto.RegistrationManagementEndpoint = data.Get("registration_management_endpoint").(string)
 	newServiceDto.MtlsEndpointAliases = mapMtlsEndpoint(data.Get("mtls_endpoint_aliases").(*schema.Set))

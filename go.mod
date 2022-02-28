@@ -10,4 +10,4 @@ require (
 	github.com/lestrrat-go/jwx v1.2.18
 )
 
-replace github.com/authlete/authlete-go => ../authlete-go
+//replace github.com/authlete/authlete-go => ../authlete-go
