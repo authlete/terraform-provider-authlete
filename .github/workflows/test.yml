@@ -81,7 +81,9 @@ jobs:
       timeout-minutes: 10
       env:
         TF_ACC: "1"
-
+        AUTHLETE_API_SERVER: ${{ secrets.AUTHLETE_API_SERVER }}
+        AUTHLETE_SO_KEY: ${{ secrets.AUTHLETE_SO_KEY }}
+        AUTHLETE_SO_SECRET: ${{ secrets.AUTHLETE_SO_SECRET }}
         # Set whatever additional acceptance test env vars here. You can
         # optionally use data from your repository secrets using the
         # following syntax:
