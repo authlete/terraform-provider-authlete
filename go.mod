@@ -1,4 +1,4 @@
-module github.com/dcreado/terraform-provider-authlete
+module github.com/authlete/terraform-provider-authlete
 
 go 1.15
 

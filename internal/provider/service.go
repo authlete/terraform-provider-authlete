@@ -121,12 +121,15 @@ func service() *schema.Resource {
 			"device_flow_polling_interval":                  {Type: schema.TypeInt, Required: false, Optional: true},
 			"user_code_charset":                             createUserCodeCharsetSchema(),
 			"user_code_length":                              {Type: schema.TypeInt, Required: false, Optional: true},
-			"supported_trust_frameworks":                    createStringColSchema(),
-			"supported_evidence":                            createStringColSchema(),
-			"supported_identity_documents":                  createStringColSchema(),
-			"supported_verification_methods":                createStringColSchema(),
-			"supported_verified_claims":                     createStringColSchema(),
-			"end_session_endpoint":                          {Type: schema.TypeString, Required: false, Optional: true},
+			/*
+				"supported_trust_frameworks":                    createStringColSchema(),
+				"supported_evidence":                            createStringColSchema(),
+				"supported_identity_documents":                  createStringColSchema(),
+				"supported_verification_methods":                createStringColSchema(),
+				"supported_verified_claims":                     createStringColSchema(),
+			*/
+
+			"end_session_endpoint": {Type: schema.TypeString, Required: false, Optional: true},
 		},
 	}
 }
@@ -490,21 +493,23 @@ func serviceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	if d.HasChange("user_code_length") {
 		srv.UserCodeLength = uint8(d.Get("user_code_length").(int))
 	}
-	if d.HasChange("supported_trust_frameworks") {
-		srv.SupportedTrustFrameworks = mapSetToString(d.Get("supported_trust_frameworks").(*schema.Set))
-	}
-	if d.HasChange("supported_evidence") {
-		srv.SupportedEvidence = mapSetToString(d.Get("supported_evidence").(*schema.Set))
-	}
-	if d.HasChange("supported_identity_documents") {
-		srv.SupportedIdentityDocuments = mapSetToString(d.Get("supported_identity_documents").(*schema.Set))
-	}
-	if d.HasChange("supported_verification_methods") {
-		srv.SupportedVerificationMethods = mapSetToString(d.Get("supported_verification_methods").(*schema.Set))
-	}
-	if d.HasChange("supported_verified_claims") {
-		srv.SupportedVerifiedClaims = mapSetToString(d.Get("supported_verified_claims").(*schema.Set))
-	}
+	/*
+		if d.HasChange("supported_trust_frameworks") {
+			srv.SupportedTrustFrameworks = mapSetToString(d.Get("supported_trust_frameworks").(*schema.Set))
+		}
+		if d.HasChange("supported_evidence") {
+			srv.SupportedEvidence = mapSetToString(d.Get("supported_evidence").(*schema.Set))
+		}
+		if d.HasChange("supported_identity_documents") {
+			srv.SupportedIdentityDocuments = mapSetToString(d.Get("supported_identity_documents").(*schema.Set))
+		}
+		if d.HasChange("supported_verification_methods") {
+			srv.SupportedVerificationMethods = mapSetToString(d.Get("supported_verification_methods").(*schema.Set))
+		}
+		if d.HasChange("supported_verified_claims") {
+			srv.SupportedVerifiedClaims = mapSetToString(d.Get("supported_verified_claims").(*schema.Set))
+		}
+	*/
 	if d.HasChange("end_session_endpoint") {
 		srv.EndSessionEndpoint = d.Get("end_session_endpoint").(string)
 	}
@@ -636,11 +641,13 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*dto.Serv
 	newServiceDto.DeviceFlowPollingInterval = uint16(data.Get("device_flow_polling_interval").(int))
 	newServiceDto.UserCodeCharset = mapUserCodeCharsets(data.Get("user_code_charset").(string))
 	newServiceDto.UserCodeLength = uint8(data.Get("user_code_length").(int))
-	newServiceDto.SupportedTrustFrameworks = mapSetToString(data.Get("supported_trust_frameworks").(*schema.Set))
-	newServiceDto.SupportedEvidence = mapSetToString(data.Get("supported_evidence").(*schema.Set))
-	newServiceDto.SupportedIdentityDocuments = mapSetToString(data.Get("supported_identity_documents").(*schema.Set))
-	newServiceDto.SupportedVerificationMethods = mapSetToString(data.Get("supported_verification_methods").(*schema.Set))
-	newServiceDto.SupportedVerifiedClaims = mapSetToString(data.Get("supported_verified_claims").(*schema.Set))
+	/*
+		newServiceDto.SupportedTrustFrameworks = mapSetToString(data.Get("supported_trust_frameworks").(*schema.Set))
+		newServiceDto.SupportedEvidence = mapSetToString(data.Get("supported_evidence").(*schema.Set))
+		newServiceDto.SupportedIdentityDocuments = mapSetToString(data.Get("supported_identity_documents").(*schema.Set))
+		newServiceDto.SupportedVerificationMethods = mapSetToString(data.Get("supported_verification_methods").(*schema.Set))
+		newServiceDto.SupportedVerifiedClaims = mapSetToString(data.Get("supported_verified_claims").(*schema.Set))
+	*/
 	newServiceDto.EndSessionEndpoint = data.Get("end_session_endpoint").(string)
 
 	return &newServiceDto, diags

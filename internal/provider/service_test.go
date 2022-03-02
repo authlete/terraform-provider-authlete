@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"github.com/authlete/authlete-go/dto"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"testing"
 
@@ -166,13 +167,31 @@ func TestAccResourceService_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "device_flow_polling_interval", "1"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "user_code_charset", "NUMERIC"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "user_code_length", "6"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_trust_frameworks.0", "eidas_ial_high"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_evidence.0", "id_document"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_evidence.1", "utility_bill"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_identity_documents.0", "idcard"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_identity_documents.1", "password"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_verification_methods.0", "pipp"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_verified_claims.0", "given_name"),
+					/*
+						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_trust_frameworks.0", "eidas_ial_high"),
+						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_evidence.0", "id_document"),
+						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_evidence.1", "utility_bill"),
+						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_identity_documents.0", "idcard"),
+						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_identity_documents.1", "password"),
+						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_verification_methods.0", "pipp"),
+						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_verified_claims.0", "given_name"),
+						func(s *terraform.State) error {
+							service, err := pullServiceFromServer(s)
+							if err != nil {
+								return err
+							}
+							if len(service.SupportedIdentityDocuments) != 2 {
+								return fmt.Errorf("SupportedIdentityDocuments array size %d, but %d was expected. ", len(service.SupportedIdentityDocuments), 2)
+							}
+							if (service.SupportedIdentityDocuments[0] == "idcard" ||
+								service.SupportedIdentityDocuments[0] == "password") &&
+								(service.SupportedIdentityDocuments[1] == "idcard" ||
+									service.SupportedIdentityDocuments[1] == "password") {
+								return nil
+							}
+							return fmt.Errorf("SupportedIdentityDocuments does not match.")
+						},
+					*/
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "end_session_endpoint", "https://www.mystore.com/endsession"),
 				),
 			},
@@ -181,20 +200,11 @@ func TestAccResourceService_extended(t *testing.T) {
 }
 
 func testServiceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*apiClient)
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "authlete_service" {
-			continue
-		}
+	response, err := pullServiceFromServer(s)
 
-		response, err := client.authleteClient.GetService(rs.Primary.ID)
-		if err == nil {
-			if response != nil {
-				return fmt.Errorf("Service (%s) still exists.", rs.Primary.ID)
-			}
-			return nil
-		}
+	if err == nil && response != nil {
+		return fmt.Errorf("Service still exists.")
 	}
 
 	return nil
@@ -359,11 +369,11 @@ resource "authlete_service" "complete_described" {
   device_flow_polling_interval = 1
   user_code_charset = "NUMERIC"
   user_code_length= 6
-  supported_trust_frameworks = ["eidas_ial_high"]
-  supported_evidence = ["id_document", "utility_bill"]
-  supported_identity_documents = ["idcard", "password"]
-  supported_verification_methods= ["pipp"]
-  supported_verified_claims = ["given_name"]
+  #supported_trust_frameworks = ["eidas_ial_high"]
+  #supported_evidence = ["id_document", "utility_bill"]
+  #supported_identity_documents = ["idcard", "password"]
+  #supported_verification_methods= ["pipp"]
+  #supported_verified_claims = ["given_name"]
   end_session_endpoint = "https://www.mystore.com/endsession"
 }
 
@@ -392,4 +402,23 @@ func CheckOutputPresent(name string) resource.TestCheckFunc {
 
 		return nil
 	}
+}
+
+func pullServiceFromServer(s *terraform.State) (*dto.Service, error) {
+	client := testAccProvider.Meta().(*apiClient)
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "authlete_service" {
+			continue
+		}
+
+		response, err := client.authleteClient.GetService(rs.Primary.ID)
+		if err != nil {
+			return response, fmt.Errorf("Service (%s) could not be found.", rs.Primary.ID)
+		}
+
+		return response, nil
+	}
+	return &dto.Service{}, fmt.Errorf(
+		"authlete service not found")
 }
