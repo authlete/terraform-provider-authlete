@@ -20,28 +20,42 @@ the configuration affecting you Authorization server under version control.
 
 ## installing the provider
 
+On your main.tf file, include the snippet bellow: 
+
 ```hcl
 terraform {
   required_providers {
     authlete = {
       source = "authelte/terraform-provider"
-      version = ">= 1.0"
+      version = ">= 0.1"
     }
   }
 }
 
 provider "authlete" {
-	service_owner_key = var.authlete_api_key
-	service_owner_secret = var.authlete_api_secret
 }
 ```
 
-Then, initialize your Terraform workspace by running `terraform init`.
+and initialize your project by running `terraform init`.
 
-The `service_owner_key` and `service_owner_secret` are required by the provider in order to create and change the services for you.
+## configuring the provider
 
-As they are sensitive parameters we suggest to use environment variables, variables using command line or local variable file.
-The environment variables are `AUTHLETE_SO_KEY` and `AUTHLETE_SO_SECRET` or populate it using a secret management provider, like [Vault provider](https://registry.terraform.io/providers/hashicorp/vault/latest/docs).
+The provider can be configured using attributes or environment variables, with attributes taking precedence. The service owner key and secret can be retrieved from your [profile page under service owner console](https://so.authlete.com/services?locale=en).
+
+Below is a table with the attributes and respective environment variables.
+
+| attribute            | environment variable | required | default value            |
+|----------------------|----------------------|----------|--------------------------|
+| service_owner_key    | AUTHLETE_SO_KEY      | true     |                          |
+| service_owner_secret | AUTHLETE_SO_SECRET   | true     |                          |
+| api_server           | AUTHLETE_API_SERVER  |          | https://api.authlete.com |
+
+
+As they are sensitive parameters we suggest to never hardcode it on terraform files. Use environment variables, variables using command line or local variable file instead.
+
+Another option is to populate the values using a secret management provider, like [Vault provider](https://registry.terraform.io/providers/hashicorp/vault/latest/docs).
+
+Checkout the [Hello World sample](https://github.com/authlete/authlete-terraform-samples/tree/main/helloworld) for a gentle intro on configuring the provider.
 
 
 
