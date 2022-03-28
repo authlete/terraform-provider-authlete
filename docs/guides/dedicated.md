@@ -6,29 +6,27 @@ description: |-
   
 ---
 
-# Authlete dedicated cloud
+# Authlete dedicated cloud server
 
-This provider does support configuring different deployment services: regional deployment, dedicated cloud or on-premise deployments.
+This provider supports configuring different deployment services: regional deployment, dedicated cloud, and on-premise deployments.
 
-This can be accomplished by defining the property `api_server` of the provider, or using the environment variable `AUTHLETE_API_SERVER`.
+The API server to use is selected by setting the property `api_server` of the provider, or using the environment variable `AUTHLETE_API_SERVER`.
 
-The default value of the api server is `https://api.authlete.com`. which is your share
+The default value of the API server is `https://api.authlete.com`, which is the shared server.
 
-## configuring using provider property
+## Configuring using provider property
 
-if you will configure the server using `api_server` the provider section will be similiar to example below.
+If you configure the server using `api_server` the provider section will be similiar to example below:
 
 ```hcl
-
 provider "authlete" {
     api_server = "https://api.authlete-server.mydomain.com"
 }
 ```
 
-on other option is to use terraform variables like below
+Another option is to use terraform variables like below:
 
 ```hcl
-
 variable authlete_api_server {
     description="The authlete api server"
     default = "https://api.authlete-server.mydomain.com"
@@ -39,8 +37,6 @@ provider "authlete" {
 }
 ```
 
+## Regional shared cloud servers
 
-## Region datacenter
-
-If your tenant is on regional datacenter, please get in touch with Authlete to configure this parameter properly.
-
+If you are a tenant of one of Authlete's regional shared servers, please get in touch with Authlete on how to configure this parameter properly.
