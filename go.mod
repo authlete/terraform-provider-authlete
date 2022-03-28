@@ -3,7 +3,7 @@ module github.com/authlete/terraform-provider-authlete
 go 1.15
 
 require (
-	github.com/authlete/authlete-go v1.1.3
+	github.com/authlete/authlete-go v1.1.4
 	github.com/hashicorp/terraform-plugin-docs v0.5.1
 	github.com/hashicorp/terraform-plugin-log v0.2.1
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.10.1
