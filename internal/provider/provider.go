@@ -87,10 +87,6 @@ type apiClient struct {
 
 func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	return func(ctx context.Context, data *schema.ResourceData) (interface{}, diag.Diagnostics) {
-		// Setup a User-Agent for your API client (replace the provider name for yours):
-		// userAgent := p.UserAgent("terraform-provider-scaffolding", version)
-		// TODO: myClient.UserAgent = userAgent
-
 		api_server := data.Get("api_server").(string)
 		service_owner_key := data.Get("service_owner_key").(string)
 		service_owner_secret := data.Get("service_owner_secret").(string)
@@ -106,9 +102,10 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 		cnf.SetServiceApiSecret(api_secret)
 
 		apiCliente := api.New(&cnf)
+		userAgent := p.UserAgent("terraform-provider-authlete", version)
 
 		return &apiClient{api_server: api_server, service_owner_key: service_owner_key,
 			service_owner_secret: service_owner_key, api_key: api_key, api_secret: api_secret,
-			authleteClient: apiCliente}, nil
+			authleteClient: apiCliente, UserAgent: userAgent}, nil
 	}
 }

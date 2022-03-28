@@ -8,6 +8,4 @@ description: |-
 
 # Getting started
 
-check out the Hello world sample on the [Samples repository](https://github.com/authlete/authlete-terraform-samples/tree/main/helloworld).
-
-
+Check out the Hello world sample in the [Samples repository](https://github.com/authlete/authlete-terraform-samples/tree/main/helloworld).

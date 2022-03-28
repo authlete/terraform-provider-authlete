@@ -1,23 +1,16 @@
 # Terraform Provider Scaffolding
 
-This repository is a *template* for a [Terraform](https://www.terraform.io) provider. It is intended as a starting point for creating Terraform providers, containing:
+This is a Terraform provider for managing configuration of your [Authlete](https://www.authlete.com) OAuth 2 and OpenID Connect services and clients.
 
- - A resource, and a data source (`internal/provider/`),
- - Examples (`examples/`) and generated documentation (`docs/`),
- - Miscellaneous meta files.
- 
-These files contain boilerplate code that you will need to edit to create your own Terraform provider. A full guide to creating Terraform providers can be found at [Writing Custom Providers](https://www.terraform.io/docs/extend/writing-custom-providers.html).
+⚠️ This provider is **currently under active development** and is not GA. Using it for live production services is not adviced, yet.
 
-Please see the [GitHub template repository documentation](https://help.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template) for how to create a new repository from this template on GitHub.
-
-Once you've written your provider, you'll want to [publish it on the Terraform Registry](https://www.terraform.io/docs/registry/providers/publishing.html) so that others can use it.
-
+👉 Authlete servers version 2.2+ are supported. (This includes the shared server at api.authlete.com)
 
 ## Requirements
 
--   [Authlete account](https://so.authlete.com/accounts/signup)
--	[Terraform](https://www.terraform.io/downloads.html) >= 0.13.x
--	[Go](https://golang.org/doc/install) >= 1.15
+- [Authlete account](https://so.authlete.com/accounts/signup)
+- [Terraform](https://www.terraform.io/downloads.html) >= 0.13.x
+- [Go](https://golang.org/doc/install) >= 1.15
 
 
 ## Building The Provider
@@ -49,7 +42,7 @@ In order to run the full suite of Acceptance tests, run `make testacc`.
 *Note:* Acceptance tests create real resources, and often cost money to run.
 
 ```sh
-$ export AUTHLETE_API_SERVER="https://fapidev-api.authlete.net"
+$ export AUTHLETE_API_SERVER="https://api.authlete.com"
 $ export AUTHLETE_SO_SECRET="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 $ export AUTHLETE_SO_KEY="XXXXXXXXXXXXXX"
 $ make testacc
