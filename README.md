@@ -17,7 +17,7 @@ This is a Terraform provider for managing configuration of your [Authlete](https
 
 1. Clone the repository
 1. Enter the repository directory
-1. Build the provider using the make `install` command: 
+1. Build the provider using the `make install` command:
 ```sh
 $ go mod tidy
 $ make install
