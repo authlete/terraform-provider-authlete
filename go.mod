@@ -7,7 +7,7 @@ require (
 	github.com/hashicorp/terraform-plugin-docs v0.7.0
 	github.com/hashicorp/terraform-plugin-log v0.3.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.13.0
-	github.com/lestrrat-go/jwx v1.2.20
+	github.com/lestrrat-go/jwx v1.2.22
 )
 
 //replace github.com/authlete/authlete-go => ../authlete-go
