@@ -8,7 +8,7 @@ import (
 
 func createSupportedFrameworkSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
+		Type:     schema.TypeList,
 		Optional: true,
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
@@ -20,13 +20,25 @@ func createSupportedFrameworkSchema() *schema.Schema {
 	}
 }
 
-func mapSupportedFramework(vals *schema.Set) []types.ServiceProfile {
+func mapSupportedFrameworkToDTO(vals []interface{}) []types.ServiceProfile {
 
-	values := make([]types.ServiceProfile, vals.Len())
+	values := make([]types.ServiceProfile, len(vals))
 
-	for i, v := range vals.List() {
+	for i, v := range vals {
 		values[i] = types.ServiceProfile(v.(string))
 	}
 
 	return values
+}
+
+func mapSupportedFrameworkFromDTO(vals *[]types.ServiceProfile) []interface{} {
+
+	if vals != nil {
+		entries := make([]interface{}, len(*vals), len(*vals))
+		for i, v := range *vals {
+			entries[i] = v
+		}
+		return entries
+	}
+	return make([]interface{}, 0)
 }

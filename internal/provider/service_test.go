@@ -2,12 +2,16 @@ package provider
 
 import (
 	"fmt"
+	"strconv"
+	"testing"
+
 	"github.com/authlete/authlete-go/dto"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
+
+var srvToImport dto.Service
 
 func TestAccResourceService_basic(t *testing.T) {
 
@@ -32,13 +36,19 @@ func TestAccResourceService_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.prod", "direct_revocation_endpoint_enabled", "false"),
 					resource.TestCheckResourceAttr("authlete_service.prod", "direct_user_info_endpoint_enabled", "false"),
 					resource.TestCheckResourceAttr("authlete_service.prod", "direct_introspection_endpoint_enabled", "false"),
-					resource.TestCheckResourceAttr("authlete_service.prod", "single_access_token_per_subject", "true"),
+					resource.TestCheckResourceAttr("authlete_service.prod", "single_access_token_per_subject", "false"),
 				),
+			},
+			{
+				ResourceName:            "authlete_service.prod",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"api_secret"},
 			},
 		},
 	})
-
 }
+
 func TestAccResourceService_extended(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
@@ -47,7 +57,8 @@ func TestAccResourceService_extended(t *testing.T) {
 		CheckDestroy:      testServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceServiceEveryAttribute,
+				Config:             testAccResourceServiceEveryAttribute,
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "service_name", "attributes coverage test"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "issuer", "https://test.com"),
@@ -55,10 +66,10 @@ func TestAccResourceService_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "clients_per_developer", "1"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "client_id_alias_enabled", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "attribute.#", "2"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "attribute.0.key", "high_risk_scopes"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "attribute.0.value", "scope1 scope2 scope3"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "attribute.1.key", "require_2_fa"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "attribute.1.value", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "attribute.1.key", "high_risk_scopes"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "attribute.1.value", "scope1 scope2 scope3"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "attribute.0.key", "require_2_fa"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "attribute.0.value", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_custom_client_metadata.#", "2"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_custom_client_metadata.0", "basic_review"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_custom_client_metadata.1", "domain_match"),
@@ -88,7 +99,7 @@ func TestAccResourceService_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "pkce_s256_required", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "authorization_response_duration", "10"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "iss_response_suppressed", "true"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "ignore_port_loopback_redirect", "true"),
+					//resource.TestCheckResourceAttr("authlete_service.complete_described", "ignore_port_loopback_redirect", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "token_endpoint", "https://api.mystore.com/token"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "direct_token_endpoint_enabled", "false"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_token_auth_methods.0", "CLIENT_SECRET_POST"),
@@ -122,15 +133,15 @@ func TestAccResourceService_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "refresh_token_kept", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "token_expiration_link", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.#", "2"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.1.name", "address"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.1.default_entry", "false"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.1.description", "A permission to request an OpenID Provider to include the address claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.0.name", "email"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.0.default_entry", "true"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.0.description", "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.0.attribute.#", "1"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.0.attribute.0.key", "key1"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.0.attribute.0.value", "val1"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.0.name", "address"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.0.default_entry", "false"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.0.description", "A permission to request an OpenID Provider to include the address claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.1.name", "email"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.1.default_entry", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.1.description", "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.1.attribute.#", "1"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.1.attribute.0.key", "key1"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.1.attribute.0.value", "val1"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "scope_required", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "id_token_duration", "98"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "allowable_clock_skew", "1"),
@@ -146,7 +157,7 @@ func TestAccResourceService_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "hsm_enabled", "false"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "user_info_endpoint", "https://api.mystore.com/userinfo"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "direct_user_info_endpoint_enabled", "false"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "dcr_scope_used_as_requestable", "true"),
+					//resource.TestCheckResourceAttr("authlete_service.complete_described", "dcr_scope_used_as_requestable", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "registration_endpoint", "https://api.mystore.com/dcr"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "registration_management_endpoint", "https://api.mystore.com/client/"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "mtls_endpoint_aliases.0.name", "test"),
@@ -175,25 +186,16 @@ func TestAccResourceService_extended(t *testing.T) {
 						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_identity_documents.1", "password"),
 						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_verification_methods.0", "pipp"),
 						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_verified_claims.0", "given_name"),
-						func(s *terraform.State) error {
-							service, err := pullServiceFromServer(s)
-							if err != nil {
-								return err
-							}
-							if len(service.SupportedIdentityDocuments) != 2 {
-								return fmt.Errorf("SupportedIdentityDocuments array size %d, but %d was expected. ", len(service.SupportedIdentityDocuments), 2)
-							}
-							if (service.SupportedIdentityDocuments[0] == "idcard" ||
-								service.SupportedIdentityDocuments[0] == "password") &&
-								(service.SupportedIdentityDocuments[1] == "idcard" ||
-									service.SupportedIdentityDocuments[1] == "password") {
-								return nil
-							}
-							return fmt.Errorf("SupportedIdentityDocuments does not match.")
-						},
+
 					*/
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "end_session_endpoint", "https://www.mystore.com/endsession"),
 				),
+			},
+			{
+				ResourceName:            "authlete_service.complete_described",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"api_secret", "jwk"},
 			},
 		},
 	})
@@ -211,9 +213,7 @@ func testServiceDestroy(s *terraform.State) error {
 }
 
 const testAccResourceServiceDefaultValues = `
-
 provider "authlete" {
-	
 }
 
 resource "authlete_service" "prod" {
@@ -273,7 +273,7 @@ resource "authlete_service" "complete_described" {
   pkce_s256_required = true
   authorization_response_duration = 10
   iss_response_suppressed = true
-  ignore_port_loopback_redirect = true
+  #ignore_port_loopback_redirect = true
   token_endpoint = "https://api.mystore.com/token"
   direct_token_endpoint_enabled = false
   supported_token_auth_methods = ["CLIENT_SECRET_POST", "TLS_CLIENT_AUTH"]
@@ -306,12 +306,12 @@ resource "authlete_service" "complete_described" {
   supported_scopes {
 	name = "address"
     default_entry = false
-    description = "A permission to request an OpenID Provider to include the address claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details"
+    description = "A permission to request an OpenID Provider to include the address claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
   }
   supported_scopes {
 	name = "email"
     default_entry = true
-    description = "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details"
+    description = "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
     attribute {
 		key = "key1"
         value = "val1"
@@ -331,12 +331,14 @@ resource "authlete_service" "complete_described" {
 	  alg = "RS256" 
 	  use = "sig" 
 	  kty = "RSA"
+   key_size = 2048
       generate = true
    }
   jwk {
 	  kid = "kid2"
 	  alg = "RS256" 
 	  use = "sig" 
+   key_size = 2048
 	  kty = "RSA"
       generate = true
    }
@@ -346,7 +348,7 @@ resource "authlete_service" "complete_described" {
   hsm_enabled = false
   user_info_endpoint = "https://api.mystore.com/userinfo"
   direct_user_info_endpoint_enabled = false
-  dcr_scope_used_as_requestable = true
+  #dcr_scope_used_as_requestable = true
   registration_endpoint = "https://api.mystore.com/dcr"
   registration_management_endpoint = "https://api.mystore.com/client/"
   mtls_endpoint_aliases {
@@ -421,4 +423,8 @@ func pullServiceFromServer(s *terraform.State) (*dto.Service, error) {
 	}
 	return &dto.Service{}, fmt.Errorf(
 		"authlete service not found")
+}
+
+func getServiceId(*terraform.State) (string, error) {
+	return strconv.FormatUint(srvToImport.ApiKey, 10), nil
 }

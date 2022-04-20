@@ -21,3 +21,7 @@ func mapUserCodeCharsets(val string) types.UserCodeCharset {
 
 	return types.UserCodeCharset(val)
 }
+
+func mapUserCodeCharsetsFromDTO(val types.UserCodeCharset) string {
+	return string(val)
+}

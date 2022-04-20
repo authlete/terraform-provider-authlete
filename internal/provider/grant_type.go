@@ -8,7 +8,7 @@ import (
 
 func createGrantTypeSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
+		Type:     schema.TypeList,
 		Optional: false,
 		Required: true,
 		Elem: &schema.Schema{
@@ -26,13 +26,27 @@ func createGrantTypeSchema() *schema.Schema {
 	}
 }
 
-func mapGrantTypes(vals *schema.Set) []types.GrantType {
+func mapGrantTypesToDTO(vals []interface{}) []types.GrantType {
 
-	values := make([]types.GrantType, vals.Len())
+	values := make([]types.GrantType, len(vals))
 
-	for i, v := range vals.List() {
+	for i, v := range vals {
 		values[i] = types.GrantType(v.(string))
 	}
 
 	return values
+}
+
+func mapGrantTypesFromDTO(vals *[]types.GrantType) []interface{} {
+
+	var result = make([]interface{}, len(*vals))
+
+	if vals != nil {
+		for i, v := range *vals {
+			var str string
+			str = string(v)
+			result[i] = str
+		}
+	}
+	return result
 }

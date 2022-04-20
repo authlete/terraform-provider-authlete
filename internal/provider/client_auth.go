@@ -8,8 +8,9 @@ import (
 
 func createClientAuthSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
+		Type:     schema.TypeList,
 		Optional: true,
+		Computed: true,
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
@@ -25,13 +26,25 @@ func createClientAuthSchema() *schema.Schema {
 	}
 }
 
-func mapClientAuthMethods(auth *schema.Set) []types.ClientAuthMethod {
+func mapClientAuthMethods(auth []interface{}) []types.ClientAuthMethod {
 
-	authMethods := make([]types.ClientAuthMethod, auth.Len())
+	authMethods := make([]types.ClientAuthMethod, len(auth))
 
-	for i, v := range auth.List() {
+	for i, v := range auth {
 		authMethods[i] = types.ClientAuthMethod(v.(string))
 	}
 
 	return authMethods
+}
+
+func mapClientAuthMethodsFromDTO(vals *[]types.ClientAuthMethod) []interface{} {
+
+	if vals != nil {
+		entries := make([]interface{}, len(*vals), len(*vals))
+		for i, v := range *vals {
+			entries[i] = v
+		}
+		return entries
+	}
+	return make([]interface{}, 0)
 }

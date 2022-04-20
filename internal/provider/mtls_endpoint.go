@@ -7,7 +7,7 @@ import (
 
 func createMtlsEndpointSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
+		Type:     schema.TypeList,
 		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -20,10 +20,10 @@ func createMtlsEndpointSchema() *schema.Schema {
 	}
 }
 
-func mapMtlsEndpoint(vals *schema.Set) []dto.NamedUri {
+func mapMtlsEndpoint(vals []interface{}) []dto.NamedUri {
 	var entries = []dto.NamedUri{}
 
-	for _, v := range vals.List() {
+	for _, v := range vals {
 		var keypair = v.(map[string]interface{})
 		entries = append(entries, dto.NamedUri{
 			Name: keypair["name"].(string),
@@ -31,4 +31,20 @@ func mapMtlsEndpoint(vals *schema.Set) []dto.NamedUri {
 		})
 	}
 	return entries
+}
+
+func mapMtlsEndpointfromDto(endpoints *[]dto.NamedUri) []interface{} {
+
+	if endpoints != nil {
+		entries := make([]interface{}, len(*endpoints), len(*endpoints))
+
+		for i, v := range *endpoints {
+			newEntry := make(map[string]interface{})
+			newEntry["name"] = v.Name
+			newEntry["uri"] = v.Uri
+			entries[i] = newEntry
+		}
+		return entries
+	}
+	return make([]interface{}, 0)
 }
