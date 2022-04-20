@@ -26,12 +26,33 @@ func createClientAuthSchema() *schema.Schema {
 	}
 }
 
+func createClientAuthMethodSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeString,
+		Optional: true,
+		Computed: true,
+		ValidateFunc: validation.StringInSlice([]string{
+			string(types.ClientAuthMethod_NONE),
+			string(types.ClientAuthMethod_CLIENT_SECRET_BASIC),
+			string(types.ClientAuthMethod_CLIENT_SECRET_POST),
+			string(types.ClientAuthMethod_CLIENT_SECRET_JWT),
+			string(types.ClientAuthMethod_PRIVATE_KEY_JWT),
+			string(types.ClientAuthMethod_TLS_CLIENT_AUTH),
+			string(types.ClientAuthMethod_SELF_SIGNED_TLS_CLIENT_AUTH),
+		}, false),
+	}
+}
+
+func mapClientAuthMethodToDto(v interface{}) types.ClientAuthMethod {
+	return types.ClientAuthMethod(v.(string))
+}
+
 func mapClientAuthMethods(auth []interface{}) []types.ClientAuthMethod {
 
 	authMethods := make([]types.ClientAuthMethod, len(auth))
 
 	for i, v := range auth {
-		authMethods[i] = types.ClientAuthMethod(v.(string))
+		authMethods[i] = mapClientAuthMethodToDto(v)
 	}
 
 	return authMethods

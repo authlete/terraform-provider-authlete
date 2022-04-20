@@ -21,12 +21,30 @@ func createBackchannelDeliverySchema() *schema.Schema {
 	}
 }
 
+func createDeliveryModeSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeString,
+		Optional: true,
+		Required: false,
+		Computed: true,
+		ValidateFunc: validation.StringInSlice([]string{
+			string(types.DeliveryMode_POLL),
+			string(types.DeliveryMode_PING),
+			string(types.DeliveryMode_PUSH),
+		}, false),
+	}
+}
+
+func mapDeliveryModeToDto(v interface{}) types.DeliveryMode {
+	return types.DeliveryMode(v.(string))
+}
+
 func mapBackchannelDelivery(vals []interface{}) []types.DeliveryMode {
 
 	values := make([]types.DeliveryMode, len(vals))
 
 	for i, v := range vals {
-		values[i] = types.DeliveryMode(v.(string))
+		values[i] = mapDeliveryModeToDto(v)
 	}
 
 	return values
