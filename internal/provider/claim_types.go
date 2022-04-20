@@ -8,8 +8,9 @@ import (
 
 func createSupportedClaimTypesSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
+		Type:     schema.TypeList,
 		Optional: true,
+		Computed: true,
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
@@ -21,13 +22,27 @@ func createSupportedClaimTypesSchema() *schema.Schema {
 	}
 }
 
-func mapClaimTypes(vals *schema.Set) []types.ClaimType {
+func mapClaimTypes(vals []interface{}) []types.ClaimType {
 
-	values := make([]types.ClaimType, vals.Len())
+	values := make([]types.ClaimType, len(vals))
 
-	for i, v := range vals.List() {
+	for i, v := range vals {
 		values[i] = types.ClaimType(v.(string))
 	}
 
 	return values
+}
+
+func mapClaimTypesFromDTO(vals *[]types.ClaimType) []interface{} {
+
+	var result = make([]interface{}, len(*vals))
+
+	if vals != nil {
+		for i, v := range *vals {
+			var str string
+			str = string(v)
+			result[i] = str
+		}
+	}
+	return result
 }

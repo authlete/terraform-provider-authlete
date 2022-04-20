@@ -8,7 +8,7 @@ import (
 
 func createResponseTypeSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
+		Type:     schema.TypeList,
 		Optional: false,
 		Required: true,
 		Elem: &schema.Schema{
@@ -27,12 +27,24 @@ func createResponseTypeSchema() *schema.Schema {
 	}
 }
 
-func mapResponseTypes(vals *schema.Set) []types.ResponseType {
-	mapped := make([]types.ResponseType, vals.Len())
+func mapResponseTypesToDTO(vals []interface{}) []types.ResponseType {
+	mapped := make([]types.ResponseType, len(vals))
 
-	for i, v := range vals.List() {
+	for i, v := range vals {
 		mapped[i] = types.ResponseType(v.(string))
 	}
 
 	return mapped
+}
+
+func mapResponseTypesFromDTO(vals *[]types.ResponseType) []interface{} {
+
+	if vals != nil {
+		entries := make([]interface{}, len(*vals), len(*vals))
+		for i, v := range *vals {
+			entries[i] = v
+		}
+		return entries
+	}
+	return make([]interface{}, 0)
 }

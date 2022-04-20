@@ -21,7 +21,7 @@ import (
 
 func createJWKSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
+		Type:     schema.TypeList,
 		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -54,7 +54,6 @@ func createJWKSchema() *schema.Schema {
 				"crv": {
 					Type:     schema.TypeString,
 					Optional: true,
-					Default:  "P-256",
 					ValidateFunc: validation.StringInSlice([]string{
 						"P-256", "P-384", "P-521",
 						"secp256k1", "Ed25519", "X25519",
@@ -68,7 +67,6 @@ func createJWKSchema() *schema.Schema {
 				"key_size": {
 					Type:     schema.TypeInt,
 					Optional: true,
-					Default:  2048,
 				},
 				"kty": {
 					Type:     schema.TypeString,
@@ -336,11 +334,11 @@ func getAsString(newKey jwk.Key, key string) (string, bool) {
 	return string(val), rootValue
 }
 
-func mapJWKS(vals *schema.Set, diags diag.Diagnostics) (string, diag.Diagnostics) {
+func mapJWKS(vals []interface{}, diags diag.Diagnostics) (string, diag.Diagnostics) {
 
 	var keysArray = []JWKStruct{}
 
-	for _, aKey := range vals.List() {
+	for _, aKey := range vals {
 		var val1 = aKey.(map[string]interface{})
 
 		//fmt.Println(val1["kid"].(string))
@@ -409,7 +407,19 @@ func findKey(kid string, existingKeys []JWKStruct, diags diag.Diagnostics) inter
 	return nil
 }
 
-func updateJWKS(vals *schema.Set, jwks string, diags diag.Diagnostics) (string, diag.Diagnostics) {
+func findLocalKey(kid string, existingKeys []interface{}) map[string]interface{} {
+
+	for _, aKey := range existingKeys {
+		localKey := aKey.(map[string]interface{})
+		if localKey["kid"] == kid {
+
+			return localKey
+		}
+	}
+	return nil
+}
+
+func updateJWKS(vals []interface{}, jwks string, diags diag.Diagnostics) (string, diag.Diagnostics) {
 
 	var keysArray = []JWKStruct{}
 
@@ -424,7 +434,7 @@ func updateJWKS(vals *schema.Set, jwks string, diags diag.Diagnostics) (string, 
 		Detail:   " keys: " + fmt.Sprint(keys),
 	})
 
-	for _, aKey := range vals.List() {
+	for _, aKey := range vals {
 		var val1 = aKey.(map[string]interface{})
 
 		var element JWKStruct
@@ -470,4 +480,71 @@ func updateJWKS(vals *schema.Set, jwks string, diags diag.Diagnostics) (string, 
 
 	toReturn = string(jsonString)
 	return toReturn, diags
+}
+
+func mapJWKfromDTO(localKeys []interface{}, jwks string) []interface{} {
+
+	var serverKeysMap map[string][]JWKStruct
+	json.Unmarshal([]byte(jwks), &serverKeysMap)
+
+	var serverKeys = serverKeysMap["keys"]
+
+	result := make([]interface{}, len(serverKeys))
+
+	for i, aKey := range serverKeys {
+		localKey := findLocalKey(aKey.Kid, localKeys)
+		if localKey != nil && localKey["generate"] == true {
+			result[i] = localKey
+		} else {
+			element := make(map[string]interface{})
+			element["kid"] = aKey.Kid
+			element["alg"] = aKey.Alg
+			if aKey.Use != "" {
+				element["use"] = aKey.Use
+			}
+			if aKey.Kty != "" {
+				element["kty"] = aKey.Kty
+			}
+			if aKey.Crv != "" {
+				element["crv"] = aKey.Crv
+			}
+			if aKey.D != "" {
+				element["d"] = aKey.D
+			}
+			if aKey.Dp != "" {
+				element["dp"] = aKey.Dp
+			}
+			if aKey.Dq != "" {
+				element["dq"] = aKey.Dq
+			}
+			if aKey.E != "" {
+				element["e"] = aKey.E
+			}
+			if aKey.K != "" {
+				element["k"] = aKey.K
+			}
+			if aKey.N != "" {
+				element["n"] = aKey.N
+			}
+			if aKey.P != "" {
+				element["p"] = aKey.P
+			}
+			if aKey.Q != "" {
+				element["q"] = aKey.Q
+			}
+			if aKey.Qi != "" {
+				element["qi"] = aKey.Qi
+			}
+			if aKey.X != "" {
+				element["x"] = aKey.X
+			}
+			element["x5c"] = aKey.X5c
+			if aKey.Y != "" {
+				element["y"] = aKey.Y
+			}
+			result[i] = element
+		}
+
+	}
+	return result
 }

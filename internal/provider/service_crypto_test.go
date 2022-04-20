@@ -20,6 +20,8 @@ func TestAccResourceServiceCrypto_rsa(t *testing.T) {
 				Config: testAccGenerateRSAKeys,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("authlete_service.rsa", "jwk.#", "9"),
+					resource.TestCheckResourceAttr("authlete_service.rsa", "jwk.0.kid", "rsa1"),
+					resource.TestCheckResourceAttr("authlete_service.rsa", "jwk.0.alg", "RS256"),
 				),
 			},
 		},
@@ -76,6 +78,31 @@ func TestAccResourceServiceCrypto_rsa_key_rotation(t *testing.T) {
 						return fmt.Errorf("Key2 was changed - created (%s) and updated (%s).", key2, jwkStruct)
 					},
 				),
+			},
+		},
+	})
+}
+
+func TestAccResourceServiceCrypto_import(t *testing.T) {
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		CheckDestroy:      testServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccGenerateRSAKeys_import,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("authlete_service.import", "jwk.#", "2"),
+					resource.TestCheckResourceAttr("authlete_service.import", "jwk.0.kid", "rsa1"),
+					resource.TestCheckResourceAttr("authlete_service.import", "jwk.0.alg", "PS256"),
+				),
+			},
+			{
+				ResourceName:            "authlete_service.import",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"api_secret"},
 			},
 		},
 	})
@@ -189,6 +216,7 @@ resource "authlete_service" "rsa" {
 	  alg = "RS256" 
 	  use = "sig" 
 	  kty = "RSA"
+  key_size = 2048
       generate = true
    }
    jwk {
@@ -196,6 +224,7 @@ resource "authlete_service" "rsa" {
 	  alg = "RS384" 
 	  use = "sig" 
 	  kty = "RSA"
+ key_size = 2048
       generate = true
    }
    jwk {
@@ -203,36 +232,42 @@ resource "authlete_service" "rsa" {
 	  alg = "RS512" 
 	  use = "sig" 
 	  kty = "RSA"
+      key_size = 2048
       generate = true
    }
    jwk {
 	kid = "psa1"
 	alg = "PS256" 
 	use = "sig"
+ 	key_size = 2048
     generate = true
    } 
    jwk {
 	kid = "psa2"
 	alg = "PS384" 
 	use = "sig"
+ 	key_size = 2048
     generate = true
    } 
    jwk {
 	kid = "psa3"
 	alg = "PS512" 
 	use = "sig"
+ 	key_size = 2048
     generate = true
    } 
    jwk {
 	kid = "encrsa1"
 	alg = "RSA-OAEP" 
 	use = "enc"
+ 	key_size = 2048
     generate = true
    } 
    jwk {
 	kid = "encrsa2"
 	alg = "RSA-OAEP-256" 
 	use = "enc" 
+ 	key_size = 2048
 	generate = true
    }
    jwk {
@@ -262,6 +297,7 @@ resource "authlete_service" "rsa" {
 	  alg = "RS384" 
 	  use = "sig" 
 	  kty = "RSA"
+      key_size = 2048
       generate = true
    }
    jwk {
@@ -269,10 +305,12 @@ resource "authlete_service" "rsa" {
 	  alg = "RS384" 
 	  use = "sig" 
 	  kty = "RSA"
+      key_size = 2048
       generate = true
    }
 }
 `
+
 const testAccGenerateRSAKeys_update = `
 provider "authlete" {
 	
@@ -290,6 +328,7 @@ resource "authlete_service" "rsa" {
 	  alg = "RS384" 
 	  use = "sig" 
 	  kty = "RSA"
+      key_size = 2048
       generate = true
    }
    jwk {
@@ -297,6 +336,7 @@ resource "authlete_service" "rsa" {
 	  alg = "RS384" 
 	  use = "sig" 
 	  kty = "RSA"
+      key_size = 2048
       generate = true
    }
 }
@@ -319,36 +359,42 @@ resource "authlete_service" "ec" {
 	  kid = "ec1"
 	  alg = "ES256" 
 	  use = "sig"
+      crv = "P-256"
       generate = true
    }
   jwk {
 	  kid = "ec3"
 	  alg = "ES384" 
 	  use = "sig"
+      crv = "P-256"
       generate = true
    }
   jwk {
 	  kid = "ec4"
 	  alg = "ES512" 
 	  use = "sig"
+      crv = "P-256"
       generate = true
    }
    jwk {
 	  kid = "enc1"
 	  alg = "ECDH-ES" 
 	  use = "enc"
+      crv = "P-256"
       generate = true
    }
    jwk {
 	  kid = "enc2"
 	  alg = "ECDH-ES+A128KW" 
 	  use = "enc"
+      crv = "P-256"
       generate = true
    }
    jwk {
 	kid = "enc3"
 	alg = "ECDH-ES+A192KW" 
 	use = "enc"
+      crv = "P-256"
     generate = true
    }
 }
@@ -370,12 +416,14 @@ resource "authlete_service" "ec" {
   jwk {
 	  kid = "ec1"
 	  alg = "ES256" 
+      crv = "P-256"
 	  use = "sig"
       generate = true
    }
    jwk {
 	  kid = "ec2"
 	  alg = "ES256" 
+      crv = "P-256"
 	  use = "sig"
       generate = true
    }
@@ -383,12 +431,14 @@ resource "authlete_service" "ec" {
 	  kid = "enc1"
 	  alg = "ECDH-ES" 
 	  use = "enc"
+      crv = "P-256"
       generate = true
    }
    jwk {
 	  kid = "enc2"
 	  alg = "ECDH-ES+A128KW" 
 	  use = "enc"
+      crv = "P-256"
       generate = true
    }
 }
@@ -411,24 +461,28 @@ resource "authlete_service" "ec" {
 	  kid = "ec2"
 	  alg = "ES256" 
 	  use = "sig"
+      crv = "P-256"
       generate = true
    }
    jwk {
 	  kid = "ec3"
 	  alg = "ES256" 
 	  use = "sig"
+      crv = "P-256"
       generate = true
    }
    jwk {
 	  kid = "enc2"
 	  alg = "ECDH-ES+A128KW" 
 	  use = "enc"
+      crv = "P-256"
       generate = true
    }
    jwk {
 	  kid = "enc3"
 	  alg = "ECDH-ES" 
 	  use = "enc"
+      crv = "P-256"
       generate = true
    }
    
@@ -462,3 +516,44 @@ func findJWKStructure(s *terraform.State, kid string) (JWKStruct, error) {
 
 	return JWKStruct{}, fmt.Errorf("Key %s not found on Service", kid)
 }
+
+const testAccGenerateRSAKeys_import = `
+provider "authlete" {
+	
+}
+
+resource "authlete_service" "import" {
+  issuer = "https://test.com"
+  service_name = "RSA Test API"
+  supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
+  supported_response_types = ["CODE"]
+  access_token_sign_alg = "RS256"
+  access_token_signature_key_id = "rsa1"
+   jwk {
+	  kid = "rsa1"
+	  alg = "PS256" 
+	  use = "sig" 
+	  kty = "RSA"
+ generate = false
+		p = "9tbn_sEgxi3hkTlKfYegMLJsTn_6EPK3XdRJbJINIlH6sCGKKkxEs76aehNw2E08xbJE8Np3v4PdAnBkZkaMIWT8JxQxv_TS_TBqMNdO886PIM-fWitV3QUf2nzinYHf-_PXdZnqpd4S4x9Xe0pYMpb2g83X8NuevRu_HzxL8bM"
+ 		q = "nRzgvjEqLQRFzYX1ZqtJYB6L8MyhuEucOCHSr-fDVGBlM2iMTsgAG5icnz9BfwUK4_lBsxdYM938GcmrwT6ZE4ANKS9t1BZamctqZGKf4sY_QvjEkDV4DHvnUV2i_tsVvwDPaUvUT_8lU73Y08N7BVLhcY3wEJf9NKofbCONU_M"
+    	d = "EVpIBBlbOksB2eiQ4Mt_lAlkuGYzhRjbP2v4mIxcpXO6r5OZgCcodoQTQKTLKx4zhzm6L3xb75BZNDrdu481EvcdJm1mXwhIi9B8DheOD3Y1rzrreulM_4yS1EJQjpIjwmXHiV9nK6qSM8FNFe98FGFA9X7dghBeAQm1ZmGdp-zzK4EMLvbSqMY1yK9GQ52TpvWW26V_V885zWZKbSoIOdLJ8cr_OwSAXp1wezpnscTwoqw1iwZAP1m9fehmLBKEOxUMOSpjbl53AjVVWvGX3ShV1JPnFeMb3zhWzt2_LdqJTWONSWS-zhNSsWDWdnYQTBb7Xz0HGdlegAuDxF1aDQ"
+    	e = "AQAB"
+       qi = "9YboaIGrL8wY9JNvbkJ0-6D4sUZEMWuBJTD7mmTUeIy94hlNNZDdcgQo8hzOcOVXkjrrVKxsRekU05rg_XNLaODC2_au36VduYWQ1RM70OQ-kfk4zYJK63C8OFseh-9K4Teu82We7858yN4P-GvPeZYMvDlTagbGDUYKm7DTrgA"
+       dp = "RmXmRnbIJR1CvstLHmAG5LyOPRkstZazizQXOLqyuj4NNBxsrkGQOn86yWQwA9CLa4q7NMHp8xnld2OcjrrCDmghrfeJdMibQBCFyKYvY0Ne-KmeNfY0B9QFUKfbbbZzrgTOR0D9dg7O7i2rIoOCgfMiHVcgphXMwPxf1sW4lxc"
+       dq = "BykoySJehLy8HbjsTWijKIFb6Xa6LDcuAJTyEFhk27SlCCnMs06ESr2y7cMpTgvBylAzAWGgAIUul1JMxLsAqRXeA7GItPDr4jSWPcsM9H4KphfGhbgaJ5-CFIBLDIiZviHgUjFFlPvRDLcLaeNv-PclFVLdzTPQM5VJZ1lbeKc"
+        n = "l32kfAo1HkGMSmx4OFk45klYE736CttrvHPPLzHuZbQYQbBxniaxLiheR_SsAUY8rl6lTBlaDzgOEc2qNxJm_hAIGbs13GucJ3TchR51NRrx9xYFCpBh9-_8NYKaPLl0iwzaoUOS1-wDFIvYR6Hy1Qsg7voz7yZMXflUvsxn24nIWQE7zfDXSYJFB-v__OPhPvSO3bj6BOKGq85JIVYnpQHc8Yy835tfbGt7a_ZExrCkGSgvxMqSawVeXyltIyk9rd6g_VxrLomtPahw0LpiLzDFr2s8YpWRdxPbp2N6CxtIB_LFAzXyhB3hSww5V28fTCI2kW_DNk-I7MeWdAp16Q"
+   }
+
+	jwk {
+		kid = "ec1"
+		crv = "P-256"
+    	kty = "EC"
+    	  d = "VT0W-vHxG8Wc0Ev0UT1jIs0XKfctQfQc93WV5Bqb2a0"
+    	use = "sig"
+    	  x = "coUEzc60fSaVWui-NCUEqAKwFq_isrQbdcxk-jafyTw"
+          y = "b9hCE1LgOry4mEUFgfz49NBEiNuC5mbBgb9glVZp420"
+		alg = "ES256"
+}
+}
+`
