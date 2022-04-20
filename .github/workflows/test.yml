@@ -10,7 +10,7 @@ on:
     paths-ignore:
       - 'README.md'
   # For systems with an upstream API that could drift unexpectedly (like most SaaS systems, etc.),
-  # we recommend testing at a regular interval not necessarily tied to code changes. This will 
+  # we recommend testing at a regular interval not necessarily tied to code changes. This will
   # ensure you are alerted to something breaking due to an API change, even if the code did not
   # change.
   # schedule:
@@ -77,7 +77,7 @@ jobs:
     - name: Get dependencies
       run: |
         go mod download
-        
+
     - name: TF acceptance tests
       timeout-minutes: 10
       env:
@@ -85,6 +85,8 @@ jobs:
         AUTHLETE_API_SERVER: ${{ secrets.AUTHLETE_API_SERVER }}
         AUTHLETE_SO_KEY: ${{ secrets.AUTHLETE_SO_KEY }}
         AUTHLETE_SO_SECRET: ${{ secrets.AUTHLETE_SO_SECRET }}
+        AUTHLETE_API_KEY: ${{ secrets.AUTHLETE_API_KEY }}
+        AUTHLETE_API_SECRET: ${{ secrets.AUTHLETE_API_SECRET }}
 
         # Set whatever additional acceptance test env vars here. You can
         # optionally use data from your repository secrets using the
