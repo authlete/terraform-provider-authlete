@@ -40,13 +40,13 @@ func mapSupportedScope(vals []interface{}) []dto.Scope {
 			Name:         entry["name"].(string),
 			DefaultEntry: entry["default_entry"].(bool),
 			Description:  entry["description"].(string),
-			Attributes:   mapAttributestoDto(entry["attribute"].([]interface{})),
+			Attributes:   mapAttributesToDTO(entry["attribute"].([]interface{})),
 		}
 	}
 	return mapped
 }
 
-func mapSupportedScopefromDto(scopes *[]dto.Scope) []interface{} {
+func mapSupportedScopeFromDTO(scopes *[]dto.Scope) []interface{} {
 
 	if scopes != nil {
 		entries := make([]interface{}, len(*scopes), len(*scopes))
@@ -56,7 +56,7 @@ func mapSupportedScopefromDto(scopes *[]dto.Scope) []interface{} {
 			newEntry["name"] = v.Name
 			newEntry["default_entry"] = v.DefaultEntry
 			newEntry["description"] = v.Description
-			newEntry["attribute"] = mapAttributesfromDto(&v.Attributes)
+			newEntry["attribute"] = mapAttributesFromDTO(&v.Attributes)
 			entries[i] = newEntry
 		}
 		return entries

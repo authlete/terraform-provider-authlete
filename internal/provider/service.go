@@ -156,7 +156,7 @@ func serviceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	api_key := newService.ApiKey
 	api_secret := newService.ApiSecret
 
-	//populate the state with default values coming from authlete api server.
+	// populate the state with default values coming from authlete api server.
 	serviceToResource(newService, d, diags)
 
 	d.SetId(strconv.FormatUint(api_key, 10))
@@ -212,7 +212,7 @@ func serviceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}
 		srv.ClientIdAliaseEnabled = d.Get("client_id_alias_enabled").(bool)
 	}
 	if d.HasChange("attributes") {
-		srv.Attributes = mapAttributestoDto(d.Get("attribute").([]interface{}))
+		srv.Attributes = mapAttributesToDTO(d.Get("attribute").([]interface{}))
 	}
 	if d.HasChange("supported_custom_client_metadata") {
 		srv.SupportedCustomClientMetadata = mapSetToString(d.Get("supported_custom_client_metadata").([]interface{}))
@@ -281,9 +281,9 @@ func serviceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	if d.HasChange("iss_response_parameter") {
 		srv.IssSuppressed = d.Get("iss_response_suppressed").(bool)
 	}
-	//if d.HasChange("ignore_port_loopback_redirect") {
+	// if d.HasChange("ignore_port_loopback_redirect") {
 	//	srv.LoopbackRedirectionUriVariable = d.Get("ignore_port_loopback_redirect").(bool)
-	//}
+	// }
 	if d.HasChange("token_endpoint") {
 		srv.TokenEndpoint = d.Get("token_endpoint").(string)
 	}
@@ -436,9 +436,9 @@ func serviceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	if d.HasChange("dynamic_registration_supported") {
 		srv.DynamicRegistrationSupported = d.Get("dynamic_registration_supported").(bool)
 	}
-	//if d.HasChange("dcr_scope_used_as_requestable") {
+	// if d.HasChange("dcr_scope_used_as_requestable") {
 	//	srv.DcrScopeUsedAsRequestable = d.Get("dcr_scope_used_as_requestable").(bool)
-	//}
+	// }
 	if d.HasChange("registration_endpoint") {
 		srv.RegistrationEndpoint = d.Get("registration_endpoint").(string)
 	}
@@ -550,7 +550,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*dto.Serv
 	newServiceDto.Description = data.Get("description").(string)
 	newServiceDto.ClientsPerDeveloper = uint16(data.Get("clients_per_developer").(int))
 	newServiceDto.ClientIdAliaseEnabled = data.Get("client_id_alias_enabled").(bool)
-	newServiceDto.Attributes = mapAttributestoDto(data.Get("attribute").([]interface{}))
+	newServiceDto.Attributes = mapAttributesToDTO(data.Get("attribute").([]interface{}))
 	newServiceDto.SupportedCustomClientMetadata = mapSetToString(data.Get("supported_custom_client_metadata").([]interface{}))
 	newServiceDto.AuthenticationCallbackEndpoint = data.Get("authentication_callback_endpoint").(string)
 	newServiceDto.AuthenticationCallbackApiKey = data.Get("authentication_callback_api_key").(string)
@@ -573,7 +573,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*dto.Serv
 	newServiceDto.PkceS256Required = data.Get("pkce_s256_required").(bool)
 	newServiceDto.AuthorizationResponseDuration = uint64(data.Get("authorization_response_duration").(int))
 	newServiceDto.IssSuppressed = data.Get("iss_response_suppressed").(bool)
-	//newServiceDto.LoopbackRedirectionUriVariable = data.Get("ignore_port_loopback_redirect").(bool)
+	// newServiceDto.LoopbackRedirectionUriVariable = data.Get("ignore_port_loopback_redirect").(bool)
 	newServiceDto.TokenEndpoint = data.Get("token_endpoint").(string)
 	newServiceDto.DirectTokenEndpointEnabled = data.Get("direct_token_endpoint_enabled").(bool)
 	newServiceDto.SupportedTokenAuthMethods = mapClientAuthMethods(data.Get("supported_token_auth_methods").([]interface{}))
@@ -624,7 +624,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*dto.Serv
 	newServiceDto.UserInfoEndpoint = data.Get("user_info_endpoint").(string)
 	newServiceDto.DirectUserInfoEndpointEnabled = data.Get("direct_user_info_endpoint_enabled").(bool)
 	newServiceDto.DynamicRegistrationSupported = data.Get("dynamic_registration_supported").(bool)
-	//newServiceDto.DcrScopeUsedAsRequestable = data.Get("dcr_scope_used_as_requestable").(bool)
+	// newServiceDto.DcrScopeUsedAsRequestable = data.Get("dcr_scope_used_as_requestable").(bool)
 	newServiceDto.RegistrationEndpoint = data.Get("registration_endpoint").(string)
 	newServiceDto.RegistrationManagementEndpoint = data.Get("registration_management_endpoint").(string)
 	newServiceDto.MtlsEndpointAliases = mapMtlsEndpoint(data.Get("mtls_endpoint_aliases").([]interface{}))
@@ -665,7 +665,7 @@ func serviceToResource(dto *dto.Service, data *schema.ResourceData, diags diag.D
 	data.Set("clients_per_developer", dto.ClientsPerDeveloper)
 	data.Set("client_id_alias_enabled", dto.ClientIdAliaseEnabled)
 
-	data.Set("attribute", mapAttributesfromDto(&dto.Attributes))
+	data.Set("attribute", mapAttributesFromDTO(&dto.Attributes))
 	data.Set("supported_custom_client_metadata", mapSchemaFromString(&dto.SupportedCustomClientMetadata))
 	data.Set("authentication_callback_endpoint", dto.AuthenticationCallbackEndpoint)
 	data.Set("authentication_callback_api_key", dto.AuthenticationCallbackApiKey)
@@ -689,7 +689,7 @@ func serviceToResource(dto *dto.Service, data *schema.ResourceData, diags diag.D
 	data.Set("pkce_s256_required", dto.PkceS256Required)
 	data.Set("authorization_response_duration", dto.AuthorizationResponseDuration)
 	data.Set("iss_response_suppressed", dto.IssSuppressed)
-	//data.Set("ignore_port_loopback_redirect", dto.LoopbackRedirectionUriVariable)
+	// data.Set("ignore_port_loopback_redirect", dto.LoopbackRedirectionUriVariable)
 	data.Set("token_endpoint", dto.TokenEndpoint)
 	data.Set("direct_token_endpoint_enabled", dto.DirectTokenEndpointEnabled)
 	data.Set("supported_token_auth_methods", mapClientAuthMethodsFromDTO(&dto.SupportedTokenAuthMethods))
@@ -722,7 +722,7 @@ func serviceToResource(dto *dto.Service, data *schema.ResourceData, diags diag.D
 	data.Set("refresh_token_duration_reset", dto.RefreshTokenDurationReset)
 	data.Set("refresh_token_kept", dto.RefreshTokenKept)
 	data.Set("token_expiration_link", dto.TokenExpirationLinked)
-	data.Set("supported_scopes", mapSupportedScopefromDto(&dto.SupportedScopes))
+	data.Set("supported_scopes", mapSupportedScopeFromDTO(&dto.SupportedScopes))
 	data.Set("scope_required", dto.ScopeRequired)
 	data.Set("id_token_duration", dto.IdTokenDuration)
 	data.Set("allowable_clock_skew", dto.AllowableClockSkew)
@@ -732,7 +732,7 @@ func serviceToResource(dto *dto.Service, data *schema.ResourceData, diags diag.D
 	data.Set("claim_shortcut_restrictive", dto.ClaimShortcutRestrictive)
 	data.Set("jwks_endpoint", dto.JwksUri)
 	data.Set("direct_jwks_endpoint_enabled", dto.DirectJwksEndpointEnabled)
-	data.Set("jwk", mapJWKfromDTO(data.Get("jwk").([]interface{}), dto.Jwks))
+	data.Set("jwk", mapJWKFromDTO(data.Get("jwk").([]interface{}), dto.Jwks))
 	data.Set("id_token_signature_key_id", dto.IdTokenSignatureKeyId)
 	data.Set("user_info_signature_key_id", dto.UserInfoSignatureKeyId)
 	data.Set("authorization_signature_key_id", dto.AuthorizationSignatureKeyId)
@@ -740,10 +740,10 @@ func serviceToResource(dto *dto.Service, data *schema.ResourceData, diags diag.D
 	data.Set("user_info_endpoint", dto.UserInfoEndpoint)
 	data.Set("direct_user_info_endpoint_enabled", dto.DirectUserInfoEndpointEnabled)
 	data.Set("dynamic_registration_supported", dto.DynamicRegistrationSupported)
-	//data.Set("dcr_scope_used_as_requestable", dto.DcrScopeUsedAsRequestable)
+	// data.Set("dcr_scope_used_as_requestable", dto.DcrScopeUsedAsRequestable)
 	data.Set("registration_endpoint", dto.RegistrationEndpoint)
 	data.Set("registration_management_endpoint", dto.RegistrationManagementEndpoint)
-	data.Set("mtls_endpoint_aliases", mapMtlsEndpointfromDto(&dto.MtlsEndpointAliases))
+	data.Set("mtls_endpoint_aliases", mapMtlsEndpointFromDTO(&dto.MtlsEndpointAliases))
 	data.Set("policy_uri", dto.PolicyUri)
 	data.Set("tos_uri", dto.TosUri)
 	data.Set("service_documentation", dto.ServiceDocumentation)
