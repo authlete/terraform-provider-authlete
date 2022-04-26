@@ -55,3 +55,8 @@ As they are sensitive parameters we suggest to never hardcode it on terraform fi
 Another option is to populate the values using a secret management provider, like [Vault provider](https://registry.terraform.io/providers/hashicorp/vault/latest/docs).
 
 Checkout the [Hello World sample](https://github.com/authlete/authlete-terraform-samples/tree/main/helloworld) for a gentle intro on configuring the provider.
+
+## Bootstrapping Terraform state from Authlete config
+
+check the [Import guide](guides/import)
+

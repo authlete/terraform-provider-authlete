@@ -659,6 +659,8 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*dto.Serv
 
 func serviceToResource(dto *dto.Service, data *schema.ResourceData) diag.Diagnostics {
 
+	data.SetId(strconv.FormatUint(dto.ApiKey, 10))
+	data.Set("api_secret", dto.ApiSecret)
 	data.Set("service_name", dto.ServiceName)
 	data.Set("issuer", dto.Issuer)
 	data.Set("description", dto.Description)
