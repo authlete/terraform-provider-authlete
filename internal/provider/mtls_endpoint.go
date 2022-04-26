@@ -33,7 +33,7 @@ func mapMtlsEndpoint(vals []interface{}) []dto.NamedUri {
 	return entries
 }
 
-func mapMtlsEndpointfromDto(endpoints *[]dto.NamedUri) []interface{} {
+func mapMtlsEndpointFromDTO(endpoints *[]dto.NamedUri) []interface{} {
 
 	if endpoints != nil {
 		entries := make([]interface{}, len(*endpoints), len(*endpoints))

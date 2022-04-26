@@ -1,15 +1,14 @@
 package provider
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
-
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
+	"encoding/json"
+	"errors"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -301,7 +300,7 @@ func generateKey(keyDef map[string]interface{}, diags diag.Diagnostics) JWKStruc
 			diags = append(diags, diag.FromErr(err)...)
 		}
 	} else if crv == "Ed25519" || crv == "X25519" {
-		//EC curves
+		// EC curves
 
 		if keyDef["d"] != "" || keyDef["x"] != "" {
 			diags = append(diags, diag.Diagnostic{
@@ -318,9 +317,9 @@ func generateKey(keyDef map[string]interface{}, diags diag.Diagnostics) JWKStruc
 		}
 
 	} else if alg == "ES256K" {
-		//bitcoin curve
-		//TODO: implement the key generation using
-		//https://pkg.go.dev/github.com/decred/dcrd/dcrec/secp256k1/v4#section-documentation
+		// bitcoin curve
+		// TODO: implement the key generation using
+		// https://pkg.go.dev/github.com/decred/dcrd/dcrec/secp256k1/v4#section-documentation
 
 	}
 
@@ -341,7 +340,7 @@ func mapJWKS(vals []interface{}, diags diag.Diagnostics) (string, diag.Diagnosti
 	for _, aKey := range vals {
 		var val1 = aKey.(map[string]interface{})
 
-		//fmt.Println(val1["kid"].(string))
+		// fmt.Println(val1["kid"].(string))
 		var element JWKStruct
 
 		if val1["generate"] != nil && val1["generate"].(bool) {
@@ -482,7 +481,7 @@ func updateJWKS(vals []interface{}, jwks string, diags diag.Diagnostics) (string
 	return toReturn, diags
 }
 
-func mapJWKfromDTO(localKeys []interface{}, jwks string) []interface{} {
+func mapJWKFromDTO(localKeys []interface{}, jwks string) []interface{} {
 
 	var serverKeysMap map[string][]JWKStruct
 	json.Unmarshal([]byte(jwks), &serverKeysMap)

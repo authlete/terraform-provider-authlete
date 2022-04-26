@@ -20,7 +20,7 @@ func createAttributeSchema() *schema.Schema {
 	}
 }
 
-func mapAttributestoDto(entry []interface{}) []dto.Pair {
+func mapAttributesToDTO(entry []interface{}) []dto.Pair {
 	var entries = []dto.Pair{}
 
 	if entry != nil {
@@ -35,7 +35,7 @@ func mapAttributestoDto(entry []interface{}) []dto.Pair {
 	return entries
 }
 
-func mapAttributesfromDto(pairs *[]dto.Pair) []interface{} {
+func mapAttributesFromDTO(pairs *[]dto.Pair) []interface{} {
 
 	if pairs != nil {
 		entries := make([]interface{}, len(*pairs), len(*pairs))

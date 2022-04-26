@@ -102,7 +102,7 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 		cnf.SetServiceApiSecret(api_secret)
 
 		authleteClient := api.New(&cnf)
-		authleteClient.Settings()
+		authleteClient.Settings().UserAgent = p.UserAgent("terraform-provider-authlete", version)
 
 		return &apiClient{api_server: api_server, service_owner_key: service_owner_key,
 			service_owner_secret: service_owner_key, api_key: api_key, api_secret: api_secret,
