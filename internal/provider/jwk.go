@@ -339,8 +339,6 @@ func mapJWKS(vals []interface{}, diags diag.Diagnostics) (string, diag.Diagnosti
 
 	for _, aKey := range vals {
 		var val1 = aKey.(map[string]interface{})
-
-		// fmt.Println(val1["kid"].(string))
 		var element JWKStruct
 
 		if val1["generate"] != nil && val1["generate"].(bool) {
@@ -481,10 +479,13 @@ func updateJWKS(vals []interface{}, jwks string, diags diag.Diagnostics) (string
 	return toReturn, diags
 }
 
-func mapJWKFromDTO(localKeys []interface{}, jwks string) []interface{} {
+func mapJWKFromDTO(localKeys []interface{}, jwks string) ([]interface{}, error) {
 
 	var serverKeysMap map[string][]JWKStruct
-	json.Unmarshal([]byte(jwks), &serverKeysMap)
+	err := json.Unmarshal([]byte(jwks), &serverKeysMap)
+	if err != nil {
+		return nil, errors.New("The JWK content from server could not be parsed: " + err.Error())
+	}
 
 	var serverKeys = serverKeysMap["keys"]
 
@@ -545,5 +546,5 @@ func mapJWKFromDTO(localKeys []interface{}, jwks string) []interface{} {
 		}
 
 	}
-	return result
+	return result, nil
 }
