@@ -20,7 +20,7 @@ func createTaggedValuesSchema() *schema.Schema {
 	}
 }
 
-func mapTaggedValuestoDto(entry []interface{}) []dto.TaggedValue {
+func mapTaggedValuesToDTO(entry []interface{}) []dto.TaggedValue {
 	var entries = []dto.TaggedValue{}
 
 	if entry != nil {
@@ -35,7 +35,7 @@ func mapTaggedValuestoDto(entry []interface{}) []dto.TaggedValue {
 	return entries
 }
 
-func mapTaggedValuesfromDto(pairs *[]dto.TaggedValue) []interface{} {
+func mapTaggedValuesFromDTO(pairs *[]dto.TaggedValue) []interface{} {
 
 	if pairs != nil {
 		entries := make([]interface{}, len(*pairs), len(*pairs))

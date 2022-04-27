@@ -41,7 +41,7 @@ func mapSupportedScope(vals []interface{}) []dto.Scope {
 			Name:         entry["name"].(string),
 			DefaultEntry: entry["default_entry"].(bool),
 			Description:  entry["description"].(string),
-			Descriptions: mapTaggedValuestoDto(entry["descriptions"].([]interface{})),
+			Descriptions: mapTaggedValuesToDTO(entry["descriptions"].([]interface{})),
 			Attributes:   mapAttributesToDTO(entry["attribute"].([]interface{})),
 		}
 	}
@@ -58,7 +58,7 @@ func mapSupportedScopeFromDTO(scopes *[]dto.Scope) []interface{} {
 			newEntry["name"] = v.Name
 			newEntry["default_entry"] = v.DefaultEntry
 			newEntry["description"] = v.Description
-			newEntry["descriptions"] = mapTaggedValuesfromDto(&v.Descriptions)
+			newEntry["descriptions"] = mapTaggedValuesFromDTO(&v.Descriptions)
 			newEntry["attribute"] = mapAttributesFromDTO(&v.Attributes)
 			entries[i] = newEntry
 		}
