@@ -157,7 +157,7 @@ func serviceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	api_secret := newService.ApiSecret
 
 	// populate the state with default values coming from authlete api server.
-	serviceToResource(newService, d, diags)
+	diags = serviceToResource(newService, d)
 
 	d.SetId(strconv.FormatUint(api_key, 10))
 	d.Set("api_secret", api_secret)
@@ -176,10 +176,10 @@ func serviceReadInternal(ctx context.Context, d *schema.ResourceData, meta inter
 	client := meta.(*apiClient)
 
 	dto, err := client.authleteClient.GetService(d.Id())
-	serviceToResource(dto, d, diags)
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	diags = serviceToResource(dto, d)
 
 	return diags
 }
@@ -657,7 +657,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*dto.Serv
 
 }
 
-func serviceToResource(dto *dto.Service, data *schema.ResourceData, diags diag.Diagnostics) {
+func serviceToResource(dto *dto.Service, data *schema.ResourceData) diag.Diagnostics {
 
 	data.Set("service_name", dto.ServiceName)
 	data.Set("issuer", dto.Issuer)
@@ -732,7 +732,11 @@ func serviceToResource(dto *dto.Service, data *schema.ResourceData, diags diag.D
 	data.Set("claim_shortcut_restrictive", dto.ClaimShortcutRestrictive)
 	data.Set("jwks_endpoint", dto.JwksUri)
 	data.Set("direct_jwks_endpoint_enabled", dto.DirectJwksEndpointEnabled)
-	data.Set("jwk", mapJWKFromDTO(data.Get("jwk").([]interface{}), dto.Jwks))
+	jwk, err := mapJWKFromDTO(data.Get("jwk").([]interface{}), dto.Jwks)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	data.Set("jwk", jwk)
 	data.Set("id_token_signature_key_id", dto.IdTokenSignatureKeyId)
 	data.Set("user_info_signature_key_id", dto.UserInfoSignatureKeyId)
 	data.Set("authorization_signature_key_id", dto.AuthorizationSignatureKeyId)
@@ -769,7 +773,7 @@ func serviceToResource(dto *dto.Service, data *schema.ResourceData, diags diag.D
 		data.Set("supported_verified_claims", mapSchemaFromString(&dto.SupportedVerifiedClaims))
 	*/
 	data.Set("end_session_endpoint", dto.EndSessionEndpoint)
-
+	return nil
 }
 
 func mapSetToString(vals []interface{}) []string {
