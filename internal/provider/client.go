@@ -204,15 +204,15 @@ func dataToClient(d *schema.ResourceData) dto.Client {
 		ApplicationType:                       mapApplicationTypeToDto(d.Get("application_type")),
 		Contacts:                              mapSetToString(d.Get("contacts").([]interface{})),
 		ClientName:                            d.Get("client_name").(string),
-		ClientNames:                           mapTaggedValuestoDto(d.Get("client_names").([]interface{})),
+		ClientNames:                           mapTaggedValuesToDTO(d.Get("client_names").([]interface{})),
 		LogoUri:                               d.Get("logo_uri").(string),
-		LogoUris:                              mapTaggedValuestoDto(d.Get("logo_uris").([]interface{})),
+		LogoUris:                              mapTaggedValuesToDTO(d.Get("logo_uris").([]interface{})),
 		ClientUri:                             d.Get("client_uri").(string),
-		ClientUris:                            mapTaggedValuestoDto(d.Get("client_uris").([]interface{})),
+		ClientUris:                            mapTaggedValuesToDTO(d.Get("client_uris").([]interface{})),
 		PolicyUri:                             d.Get("policy_uri").(string),
-		PolicyUris:                            mapTaggedValuestoDto(d.Get("policy_uris").([]interface{})),
+		PolicyUris:                            mapTaggedValuesToDTO(d.Get("policy_uris").([]interface{})),
 		TosUri:                                d.Get("tos_uri").(string),
-		TosUris:                               mapTaggedValuestoDto(d.Get("tos_uris").([]interface{})),
+		TosUris:                               mapTaggedValuesToDTO(d.Get("tos_uris").([]interface{})),
 		JwksUri:                               d.Get("jwks_uri").(string),
 		Jwks:                                  d.Get("jwks").(string),
 		DerivedSectorIdentifier:               d.Get("derived_sector_identifier").(string),
@@ -235,7 +235,7 @@ func dataToClient(d *schema.ResourceData) dto.Client {
 		LoginUri:                              d.Get("login_uri").(string),
 		RequestUris:                           mapSetToString(d.Get("request_uris").([]interface{})),
 		Description:                           d.Get("description").(string),
-		Descriptions:                          mapTaggedValuestoDto(d.Get("descriptions").([]interface{})),
+		Descriptions:                          mapTaggedValuesToDTO(d.Get("descriptions").([]interface{})),
 		Extension:                             ext,
 		TlsClientAuthSubjectDn:                d.Get("tls_client_auth_subject_dn").(string),
 		TlsClientAuthSanDns:                   d.Get("tls_client_auth_san_dns").(string),
@@ -258,7 +258,7 @@ func dataToClient(d *schema.ResourceData) dto.Client {
 		AuthorizationDetailsTypes:             mapSetToString(d.Get("authorization_details_types").([]interface{})),
 		ParRequired:                           d.Get("par_required").(bool),
 		RequestObjectRequired:                 d.Get("request_object_required").(bool),
-		Attributes:                            mapAttributestoDto(d.Get("attributes").([]interface{})),
+		Attributes:                            mapAttributesToDTO(d.Get("attributes").([]interface{})),
 		CustomMetadata:                        d.Get("custom_metadata").(string),
 		FrontChannelRequestObjectEncryptionRequired: d.Get("front_channel_request_object_encryption_required").(bool),
 		RequestObjectEncryptionAlgMatchRequired:     d.Get("request_object_encryption_alg_match_required").(bool),
@@ -283,13 +283,13 @@ func updateResourceFromClient(d *schema.ResourceData, client *dto.Client) {
 	d.Set("client_name", client.ClientName)
 	d.Set("client_names", client.ClientNames)
 	d.Set("logo_uri", client.LogoUri)
-	d.Set("logo_uris", mapTaggedValuesfromDto(&client.LogoUris))
+	d.Set("logo_uris", mapTaggedValuesFromDTO(&client.LogoUris))
 	d.Set("client_uri", client.ClientUri)
-	d.Set("client_uris", mapTaggedValuesfromDto(&client.ClientUris))
+	d.Set("client_uris", mapTaggedValuesFromDTO(&client.ClientUris))
 	d.Set("policy_uri", client.PolicyUri)
-	d.Set("policy_uris", mapTaggedValuesfromDto(&client.PolicyUris))
+	d.Set("policy_uris", mapTaggedValuesFromDTO(&client.PolicyUris))
 	d.Set("tos_uri", client.TosUri)
-	d.Set("tos_uris", mapTaggedValuesfromDto(&client.TosUris))
+	d.Set("tos_uris", mapTaggedValuesFromDTO(&client.TosUris))
 	d.Set("jwks_uri", client.JwksUri)
 	d.Set("jwks", client.Jwks)
 	d.Set("derived_sector_identifier", client.DerivedSectorIdentifier)
@@ -312,7 +312,7 @@ func updateResourceFromClient(d *schema.ResourceData, client *dto.Client) {
 	d.Set("login_uri", client.LoginUri)
 	d.Set("request_uris", client.RequestUris)
 	d.Set("description", client.Description)
-	d.Set("descriptions", mapTaggedValuesfromDto(&client.Descriptions))
+	d.Set("descriptions", mapTaggedValuesFromDTO(&client.Descriptions))
 	d.Set("created_at", client.CreatedAt)
 	d.Set("modified_at", client.ModifiedAt)
 	d.Set("requestable_scopes_enabled", client.Extension.RequestableScopesEnabled)
@@ -340,7 +340,7 @@ func updateResourceFromClient(d *schema.ResourceData, client *dto.Client) {
 	d.Set("authorization_details_types", client.AuthorizationDetailsTypes)
 	d.Set("par_required", client.ParRequired)
 	d.Set("request_object_required", client.RequestObjectRequired)
-	d.Set("attributes", mapAttributesfromDto(&client.Attributes))
+	d.Set("attributes", mapAttributesFromDTO(&client.Attributes))
 	d.Set("custom_metadata", client.CustomMetadata)
 	d.Set("front_channel_request_object_encryption_required", client.FrontChannelRequestObjectEncryptionRequired)
 	d.Set("request_object_encryption_alg_match_required", client.RequestObjectEncryptionAlgMatchRequired)
