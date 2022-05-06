@@ -4,10 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/authlete/authlete-go/api"
-	"github.com/authlete/authlete-go/conf"
-	"github.com/authlete/authlete-go/dto"
-	"github.com/authlete/authlete-go/types"
+	"github.com/authlete/authlete-go-openapi"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -111,24 +108,52 @@ func clientCreate(ctx context.Context, d *schema.ResourceData, meta interface{})
 	var diags diag.Diagnostics
 
 	tflog.Trace(ctx, "Creating a new client")
-	authleteClient := resolveAuthleteClient(meta, d)
+	client := meta.(*apiClient)
+
+	apiKey := client.api_key
+	apiSecret := client.api_secret
+
+	if d.Get("apikey") != "" && client.api_key != d.Get("apikey") {
+		apiKey = d.Get("apikey").(string)
+		apiSecret = d.Get("apisecret").(string)
+	}
+
+	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
+		UserName: apiKey,
+		Password: apiSecret,
+	})
 
 	newClientDto := dataToClient(d)
-	newClient, err := authleteClient.CreateClient(&newClientDto)
+
+	newOauthClient, _, err := client.authleteClient.ClientManagementApi.ClientCreateApi(auth).Client(*newClientDto).Execute()
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	tflog.Trace(ctx, "Client created")
-	updateResourceFromClient(d, newClient)
-	d.SetId(strconv.FormatUint(newClient.ClientId, 10))
+	updateResourceFromClient(d, newOauthClient)
+	d.SetId(strconv.FormatInt(newOauthClient.GetClientId(), 10))
 	return diags
 }
 
 func clientRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	authleteClient := resolveAuthleteClient(meta, d)
-	clientDto, err := authleteClient.GetClient(d.Id())
+	client := meta.(*apiClient)
+
+	apiKey := client.api_key
+	apiSecret := client.api_secret
+
+	if d.Get("apikey") != "" && client.api_key != d.Get("apikey") {
+		apiKey = d.Get("apikey").(string)
+		apiSecret = d.Get("apisecret").(string)
+	}
+
+	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
+		UserName: apiKey,
+		Password: apiSecret,
+	})
+
+	clientDto, _, err := client.authleteClient.ClientManagementApi.ClientGetApi(auth, d.Id()).Execute()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -141,19 +166,30 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 	var diags diag.Diagnostics
 
 	tflog.Trace(ctx, "Updating client")
-	authleteClient := resolveAuthleteClient(meta, d)
+	client := meta.(*apiClient)
 
+	apiKey := client.api_key
+	apiSecret := client.api_secret
+
+	if d.Get("apikey") != "" && client.api_key != d.Get("apikey") {
+		apiKey = d.Get("apikey").(string)
+		apiSecret = d.Get("apisecret").(string)
+	}
+
+	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
+		UserName: apiKey,
+		Password: apiSecret,
+	})
 	newClientDto := dataToClient(d)
-	id, _ := strconv.Atoi(d.Id())
-	newClientDto.ClientId = uint64(id)
-	newClient, err := authleteClient.UpdateClient(&newClientDto)
+
+	newClient, _, err := client.authleteClient.ClientManagementApi.ClientUpdateApi(auth, d.Id()).Client(*newClientDto).Execute()
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	tflog.Trace(ctx, "Client updated")
 	updateResourceFromClient(d, newClient)
-	d.SetId(strconv.FormatUint(newClient.ClientId, 10))
+	d.SetId(strconv.FormatInt(newClient.GetClientId(), 10))
 	return diags
 
 }
@@ -161,114 +197,114 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 func clientDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 
 	var diags diag.Diagnostics
-	authleteClient := resolveAuthleteClient(meta, d)
-	err := authleteClient.DeleteClient(d.Id())
+	client := meta.(*apiClient)
+
+	apiKey := client.api_key
+	apiSecret := client.api_secret
+
+	if d.Get("apikey") != "" && client.api_key != d.Get("apikey") {
+		apiKey = d.Get("apikey").(string)
+		apiSecret = d.Get("apisecret").(string)
+	}
+
+	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
+		UserName: apiKey,
+		Password: apiSecret,
+	})
+
+	_, err := client.authleteClient.ClientManagementApi.ClientDeleteApi(auth, d.Id()).Execute()
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	return diags
 }
 
-func resolveAuthleteClient(meta interface{}, d *schema.ResourceData) api.AuthleteApi {
-	client := meta.(*apiClient)
-	authleteClient := client.authleteClient
-	if d.Get("apikey") != "" && client.api_key != d.Get("apikey") {
-		cnf := conf.AuthleteSimpleConfiguration{}
-		cnf.SetBaseUrl(client.api_server)
-		cnf.SetServiceApiKey(d.Get("apikey").(string))
-		cnf.SetServiceApiSecret(d.Get("apisecret").(string))
+func dataToClient(d *schema.ResourceData) *authlete.Client {
 
-		authleteClient = api.New(&cnf)
-	}
-	return authleteClient
-}
+	newClient := authlete.NewClient()
 
-func dataToClient(d *schema.ResourceData) dto.Client {
+	newClient.SetDeveloper(d.Get("developer").(string))
+	newClient.SetClientId(int64(d.Get("client_id").(int)))
+	newClient.SetClientIdAlias(d.Get("client_id_alias").(string))
+	newClient.SetClientIdAliasEnabled(d.Get("client_id_alias_enabled").(bool))
+	newClient.SetClientType(d.Get("client_type").(string))
+	newClient.SetRedirectUris(mapSetToString(d.Get("redirect_uris").([]interface{})))
+	newClient.SetResponseTypes(mapResponseTypesToDTO(d.Get("response_types").([]interface{})))
+	newClient.SetGrantTypes(mapGrantTypesToDTO(d.Get("grant_types").([]interface{})))
+	newClient.SetApplicationType(mapApplicationTypeToDto(d.Get("application_type")))
+	newClient.SetContacts(mapSetToString(d.Get("contacts").([]interface{})))
+	newClient.SetClientName(d.Get("client_name").(string))
+	newClient.SetClientNames(mapTaggedValuesToDTO(d.Get("client_names").([]interface{})))
+	newClient.SetLogoUri(d.Get("logo_uri").(string))
+	newClient.SetLogoUris(mapTaggedValuesToDTO(d.Get("logo_uris").([]interface{})))
+	newClient.SetClientUri(d.Get("client_uri").(string))
+	newClient.SetClientUris(mapTaggedValuesToDTO(d.Get("client_uris").([]interface{})))
+	newClient.SetPolicyUri(d.Get("policy_uri").(string))
+	newClient.SetPolicyUris(mapTaggedValuesToDTO(d.Get("policy_uris").([]interface{})))
+	newClient.SetTosUri(d.Get("tos_uri").(string))
+	newClient.SetTosUris(mapTaggedValuesToDTO(d.Get("tos_uris").([]interface{})))
+	newClient.SetJwksUri(d.Get("jwks_uri").(string))
+	newClient.SetJwks(d.Get("jwks").(string))
+	newClient.SetDerivedSectorIdentifier(d.Get("derived_sector_identifier").(string))
+	newClient.SetSectorIdentifierUri(d.Get("sector_identifier_uri").(string))
+	newClient.SetSubjectType(mapSubjectTypeToDto(d.Get("subject_type")))
+	newClient.SetIdTokenSignAlg(mapJWSAlg(d.Get("id_token_sign_alg")))
+	newClient.SetIdTokenEncryptionAlg(mapJWEAlg(d.Get("id_token_encryption_alg")))
+	newClient.SetIdTokenEncryptionEnc(mapJWEEnc(d.Get("id_token_encryption_enc")))
+	newClient.SetUserInfoSignAlg(mapJWSAlg(d.Get("user_info_sign_alg")))
+	newClient.SetUserInfoEncryptionAlg(mapJWEAlg(d.Get("user_info_encryption_alg")))
+	newClient.SetUserInfoEncryptionEnc(mapJWEEnc(d.Get("user_info_encryption_enc")))
+	newClient.SetRequestSignAlg(mapJWSAlg(d.Get("request_sign_alg")))
+	newClient.SetRequestEncryptionAlg(mapJWEAlg(d.Get("request_encryption_alg")))
+	newClient.SetRequestEncryptionEnc(mapJWEEnc(d.Get("request_encryption_enc")))
+	newClient.SetTokenAuthMethod(mapClientAuthMethodToDto(d.Get("token_auth_method")))
+	newClient.SetTokenAuthSignAlg(mapJWSAlg(d.Get("token_auth_sign_alg")))
+	newClient.SetDefaultMaxAge(int32(d.Get("default_max_age").(int)))
+	newClient.SetDefaultAcrs(mapSetToString(d.Get("default_acrs").([]interface{})))
+	newClient.SetAuthTimeRequired(d.Get("auth_time_required").(bool))
+	newClient.SetLoginUri(d.Get("login_uri").(string))
+	newClient.SetRequestUris(mapSetToString(d.Get("request_uris").([]interface{})))
+	newClient.SetDescription(d.Get("description").(string))
+	newClient.SetDescriptions(mapTaggedValuesToDTO(d.Get("descriptions").([]interface{})))
 
-	ext := dto.ClientExtension{
-		RequestableScopesEnabled: d.Get("requestable_scopes_enabled").(bool),
-		RequestableScopes:        mapSetToString(d.Get("requestable_scopes").([]interface{})),
-		AccessTokenDuration:      uint64(d.Get("access_token_duration").(int)),
-		RefreshTokenDuration:     uint64(d.Get("refresh_token_duration").(int)),
-	}
+	ext := authlete.NewClientExtension()
+	ext.SetRequestableScopesEnabled(d.Get("requestable_scopes_enabled").(bool))
+	ext.SetRequestableScopes(mapSetToString(d.Get("requestable_scopes").([]interface{})))
+	ext.SetAccessTokenDuration(int64(d.Get("access_token_duration").(int)))
+	ext.SetRefreshTokenDuration(int64(d.Get("refresh_token_duration").(int)))
+	newClient.SetExtension(*ext)
 
-	newClient := dto.Client{
-		Developer:                             d.Get("developer").(string),
-		ClientId:                              uint64(d.Get("client_id").(int)),
-		ClientIdAlias:                         d.Get("client_id_alias").(string),
-		ClientIdAliasEnabled:                  d.Get("client_id_alias_enabled").(bool),
-		ClientType:                            types.ClientType(d.Get("client_type").(string)),
-		RedirectUris:                          mapSetToString(d.Get("redirect_uris").([]interface{})),
-		ResponseTypes:                         mapResponseTypesToDTO(d.Get("response_types").([]interface{})),
-		GrantTypes:                            mapGrantTypesToDTO(d.Get("grant_types").([]interface{})),
-		ApplicationType:                       mapApplicationTypeToDto(d.Get("application_type")),
-		Contacts:                              mapSetToString(d.Get("contacts").([]interface{})),
-		ClientName:                            d.Get("client_name").(string),
-		ClientNames:                           mapTaggedValuesToDTO(d.Get("client_names").([]interface{})),
-		LogoUri:                               d.Get("logo_uri").(string),
-		LogoUris:                              mapTaggedValuesToDTO(d.Get("logo_uris").([]interface{})),
-		ClientUri:                             d.Get("client_uri").(string),
-		ClientUris:                            mapTaggedValuesToDTO(d.Get("client_uris").([]interface{})),
-		PolicyUri:                             d.Get("policy_uri").(string),
-		PolicyUris:                            mapTaggedValuesToDTO(d.Get("policy_uris").([]interface{})),
-		TosUri:                                d.Get("tos_uri").(string),
-		TosUris:                               mapTaggedValuesToDTO(d.Get("tos_uris").([]interface{})),
-		JwksUri:                               d.Get("jwks_uri").(string),
-		Jwks:                                  d.Get("jwks").(string),
-		DerivedSectorIdentifier:               d.Get("derived_sector_identifier").(string),
-		SectorIdentifierUri:                   d.Get("sector_identifier_uri").(string),
-		SubjectType:                           mapSubjectTypeToDto(d.Get("subject_type")),
-		IdTokenSignAlg:                        mapJWSAlg(d.Get("id_token_sign_alg")),
-		IdTokenEncryptionAlg:                  mapJWEAlg(d.Get("id_token_encryption_alg")),
-		IdTokenEncryptionEnc:                  mapJWEEnc(d.Get("id_token_encryption_enc")),
-		UserInfoSignAlg:                       mapJWSAlg(d.Get("user_info_sign_alg")),
-		UserInfoEncryptionAlg:                 mapJWEAlg(d.Get("user_info_encryption_alg")),
-		UserInfoEncryptionEnc:                 mapJWEEnc(d.Get("user_info_encryption_enc")),
-		RequestSignAlg:                        mapJWSAlg(d.Get("request_sign_alg")),
-		RequestEncryptionAlg:                  mapJWEAlg(d.Get("request_encryption_alg")),
-		RequestEncryptionEnc:                  mapJWEEnc(d.Get("request_encryption_enc")),
-		TokenAuthMethod:                       mapClientAuthMethodToDto(d.Get("token_auth_method")),
-		TokenAuthSignAlg:                      mapJWSAlg(d.Get("token_auth_sign_alg")),
-		DefaultMaxAge:                         uint32(d.Get("default_max_age").(int)),
-		DefaultAcrs:                           mapSetToString(d.Get("default_acrs").([]interface{})),
-		AuthTimeRequired:                      d.Get("auth_time_required").(bool),
-		LoginUri:                              d.Get("login_uri").(string),
-		RequestUris:                           mapSetToString(d.Get("request_uris").([]interface{})),
-		Description:                           d.Get("description").(string),
-		Descriptions:                          mapTaggedValuesToDTO(d.Get("descriptions").([]interface{})),
-		Extension:                             ext,
-		TlsClientAuthSubjectDn:                d.Get("tls_client_auth_subject_dn").(string),
-		TlsClientAuthSanDns:                   d.Get("tls_client_auth_san_dns").(string),
-		TlsClientAuthSanUri:                   d.Get("tls_client_auth_san_uri").(string),
-		TlsClientAuthSanIp:                    d.Get("tls_client_auth_san_ip").(string),
-		TlsClientAuthSanEmail:                 d.Get("tls_client_auth_san_email").(string),
-		TlsClientCertificateBoundAccessTokens: d.Get("tls_client_certificate_bound_access_tokens").(bool),
-		SelfSignedCertificateKeyId:            d.Get("self_signed_certificate_key_id").(string),
-		SoftwareId:                            d.Get("software_id").(string),
-		SoftwareVersion:                       d.Get("software_version").(string),
-		AuthorizationSignAlg:                  mapJWSAlg(d.Get("authorization_sign_alg")),
-		AuthorizationEncryptionAlg:            mapJWEAlg(d.Get("authorization_encryption_alg")),
-		AuthorizationEncryptionEnc:            mapJWEEnc(d.Get("authorization_encryption_enc")),
-		BcDeliveryMode:                        mapDeliveryModeToDto(d.Get("bc_delivery_mode")),
-		BcNotificationEndpoint:                d.Get("bc_notification_endpoint").(string),
-		BcRequestSignAlg:                      mapJWSAlg(d.Get("bc_request_sign_alg")),
-		BcUserCodeRequired:                    d.Get("bc_user_code_required").(bool),
-		DynamicallyRegistered:                 d.Get("dynamically_registered").(bool),
-		RegistrationAccessTokenHash:           d.Get("registration_access_token_hash").(string),
-		AuthorizationDetailsTypes:             mapSetToString(d.Get("authorization_details_types").([]interface{})),
-		ParRequired:                           d.Get("par_required").(bool),
-		RequestObjectRequired:                 d.Get("request_object_required").(bool),
-		Attributes:                            mapAttributesToDTO(d.Get("attributes").([]interface{})),
-		CustomMetadata:                        d.Get("custom_metadata").(string),
-		FrontChannelRequestObjectEncryptionRequired: d.Get("front_channel_request_object_encryption_required").(bool),
-		RequestObjectEncryptionAlgMatchRequired:     d.Get("request_object_encryption_alg_match_required").(bool),
-		RequestObjectEncryptionEncMatchRequired:     d.Get("request_object_encryption_enc_match_required").(bool),
-	}
+	newClient.SetTlsClientAuthSubjectDn(d.Get("tls_client_auth_subject_dn").(string))
+	newClient.SetTlsClientAuthSanDns(d.Get("tls_client_auth_san_dns").(string))
+	newClient.SetTlsClientAuthSanUri(d.Get("tls_client_auth_san_uri").(string))
+	newClient.SetTlsClientAuthSanIp(d.Get("tls_client_auth_san_ip").(string))
+	newClient.SetTlsClientAuthSanEmail(d.Get("tls_client_auth_san_email").(string))
+	newClient.SetTlsClientCertificateBoundAccessTokens(d.Get("tls_client_certificate_bound_access_tokens").(bool))
+	newClient.SetSelfSignedCertificateKeyId(d.Get("self_signed_certificate_key_id").(string))
+	newClient.SetSoftwareId(d.Get("software_id").(string))
+	newClient.SetSoftwareVersion(d.Get("software_version").(string))
+	newClient.SetAuthorizationSignAlg(mapJWSAlg(d.Get("authorization_sign_alg")))
+	newClient.SetAuthorizationEncryptionAlg(mapJWEAlg(d.Get("authorization_encryption_alg")))
+	newClient.SetAuthorizationEncryptionEnc(mapJWEEnc(d.Get("authorization_encryption_enc")))
+	newClient.SetBcDeliveryMode(d.Get("bc_delivery_mode").(string))
+	newClient.SetBcNotificationEndpoint(d.Get("bc_notification_endpoint").(string))
+	newClient.SetBcRequestSignAlg(mapJWSAlg(d.Get("bc_request_sign_alg")))
+	newClient.SetBcUserCodeRequired(d.Get("bc_user_code_required").(bool))
+	newClient.SetDynamicallyRegistered(d.Get("dynamically_registered").(bool))
+	newClient.SetRegistrationAccessTokenHash(d.Get("registration_access_token_hash").(string))
+	newClient.SetAuthorizationDetailsTypes(mapSetToString(d.Get("authorization_details_types").([]interface{})))
+	newClient.SetParRequired(d.Get("par_required").(bool))
+	newClient.SetRequestObjectRequired(d.Get("request_object_required").(bool))
+	newClient.SetAttributes(mapAttributesToDTO(d.Get("attributes").([]interface{})))
+	newClient.SetCustomMetadata(d.Get("custom_metadata").(string))
+	newClient.SetFrontChannelRequestObjectEncryptionRequired(d.Get("front_channel_request_object_encryption_required").(bool))
+	newClient.SetRequestObjectEncryptionAlgMatchRequired(d.Get("request_object_encryption_alg_match_required").(bool))
+	newClient.SetRequestObjectEncryptionEncMatchRequired(d.Get("request_object_encryption_enc_match_required").(bool))
 
 	return newClient
 }
 
-func updateResourceFromClient(d *schema.ResourceData, client *dto.Client) {
+func updateResourceFromClient(d *schema.ResourceData, client *authlete.Client) {
 	d.Set("developer", client.Developer)
 	d.Set("client_id", client.ClientId)
 	d.Set("client_secret", client.ClientSecret)
@@ -283,13 +319,13 @@ func updateResourceFromClient(d *schema.ResourceData, client *dto.Client) {
 	d.Set("client_name", client.ClientName)
 	d.Set("client_names", client.ClientNames)
 	d.Set("logo_uri", client.LogoUri)
-	d.Set("logo_uris", mapTaggedValuesFromDTO(&client.LogoUris))
+	d.Set("logo_uris", mapTaggedValuesFromDTO(client.LogoUris))
 	d.Set("client_uri", client.ClientUri)
-	d.Set("client_uris", mapTaggedValuesFromDTO(&client.ClientUris))
+	d.Set("client_uris", mapTaggedValuesFromDTO(client.ClientUris))
 	d.Set("policy_uri", client.PolicyUri)
-	d.Set("policy_uris", mapTaggedValuesFromDTO(&client.PolicyUris))
+	d.Set("policy_uris", mapTaggedValuesFromDTO(client.PolicyUris))
 	d.Set("tos_uri", client.TosUri)
-	d.Set("tos_uris", mapTaggedValuesFromDTO(&client.TosUris))
+	d.Set("tos_uris", mapTaggedValuesFromDTO(client.TosUris))
 	d.Set("jwks_uri", client.JwksUri)
 	d.Set("jwks", client.Jwks)
 	d.Set("derived_sector_identifier", client.DerivedSectorIdentifier)
@@ -312,7 +348,7 @@ func updateResourceFromClient(d *schema.ResourceData, client *dto.Client) {
 	d.Set("login_uri", client.LoginUri)
 	d.Set("request_uris", client.RequestUris)
 	d.Set("description", client.Description)
-	d.Set("descriptions", mapTaggedValuesFromDTO(&client.Descriptions))
+	d.Set("descriptions", mapTaggedValuesFromDTO(client.Descriptions))
 	d.Set("created_at", client.CreatedAt)
 	d.Set("modified_at", client.ModifiedAt)
 	d.Set("requestable_scopes_enabled", client.Extension.RequestableScopesEnabled)
@@ -340,7 +376,7 @@ func updateResourceFromClient(d *schema.ResourceData, client *dto.Client) {
 	d.Set("authorization_details_types", client.AuthorizationDetailsTypes)
 	d.Set("par_required", client.ParRequired)
 	d.Set("request_object_required", client.RequestObjectRequired)
-	d.Set("attributes", mapAttributesFromDTO(&client.Attributes))
+	d.Set("attributes", mapAttributesFromDTO(client.Attributes))
 	d.Set("custom_metadata", client.CustomMetadata)
 	d.Set("front_channel_request_object_encryption_required", client.FrontChannelRequestObjectEncryptionRequired)
 	d.Set("request_object_encryption_alg_match_required", client.RequestObjectEncryptionAlgMatchRequired)

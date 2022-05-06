@@ -5,9 +5,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func createTaggedValuesSchema() *schema.Schema {
+func createTaggedSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
+		Type:     schema.TypeSet,
 		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -20,11 +20,11 @@ func createTaggedValuesSchema() *schema.Schema {
 	}
 }
 
-func mapTaggedValuesToDTO(entry []interface{}) []authlete.TaggedValue {
+func mapTaggedValue(entry *schema.Set) []authlete.TaggedValue {
 	var entries = []authlete.TaggedValue{}
 
 	if entry != nil {
-		for _, v := range entry {
+		for _, v := range entry.List() {
 			var keypair = v.(map[string]interface{})
 			newTag := authlete.NewTaggedValue()
 			newTag.SetTag(keypair["tag"].(string))
@@ -33,20 +33,4 @@ func mapTaggedValuesToDTO(entry []interface{}) []authlete.TaggedValue {
 		}
 	}
 	return entries
-}
-
-func mapTaggedValuesFromDTO(pairs []authlete.TaggedValue) []interface{} {
-
-	if pairs != nil {
-		entries := make([]interface{}, len(pairs), len(pairs))
-
-		for i, v := range pairs {
-			newEntry := make(map[string]interface{})
-			newEntry["tag"] = v.Tag
-			newEntry["value"] = v.Value
-			entries[i] = newEntry
-		}
-		return entries
-	}
-	return make([]interface{}, 0)
 }

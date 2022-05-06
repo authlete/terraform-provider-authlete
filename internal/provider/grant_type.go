@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"github.com/authlete/authlete-go/types"
+	"github.com/authlete/authlete-go-openapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -14,35 +14,35 @@ func createGrantTypeSchema() *schema.Schema {
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(types.GrantType_AUTHORIZATION_CODE),
-				string(types.GrantType_IMPLICIT),
-				string(types.GrantType_PASSWORD),
-				string(types.GrantType_CLIENT_CREDENTIALS),
-				string(types.GrantType_REFRESH_TOKEN),
-				string(types.GrantType_CIBA),
-				string(types.GrantType_DEVICE_CODE),
+				string(authlete.GRANTTYPE_AUTHORIZATION_CODE),
+				string(authlete.GRANTTYPE_IMPLICIT),
+				string(authlete.GRANTTYPE_PASSWORD),
+				string(authlete.GRANTTYPE_CLIENT_CREDENTIALS),
+				string(authlete.GRANTTYPE_REFRESH_TOKEN),
+				string(authlete.GRANTTYPE_CIBA),
+				string(authlete.GRANTTYPE_DEVICE_CODE),
 			}, false),
 		},
 	}
 }
 
-func mapGrantTypesToDTO(vals []interface{}) []types.GrantType {
+func mapGrantTypesToDTO(vals []interface{}) []authlete.GrantType {
 
-	values := make([]types.GrantType, len(vals))
+	values := make([]authlete.GrantType, len(vals))
 
 	for i, v := range vals {
-		values[i] = types.GrantType(v.(string))
+		values[i] = authlete.GrantType(v.(string))
 	}
 
 	return values
 }
 
-func mapGrantTypesFromDTO(vals *[]types.GrantType) []interface{} {
+func mapGrantTypesFromDTO(vals []authlete.GrantType) []interface{} {
 
-	var result = make([]interface{}, len(*vals))
+	var result = make([]interface{}, len(vals))
 
 	if vals != nil {
-		for i, v := range *vals {
+		for i, v := range vals {
 			var str string
 			str = string(v)
 			result[i] = str

@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"github.com/authlete/authlete-go/types"
+	"github.com/authlete/authlete-go-openapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -11,24 +11,24 @@ func createSignAlgorithmSchema() *schema.Schema {
 		Optional: true,
 		Type:     schema.TypeString,
 		ValidateFunc: validation.StringInSlice([]string{
-			string(types.JWSAlg_NONE),
-			string(types.JWSAlg_HS256),
-			string(types.JWSAlg_HS384),
-			string(types.JWSAlg_HS512),
-			string(types.JWSAlg_RS256),
-			string(types.JWSAlg_RS384),
-			string(types.JWSAlg_RS512),
-			string(types.JWSAlg_ES256),
-			string(types.JWSAlg_ES384),
-			string(types.JWSAlg_ES512),
-			string(types.JWSAlg_PS256),
-			string(types.JWSAlg_PS384),
-			string(types.JWSAlg_PS512),
+			string(authlete.JWSALG_NONE),
+			string(authlete.JWSALG_HS256),
+			string(authlete.JWSALG_HS384),
+			string(authlete.JWSALG_HS512),
+			string(authlete.JWSALG_RS256),
+			string(authlete.JWSALG_RS384),
+			string(authlete.JWSALG_RS512),
+			string(authlete.JWSALG_ES256),
+			string(authlete.JWSALG_ES384),
+			string(authlete.JWSALG_ES512),
+			string(authlete.JWSALG_PS256),
+			string(authlete.JWSALG_PS384),
+			string(authlete.JWSALG_PS512),
 		}, false),
 	}
 }
 
-func mapSignAlgorithms(v string) types.JWSAlg {
+func mapSignAlgorithms(v string) authlete.JwsAlg {
 
-	return types.JWSAlg(v)
+	return authlete.JwsAlg(v)
 }

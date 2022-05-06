@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"github.com/authlete/authlete-go/types"
+	"github.com/authlete/authlete-go-openapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -14,34 +14,34 @@ func createResponseTypeSchema() *schema.Schema {
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(types.ResponseType_NONE),
-				string(types.ResponseType_CODE),
-				string(types.ResponseType_TOKEN),
-				string(types.ResponseType_ID_TOKEN),
-				string(types.ResponseType_CODE_TOKEN),
-				string(types.ResponseType_CODE_ID_TOKEN),
-				string(types.ResponseType_ID_TOKEN_TOKEN),
-				string(types.ResponseType_CODE_ID_TOKEN_TOKEN),
+				string(authlete.RESPONSETYPE_NONE),
+				string(authlete.RESPONSETYPE_CODE),
+				string(authlete.RESPONSETYPE_TOKEN),
+				string(authlete.RESPONSETYPE_ID_TOKEN),
+				string(authlete.RESPONSETYPE_CODE_TOKEN),
+				string(authlete.RESPONSETYPE_CODE_ID_TOKEN),
+				string(authlete.RESPONSETYPE_ID_TOKEN_TOKEN),
+				string(authlete.RESPONSETYPE_CODE_ID_TOKEN_TOKEN),
 			}, false),
 		},
 	}
 }
 
-func mapResponseTypesToDTO(vals []interface{}) []types.ResponseType {
-	mapped := make([]types.ResponseType, len(vals))
+func mapResponseTypesToDTO(vals []interface{}) []authlete.ResponseType {
+	mapped := make([]authlete.ResponseType, len(vals))
 
 	for i, v := range vals {
-		mapped[i] = types.ResponseType(v.(string))
+		mapped[i] = authlete.ResponseType(v.(string))
 	}
 
 	return mapped
 }
 
-func mapResponseTypesFromDTO(vals *[]types.ResponseType) []interface{} {
+func mapResponseTypesFromDTO(vals []authlete.ResponseType) []interface{} {
 
 	if vals != nil {
-		entries := make([]interface{}, len(*vals), len(*vals))
-		for i, v := range *vals {
+		entries := make([]interface{}, len(vals), len(vals))
+		for i, v := range vals {
 			entries[i] = v
 		}
 		return entries

@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"github.com/authlete/authlete-go/dto"
+	"github.com/authlete/authlete-go-openapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -20,27 +20,27 @@ func createAttributeSchema() *schema.Schema {
 	}
 }
 
-func mapAttributesToDTO(entry []interface{}) []dto.Pair {
-	var entries = []dto.Pair{}
+func mapAttributesToDTO(entry []interface{}) []authlete.Pair {
+	var entries = []authlete.Pair{}
 
 	if entry != nil {
 		for _, v := range entry {
 			var keypair = v.(map[string]interface{})
-			entries = append(entries, dto.Pair{
-				Key:   keypair["key"].(string),
-				Value: keypair["value"].(string),
-			})
+			newPair := authlete.NewPair()
+			newPair.SetKey(keypair["key"].(string))
+			newPair.SetValue(keypair["value"].(string))
+			entries = append(entries, *newPair)
 		}
 	}
 	return entries
 }
 
-func mapAttributesFromDTO(pairs *[]dto.Pair) []interface{} {
+func mapAttributesFromDTO(pairs []authlete.Pair) []interface{} {
 
 	if pairs != nil {
-		entries := make([]interface{}, len(*pairs), len(*pairs))
+		entries := make([]interface{}, len(pairs), len(pairs))
 
-		for i, v := range *pairs {
+		for i, v := range pairs {
 			newEntry := make(map[string]interface{})
 			newEntry["key"] = v.Key
 			newEntry["value"] = v.Value

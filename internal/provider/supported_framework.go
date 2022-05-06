@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"github.com/authlete/authlete-go/types"
+	"github.com/authlete/authlete-go-openapi"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -13,29 +13,29 @@ func createSupportedFrameworkSchema() *schema.Schema {
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(types.ServiceProfile_FAPI),
-				string(types.ServiceProfile_OPEN_BANKING),
+				string(authlete.SERVICEPROFILE_FAPI),
+				string(authlete.SERVICEPROFILE_OPEN_BANKING),
 			}, false),
 		},
 	}
 }
 
-func mapSupportedFrameworkToDTO(vals []interface{}) []types.ServiceProfile {
+func mapSupportedFrameworkToDTO(vals []interface{}) []authlete.ServiceProfile {
 
-	values := make([]types.ServiceProfile, len(vals))
+	values := make([]authlete.ServiceProfile, len(vals))
 
 	for i, v := range vals {
-		values[i] = types.ServiceProfile(v.(string))
+		values[i] = authlete.ServiceProfile(v.(string))
 	}
 
 	return values
 }
 
-func mapSupportedFrameworkFromDTO(vals *[]types.ServiceProfile) []interface{} {
+func mapSupportedFrameworkFromDTO(vals []authlete.ServiceProfile) []interface{} {
 
 	if vals != nil {
-		entries := make([]interface{}, len(*vals), len(*vals))
-		for i, v := range *vals {
+		entries := make([]interface{}, len(vals), len(vals))
+		for i, v := range vals {
 			entries[i] = v
 		}
 		return entries
