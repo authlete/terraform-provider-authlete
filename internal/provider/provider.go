@@ -32,7 +32,7 @@ func New(version string) func() *schema.Provider {
 					Type:        schema.TypeString,
 					Required:    false,
 					Optional:    true,
-					DefaultFunc: schema.EnvDefaultFunc("AUTHLETE_API_SERVER", "https://api.authlete.com"),
+					DefaultFunc: schema.EnvDefaultFunc("AUTHLETE_API_SERVER", "https://api.authlete.com/api"),
 				},
 				"service_owner_key": {
 					Type:        schema.TypeString,
