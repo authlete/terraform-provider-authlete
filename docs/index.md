@@ -58,5 +58,5 @@ Checkout the [Hello World sample](https://github.com/authlete/authlete-terraform
 
 ## Bootstrapping Terraform state from Authlete config
 
-check the [Import guide](guides/import)
+See [Import guide](guides/import).
 
