@@ -71,7 +71,11 @@ func createTestClient() api.AuthleteApi {
 	so_key := os.Getenv("AUTHLETE_SO_KEY")
 	so_secret := os.Getenv("AUTHLETE_SO_SECRET")
 	cnf := conf.AuthleteSimpleConfiguration{}
-	cnf.SetBaseUrl(os.Getenv("AUTHLETE_API_SERVER"))
+	api_server := os.Getenv("AUTHLETE_API_SERVER")
+	if api_server == "" {
+		api_server = "https://api.authlete.com"
+	}
+	cnf.SetBaseUrl(api_server)
 	cnf.SetServiceOwnerApiKey(so_key)
 	cnf.SetServiceOwnerApiSecret(so_secret)
 
