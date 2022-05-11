@@ -201,17 +201,6 @@ func TestAccResourceService_extended(t *testing.T) {
 	})
 }
 
-func testServiceDestroy(s *terraform.State) error {
-
-	response, err := pullServiceFromServer(s)
-
-	if err == nil && response != nil {
-		return fmt.Errorf("Service still exists.")
-	}
-
-	return nil
-}
-
 const testAccResourceServiceDefaultValues = `
 provider "authlete" {
 }
@@ -404,25 +393,6 @@ func CheckOutputPresent(name string) resource.TestCheckFunc {
 
 		return nil
 	}
-}
-
-func pullServiceFromServer(s *terraform.State) (*dto.Service, error) {
-	client := testAccProvider.Meta().(*apiClient)
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "authlete_service" {
-			continue
-		}
-
-		response, err := client.authleteClient.GetService(rs.Primary.ID)
-		if err != nil {
-			return response, fmt.Errorf("Service (%s) could not be found.", rs.Primary.ID)
-		}
-
-		return response, nil
-	}
-	return &dto.Service{}, fmt.Errorf(
-		"authlete service not found")
 }
 
 func getServiceId(*terraform.State) (string, error) {

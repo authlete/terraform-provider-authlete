@@ -1,17 +1,44 @@
 package provider
 
 import (
+	"github.com/authlete/authlete-go/dto"
+	"github.com/authlete/authlete-go/types"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
+var testService dto.Service
+
 func TestClientResourceService_create_import(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+			testService = dto.Service{}
+			testService.ServiceName = "Test Service for client testing"
+			testService.Issuer = "https://test.com"
+			testService.SupportedGrantTypes = []types.GrantType{
+				types.GrantType_AUTHORIZATION_CODE,
+				types.GrantType_REFRESH_TOKEN}
+			testService.SupportedResponseTypes =
+				[]types.ResponseType{types.ResponseType_CODE}
+			testService.SupportedScopes = []dto.Scope{
+				dto.Scope{
+					Name: "openid",
+				},
+				dto.Scope{
+					Name: "profile",
+				},
+			}
+			testCreateTestService(t, &testService)
+		},
 		ProviderFactories: providerFactories,
-		CheckDestroy:      testServiceDestroy,
+		CheckDestroy: func(s *terraform.State) error {
+			testDestroyTestService(t, &testService)
+			return nil
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: stateSimpleClientState,
