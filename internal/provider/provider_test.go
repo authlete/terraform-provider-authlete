@@ -1,14 +1,14 @@
 package provider
 
 import (
+	"context"
 	"fmt"
-	"github.com/authlete/authlete-go/api"
-	"github.com/authlete/authlete-go/conf"
-	"github.com/authlete/authlete-go/dto"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/authlete/authlete-go-openapi"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -47,11 +47,11 @@ func testAccPreCheck(t *testing.T) {
 
 }
 
-func testCreateTestService(t *testing.T, service2 *dto.Service) {
+func testCreateTestService(t *testing.T, service2 *authlete.Service) {
 
-	authleteClient := createTestClient()
+	authleteClient, auth := createTestClient()
 
-	newService, err := authleteClient.CreateService(service2)
+	newService, _, err := authleteClient.ServiceCreateApi(auth).Service(*service2).Execute()
 
 	if err != nil {
 		t.Fatal("Error while setup the test ", err)
@@ -59,35 +59,42 @@ func testCreateTestService(t *testing.T, service2 *dto.Service) {
 	service2.ApiKey = newService.ApiKey
 	service2.ApiSecret = newService.ApiSecret
 
-	os.Setenv("AUTHLETE_API_KEY", strconv.FormatUint(service2.ApiKey, 10))
-	os.Setenv("AUTHLETE_API_SECRET", service2.ApiSecret)
+	os.Setenv("AUTHLETE_API_KEY", strconv.FormatInt(service2.GetApiKey(), 10))
+	os.Setenv("AUTHLETE_API_SECRET", service2.GetApiSecret())
 
 	testAccProvider = New("dev")()
 	testAccProviders = map[string]*schema.Provider{"authlete": testAccProvider}
 
 }
 
-func createTestClient() api.AuthleteApi {
+func createTestClient() (authlete.ServiceManagementApi, context.Context) {
 	so_key := os.Getenv("AUTHLETE_SO_KEY")
 	so_secret := os.Getenv("AUTHLETE_SO_SECRET")
-	cnf := conf.AuthleteSimpleConfiguration{}
 	api_server := os.Getenv("AUTHLETE_API_SERVER")
-	if api_server == "" {
-		api_server = "https://api.authlete.com"
-	}
-	cnf.SetBaseUrl(api_server)
-	cnf.SetServiceOwnerApiKey(so_key)
-	cnf.SetServiceOwnerApiSecret(so_secret)
 
-	authleteClient := api.New(&cnf)
-	authleteClient.Settings().UserAgent = "terraform-provider-authlete - dev"
-	return authleteClient
+	if api_server == "" {
+		api_server = "https://api.authlete.com/api"
+	}
+
+	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
+		UserName: so_key,
+		Password: so_secret,
+	})
+
+	cnf := authlete.NewConfiguration()
+	cnf.UserAgent = "terraform-provider-authlete"
+
+	cnf.Servers[0].URL = api_server
+
+	apiClientOpenAPI := authlete.NewAPIClient(cnf)
+
+	return apiClientOpenAPI.ServiceManagementApi, auth
 }
 
-func testDestroyTestService(t *testing.T, service2 *dto.Service) {
-	authleteClient := createTestClient()
+func testDestroyTestService(t *testing.T, service2 *authlete.Service) {
+	authleteClient, auth := createTestClient()
 
-	err := authleteClient.DeleteService(service2.ApiKey)
+	_, err := authleteClient.ServiceDeleteApi(auth, strconv.FormatInt(service2.GetApiKey(), 10)).Execute()
 
 	if err != nil {
 		t.Fatal("Error during teardown the test ", err)
@@ -95,7 +102,7 @@ func testDestroyTestService(t *testing.T, service2 *dto.Service) {
 
 }
 
-func pullServiceFromServer(s *terraform.State) (*dto.Service, error) {
+func pullServiceFromServer(s *terraform.State) (*authlete.Service, error) {
 	client := testAccProvider.Meta().(*apiClient)
 
 	for _, rs := range s.RootModule().Resources {
@@ -103,14 +110,19 @@ func pullServiceFromServer(s *terraform.State) (*dto.Service, error) {
 			continue
 		}
 
-		response, err := client.authleteClient.GetService(rs.Primary.ID)
+		auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
+			UserName: client.service_owner_key,
+			Password: client.service_owner_secret,
+		})
+
+		response, _, err := client.authleteClient.ServiceManagementApi.ServiceGetApi(auth, rs.Primary.ID).Execute()
 		if err != nil {
 			return response, fmt.Errorf("Service (%s) could not be found.", rs.Primary.ID)
 		}
 
 		return response, nil
 	}
-	return &dto.Service{}, fmt.Errorf(
+	return &authlete.Service{}, fmt.Errorf(
 		"authlete service not found")
 }
 
