@@ -41,7 +41,7 @@ func mapSupportedScopeToDTO(vals []interface{}) []authlete.Scope {
 		newScope.SetName(entry["name"].(string))
 		newScope.SetDescription(entry["description"].(string))
 		newScope.SetDefaultEntry(entry["default_entry"].(bool))
-		newScope.SetDescriptions(mapTaggedValue(entry["descriptions"].(*schema.Set)))
+		newScope.SetDescriptions(mapTaggedValue(entry["descriptions"].([]interface{})))
 		newScope.SetAttributes(mapAttributesToDTO(entry["attribute"].([]interface{})))
 		mapped[i] = *newScope
 	}
@@ -58,7 +58,7 @@ func mapSupportedScopeFromDTO(scopes []authlete.Scope) []interface{} {
 			newEntry["name"] = v.Name
 			newEntry["default_entry"] = v.DefaultEntry
 			newEntry["description"] = v.Description
-			newEntry["descriptions"] = mapTaggedValuesFromDTO(&v.Descriptions)
+			newEntry["descriptions"] = mapTaggedValuesFromDTO(v.Descriptions)
 			newEntry["attribute"] = mapAttributesFromDTO(v.Attributes)
 			entries[i] = newEntry
 		}

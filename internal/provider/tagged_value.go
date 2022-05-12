@@ -20,11 +20,11 @@ func createTaggedSchema() *schema.Schema {
 	}
 }
 
-func mapTaggedValue(entry *schema.Set) []authlete.TaggedValue {
+func mapTaggedValue(entry []interface{}) []authlete.TaggedValue {
 	var entries = []authlete.TaggedValue{}
 
 	if entry != nil {
-		for _, v := range entry.List() {
+		for _, v := range entry {
 			var keypair = v.(map[string]interface{})
 			newTag := authlete.NewTaggedValue()
 			newTag.SetTag(keypair["tag"].(string))

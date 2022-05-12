@@ -7,7 +7,7 @@ func NotZeroString(d *schema.ResourceData, name string) bool {
 }
 
 func NotZeroArray(d *schema.ResourceData, name string) bool {
-	return d.Get(name).(*schema.Set).Len() != 0
+	return len(d.Get(name).([]interface{})) != 0
 }
 
 func NotZeroNumber(d *schema.ResourceData, name string) bool {

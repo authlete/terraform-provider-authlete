@@ -801,8 +801,11 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 		newServiceDto.SetSupportedIdentityDocuments(mapSetToString(data.Get("supported_identity_documents").([]interface{})))
 		newServiceDto.SetSupportedVerificationMethods(mapSetToString(data.Get("supported_verification_methods").([]interface{})))
 		newServiceDto.SetSupportedVerifiedClaims(mapSetToString(data.Get("supported_verified_claims").([]interface{})))
-		newServiceDto.SetEndSessionEndpoint(data.Get("end_session_endpoint").(string))
+
 	*/
+	if NotZeroString(data, "end_session_endpoint") {
+		newServiceDto.SetEndSessionEndpoint(data.Get("end_session_endpoint").(string))
+	}
 	return &newServiceDto, diags
 
 }
@@ -924,7 +927,7 @@ func serviceToResource(dto *authlete.Service, data *schema.ResourceData) diag.Di
 		data.Set("supported_verification_methods", mapSchemaFromString(&dto.GetSupportedVerificationMethods))
 		data.Set("supported_verified_claims", mapSchemaFromString(&dto.GetSupportedVerifiedClaims))
 	*/
-	data.Set("end_session_endpoint", dto.GetEndSessionEndpoint)
+	data.Set("end_session_endpoint", dto.GetEndSessionEndpoint())
 	return nil
 }
 

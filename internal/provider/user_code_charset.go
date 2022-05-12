@@ -22,6 +22,6 @@ func mapUserCodeCharsets(val string) authlete.UserCodeCharset {
 	return authlete.UserCodeCharset(val)
 }
 
-func mapUserCodeCharsetsFromDTO(val types.UserCodeCharset) string {
+func mapUserCodeCharsetsFromDTO(val authlete.UserCodeCharset) string {
 	return string(val)
 }

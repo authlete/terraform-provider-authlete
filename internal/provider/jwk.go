@@ -481,13 +481,17 @@ func updateJWKS(vals []interface{}, jwks string, diags diag.Diagnostics) (string
 
 func mapJWKFromDTO(localKeys []interface{}, jwks string) ([]interface{}, error) {
 
-	var serverKeysMap map[string][]JWKStruct
-	err := json.Unmarshal([]byte(jwks), &serverKeysMap)
-	if err != nil {
-		return nil, errors.New("The JWK content from server could not be parsed: " + err.Error())
+	var serverKeys []JWKStruct
+	if jwks != "" {
+		var serverKeysMap map[string][]JWKStruct
+		err := json.Unmarshal([]byte(jwks), &serverKeysMap)
+		if err != nil {
+			return nil, errors.New("The JWK content from server could not be parsed: " + err.Error())
+		}
+		serverKeys = serverKeysMap["keys"]
+	} else {
+		serverKeys = []JWKStruct{}
 	}
-
-	var serverKeys = serverKeysMap["keys"]
 
 	result := make([]interface{}, len(serverKeys))
 
