@@ -11,4 +11,4 @@ require (
 	github.com/lestrrat-go/jwx v1.2.23
 )
 
-replace github.com/authlete/authlete-go-openapi => ../generated-go-client
+//replace github.com/authlete/authlete-go-openapi => ../generated-go-client
