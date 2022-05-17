@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"github.com/authlete/authlete-go-openapi"
+	"github.com/authlete/openapi-for-go"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 

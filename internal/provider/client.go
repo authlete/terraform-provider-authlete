@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/authlete/authlete-go-openapi"
+	authlete "github.com/authlete/openapi-for-go"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -231,7 +231,7 @@ func dataToClient(d *schema.ResourceData) *authlete.Client {
 	}
 	newClient.SetClientIdAliasEnabled(d.Get("client_id_alias_enabled").(bool))
 	if NotZeroString(d, "client_type") {
-		newClient.SetClientType(d.Get("client_type").(string))
+		newClient.SetClientType(authlete.ClientType(d.Get("client_type").(string)))
 	}
 	newClient.SetRedirectUris(mapSetToString(d.Get("redirect_uris").([]interface{})))
 	newClient.SetResponseTypes(mapResponseTypesToDTO(d.Get("response_types").([]interface{})))

@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 
-	"github.com/authlete/authlete-go-openapi"
+	authlete "github.com/authlete/openapi-for-go"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/authlete/authlete-go-openapi"
+	authlete "github.com/authlete/openapi-for-go"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"

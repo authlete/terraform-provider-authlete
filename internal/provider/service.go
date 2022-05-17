@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/authlete/authlete-go-openapi"
+	authlete "github.com/authlete/openapi-for-go"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
