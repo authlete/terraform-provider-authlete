@@ -67,6 +67,8 @@ github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5 h1:0CwZNZbxp69SHPd
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5/go.mod h1:wHh0iHkYZB8zMSxRWpUBQtwG5a7fFgvEO+odwuTv2gs=
 github.com/authlete/openapi-for-go v0.0.0-20220517164151-2b109cb25e9a h1:ymIoyS8NWHKM89PKfyvA8s0KeJbRsHLZ/28pn4ccWsA=
 github.com/authlete/openapi-for-go v0.0.0-20220517164151-2b109cb25e9a/go.mod h1:PxH4opC0GkFpWDRKZcb4URYg9EhFlf9PI1x7c9JVPqY=
+github.com/authlete/openapi-for-go v0.1.0 h1:1hCNiuililEmCrdb0+Govbjo3ku0vEk1m8qJNFWHIQw=
+github.com/authlete/openapi-for-go v0.1.0/go.mod h1:PxH4opC0GkFpWDRKZcb4URYg9EhFlf9PI1x7c9JVPqY=
 github.com/bgentry/speakeasy v0.1.0 h1:ByYyxL9InA1OWqxJqqp2A5pYHUrCiAL6K3J+LKSsQkY=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
