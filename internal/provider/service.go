@@ -112,7 +112,7 @@ func service() *schema.Resource {
 			"backchannel_authentication_endpoint":           {Type: schema.TypeString, Required: false, Optional: true},
 			"supported_backchannel_token_delivery_modes":    createBackchannelDeliverySchema(),
 			"backchannel_auth_req_id_duration":              {Type: schema.TypeInt, Required: false, Optional: true},
-			"backcannel_polling_interval":                   {Type: schema.TypeInt, Required: false, Optional: true},
+			"backchannel_polling_interval":                  {Type: schema.TypeInt, Required: false, Optional: true},
 			"backchannel_user_code_parameter_supported":     {Type: schema.TypeBool, Required: false, Optional: true},
 			"backchannel_binding_message_required_in_fapi":  {Type: schema.TypeBool, Required: false, Optional: true},
 			"device_authorization_endpoint":                 {Type: schema.TypeString, Required: false, Optional: true},
@@ -481,8 +481,8 @@ func serviceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	if d.HasChange("backchannel_auth_req_id_duration") {
 		srv.SetBackchannelAuthReqIdDuration(int32(d.Get("backchannel_auth_req_id_duration").(int)))
 	}
-	if d.HasChange("backcannel_polling_interval") {
-		srv.SetBackchannelPollingInterval(int32(d.Get("backcannel_polling_interval").(int)))
+	if d.HasChange("backchannel_polling_interval") {
+		srv.SetBackchannelPollingInterval(int32(d.Get("backchannel_polling_interval").(int)))
 	}
 	if d.HasChange("backchannel_user_code_parameter_supported") {
 		srv.SetBackchannelUserCodeParameterSupported(d.Get("backchannel_user_code_parameter_supported").(bool))
@@ -769,8 +769,8 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 	if NotZeroNumber(data, "backchannel_auth_req_id_duration") {
 		newServiceDto.SetBackchannelAuthReqIdDuration(int32(data.Get("backchannel_auth_req_id_duration").(int)))
 	}
-	if NotZeroNumber(data, "backcannel_polling_interval") {
-		newServiceDto.SetBackchannelPollingInterval(int32(data.Get("backcannel_polling_interval").(int)))
+	if NotZeroNumber(data, "backchannel_polling_interval") {
+		newServiceDto.SetBackchannelPollingInterval(int32(data.Get("backchannel_polling_interval").(int)))
 	}
 	newServiceDto.SetBackchannelUserCodeParameterSupported(data.Get("backchannel_user_code_parameter_supported").(bool))
 	newServiceDto.SetBackchannelBindingMessageRequiredInFapi(data.Get("backchannel_binding_message_required_in_fapi").(bool))
@@ -909,7 +909,7 @@ func serviceToResource(dto *authlete.Service, data *schema.ResourceData) diag.Di
 	data.Set("backchannel_authentication_endpoint", dto.GetBackchannelAuthenticationEndpoint())
 	data.Set("supported_backchannel_token_delivery_modes", mapBackchannelDeliveryFromDTO(dto.GetSupportedBackchannelTokenDeliveryModes()))
 	data.Set("backchannel_auth_req_id_duration", dto.GetBackchannelAuthReqIdDuration())
-	data.Set("backcannel_polling_interval", dto.GetBackchannelPollingInterval())
+	data.Set("backchannel_polling_interval", dto.GetBackchannelPollingInterval())
 	data.Set("backchannel_user_code_parameter_supported", dto.GetBackchannelUserCodeParameterSupported())
 	data.Set("backchannel_binding_message_required_in_fapi", dto.GetBackchannelBindingMessageRequiredInFapi())
 	data.Set("device_authorization_endpoint", dto.GetDeviceAuthorizationEndpoint())

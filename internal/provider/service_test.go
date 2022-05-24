@@ -168,7 +168,7 @@ func TestAccResourceService_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "backchannel_authentication_endpoint", "https://api.mystore.com/ciba"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_backchannel_token_delivery_modes.0", "POLL"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "backchannel_auth_req_id_duration", "15"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "backcannel_polling_interval", "3"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "backchannel_polling_interval", "3"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "backchannel_user_code_parameter_supported", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "backchannel_binding_message_required_in_fapi", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "device_authorization_endpoint", "https://api.mystore.com/device"),
@@ -350,7 +350,7 @@ resource "authlete_service" "complete_described" {
   backchannel_authentication_endpoint = "https://api.mystore.com/ciba"
   supported_backchannel_token_delivery_modes = [ "POLL"]
   backchannel_auth_req_id_duration = 15
-  backcannel_polling_interval = 3
+  backchannel_polling_interval = 3
   backchannel_user_code_parameter_supported = true
   backchannel_binding_message_required_in_fapi = true
   device_authorization_endpoint = "https://api.mystore.com/device"
