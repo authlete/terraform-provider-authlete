@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"github.com/authlete/authlete-go/types"
+	authlete "github.com/authlete/openapi-for-go"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -14,31 +14,31 @@ func createSupportedDisplaySchema() *schema.Schema {
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(types.Display_PAGE),
-				string(types.Display_POPUP),
-				string(types.Display_TOUCH),
-				string(types.Display_WAP),
+				string(authlete.DISPLAY_PAGE),
+				string(authlete.DISPLAY_POPUP),
+				string(authlete.DISPLAY_TOUCH),
+				string(authlete.DISPLAY_WAP),
 			}, false),
 		},
 	}
 }
 
-func mapSupportedDisplay(vals []interface{}) []types.Display {
+func mapSupportedDisplayToDTO(vals []interface{}) []authlete.Display {
 
-	values := make([]types.Display, len(vals))
+	values := make([]authlete.Display, len(vals))
 
 	for i, v := range vals {
-		values[i] = types.Display(v.(string))
+		values[i] = authlete.Display(v.(string))
 	}
 
 	return values
 }
 
-func mapSupportedDisplayFromDTO(vals *[]types.Display) []interface{} {
+func mapSupportedDisplayFromDTO(vals []authlete.Display) []interface{} {
 
 	if vals != nil {
-		entries := make([]interface{}, len(*vals), len(*vals))
-		for i, v := range *vals {
+		entries := make([]interface{}, len(vals), len(vals))
+		for i, v := range vals {
 			entries[i] = v
 		}
 		return entries

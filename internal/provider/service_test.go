@@ -5,13 +5,13 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/authlete/authlete-go/dto"
+	authlete "github.com/authlete/openapi-for-go"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-var srvToImport dto.Service
+var srvToImport authlete.Service
 
 func TestAccResourceService_basic(t *testing.T) {
 
@@ -99,7 +99,7 @@ func TestAccResourceService_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "pkce_s256_required", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "authorization_response_duration", "10"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "iss_response_suppressed", "true"),
-					//resource.TestCheckResourceAttr("authlete_service.complete_described", "ignore_port_loopback_redirect", "true"),
+					// resource.TestCheckResourceAttr("authlete_service.complete_described", "ignore_port_loopback_redirect", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "token_endpoint", "https://api.mystore.com/token"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "direct_token_endpoint_enabled", "false"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_token_auth_methods.0", "CLIENT_SECRET_POST"),
@@ -157,7 +157,7 @@ func TestAccResourceService_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "hsm_enabled", "false"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "user_info_endpoint", "https://api.mystore.com/userinfo"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "direct_user_info_endpoint_enabled", "false"),
-					//resource.TestCheckResourceAttr("authlete_service.complete_described", "dcr_scope_used_as_requestable", "true"),
+					// resource.TestCheckResourceAttr("authlete_service.complete_described", "dcr_scope_used_as_requestable", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "registration_endpoint", "https://api.mystore.com/dcr"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "registration_management_endpoint", "https://api.mystore.com/client/"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "mtls_endpoint_aliases.0.name", "test"),
@@ -168,7 +168,7 @@ func TestAccResourceService_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "backchannel_authentication_endpoint", "https://api.mystore.com/ciba"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_backchannel_token_delivery_modes.0", "POLL"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "backchannel_auth_req_id_duration", "15"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "backcannel_polling_interval", "3"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "backchannel_polling_interval", "3"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "backchannel_user_code_parameter_supported", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "backchannel_binding_message_required_in_fapi", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "device_authorization_endpoint", "https://api.mystore.com/device"),
@@ -350,7 +350,7 @@ resource "authlete_service" "complete_described" {
   backchannel_authentication_endpoint = "https://api.mystore.com/ciba"
   supported_backchannel_token_delivery_modes = [ "POLL"]
   backchannel_auth_req_id_duration = 15
-  backcannel_polling_interval = 3
+  backchannel_polling_interval = 3
   backchannel_user_code_parameter_supported = true
   backchannel_binding_message_required_in_fapi = true
   device_authorization_endpoint = "https://api.mystore.com/device"
@@ -396,5 +396,5 @@ func CheckOutputPresent(name string) resource.TestCheckFunc {
 }
 
 func getServiceId(*terraform.State) (string, error) {
-	return strconv.FormatUint(srvToImport.ApiKey, 10), nil
+	return strconv.FormatInt(srvToImport.GetApiKey(), 10), nil
 }
