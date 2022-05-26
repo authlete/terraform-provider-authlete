@@ -4,8 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/authlete/authlete-go/dto"
-
+	authlete "github.com/authlete/openapi-for-go"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -113,7 +112,7 @@ func service() *schema.Resource {
 			"backchannel_authentication_endpoint":           {Type: schema.TypeString, Required: false, Optional: true},
 			"supported_backchannel_token_delivery_modes":    createBackchannelDeliverySchema(),
 			"backchannel_auth_req_id_duration":              {Type: schema.TypeInt, Required: false, Optional: true},
-			"backcannel_polling_interval":                   {Type: schema.TypeInt, Required: false, Optional: true},
+			"backchannel_polling_interval":                  {Type: schema.TypeInt, Required: false, Optional: true},
 			"backchannel_user_code_parameter_supported":     {Type: schema.TypeBool, Required: false, Optional: true},
 			"backchannel_binding_message_required_in_fapi":  {Type: schema.TypeBool, Required: false, Optional: true},
 			"device_authorization_endpoint":                 {Type: schema.TypeString, Required: false, Optional: true},
@@ -145,21 +144,24 @@ func serviceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	tflog.Trace(ctx, "Creating a new service")
 
 	newServiceDto, diags := dataToService(d, diags)
-
-	newService, err := client.authleteClient.CreateService(newServiceDto)
+	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
+		UserName: client.service_owner_key,
+		Password: client.service_owner_secret,
+	})
+	r, _, err := client.authleteClient.ServiceManagementApi.ServiceCreateApi(auth).Service(*newServiceDto).Execute()
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	tflog.Trace(ctx, "Service created")
 
-	api_key := newService.ApiKey
-	api_secret := newService.ApiSecret
+	api_key := r.ApiKey
+	api_secret := r.ApiSecret
 
 	// populate the state with default values coming from authlete api server.
-	diags = serviceToResource(newService, d)
+	diags = serviceToResource(r, d)
 
-	d.SetId(strconv.FormatUint(api_key, 10))
+	d.SetId(strconv.FormatInt(*api_key, 10))
 	d.Set("api_secret", api_secret)
 
 	return diags
@@ -175,7 +177,12 @@ func serviceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) 
 func serviceReadInternal(ctx context.Context, d *schema.ResourceData, meta interface{}, diags diag.Diagnostics) diag.Diagnostics {
 	client := meta.(*apiClient)
 
-	dto, err := client.authleteClient.GetService(d.Id())
+	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
+		UserName: client.service_owner_key,
+		Password: client.service_owner_secret,
+	})
+	dto, _, err := client.authleteClient.ServiceManagementApi.ServiceGetApi(auth, d.Id()).Execute()
+
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -190,334 +197,342 @@ func serviceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}
 
 	client := meta.(*apiClient)
 
-	srv, err := client.authleteClient.GetService(d.Id())
+	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
+		UserName: client.service_owner_key,
+		Password: client.service_owner_secret,
+	})
+	srv, _, err := client.authleteClient.ServiceManagementApi.ServiceGetApi(auth, d.Id()).Execute()
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	if d.HasChange("service_name") {
-		srv.ServiceName = d.Get("service_name").(string)
+		srv.SetServiceName(d.Get("service_name").(string))
 	}
 	if d.HasChange("issuer") {
-		srv.Issuer = d.Get("issuer").(string)
+		srv.SetIssuer(d.Get("issuer").(string))
 	}
 	if d.HasChange("description") {
-		srv.Description = d.Get("description").(string)
+		srv.SetDescription(d.Get("description").(string))
 	}
 	if d.HasChange("clients_per_developer") {
-		srv.ClientsPerDeveloper = d.Get("clients_per_developer").(uint16)
+		srv.SetClientsPerDeveloper(int32(d.Get("clients_per_developer").(uint16)))
 	}
 	if d.HasChange("client_id_alias_enabled") {
-		srv.ClientIdAliaseEnabled = d.Get("client_id_alias_enabled").(bool)
+		srv.SetClientIdAliasEnabled(d.Get("client_id_alias_enabled").(bool))
 	}
 	if d.HasChange("attributes") {
 		srv.Attributes = mapAttributesToDTO(d.Get("attribute").([]interface{}))
 	}
 	if d.HasChange("supported_custom_client_metadata") {
-		srv.SupportedCustomClientMetadata = mapSetToString(d.Get("supported_custom_client_metadata").([]interface{}))
+		srv.SetSupportedCustomClientMetadata(mapSetToString(d.Get("supported_custom_client_metadata").([]interface{})))
 	}
 	if d.HasChange("authentication_callback_endpoint") {
-		srv.AuthenticationCallbackEndpoint = d.Get("authentication_callback_endpoint").(string)
+		srv.SetAuthenticationCallbackEndpoint(d.Get("authentication_callback_endpoint").(string))
 	}
 	if d.HasChange("authentication_callback_api_key") {
-		srv.AuthenticationCallbackApiKey = d.Get("authentication_callback_api_key").(string)
+		srv.SetAuthenticationCallbackApiKey(d.Get("authentication_callback_api_key").(string))
 	}
 	if d.HasChange("authentication_callback_api_secret") {
-		srv.AuthenticationCallbackApiSecret = d.Get("authentication_callback_api_secret").(string)
+		srv.SetAuthenticationCallbackApiSecret(d.Get("authentication_callback_api_secret").(string))
 	}
 	if d.HasChange("supported_acrs") {
-		srv.SupportedAcrs = mapSetToString(d.Get("supported_acrs").([]interface{}))
+		srv.SetSupportedAcrs(mapSetToString(d.Get("supported_acrs").([]interface{})))
 	}
 	if d.HasChange("developer_authentication_callback_endpoint") {
-		srv.DeveloperAuthenticationCallbackEndpoint = d.Get("developer_authentication_callback_endpoint").(string)
+		srv.SetDeveloperAuthenticationCallbackEndpoint(d.Get("developer_authentication_callback_endpoint").(string))
 	}
 	if d.HasChange("developer_authentication_callback_api_key") {
-		srv.DeveloperAuthenticationCallbackApiKey = d.Get("developer_authentication_callback_api_key").(string)
+		srv.SetDeveloperAuthenticationCallbackApiKey(d.Get("developer_authentication_callback_api_key").(string))
 	}
 	if d.HasChange("developer_authentication_callback_api_secret") {
-		srv.DeveloperAuthenticationCallbackApiSecret = d.Get("developer_authentication_callback_api_secret").(string)
+		srv.SetDeveloperAuthenticationCallbackApiSecret(d.Get("developer_authentication_callback_api_secret").(string))
 	}
 
 	if d.HasChange("supported_grant_types") {
-		srv.SupportedGrantTypes = mapGrantTypesToDTO(d.Get("supported_grant_types").([]interface{}))
+		srv.SetSupportedGrantTypes(mapGrantTypesToDTO(d.Get("supported_grant_types").([]interface{})))
 	}
 	if d.HasChange("supported_response_types") {
-		srv.SupportedResponseTypes = mapResponseTypesToDTO(d.Get("supported_response_types").([]interface{}))
+		srv.SetSupportedResponseTypes(mapResponseTypesToDTO(d.Get("supported_response_types").([]interface{})))
 	}
 	if d.HasChange("supported_authorization_detail_types") {
-		srv.SupportedAuthorizationDetailsTypes = mapSetToString(d.Get("supported_authorization_detail_types").([]interface{}))
+		srv.SetSupportedAuthorizationDetailsTypes(mapSetToString(d.Get("supported_authorization_detail_types").([]interface{})))
 	}
 	if d.HasChange("supported_service_profiles") {
-		srv.SupportedServiceProfiles = mapSupportedFrameworkToDTO(d.Get("supported_service_profiles").([]interface{}))
+		srv.SetSupportedServiceProfiles(mapSupportedFrameworkToDTO(d.Get("supported_service_profiles").([]interface{})))
 	}
 	if d.HasChange("error_description_omitted") {
-		srv.ErrorDescriptionOmitted = d.Get("error_description_omitted").(bool)
+		srv.SetErrorDescriptionOmitted(d.Get("error_description_omitted").(bool))
 	}
 	if d.HasChange("error_uri_omitted") {
-		srv.ErrorUriOmitted = d.Get("error_uri_omitted").(bool)
+		srv.SetErrorUriOmitted(d.Get("error_uri_omitted").(bool))
 	}
 	if d.HasChange("authorization_endpoint") {
-		srv.AuthorizationEndpoint = d.Get("authorization_endpoint").(string)
+		srv.SetAuthorizationEndpoint(d.Get("authorization_endpoint").(string))
 	}
 	if d.HasChange("direct_authorization_endpoint_enabled") {
-		srv.DirectAuthorizationEndpointEnabled = d.Get("direct_authorization_endpoint_enabled").(bool)
+		srv.SetDirectAuthorizationEndpointEnabled(d.Get("direct_authorization_endpoint_enabled").(bool))
 	}
 	if d.HasChange("supported_ui_locales") {
-		srv.SupportedUiLocales = mapSetToString(d.Get("supported_ui_locales").([]interface{}))
+		srv.SetSupportedUiLocales(mapSetToString(d.Get("supported_ui_locales").([]interface{})))
 	}
 	if d.HasChange("supported_displays") {
-		srv.SupportedDisplays = mapSupportedDisplay(d.Get("supported_displays").([]interface{}))
+		srv.SetSupportedDisplays(mapSupportedDisplayToDTO(d.Get("supported_displays").([]interface{})))
 	}
 	if d.HasChange("pkce_required") {
-		srv.PkceRequired = d.Get("pkce_required").(bool)
+		srv.SetPkceRequired(d.Get("pkce_required").(bool))
 	}
 	if d.HasChange("pkce_s256_required") {
-		srv.PkceS256Required = d.Get("pkce_s256_required").(bool)
+		srv.SetPkceS256Required(d.Get("pkce_s256_required").(bool))
 	}
 	if d.HasChange("authorization_response_duration") {
-		srv.AuthorizationResponseDuration = uint64(d.Get("authorization_response_duration").(int))
+		srv.SetAuthorizationResponseDuration(int64(d.Get("authorization_response_duration").(int)))
 	}
 	if d.HasChange("iss_response_parameter") {
-		srv.IssSuppressed = d.Get("iss_response_suppressed").(bool)
+		srv.SetIssSuppressed(d.Get("iss_response_suppressed").(bool))
 	}
-	// if d.HasChange("ignore_port_loopback_redirect") {
-	//	srv.LoopbackRedirectionUriVariable = d.Get("ignore_port_loopback_redirect").(bool)
-	// }
+	/*if d.HasChange("ignore_port_loopback_redirect") {
+		srv.SetLoopbackRedirectionUriVariable(d.Get("ignore_port_loopback_redirect").(bool))
+	}
+	*/
+
 	if d.HasChange("token_endpoint") {
-		srv.TokenEndpoint = d.Get("token_endpoint").(string)
+		srv.SetTokenEndpoint(d.Get("token_endpoint").(string))
 	}
 	if d.HasChange("direct_token_endpoint_enabled") {
-		srv.DirectTokenEndpointEnabled = d.Get("direct_token_endpoint_enabled").(bool)
+		srv.SetDirectTokenEndpointEnabled(d.Get("direct_token_endpoint_enabled").(bool))
 	}
 	if d.HasChange("supported_token_auth_methods") {
-		srv.SupportedTokenAuthMethods = mapClientAuthMethods(d.Get("supported_token_auth_methods").([]interface{}))
+		srv.SetSupportedTokenAuthMethods(mapClientAuthMethods(d.Get("supported_token_auth_methods").([]interface{})))
 	}
 	if d.HasChange("mutual_tls_validate_pki_cert_chain") {
-		srv.MutualTlsValidatePkiCertChain = d.Get("mutual_tls_validate_pki_cert_chain").(bool)
+		srv.SetMutualTlsValidatePkiCertChain(d.Get("mutual_tls_validate_pki_cert_chain").(bool))
 	}
 	if d.HasChange("trusted_root_certificates") {
-		srv.TrustedRootCertificates = mapSetToString(d.Get("trusted_root_certificates").([]interface{}))
+		srv.SetTrustedRootCertificates(mapSetToString(d.Get("trusted_root_certificates").([]interface{})))
 	}
 	if d.HasChange("missing_client_id_allowed") {
-		srv.MissingClientIdAllowed = d.Get("missing_client_id_allowed").(bool)
+		srv.SetMissingClientIdAllowed(d.Get("missing_client_id_allowed").(bool))
 	}
 	if d.HasChange("revocation_endpoint") {
-		srv.RevocationEndpoint = d.Get("revocation_endpoint").(string)
+		srv.SetRevocationEndpoint(d.Get("revocation_endpoint").(string))
 	}
 	if d.HasChange("direct_revocation_endpoint_enabled") {
-		srv.DirectRevocationEndpointEnabled = d.Get("direct_revocation_endpoint_enabled").(bool)
+		srv.SetDirectRevocationEndpointEnabled(d.Get("direct_revocation_endpoint_enabled").(bool))
 	}
 	if d.HasChange("supported_revocation_auth_methods") {
-		srv.SupportedRevocationAuthMethods = mapClientAuthMethods(d.Get("supported_revocation_auth_methods").([]interface{}))
+		srv.SetSupportedRevocationAuthMethods(mapClientAuthMethods(d.Get("supported_revocation_auth_methods").([]interface{})))
 	}
 	if d.HasChange("introspection_endpoint") {
-		srv.IntrospectionEndpoint = d.Get("introspection_endpoint").(string)
+		srv.SetIntrospectionEndpoint(d.Get("introspection_endpoint").(string))
 	}
 	if d.HasChange("direct_introspection_endpoint_enabled") {
-		srv.DirectIntrospectionEndpointEnabled = d.Get("direct_introspection_endpoint_enabled").(bool)
+		srv.SetDirectIntrospectionEndpointEnabled(d.Get("direct_introspection_endpoint_enabled").(bool))
 	}
 	if d.HasChange("supported_introspection_auth_methods") {
-		srv.SupportedIntrospectionAuthMethods = mapClientAuthMethods(d.Get("supported_introspection_auth_methods").([]interface{}))
+		srv.SetSupportedIntrospectionAuthMethods(mapClientAuthMethods(d.Get("supported_introspection_auth_methods").([]interface{})))
 	}
 	if d.HasChange("pushed_auth_req_endpoint") {
-		srv.PushedAuthReqEndpoint = d.Get("pushed_auth_req_endpoint").(string)
+		srv.SetPushedAuthReqEndpoint(d.Get("pushed_auth_req_endpoint").(string))
 	}
 	if d.HasChange("pushed_auth_req_duration") {
-		srv.PushedAuthReqDuration = uint64(d.Get("pushed_auth_req_duration").(int))
+		srv.SetPushedAuthReqDuration(int64(d.Get("pushed_auth_req_duration").(int)))
 	}
 	if d.HasChange("par_required") {
-		srv.ParRequired = d.Get("par_required").(bool)
+		srv.SetParRequired(d.Get("par_required").(bool))
 	}
 	if d.HasChange("request_object_required") {
-		srv.RequestObjectRequired = d.Get("request_object_required").(bool)
+		srv.SetRequestObjectRequired(d.Get("request_object_required").(bool))
 	}
 	if d.HasChange("traditional_request_object_processing_applied") {
-		srv.TraditionalRequestObjectProcessingApplied = d.Get("traditional_request_object_processing_applied").(bool)
+		srv.SetTraditionalRequestObjectProcessingApplied(d.Get("traditional_request_object_processing_applied").(bool))
 	}
 	if d.HasChange("nbf_optional") {
-		srv.NbfOptional = d.Get("nbf_optional").(bool)
+		srv.SetNbfOptional(d.Get("nbf_optional").(bool))
 	}
 	if d.HasChange("front_channel_encryption_request_obj_required") {
-		srv.FrontChannelRequestObjectEncryptionRequired = d.Get("front_channel_encryption_request_obj_required").(bool)
+		srv.SetFrontChannelRequestObjectEncryptionRequired(d.Get("front_channel_encryption_request_obj_required").(bool))
 	}
 	if d.HasChange("encryption_alg_req_obj_match") {
-		srv.RequestObjectEncryptionAlgMatchRequired = d.Get("encryption_alg_req_obj_match").(bool)
+		srv.SetRequestObjectEncryptionAlgMatchRequired(d.Get("encryption_alg_req_obj_match").(bool))
 	}
 	if d.HasChange("encryption_enc_alg_req_obj_match") {
-		srv.RequestObjectEncryptionEncMatchRequired = d.Get("encryption_enc_alg_req_obj_match").(bool)
+		srv.SetRequestObjectEncryptionEncMatchRequired(d.Get("encryption_enc_alg_req_obj_match").(bool))
 	}
 	if d.HasChange("access_token_type") {
-		srv.AccessTokenType = d.Get("access_token_type").(string)
+		srv.SetAccessTokenType(d.Get("access_token_type").(string))
 	}
 	if d.HasChange("single_access_token_per_subject") {
-		srv.SingleAccessTokenPerSubject = d.Get("single_access_token_per_subject").(bool)
+		srv.SetSingleAccessTokenPerSubject(d.Get("single_access_token_per_subject").(bool))
 	}
 
 	if d.HasChange("access_token_sign_alg") {
-		srv.AccessTokenSignAlg = mapSignAlgorithms(d.Get("access_token_sign_alg").(string))
+		srv.SetAccessTokenSignAlg(mapSignAlgorithms(d.Get("access_token_sign_alg").(string)))
 	}
 	if d.HasChange("access_token_signature_key_id") {
-		srv.AccessTokenSignatureKeyId = d.Get("access_token_signature_key_id").(string)
+		srv.SetAccessTokenSignatureKeyId(d.Get("access_token_signature_key_id").(string))
 	}
 	if d.HasChange("refresh_token_duration") {
-		srv.RefreshTokenDuration = uint64(d.Get("refresh_token_duration").(int))
+		srv.SetRefreshTokenDuration(int64(d.Get("refresh_token_duration").(int)))
 	}
 	if d.HasChange("refresh_token_duration_kept") {
-		srv.RefreshTokenDurationKept = d.Get("refresh_token_duration_kept").(bool)
+		srv.SetRefreshTokenDurationKept(d.Get("refresh_token_duration_kept").(bool))
 	}
 	if d.HasChange("refresh_token_duration_reset") {
-		srv.RefreshTokenDurationReset = d.Get("refresh_token_duration_reset").(bool)
+		srv.SetRefreshTokenDurationReset(d.Get("refresh_token_duration_reset").(bool))
 	}
 	if d.HasChange("refresh_token_kept") {
-		srv.RefreshTokenKept = d.Get("refresh_token_kept").(bool)
+		srv.SetRefreshTokenKept(d.Get("refresh_token_kept").(bool))
 	}
 	if d.HasChange("token_expiration_link") {
-		srv.TokenExpirationLinked = d.Get("token_expiration_link").(bool)
+		srv.SetTokenExpirationLinked(d.Get("token_expiration_link").(bool))
 	}
 	if d.HasChange("supported_scopes") {
-		srv.SupportedScopes = mapSupportedScope(d.Get("supported_scopes").([]interface{}))
+		srv.SetSupportedScopes(mapSupportedScopeToDTO(d.Get("supported_scopes").([]interface{})))
 	}
 	if d.HasChange("scope_required") {
-		srv.ScopeRequired = d.Get("scope_required").(bool)
+		srv.SetScopeRequired(d.Get("scope_required").(bool))
 	}
 	if d.HasChange("id_token_duration") {
-		srv.IdTokenDuration = uint64(d.Get("id_token_duration").(int))
+		srv.SetIdTokenDuration(int64(d.Get("id_token_duration").(int)))
 	}
 	if d.HasChange("allowable_clock_skew") {
-		srv.AllowableClockSkew = uint16(d.Get("allowable_clock_skew").(int))
+		srv.SetAllowableClockSkew(int32(d.Get("allowable_clock_skew").(int)))
 	}
 	if d.HasChange("supported_claim_types") {
-		srv.SupportedClaimTypes = mapClaimTypes(d.Get("supported_claim_types").([]interface{}))
+		srv.SetSupportedClaimTypes(mapClaimTypesToDTO(d.Get("supported_claim_types").([]interface{})))
 	}
 	if d.HasChange("supported_claim_locales") {
-		srv.SupportedClaimLocales = mapSetToString(d.Get("supported_claim_locales").([]interface{}))
+		srv.SetSupportedClaimLocales(mapSetToString(d.Get("supported_claim_locales").([]interface{})))
 	}
 	if d.HasChange("supported_claims") {
-		srv.SupportedClaims = mapSetToString(d.Get("supported_claims").([]interface{}))
+		srv.SetSupportedClaims(mapSetToString(d.Get("supported_claims").([]interface{})))
 	}
 	if d.HasChange("claim_shortcut_restrictive") {
-		srv.ClaimShortcutRestrictive = d.Get("claim_shortcut_restrictive").(bool)
+		srv.SetClaimShortcutRestrictive(d.Get("claim_shortcut_restrictive").(bool))
 	}
 	if d.HasChange("jwks_endpoint") {
-		srv.JwksUri = d.Get("jwks_endpoint").(string)
+		srv.SetJwksUri(d.Get("jwks_endpoint").(string))
 	}
 	if d.HasChange("direct_jwks_endpoint_enabled") {
-		srv.DirectJwksEndpointEnabled = d.Get("direct_jwks_endpoint_enabled").(bool)
+		srv.SetDirectJwksEndpointEnabled(d.Get("direct_jwks_endpoint_enabled").(bool))
 	}
 	if d.HasChange("jwk") {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Warning,
-			Summary:  "Updating Description",
-			Detail:   "Updating Description name to " + d.Get("description").(string),
+			Summary:  "Updating JWK",
+			Detail:   "Updating JWK ",
 		})
 
-		srv.Jwks, diags = updateJWKS(d.Get("jwk").([]interface{}), srv.Jwks, diags)
+		jwks, _ := updateJWKS(d.Get("jwk").([]interface{}), srv.GetJwks(), diags)
+		srv.SetJwks(jwks)
 	}
 
 	if d.HasChange("id_token_signature_key_id") {
-		srv.IdTokenSignatureKeyId = d.Get("id_token_signature_key_id").(string)
+		srv.SetIdTokenSignatureKeyId(d.Get("id_token_signature_key_id").(string))
 	}
 	if d.HasChange("user_info_signature_key_id") {
-		srv.UserInfoSignatureKeyId = d.Get("user_info_signature_key_id").(string)
+		srv.SetUserInfoSignatureKeyId(d.Get("user_info_signature_key_id").(string))
 	}
 	if d.HasChange("authorization_signature_key_id") {
-		srv.AuthorizationSignatureKeyId = d.Get("authorization_signature_key_id").(string)
+		srv.SetAuthorizationSignatureKeyId(d.Get("authorization_signature_key_id").(string))
 	}
 	if d.HasChange("hsm_enabled") {
-		srv.HsmEnabled = d.Get("hsm_enabled").(bool)
+		srv.SetHsmEnabled(d.Get("hsm_enabled").(bool))
 	}
 	if d.HasChange("user_info_endpoint") {
-		srv.UserInfoEndpoint = d.Get("user_info_endpoint").(string)
+		srv.SetUserInfoEndpoint(d.Get("user_info_endpoint").(string))
 	}
 	if d.HasChange("direct_user_info_endpoint_enabled") {
-		srv.DirectUserInfoEndpointEnabled = d.Get("direct_user_info_endpoint_enabled").(bool)
+		srv.SetDirectUserInfoEndpointEnabled(d.Get("direct_user_info_endpoint_enabled").(bool))
 	}
 	if d.HasChange("dynamic_registration_supported") {
-		srv.DynamicRegistrationSupported = d.Get("dynamic_registration_supported").(bool)
+		srv.SetDynamicRegistrationSupported(d.Get("dynamic_registration_supported").(bool))
 	}
-	// if d.HasChange("dcr_scope_used_as_requestable") {
-	//	srv.DcrScopeUsedAsRequestable = d.Get("dcr_scope_used_as_requestable").(bool)
-	// }
+	/*if d.HasChange("dcr_scope_used_as_requestable") {
+		srv.SetDcrScopeUsedAsRequestable(d.Get("dcr_scope_used_as_requestable").(bool))
+	}
+	*/
 	if d.HasChange("registration_endpoint") {
-		srv.RegistrationEndpoint = d.Get("registration_endpoint").(string)
+		srv.SetRegistrationEndpoint(d.Get("registration_endpoint").(string))
 	}
 	if d.HasChange("registration_management_endpoint") {
-		srv.RegistrationManagementEndpoint = d.Get("registration_management_endpoint").(string)
+		srv.SetRegistrationManagementEndpoint(d.Get("registration_management_endpoint").(string))
 	}
 	if d.HasChange("mtls_endpoint_aliases") {
-		srv.MtlsEndpointAliases = mapMtlsEndpoint(d.Get("mtls_endpoint_aliases").([]interface{}))
+		srv.SetMtlsEndpointAliases(mapMtlsEndpoint(d.Get("mtls_endpoint_aliases").([]interface{})))
 	}
 	if d.HasChange("policy_uri") {
-		srv.PolicyUri = d.Get("policy_uri").(string)
+		srv.SetPolicyUri(d.Get("policy_uri").(string))
 	}
 	if d.HasChange("tos_uri") {
-		srv.TosUri = d.Get("tos_uri").(string)
+		srv.SetTosUri(d.Get("tos_uri").(string))
 	}
 	if d.HasChange("service_documentation") {
-		srv.ServiceDocumentation = d.Get("service_documentation").(string)
+		srv.SetServiceDocumentation(d.Get("service_documentation").(string))
 	}
 	if d.HasChange("backchannel_authentication_endpoint") {
-		srv.BackchannelAuthenticationEndpoint = d.Get("backchannel_authentication_endpoint").(string)
+		srv.SetBackchannelAuthenticationEndpoint(d.Get("backchannel_authentication_endpoint").(string))
 	}
 	if d.HasChange("supported_backchannel_token_delivery_modes") {
-		srv.SupportedBackchannelTokenDeliveryModes = mapBackchannelDelivery(d.Get("supported_backchannel_token_delivery_modes").([]interface{}))
+		srv.SetSupportedBackchannelTokenDeliveryModes(mapBackchannelDelivery(d.Get("supported_backchannel_token_delivery_modes").([]interface{})))
 	}
 	if d.HasChange("backchannel_auth_req_id_duration") {
-		srv.BackchannelAuthReqIdDuration = uint64(d.Get("backchannel_auth_req_id_duration").(int))
+		srv.SetBackchannelAuthReqIdDuration(int32(d.Get("backchannel_auth_req_id_duration").(int)))
 	}
-	if d.HasChange("backcannel_polling_interval") {
-		srv.BachcannelPollingInterval = uint16(d.Get("backcannel_polling_interval").(int))
+	if d.HasChange("backchannel_polling_interval") {
+		srv.SetBackchannelPollingInterval(int32(d.Get("backchannel_polling_interval").(int)))
 	}
 	if d.HasChange("backchannel_user_code_parameter_supported") {
-		srv.BackchannelUserCodeParameterSupported = d.Get("backchannel_user_code_parameter_supported").(bool)
+		srv.SetBackchannelUserCodeParameterSupported(d.Get("backchannel_user_code_parameter_supported").(bool))
 	}
 	if d.HasChange("backchannel_binding_message_required_in_fapi") {
-		srv.BackchannelBindingMessageRequiredInFapi = d.Get("backchannel_binding_message_required_in_fapi").(bool)
+		srv.SetBackchannelBindingMessageRequiredInFapi(d.Get("backchannel_binding_message_required_in_fapi").(bool))
 	}
 	if d.HasChange("device_authorization_endpoint") {
-		srv.DeviceAuthorizationEndpoint = d.Get("device_authorization_endpoint").(string)
+		srv.SetDeviceAuthorizationEndpoint(d.Get("device_authorization_endpoint").(string))
 	}
 	if d.HasChange("device_verification_uri") {
-		srv.DeviceVerificationUri = d.Get("device_verification_uri").(string)
+		srv.SetDeviceVerificationUri(d.Get("device_verification_uri").(string))
 	}
 	if d.HasChange("device_verification_uri_complete") {
-		srv.DeviceVerificationUriComplete = d.Get("device_verification_uri_complete").(string)
+		srv.SetDeviceVerificationUriComplete(d.Get("device_verification_uri_complete").(string))
 	}
 	if d.HasChange("device_flow_code_duration") {
-		srv.DeviceFlowCodeDuration = uint64(d.Get("device_flow_code_duration").(int))
+		srv.SetDeviceFlowCodeDuration(int32(d.Get("device_flow_code_duration").(int)))
 	}
 	if d.HasChange("device_flow_polling_interval") {
-		srv.DeviceFlowPollingInterval = uint16(d.Get("device_flow_polling_interval").(int))
+		srv.SetDeviceFlowPollingInterval(int32(d.Get("device_flow_polling_interval").(int)))
 	}
 	if d.HasChange("user_code_charset") {
-		srv.UserCodeCharset = mapUserCodeCharsets(d.Get("user_code_charset").(string))
+		srv.SetUserCodeCharset(mapUserCodeCharsets(d.Get("user_code_charset").(string)))
 	}
 	if d.HasChange("user_code_length") {
-		srv.UserCodeLength = uint8(d.Get("user_code_length").(int))
+		srv.SetUserCodeLength(int32(d.Get("user_code_length").(int)))
 	}
 	/*
 		if d.HasChange("supported_trust_frameworks") {
-			srv.SupportedTrustFrameworks = mapSetToString(d.Get("supported_trust_frameworks").(*schema.Set))
+			srv.SetSupportedTrustFrameworks(mapSetToString(d.Get("supported_trust_frameworks").(*schema.Set)))
 		}
 		if d.HasChange("supported_evidence") {
-			srv.SupportedEvidence = mapSetToString(d.Get("supported_evidence").(*schema.Set))
+			srv.SetSupportedEvidence(mapSetToString(d.Get("supported_evidence").(*schema.Set)))
 		}
 		if d.HasChange("supported_identity_documents") {
-			srv.SupportedIdentityDocuments = mapSetToString(d.Get("supported_identity_documents").(*schema.Set))
+			srv.SetSupportedIdentityDocuments(mapSetToString(d.Get("supported_identity_documents").(*schema.Set)))
 		}
 		if d.HasChange("supported_verification_methods") {
-			srv.SupportedVerificationMethods = mapSetToString(d.Get("supported_verification_methods").(*schema.Set))
+			srv.SetSupportedVerificationMethods(mapSetToString(d.Get("supported_verification_methods").(*schema.Set)))
 		}
 		if d.HasChange("supported_verified_claims") {
-			srv.SupportedVerifiedClaims = mapSetToString(d.Get("supported_verified_claims").(*schema.Set))
+			srv.SetSupportedVerifiedClaims(mapSetToString(d.Get("supported_verified_claims").(*schema.Set)))
 		}
 	*/
 	if d.HasChange("end_session_endpoint") {
-		srv.EndSessionEndpoint = d.Get("end_session_endpoint").(string)
+		srv.SetEndSessionEndpoint(d.Get("end_session_endpoint").(string))
 	}
 
-	_, err = client.authleteClient.UpdateService(srv)
+	_, _, err = client.authleteClient.ServiceManagementApi.ServiceUpdateApi(auth, d.Id()).Service(*srv).Execute()
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -532,7 +547,12 @@ func serviceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}
 
 	client := meta.(*apiClient)
 
-	err := client.authleteClient.DeleteService(d.Id())
+	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
+		UserName: client.service_owner_key,
+		Password: client.service_owner_secret,
+	})
+
+	_, err := client.authleteClient.ServiceManagementApi.ServiceDeleteApi(auth, d.Id()).Execute()
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -541,240 +561,373 @@ func serviceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*dto.Service, diag.Diagnostics) {
+func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete.Service, diag.Diagnostics) {
 
-	newServiceDto := dto.Service{}
+	newServiceDto := authlete.Service{}
 
-	newServiceDto.ServiceName = data.Get("service_name").(string)
-	newServiceDto.Issuer = data.Get("issuer").(string)
-	newServiceDto.Description = data.Get("description").(string)
-	newServiceDto.ClientsPerDeveloper = uint16(data.Get("clients_per_developer").(int))
-	newServiceDto.ClientIdAliaseEnabled = data.Get("client_id_alias_enabled").(bool)
-	newServiceDto.Attributes = mapAttributesToDTO(data.Get("attribute").([]interface{}))
-	newServiceDto.SupportedCustomClientMetadata = mapSetToString(data.Get("supported_custom_client_metadata").([]interface{}))
-	newServiceDto.AuthenticationCallbackEndpoint = data.Get("authentication_callback_endpoint").(string)
-	newServiceDto.AuthenticationCallbackApiKey = data.Get("authentication_callback_api_key").(string)
-	newServiceDto.AuthenticationCallbackApiSecret = data.Get("authentication_callback_api_secret").(string)
-	newServiceDto.SupportedAcrs = mapSetToString(data.Get("supported_acrs").([]interface{}))
-	newServiceDto.DeveloperAuthenticationCallbackEndpoint = data.Get("developer_authentication_callback_endpoint").(string)
-	newServiceDto.DeveloperAuthenticationCallbackApiKey = data.Get("developer_authentication_callback_api_key").(string)
-	newServiceDto.DeveloperAuthenticationCallbackApiSecret = data.Get("developer_authentication_callback_api_secret").(string)
-	newServiceDto.SupportedGrantTypes = mapGrantTypesToDTO(data.Get("supported_grant_types").([]interface{}))
-	newServiceDto.SupportedResponseTypes = mapResponseTypesToDTO(data.Get("supported_response_types").([]interface{}))
-	newServiceDto.SupportedAuthorizationDetailsTypes = mapSetToString(data.Get("supported_authorization_detail_types").([]interface{}))
-	newServiceDto.SupportedServiceProfiles = mapSupportedFrameworkToDTO(data.Get("supported_service_profiles").([]interface{}))
-	newServiceDto.ErrorDescriptionOmitted = data.Get("error_description_omitted").(bool)
-	newServiceDto.ErrorUriOmitted = data.Get("error_uri_omitted").(bool)
-	newServiceDto.AuthorizationEndpoint = data.Get("authorization_endpoint").(string)
-	newServiceDto.DirectAuthorizationEndpointEnabled = data.Get("direct_authorization_endpoint_enabled").(bool)
-	newServiceDto.SupportedUiLocales = mapSetToString(data.Get("supported_ui_locales").([]interface{}))
-	newServiceDto.SupportedDisplays = mapSupportedDisplay(data.Get("supported_displays").([]interface{}))
-	newServiceDto.PkceRequired = data.Get("pkce_required").(bool)
-	newServiceDto.PkceS256Required = data.Get("pkce_s256_required").(bool)
-	newServiceDto.AuthorizationResponseDuration = uint64(data.Get("authorization_response_duration").(int))
-	newServiceDto.IssSuppressed = data.Get("iss_response_suppressed").(bool)
-	// newServiceDto.LoopbackRedirectionUriVariable = data.Get("ignore_port_loopback_redirect").(bool)
-	newServiceDto.TokenEndpoint = data.Get("token_endpoint").(string)
-	newServiceDto.DirectTokenEndpointEnabled = data.Get("direct_token_endpoint_enabled").(bool)
-	newServiceDto.SupportedTokenAuthMethods = mapClientAuthMethods(data.Get("supported_token_auth_methods").([]interface{}))
-	newServiceDto.MutualTlsValidatePkiCertChain = data.Get("mutual_tls_validate_pki_cert_chain").(bool)
-	newServiceDto.TrustedRootCertificates = mapSetToString(data.Get("trusted_root_certificates").([]interface{}))
-	newServiceDto.MissingClientIdAllowed = data.Get("missing_client_id_allowed").(bool)
-	newServiceDto.RevocationEndpoint = data.Get("revocation_endpoint").(string)
-	newServiceDto.DirectRevocationEndpointEnabled = data.Get("direct_revocation_endpoint_enabled").(bool)
-	newServiceDto.SupportedRevocationAuthMethods = mapClientAuthMethods(data.Get("supported_revocation_auth_methods").([]interface{}))
-	newServiceDto.IntrospectionEndpoint = data.Get("introspection_endpoint").(string)
-	newServiceDto.DirectIntrospectionEndpointEnabled = data.Get("direct_introspection_endpoint_enabled").(bool)
-	newServiceDto.SupportedIntrospectionAuthMethods = mapClientAuthMethods(data.Get("supported_introspection_auth_methods").([]interface{}))
-	newServiceDto.PushedAuthReqEndpoint = data.Get("pushed_auth_req_endpoint").(string)
-	newServiceDto.PushedAuthReqDuration = uint64(data.Get("pushed_auth_req_duration").(int))
-	newServiceDto.ParRequired = data.Get("par_required").(bool)
-	newServiceDto.RequestObjectRequired = data.Get("request_object_required").(bool)
-	newServiceDto.TraditionalRequestObjectProcessingApplied = data.Get("traditional_request_object_processing_applied").(bool)
-	newServiceDto.NbfOptional = data.Get("nbf_optional").(bool)
-	newServiceDto.FrontChannelRequestObjectEncryptionRequired = data.Get("front_channel_encryption_request_obj_required").(bool)
-	newServiceDto.RequestObjectEncryptionAlgMatchRequired = data.Get("encryption_alg_req_obj_match").(bool)
-	newServiceDto.RequestObjectEncryptionEncMatchRequired = data.Get("encryption_enc_alg_req_obj_match").(bool)
-	newServiceDto.AccessTokenType = data.Get("access_token_type").(string)
-	newServiceDto.TlsClientCertificateBoundAccessTokens = data.Get("tls_client_certificate_bound_access_tokens").(bool)
-	newServiceDto.AccessTokenDuration = uint64(data.Get("access_token_duration").(int))
-	newServiceDto.SingleAccessTokenPerSubject = data.Get("single_access_token_per_subject").(bool)
-	newServiceDto.AccessTokenSignAlg = mapSignAlgorithms(data.Get("access_token_sign_alg").(string))
-	newServiceDto.AccessTokenSignatureKeyId = data.Get("access_token_signature_key_id").(string)
-	newServiceDto.RefreshTokenDuration = uint64(data.Get("refresh_token_duration").(int))
-	newServiceDto.RefreshTokenDurationKept = data.Get("refresh_token_duration_kept").(bool)
-	newServiceDto.RefreshTokenDurationReset = data.Get("refresh_token_duration_reset").(bool)
-	newServiceDto.RefreshTokenKept = data.Get("refresh_token_kept").(bool)
-	newServiceDto.TokenExpirationLinked = data.Get("token_expiration_link").(bool)
-	newServiceDto.SupportedScopes = mapSupportedScope(data.Get("supported_scopes").([]interface{}))
-	newServiceDto.ScopeRequired = data.Get("scope_required").(bool)
-	newServiceDto.IdTokenDuration = uint64(data.Get("id_token_duration").(int))
-	newServiceDto.AllowableClockSkew = uint16(data.Get("allowable_clock_skew").(int))
-	newServiceDto.SupportedClaimTypes = mapClaimTypes(data.Get("supported_claim_types").([]interface{}))
-	newServiceDto.SupportedClaimLocales = mapSetToString(data.Get("supported_claim_locales").([]interface{}))
-	newServiceDto.SupportedClaims = mapSetToString(data.Get("supported_claims").([]interface{}))
-	newServiceDto.ClaimShortcutRestrictive = data.Get("claim_shortcut_restrictive").(bool)
-	newServiceDto.JwksUri = data.Get("jwks_endpoint").(string)
-	newServiceDto.DirectJwksEndpointEnabled = data.Get("direct_jwks_endpoint_enabled").(bool)
-	newServiceDto.Jwks, diags = mapJWKS(data.Get("jwk").([]interface{}), diags)
-	newServiceDto.IdTokenSignatureKeyId = data.Get("id_token_signature_key_id").(string)
-	newServiceDto.UserInfoSignatureKeyId = data.Get("user_info_signature_key_id").(string)
-	newServiceDto.AuthorizationSignatureKeyId = data.Get("authorization_signature_key_id").(string)
-	newServiceDto.HsmEnabled = data.Get("hsm_enabled").(bool)
-	newServiceDto.UserInfoEndpoint = data.Get("user_info_endpoint").(string)
-	newServiceDto.DirectUserInfoEndpointEnabled = data.Get("direct_user_info_endpoint_enabled").(bool)
-	newServiceDto.DynamicRegistrationSupported = data.Get("dynamic_registration_supported").(bool)
-	// newServiceDto.DcrScopeUsedAsRequestable = data.Get("dcr_scope_used_as_requestable").(bool)
-	newServiceDto.RegistrationEndpoint = data.Get("registration_endpoint").(string)
-	newServiceDto.RegistrationManagementEndpoint = data.Get("registration_management_endpoint").(string)
-	newServiceDto.MtlsEndpointAliases = mapMtlsEndpoint(data.Get("mtls_endpoint_aliases").([]interface{}))
-	newServiceDto.PolicyUri = data.Get("policy_uri").(string)
-	newServiceDto.TosUri = data.Get("tos_uri").(string)
-	newServiceDto.ServiceDocumentation = data.Get("service_documentation").(string)
-	newServiceDto.BackchannelAuthenticationEndpoint = data.Get("backchannel_authentication_endpoint").(string)
-	newServiceDto.SupportedBackchannelTokenDeliveryModes = mapBackchannelDelivery(data.Get("supported_backchannel_token_delivery_modes").([]interface{}))
-	newServiceDto.BackchannelAuthReqIdDuration = uint64(data.Get("backchannel_auth_req_id_duration").(int))
-	newServiceDto.BachcannelPollingInterval = uint16(data.Get("backcannel_polling_interval").(int))
-	newServiceDto.BackchannelUserCodeParameterSupported = data.Get("backchannel_user_code_parameter_supported").(bool)
-	newServiceDto.BackchannelBindingMessageRequiredInFapi = data.Get("backchannel_binding_message_required_in_fapi").(bool)
-	newServiceDto.DeviceAuthorizationEndpoint = data.Get("device_authorization_endpoint").(string)
-	newServiceDto.DeviceVerificationUri = data.Get("device_verification_uri").(string)
-	newServiceDto.DeviceVerificationUriComplete = data.Get("device_verification_uri_complete").(string)
-	newServiceDto.DeviceFlowCodeDuration = uint64(data.Get("device_flow_code_duration").(int))
-	newServiceDto.DeviceFlowPollingInterval = uint16(data.Get("device_flow_polling_interval").(int))
-	newServiceDto.UserCodeCharset = mapUserCodeCharsets(data.Get("user_code_charset").(string))
-	newServiceDto.UserCodeLength = uint8(data.Get("user_code_length").(int))
+	if NotZeroString(data, "service_name") {
+		newServiceDto.SetServiceName(data.Get("service_name").(string))
+	}
+	if NotZeroString(data, "issuer") {
+		newServiceDto.SetIssuer(data.Get("issuer").(string))
+	}
+	if NotZeroString(data, "description") {
+		newServiceDto.SetDescription(data.Get("description").(string))
+	}
+	if NotZeroNumber(data, "clients_per_developer") {
+		newServiceDto.SetClientsPerDeveloper(int32(data.Get("clients_per_developer").(int)))
+	}
+	newServiceDto.SetClientIdAliasEnabled(data.Get("client_id_alias_enabled").(bool))
+	if NotZeroArray(data, "attribute") {
+		newServiceDto.SetAttributes(mapAttributesToDTO(data.Get("attribute").([]interface{})))
+	}
+	if NotZeroArray(data, "supported_custom_client_metadata") {
+		newServiceDto.SetSupportedCustomClientMetadata(mapSetToString(data.Get("supported_custom_client_metadata").([]interface{})))
+	}
+	if NotZeroString(data, "authentication_callback_endpoint") {
+		newServiceDto.SetAuthenticationCallbackEndpoint(data.Get("authentication_callback_endpoint").(string))
+	}
+	if NotZeroString(data, "authentication_callback_api_key") {
+		newServiceDto.SetAuthenticationCallbackApiKey(data.Get("authentication_callback_api_key").(string))
+	}
+	if NotZeroString(data, "authentication_callback_api_secret") {
+		newServiceDto.SetAuthenticationCallbackApiSecret(data.Get("authentication_callback_api_secret").(string))
+	}
+	if NotZeroArray(data, "supported_acrs") {
+		newServiceDto.SetSupportedAcrs(mapSetToString(data.Get("supported_acrs").([]interface{})))
+	}
+	if NotZeroString(data, "developer_authentication_callback_endpoint") {
+		newServiceDto.SetDeveloperAuthenticationCallbackEndpoint(data.Get("developer_authentication_callback_endpoint").(string))
+	}
+	if NotZeroString(data, "developer_authentication_callback_api_key") {
+		newServiceDto.SetDeveloperAuthenticationCallbackApiKey(data.Get("developer_authentication_callback_api_key").(string))
+	}
+	if NotZeroString(data, "developer_authentication_callback_api_secret") {
+		newServiceDto.SetDeveloperAuthenticationCallbackApiSecret(data.Get("developer_authentication_callback_api_secret").(string))
+	}
+	if NotZeroArray(data, "supported_grant_types") {
+		newServiceDto.SetSupportedGrantTypes(mapGrantTypesToDTO(data.Get("supported_grant_types").([]interface{})))
+	}
+	if NotZeroArray(data, "supported_response_types") {
+		newServiceDto.SetSupportedResponseTypes(mapResponseTypesToDTO(data.Get("supported_response_types").([]interface{})))
+	}
+	if NotZeroArray(data, "supported_authorization_detail_types") {
+		newServiceDto.SetSupportedAuthorizationDetailsTypes(mapSetToString(data.Get("supported_authorization_detail_types").([]interface{})))
+	}
+	if NotZeroArray(data, "supported_service_profiles") {
+		newServiceDto.SetSupportedServiceProfiles(mapSupportedFrameworkToDTO(data.Get("supported_service_profiles").([]interface{})))
+	}
+	newServiceDto.SetErrorDescriptionOmitted(data.Get("error_description_omitted").(bool))
+	newServiceDto.SetErrorUriOmitted(data.Get("error_uri_omitted").(bool))
+	if NotZeroString(data, "authorization_endpoint") {
+		newServiceDto.SetAuthorizationEndpoint(data.Get("authorization_endpoint").(string))
+	}
+	newServiceDto.SetDirectAuthorizationEndpointEnabled(data.Get("direct_authorization_endpoint_enabled").(bool))
+	if NotZeroArray(data, "supported_ui_locales") {
+		newServiceDto.SetSupportedUiLocales(mapSetToString(data.Get("supported_ui_locales").([]interface{})))
+	}
+	if NotZeroArray(data, "supported_displays") {
+		newServiceDto.SetSupportedDisplays(mapSupportedDisplayToDTO(data.Get("supported_displays").([]interface{})))
+	}
+	newServiceDto.SetPkceRequired(data.Get("pkce_required").(bool))
+	newServiceDto.SetPkceS256Required(data.Get("pkce_s256_required").(bool))
+	if NotZeroNumber(data, "authorization_response_duration") {
+		newServiceDto.SetAuthorizationResponseDuration(int64(data.Get("authorization_response_duration").(int)))
+	}
+	newServiceDto.SetIssSuppressed(data.Get("iss_response_suppressed").(bool))
+	// newServiceDto.SetLoopbackRedirectionUriVariable(data.Get("ignore_port_loopback_redirect").(bool))
+	if NotZeroString(data, "token_endpoint") {
+		newServiceDto.SetTokenEndpoint(data.Get("token_endpoint").(string))
+	}
+	newServiceDto.SetDirectTokenEndpointEnabled(data.Get("direct_token_endpoint_enabled").(bool))
+	if NotZeroArray(data, "supported_token_auth_methods") {
+		newServiceDto.SetSupportedTokenAuthMethods(mapClientAuthMethods(data.Get("supported_token_auth_methods").([]interface{})))
+	}
+	newServiceDto.SetMutualTlsValidatePkiCertChain(data.Get("mutual_tls_validate_pki_cert_chain").(bool))
+	if NotZeroArray(data, "trusted_root_certificates") {
+		newServiceDto.SetTrustedRootCertificates(mapSetToString(data.Get("trusted_root_certificates").([]interface{})))
+	}
+	newServiceDto.SetMissingClientIdAllowed(data.Get("missing_client_id_allowed").(bool))
+	if NotZeroString(data, "revocation_endpoint") {
+		newServiceDto.SetRevocationEndpoint(data.Get("revocation_endpoint").(string))
+	}
+	newServiceDto.SetDirectRevocationEndpointEnabled(data.Get("direct_revocation_endpoint_enabled").(bool))
+	if NotZeroArray(data, "supported_revocation_auth_methods") {
+		newServiceDto.SetSupportedRevocationAuthMethods(mapClientAuthMethods(data.Get("supported_revocation_auth_methods").([]interface{})))
+	}
+	if NotZeroString(data, "introspection_endpoint") {
+		newServiceDto.SetIntrospectionEndpoint(data.Get("introspection_endpoint").(string))
+	}
+	newServiceDto.SetDirectIntrospectionEndpointEnabled(data.Get("direct_introspection_endpoint_enabled").(bool))
+	if NotZeroArray(data, "supported_introspection_auth_methods") {
+		newServiceDto.SetSupportedIntrospectionAuthMethods(mapClientAuthMethods(data.Get("supported_introspection_auth_methods").([]interface{})))
+	}
+	if NotZeroString(data, "pushed_auth_req_endpoint") {
+		newServiceDto.SetPushedAuthReqEndpoint(data.Get("pushed_auth_req_endpoint").(string))
+	}
+	if NotZeroNumber(data, "pushed_auth_req_duration") {
+		newServiceDto.SetPushedAuthReqDuration(int64(data.Get("pushed_auth_req_duration").(int)))
+	}
+	newServiceDto.SetParRequired(data.Get("par_required").(bool))
+	newServiceDto.SetRequestObjectRequired(data.Get("request_object_required").(bool))
+	newServiceDto.SetTraditionalRequestObjectProcessingApplied(data.Get("traditional_request_object_processing_applied").(bool))
+	newServiceDto.SetNbfOptional(data.Get("nbf_optional").(bool))
+	newServiceDto.SetFrontChannelRequestObjectEncryptionRequired(data.Get("front_channel_encryption_request_obj_required").(bool))
+	newServiceDto.SetRequestObjectEncryptionAlgMatchRequired(data.Get("encryption_alg_req_obj_match").(bool))
+	newServiceDto.SetRequestObjectEncryptionEncMatchRequired(data.Get("encryption_enc_alg_req_obj_match").(bool))
+	if NotZeroString(data, "access_token_type") {
+		newServiceDto.SetAccessTokenType(data.Get("access_token_type").(string))
+	}
+	newServiceDto.SetTlsClientCertificateBoundAccessTokens(data.Get("tls_client_certificate_bound_access_tokens").(bool))
+	if NotZeroNumber(data, "access_token_duration") {
+		newServiceDto.SetAccessTokenDuration(int64(data.Get("access_token_duration").(int)))
+	}
+	newServiceDto.SetSingleAccessTokenPerSubject(data.Get("single_access_token_per_subject").(bool))
+	if NotZeroString(data, "access_token_sign_alg") {
+		newServiceDto.SetAccessTokenSignAlg(mapSignAlgorithms(data.Get("access_token_sign_alg").(string)))
+	}
+	if NotZeroString(data, "access_token_signature_key_id") {
+		newServiceDto.SetAccessTokenSignatureKeyId(data.Get("access_token_signature_key_id").(string))
+	}
+	if NotZeroNumber(data, "refresh_token_duration") {
+		newServiceDto.SetRefreshTokenDuration(int64(data.Get("refresh_token_duration").(int)))
+	}
+	newServiceDto.SetRefreshTokenDurationKept(data.Get("refresh_token_duration_kept").(bool))
+	newServiceDto.SetRefreshTokenDurationReset(data.Get("refresh_token_duration_reset").(bool))
+	newServiceDto.SetRefreshTokenKept(data.Get("refresh_token_kept").(bool))
+	newServiceDto.SetTokenExpirationLinked(data.Get("token_expiration_link").(bool))
+	if NotZeroArray(data, "supported_scopes") {
+		newServiceDto.SetSupportedScopes(mapSupportedScopeToDTO(data.Get("supported_scopes").([]interface{})))
+	}
+	newServiceDto.SetScopeRequired(data.Get("scope_required").(bool))
+	if NotZeroNumber(data, "id_token_duration") {
+		newServiceDto.SetIdTokenDuration(int64(data.Get("id_token_duration").(int)))
+	}
+	if NotZeroNumber(data, "allowable_clock_skew") {
+		newServiceDto.SetAllowableClockSkew(int32(data.Get("allowable_clock_skew").(int)))
+	}
+	if NotZeroArray(data, "supported_claim_types") {
+		newServiceDto.SetSupportedClaimTypes(mapClaimTypesToDTO(data.Get("supported_claim_types").([]interface{})))
+	}
+	if NotZeroArray(data, "supported_claim_locales") {
+		newServiceDto.SetSupportedClaimLocales(mapSetToString(data.Get("supported_claim_locales").([]interface{})))
+	}
+	if NotZeroArray(data, "supported_claims") {
+		newServiceDto.SetSupportedClaims(mapSetToString(data.Get("supported_claims").([]interface{})))
+	}
+	newServiceDto.SetClaimShortcutRestrictive(data.Get("claim_shortcut_restrictive").(bool))
+	if NotZeroString(data, "jwks_endpoint") {
+		newServiceDto.SetJwksUri(data.Get("jwks_endpoint").(string))
+	}
+	newServiceDto.SetDirectJwksEndpointEnabled(data.Get("direct_jwks_endpoint_enabled").(bool))
+	if NotZeroArray(data, "jwk") {
+		var jwk string
+		jwk, diags = mapJWKS(data.Get("jwk").([]interface{}), diags)
+		newServiceDto.SetJwks(jwk)
+	}
+	if NotZeroString(data, "id_token_signature_key_id") {
+		newServiceDto.SetIdTokenSignatureKeyId(data.Get("id_token_signature_key_id").(string))
+	}
+	if NotZeroString(data, "user_info_signature_key_id") {
+		newServiceDto.SetUserInfoSignatureKeyId(data.Get("user_info_signature_key_id").(string))
+	}
+	if NotZeroString(data, "authorization_signature_key_id") {
+		newServiceDto.SetAuthorizationSignatureKeyId(data.Get("authorization_signature_key_id").(string))
+	}
+	newServiceDto.SetHsmEnabled(data.Get("hsm_enabled").(bool))
+
+	if NotZeroString(data, "user_info_endpoint") {
+		newServiceDto.SetUserInfoEndpoint(data.Get("user_info_endpoint").(string))
+	}
+	newServiceDto.SetDirectUserInfoEndpointEnabled(data.Get("direct_user_info_endpoint_enabled").(bool))
+	newServiceDto.SetDynamicRegistrationSupported(data.Get("dynamic_registration_supported").(bool))
+	newServiceDto.SetDcrScopeUsedAsRequestable(data.Get("dcr_scope_used_as_requestable").(bool))
+	if NotZeroString(data, "registration_endpoint") {
+		newServiceDto.SetRegistrationEndpoint(data.Get("registration_endpoint").(string))
+	}
+	if NotZeroString(data, "registration_management_endpoint") {
+		newServiceDto.SetRegistrationManagementEndpoint(data.Get("registration_management_endpoint").(string))
+	}
+	if NotZeroArray(data, "mtls_endpoint_aliases") {
+		newServiceDto.SetMtlsEndpointAliases(mapMtlsEndpoint(data.Get("mtls_endpoint_aliases").([]interface{})))
+	}
+	if NotZeroString(data, "policy_uri") {
+		newServiceDto.SetPolicyUri(data.Get("policy_uri").(string))
+	}
+	if NotZeroString(data, "tos_uri") {
+		newServiceDto.SetTosUri(data.Get("tos_uri").(string))
+	}
+	if NotZeroString(data, "service_documentation") {
+		newServiceDto.SetServiceDocumentation(data.Get("service_documentation").(string))
+	}
+	if NotZeroString(data, "backchannel_authentication_endpoint") {
+		newServiceDto.SetBackchannelAuthenticationEndpoint(data.Get("backchannel_authentication_endpoint").(string))
+	}
+	if NotZeroArray(data, "supported_backchannel_token_delivery_modes") {
+		newServiceDto.SetSupportedBackchannelTokenDeliveryModes(mapBackchannelDelivery(data.Get("supported_backchannel_token_delivery_modes").([]interface{})))
+	}
+	if NotZeroNumber(data, "backchannel_auth_req_id_duration") {
+		newServiceDto.SetBackchannelAuthReqIdDuration(int32(data.Get("backchannel_auth_req_id_duration").(int)))
+	}
+	if NotZeroNumber(data, "backchannel_polling_interval") {
+		newServiceDto.SetBackchannelPollingInterval(int32(data.Get("backchannel_polling_interval").(int)))
+	}
+	newServiceDto.SetBackchannelUserCodeParameterSupported(data.Get("backchannel_user_code_parameter_supported").(bool))
+	newServiceDto.SetBackchannelBindingMessageRequiredInFapi(data.Get("backchannel_binding_message_required_in_fapi").(bool))
+	if NotZeroString(data, "device_authorization_endpoint") {
+		newServiceDto.SetDeviceAuthorizationEndpoint(data.Get("device_authorization_endpoint").(string))
+	}
+	if NotZeroString(data, "device_verification_uri") {
+		newServiceDto.SetDeviceVerificationUri(data.Get("device_verification_uri").(string))
+	}
+	if NotZeroString(data, "device_verification_uri_complete") {
+		newServiceDto.SetDeviceVerificationUriComplete(data.Get("device_verification_uri_complete").(string))
+	}
+	if NotZeroNumber(data, "device_flow_code_duration") {
+		newServiceDto.SetDeviceFlowCodeDuration(int32(data.Get("device_flow_code_duration").(int)))
+	}
+	if NotZeroNumber(data, "device_flow_polling_interval") {
+		newServiceDto.SetDeviceFlowPollingInterval(int32(data.Get("device_flow_polling_interval").(int)))
+	}
+	if NotZeroString(data, "user_code_charset") {
+		newServiceDto.SetUserCodeCharset(mapUserCodeCharsets(data.Get("user_code_charset").(string)))
+	}
+	if NotZeroNumber(data, "user_code_length") {
+		newServiceDto.SetUserCodeLength(int32(data.Get("user_code_length").(int)))
+	}
 	/*
-		newServiceDto.SupportedTrustFrameworks = mapSetToString(data.Get("supported_trust_frameworks").(*schema.Set))
-		newServiceDto.SupportedEvidence = mapSetToString(data.Get("supported_evidence").(*schema.Set))
-		newServiceDto.SupportedIdentityDocuments = mapSetToString(data.Get("supported_identity_documents").(*schema.Set))
-		newServiceDto.SupportedVerificationMethods = mapSetToString(data.Get("supported_verification_methods").(*schema.Set))
-		newServiceDto.SupportedVerifiedClaims = mapSetToString(data.Get("supported_verified_claims").(*schema.Set))
-	*/
-	newServiceDto.EndSessionEndpoint = data.Get("end_session_endpoint").(string)
+		newServiceDto.SetSupportedTrustFrameworks(mapSetToString(data.Get("supported_trust_frameworks").([]interface{})))
+		newServiceDto.SetSupportedEvidence(mapSetToString(data.Get("supported_evidence").([]interface{})))
+		newServiceDto.SetSupportedIdentityDocuments(mapSetToString(data.Get("supported_identity_documents").([]interface{})))
+		newServiceDto.SetSupportedVerificationMethods(mapSetToString(data.Get("supported_verification_methods").([]interface{})))
+		newServiceDto.SetSupportedVerifiedClaims(mapSetToString(data.Get("supported_verified_claims").([]interface{})))
 
+	*/
+	if NotZeroString(data, "end_session_endpoint") {
+		newServiceDto.SetEndSessionEndpoint(data.Get("end_session_endpoint").(string))
+	}
 	return &newServiceDto, diags
 
 }
 
-func serviceToResource(dto *dto.Service, data *schema.ResourceData) diag.Diagnostics {
+func serviceToResource(dto *authlete.Service, data *schema.ResourceData) diag.Diagnostics {
 
-	data.SetId(strconv.FormatUint(dto.ApiKey, 10))
-	data.Set("api_secret", dto.ApiSecret)
-	data.Set("service_name", dto.ServiceName)
-	data.Set("issuer", dto.Issuer)
-	data.Set("description", dto.Description)
-	data.Set("clients_per_developer", dto.ClientsPerDeveloper)
-	data.Set("client_id_alias_enabled", dto.ClientIdAliaseEnabled)
+	data.SetId(strconv.FormatInt(dto.GetApiKey(), 10))
+	data.Set("api_secret", dto.GetApiSecret())
+	data.Set("service_name", dto.GetServiceName())
+	data.Set("issuer", dto.GetIssuer())
+	data.Set("description", dto.GetDescription())
+	data.Set("clients_per_developer", dto.GetClientsPerDeveloper())
+	data.Set("client_id_alias_enabled", dto.GetClientIdAliasEnabled())
 
-	data.Set("attribute", mapAttributesFromDTO(&dto.Attributes))
-	data.Set("supported_custom_client_metadata", mapSchemaFromString(&dto.SupportedCustomClientMetadata))
-	data.Set("authentication_callback_endpoint", dto.AuthenticationCallbackEndpoint)
-	data.Set("authentication_callback_api_key", dto.AuthenticationCallbackApiKey)
-	data.Set("authentication_callback_api_secret", dto.AuthenticationCallbackApiSecret)
-	data.Set("supported_acrs", mapSchemaFromString(&dto.SupportedAcrs))
-	data.Set("developer_authentication_callback_endpoint", dto.DeveloperAuthenticationCallbackEndpoint)
-	data.Set("developer_authentication_callback_api_key", dto.DeveloperAuthenticationCallbackApiKey)
-	data.Set("developer_authentication_callback_api_secret", dto.DeveloperAuthenticationCallbackApiSecret)
-	data.Set("supported_grant_types", mapGrantTypesFromDTO(&dto.SupportedGrantTypes))
-	data.Set("supported_response_types", mapResponseTypesFromDTO(&dto.SupportedResponseTypes))
-	data.Set("supported_authorization_detail_types", mapSchemaFromString(&dto.SupportedAuthorizationDetailsTypes))
-	data.Set("supported_service_profiles", mapSupportedFrameworkFromDTO(&dto.SupportedServiceProfiles))
+	data.Set("attribute", mapAttributesFromDTO(dto.GetAttributes()))
+	data.Set("supported_custom_client_metadata", mapSchemaFromString(dto.GetSupportedCustomClientMetadata()))
+	data.Set("authentication_callback_endpoint", dto.GetAuthenticationCallbackEndpoint())
+	data.Set("authentication_callback_api_key", dto.GetAuthenticationCallbackApiKey())
+	data.Set("authentication_callback_api_secret", dto.GetAuthenticationCallbackApiSecret())
+	data.Set("supported_acrs", mapSchemaFromString(dto.GetSupportedAcrs()))
+	data.Set("developer_authentication_callback_endpoint", dto.GetDeveloperAuthenticationCallbackEndpoint())
+	data.Set("developer_authentication_callback_api_key", dto.GetDeveloperAuthenticationCallbackApiKey())
+	data.Set("developer_authentication_callback_api_secret", dto.GetDeveloperAuthenticationCallbackApiSecret())
+	data.Set("supported_grant_types", mapGrantTypesFromDTO(dto.GetSupportedGrantTypes()))
+	data.Set("supported_response_types", mapResponseTypesFromDTO(dto.GetSupportedResponseTypes()))
+	data.Set("supported_authorization_detail_types", mapSchemaFromString(dto.GetSupportedAuthorizationDetailsTypes()))
+	data.Set("supported_service_profiles", mapSupportedFrameworkFromDTO(dto.GetSupportedServiceProfiles()))
 
-	data.Set("error_description_omitted", dto.ErrorDescriptionOmitted)
-	data.Set("error_uri_omitted", dto.ErrorUriOmitted)
-	data.Set("authorization_endpoint", dto.AuthorizationEndpoint)
-	data.Set("direct_authorization_endpoint_enabled", dto.DirectAuthorizationEndpointEnabled)
-	data.Set("supported_ui_locales", mapSchemaFromString(&dto.SupportedUiLocales))
-	data.Set("supported_displays", mapSupportedDisplayFromDTO(&dto.SupportedDisplays))
-	data.Set("pkce_required", dto.PkceRequired)
-	data.Set("pkce_s256_required", dto.PkceS256Required)
-	data.Set("authorization_response_duration", dto.AuthorizationResponseDuration)
-	data.Set("iss_response_suppressed", dto.IssSuppressed)
-	// data.Set("ignore_port_loopback_redirect", dto.LoopbackRedirectionUriVariable)
-	data.Set("token_endpoint", dto.TokenEndpoint)
-	data.Set("direct_token_endpoint_enabled", dto.DirectTokenEndpointEnabled)
-	data.Set("supported_token_auth_methods", mapClientAuthMethodsFromDTO(&dto.SupportedTokenAuthMethods))
-	data.Set("mutual_tls_validate_pki_cert_chain", dto.MutualTlsValidatePkiCertChain)
-	data.Set("trusted_root_certificates", mapSchemaFromString(&dto.TrustedRootCertificates))
-	data.Set("missing_client_id_allowed", dto.MissingClientIdAllowed)
-	data.Set("revocation_endpoint", dto.RevocationEndpoint)
-	data.Set("direct_revocation_endpoint_enabled", dto.DirectRevocationEndpointEnabled)
-	data.Set("supported_revocation_auth_methods", mapClientAuthMethodsFromDTO(&dto.SupportedRevocationAuthMethods))
-	data.Set("introspection_endpoint", dto.IntrospectionEndpoint)
-	data.Set("direct_introspection_endpoint_enabled", dto.DirectIntrospectionEndpointEnabled)
-	data.Set("supported_introspection_auth_methods", mapClientAuthMethodsFromDTO(&dto.SupportedIntrospectionAuthMethods))
-	data.Set("pushed_auth_req_endpoint", dto.PushedAuthReqEndpoint)
-	data.Set("pushed_auth_req_duration", dto.PushedAuthReqDuration)
-	data.Set("par_required", dto.ParRequired)
-	data.Set("request_object_required", dto.RequestObjectRequired)
-	data.Set("traditional_request_object_processing_applied", dto.TraditionalRequestObjectProcessingApplied)
-	data.Set("nbf_optional", dto.NbfOptional)
-	data.Set("front_channel_encryption_request_obj_required", dto.FrontChannelRequestObjectEncryptionRequired)
-	data.Set("encryption_alg_req_obj_match", dto.RequestObjectEncryptionAlgMatchRequired)
-	data.Set("encryption_enc_alg_req_obj_match", dto.RequestObjectEncryptionEncMatchRequired)
-	data.Set("access_token_type", dto.AccessTokenType)
-	data.Set("tls_client_certificate_bound_access_tokens", dto.TlsClientCertificateBoundAccessTokens)
-	data.Set("access_token_duration", dto.AccessTokenDuration)
-	data.Set("single_access_token_per_subject", dto.SingleAccessTokenPerSubject)
-	data.Set("access_token_sign_alg", dto.AccessTokenSignAlg)
-	data.Set("access_token_signature_key_id", dto.AccessTokenSignatureKeyId)
-	data.Set("refresh_token_duration", dto.RefreshTokenDuration)
-	data.Set("refresh_token_duration_kept", dto.RefreshTokenDurationKept)
-	data.Set("refresh_token_duration_reset", dto.RefreshTokenDurationReset)
-	data.Set("refresh_token_kept", dto.RefreshTokenKept)
-	data.Set("token_expiration_link", dto.TokenExpirationLinked)
-	data.Set("supported_scopes", mapSupportedScopeFromDTO(&dto.SupportedScopes))
-	data.Set("scope_required", dto.ScopeRequired)
-	data.Set("id_token_duration", dto.IdTokenDuration)
-	data.Set("allowable_clock_skew", dto.AllowableClockSkew)
-	data.Set("supported_claim_types", mapClaimTypesFromDTO(&dto.SupportedClaimTypes))
-	data.Set("supported_claim_locales", mapSchemaFromString(&dto.SupportedClaimLocales))
-	data.Set("supported_claims", mapSchemaFromString(&dto.SupportedClaims))
-	data.Set("claim_shortcut_restrictive", dto.ClaimShortcutRestrictive)
-	data.Set("jwks_endpoint", dto.JwksUri)
-	data.Set("direct_jwks_endpoint_enabled", dto.DirectJwksEndpointEnabled)
-	jwk, err := mapJWKFromDTO(data.Get("jwk").([]interface{}), dto.Jwks)
+	data.Set("error_description_omitted", dto.GetErrorDescriptionOmitted())
+	data.Set("error_uri_omitted", dto.GetErrorUriOmitted())
+	data.Set("authorization_endpoint", dto.GetAuthorizationEndpoint())
+	data.Set("direct_authorization_endpoint_enabled", dto.GetDirectAuthorizationEndpointEnabled())
+	data.Set("supported_ui_locales", mapSchemaFromString(dto.GetSupportedUiLocales()))
+	data.Set("supported_displays", mapSupportedDisplayFromDTO(dto.GetSupportedDisplays()))
+	data.Set("pkce_required", dto.GetPkceRequired())
+	data.Set("pkce_s256_required", dto.GetPkceS256Required())
+	data.Set("authorization_response_duration", dto.GetAuthorizationResponseDuration())
+	data.Set("iss_response_suppressed", dto.GetIssSuppressed())
+	// data.Set("ignore_port_loopback_redirect", dto.GetLoopbackRedirectionUriVariable())
+	data.Set("token_endpoint", dto.GetTokenEndpoint())
+	data.Set("direct_token_endpoint_enabled", dto.GetDirectTokenEndpointEnabled())
+	data.Set("supported_token_auth_methods", mapClientAuthMethodsFromDTO(dto.GetSupportedTokenAuthMethods()))
+	data.Set("mutual_tls_validate_pki_cert_chain", dto.GetMutualTlsValidatePkiCertChain())
+	data.Set("trusted_root_certificates", mapSchemaFromString(dto.GetTrustedRootCertificates()))
+	data.Set("missing_client_id_allowed", dto.GetMissingClientIdAllowed())
+	data.Set("revocation_endpoint", dto.GetRevocationEndpoint())
+	data.Set("direct_revocation_endpoint_enabled", dto.GetDirectRevocationEndpointEnabled())
+	data.Set("supported_revocation_auth_methods", mapClientAuthMethodsFromDTO(dto.GetSupportedRevocationAuthMethods()))
+	data.Set("introspection_endpoint", dto.GetIntrospectionEndpoint())
+	data.Set("direct_introspection_endpoint_enabled", dto.GetDirectIntrospectionEndpointEnabled())
+	data.Set("supported_introspection_auth_methods", mapClientAuthMethodsFromDTO(dto.GetSupportedIntrospectionAuthMethods()))
+	data.Set("pushed_auth_req_endpoint", dto.GetPushedAuthReqEndpoint())
+	data.Set("pushed_auth_req_duration", dto.GetPushedAuthReqDuration())
+	data.Set("par_required", dto.GetParRequired())
+	data.Set("request_object_required", dto.GetRequestObjectRequired())
+	data.Set("traditional_request_object_processing_applied", dto.GetTraditionalRequestObjectProcessingApplied())
+	data.Set("nbf_optional", dto.GetNbfOptional())
+	data.Set("front_channel_encryption_request_obj_required", dto.GetFrontChannelRequestObjectEncryptionRequired())
+	data.Set("encryption_alg_req_obj_match", dto.GetRequestObjectEncryptionAlgMatchRequired())
+	data.Set("encryption_enc_alg_req_obj_match", dto.GetRequestObjectEncryptionEncMatchRequired())
+	data.Set("access_token_type", dto.GetAccessTokenType())
+	data.Set("tls_client_certificate_bound_access_tokens", dto.GetTlsClientCertificateBoundAccessTokens())
+	data.Set("access_token_duration", dto.GetAccessTokenDuration())
+	data.Set("single_access_token_per_subject", dto.GetSingleAccessTokenPerSubject())
+	data.Set("access_token_sign_alg", dto.GetAccessTokenSignAlg())
+	data.Set("access_token_signature_key_id", dto.GetAccessTokenSignatureKeyId())
+	data.Set("refresh_token_duration", dto.GetRefreshTokenDuration())
+	data.Set("refresh_token_duration_kept", dto.GetRefreshTokenDurationKept())
+	data.Set("refresh_token_duration_reset", dto.GetRefreshTokenDurationReset())
+	data.Set("refresh_token_kept", dto.GetRefreshTokenKept())
+	data.Set("token_expiration_link", dto.GetTokenExpirationLinked())
+	data.Set("supported_scopes", mapSupportedScopeFromDTO(dto.GetSupportedScopes()))
+	data.Set("scope_required", dto.GetScopeRequired())
+	data.Set("id_token_duration", dto.GetIdTokenDuration())
+	data.Set("allowable_clock_skew", dto.GetAllowableClockSkew())
+	data.Set("supported_claim_types", mapClaimTypesFromDTO(dto.GetSupportedClaimTypes()))
+	data.Set("supported_claim_locales", mapSchemaFromString(dto.GetSupportedClaimLocales()))
+	data.Set("supported_claims", mapSchemaFromString(dto.GetSupportedClaims()))
+	data.Set("claim_shortcut_restrictive", dto.GetClaimShortcutRestrictive())
+	data.Set("jwks_endpoint", dto.GetJwksUri())
+	data.Set("direct_jwks_endpoint_enabled", dto.GetDirectJwksEndpointEnabled())
+	jwk, err := mapJWKFromDTO(data.Get("jwk").([]interface{}), dto.GetJwks())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	data.Set("jwk", jwk)
-	data.Set("id_token_signature_key_id", dto.IdTokenSignatureKeyId)
-	data.Set("user_info_signature_key_id", dto.UserInfoSignatureKeyId)
-	data.Set("authorization_signature_key_id", dto.AuthorizationSignatureKeyId)
-	data.Set("hsm_enabled", dto.HsmEnabled)
-	data.Set("user_info_endpoint", dto.UserInfoEndpoint)
-	data.Set("direct_user_info_endpoint_enabled", dto.DirectUserInfoEndpointEnabled)
-	data.Set("dynamic_registration_supported", dto.DynamicRegistrationSupported)
-	// data.Set("dcr_scope_used_as_requestable", dto.DcrScopeUsedAsRequestable)
-	data.Set("registration_endpoint", dto.RegistrationEndpoint)
-	data.Set("registration_management_endpoint", dto.RegistrationManagementEndpoint)
-	data.Set("mtls_endpoint_aliases", mapMtlsEndpointFromDTO(&dto.MtlsEndpointAliases))
-	data.Set("policy_uri", dto.PolicyUri)
-	data.Set("tos_uri", dto.TosUri)
-	data.Set("service_documentation", dto.ServiceDocumentation)
-	data.Set("backchannel_authentication_endpoint", dto.BackchannelAuthenticationEndpoint)
-	data.Set("supported_backchannel_token_delivery_modes", mapBackchannelDeliveryFromDTO(&dto.SupportedBackchannelTokenDeliveryModes))
-	data.Set("backchannel_auth_req_id_duration", dto.BackchannelAuthReqIdDuration)
-	data.Set("backcannel_polling_interval", dto.BachcannelPollingInterval)
-	data.Set("backchannel_user_code_parameter_supported", dto.BackchannelUserCodeParameterSupported)
-	data.Set("backchannel_binding_message_required_in_fapi", dto.BackchannelBindingMessageRequiredInFapi)
-	data.Set("device_authorization_endpoint", dto.DeviceAuthorizationEndpoint)
-	data.Set("device_verification_uri", dto.DeviceVerificationUri)
-	data.Set("device_verification_uri_complete", dto.DeviceVerificationUriComplete)
-	data.Set("device_flow_code_duration", dto.DeviceFlowCodeDuration)
-	data.Set("device_flow_polling_interval", dto.DeviceFlowPollingInterval)
-	data.Set("user_code_charset", mapUserCodeCharsetsFromDTO(dto.UserCodeCharset))
-	data.Set("user_code_length", dto.UserCodeLength)
+	data.Set("id_token_signature_key_id", dto.GetIdTokenSignatureKeyId())
+	data.Set("user_info_signature_key_id", dto.GetUserInfoSignatureKeyId())
+	data.Set("authorization_signature_key_id", dto.GetAuthorizationSignatureKeyId())
+	data.Set("hsm_enabled", dto.GetHsmEnabled())
+	data.Set("user_info_endpoint", dto.GetUserInfoEndpoint())
+	data.Set("direct_user_info_endpoint_enabled", dto.GetDirectUserInfoEndpointEnabled())
+	data.Set("dynamic_registration_supported", dto.GetDynamicRegistrationSupported())
+	// data.Set("dcr_scope_used_as_requestable", dto.GetDcrScopeUsedAsRequestable())
+	data.Set("registration_endpoint", dto.GetRegistrationEndpoint())
+	data.Set("registration_management_endpoint", dto.GetRegistrationManagementEndpoint())
+	data.Set("mtls_endpoint_aliases", mapMtlsEndpointFromDTO(dto.GetMtlsEndpointAliases()))
+	data.Set("policy_uri", dto.GetPolicyUri())
+	data.Set("tos_uri", dto.GetTosUri())
+	data.Set("service_documentation", dto.GetServiceDocumentation())
+	data.Set("backchannel_authentication_endpoint", dto.GetBackchannelAuthenticationEndpoint())
+	data.Set("supported_backchannel_token_delivery_modes", mapBackchannelDeliveryFromDTO(dto.GetSupportedBackchannelTokenDeliveryModes()))
+	data.Set("backchannel_auth_req_id_duration", dto.GetBackchannelAuthReqIdDuration())
+	data.Set("backchannel_polling_interval", dto.GetBackchannelPollingInterval())
+	data.Set("backchannel_user_code_parameter_supported", dto.GetBackchannelUserCodeParameterSupported())
+	data.Set("backchannel_binding_message_required_in_fapi", dto.GetBackchannelBindingMessageRequiredInFapi())
+	data.Set("device_authorization_endpoint", dto.GetDeviceAuthorizationEndpoint())
+	data.Set("device_verification_uri", dto.GetDeviceVerificationUri())
+	data.Set("device_verification_uri_complete", dto.GetDeviceVerificationUriComplete())
+	data.Set("device_flow_code_duration", dto.GetDeviceFlowCodeDuration())
+	data.Set("device_flow_polling_interval", dto.GetDeviceFlowPollingInterval())
+	data.Set("user_code_charset", mapUserCodeCharsetsFromDTO(dto.GetUserCodeCharset()))
+	data.Set("user_code_length", dto.GetUserCodeLength())
 
 	/*
-		data.Set("supported_trust_frameworks", mapSchemaFromString(&dto.SupportedTrustFrameworks))
-		data.Set("supported_evidence", mapSchemaFromString(&dto.SupportedEvidence))
-		data.Set("supported_identity_documents", mapSchemaFromString(&dto.SupportedIdentityDocuments))
-		data.Set("supported_verification_methods", mapSchemaFromString(&dto.SupportedVerificationMethods))
-		data.Set("supported_verified_claims", mapSchemaFromString(&dto.SupportedVerifiedClaims))
+		data.Set("supported_trust_frameworks", mapSchemaFromString(&dto.GetSupportedTrustFrameworks()))
+		data.Set("supported_evidence", mapSchemaFromString(&dto.GetSupportedEvidence()))
+		data.Set("supported_identity_documents", mapSchemaFromString(&dto.GetSupportedIdentityDocuments()))
+		data.Set("supported_verification_methods", mapSchemaFromString(&dto.GetSupportedVerificationMethods))
+		data.Set("supported_verified_claims", mapSchemaFromString(&dto.GetSupportedVerifiedClaims))
 	*/
-	data.Set("end_session_endpoint", dto.EndSessionEndpoint)
+	data.Set("end_session_endpoint", dto.GetEndSessionEndpoint())
 	return nil
 }
 
@@ -788,10 +941,10 @@ func mapSetToString(vals []interface{}) []string {
 	return values
 }
 
-func mapSchemaFromString(vals *[]string) []interface{} {
+func mapSchemaFromString(vals []string) []interface{} {
 	if vals != nil {
-		entries := make([]interface{}, len(*vals), len(*vals))
-		for i, v := range *vals {
+		entries := make([]interface{}, len(vals), len(vals))
+		for i, v := range vals {
 			entries[i] = v
 		}
 		return entries

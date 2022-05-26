@@ -3,8 +3,7 @@ package provider
 import (
 	"context"
 
-	"github.com/authlete/authlete-go/api"
-	"github.com/authlete/authlete-go/conf"
+	authlete "github.com/authlete/openapi-for-go"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -33,7 +32,7 @@ func New(version string) func() *schema.Provider {
 					Type:        schema.TypeString,
 					Required:    false,
 					Optional:    true,
-					DefaultFunc: schema.EnvDefaultFunc("AUTHLETE_API_SERVER", "https://api.authlete.com"),
+					DefaultFunc: schema.EnvDefaultFunc("AUTHLETE_API_SERVER", "https://api.authlete.com/api"),
 				},
 				"service_owner_key": {
 					Type:        schema.TypeString,
@@ -82,8 +81,7 @@ type apiClient struct {
 	service_owner_secret string
 	api_key              string
 	api_secret           string
-
-	authleteClient api.AuthleteApi
+	authleteClient       *authlete.APIClient
 }
 
 func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
@@ -95,18 +93,14 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 		api_key := data.Get("api_key").(string)
 		api_secret := data.Get("api_secret").(string)
 
-		cnf := conf.AuthleteSimpleConfiguration{}
-		cnf.SetBaseUrl(api_server)
-		cnf.SetServiceOwnerApiKey(service_owner_key)
-		cnf.SetServiceOwnerApiSecret(service_owner_secret)
-		cnf.SetServiceApiKey(api_key)
-		cnf.SetServiceApiSecret(api_secret)
+		cnf := authlete.NewConfiguration()
+		cnf.UserAgent = p.UserAgent("terraform-provider-authlete", version)
+		cnf.Servers[0].URL = api_server
 
-		authleteClient := api.New(&cnf)
-		authleteClient.Settings().UserAgent = p.UserAgent("terraform-provider-authlete", version)
+		apiClientOpenAPI := authlete.NewAPIClient(cnf)
 
 		return &apiClient{api_server: api_server, service_owner_key: service_owner_key,
-			service_owner_secret: service_owner_key, api_key: api_key, api_secret: api_secret,
-			authleteClient: authleteClient}, nil
+			service_owner_secret: service_owner_secret, api_key: api_key, api_secret: api_secret,
+			authleteClient: apiClientOpenAPI}, nil
 	}
 }
