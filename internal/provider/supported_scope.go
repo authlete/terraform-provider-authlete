@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"github.com/authlete/authlete-go/dto"
+	"github.com/authlete/openapi-for-go"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -32,34 +32,34 @@ func createSupportedScopeSchema() *schema.Schema {
 	}
 }
 
-func mapSupportedScope(vals []interface{}) []dto.Scope {
-	mapped := make([]dto.Scope, len(vals))
+func mapSupportedScopeToDTO(vals []interface{}) []authlete.Scope {
+	mapped := make([]authlete.Scope, len(vals))
 
 	for i, v := range vals {
 		var entry = v.(map[string]interface{})
-		mapped[i] = dto.Scope{
-			Name:         entry["name"].(string),
-			DefaultEntry: entry["default_entry"].(bool),
-			Description:  entry["description"].(string),
-			Descriptions: mapTaggedValuesToDTO(entry["descriptions"].([]interface{})),
-			Attributes:   mapAttributesToDTO(entry["attribute"].([]interface{})),
-		}
+		newScope := authlete.NewScope()
+		newScope.SetName(entry["name"].(string))
+		newScope.SetDescription(entry["description"].(string))
+		newScope.SetDefaultEntry(entry["default_entry"].(bool))
+		newScope.SetDescriptions(mapTaggedValue(entry["descriptions"].([]interface{})))
+		newScope.SetAttributes(mapAttributesToDTO(entry["attribute"].([]interface{})))
+		mapped[i] = *newScope
 	}
 	return mapped
 }
 
-func mapSupportedScopeFromDTO(scopes *[]dto.Scope) []interface{} {
+func mapSupportedScopeFromDTO(scopes []authlete.Scope) []interface{} {
 
 	if scopes != nil {
-		entries := make([]interface{}, len(*scopes), len(*scopes))
+		entries := make([]interface{}, len(scopes), len(scopes))
 
-		for i, v := range *scopes {
+		for i, v := range scopes {
 			newEntry := make(map[string]interface{})
 			newEntry["name"] = v.Name
 			newEntry["default_entry"] = v.DefaultEntry
 			newEntry["description"] = v.Description
-			newEntry["descriptions"] = mapTaggedValuesFromDTO(&v.Descriptions)
-			newEntry["attribute"] = mapAttributesFromDTO(&v.Attributes)
+			newEntry["descriptions"] = mapTaggedValuesFromDTO(v.Descriptions)
+			newEntry["attribute"] = mapAttributesFromDTO(v.Attributes)
 			entries[i] = newEntry
 		}
 		return entries

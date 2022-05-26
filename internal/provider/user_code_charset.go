@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"github.com/authlete/authlete-go/types"
+	authlete "github.com/authlete/openapi-for-go"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -11,17 +11,17 @@ func createUserCodeCharsetSchema() *schema.Schema {
 		Type:     schema.TypeString,
 		Optional: true,
 		ValidateFunc: validation.StringInSlice([]string{
-			string(types.UserCodeCharset_BASE20),
-			string(types.UserCodeCharset_NUMERIC),
+			string(authlete.USERCODECHARSET_BASE20),
+			string(authlete.USERCODECHARSET_NUMERIC),
 		}, false),
 	}
 }
 
-func mapUserCodeCharsets(val string) types.UserCodeCharset {
+func mapUserCodeCharsets(val string) authlete.UserCodeCharset {
 
-	return types.UserCodeCharset(val)
+	return authlete.UserCodeCharset(val)
 }
 
-func mapUserCodeCharsetsFromDTO(val types.UserCodeCharset) string {
+func mapUserCodeCharsetsFromDTO(val authlete.UserCodeCharset) string {
 	return string(val)
 }

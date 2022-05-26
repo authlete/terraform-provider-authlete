@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"github.com/authlete/authlete-go/dto"
+	authlete "github.com/authlete/openapi-for-go"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -20,25 +20,25 @@ func createMtlsEndpointSchema() *schema.Schema {
 	}
 }
 
-func mapMtlsEndpoint(vals []interface{}) []dto.NamedUri {
-	var entries = []dto.NamedUri{}
+func mapMtlsEndpoint(vals []interface{}) []authlete.NamedUri {
+	var entries = []authlete.NamedUri{}
 
 	for _, v := range vals {
 		var keypair = v.(map[string]interface{})
-		entries = append(entries, dto.NamedUri{
-			Name: keypair["name"].(string),
-			Uri:  keypair["uri"].(string),
-		})
+		named := authlete.NewNamedUri()
+		named.SetName(keypair["name"].(string))
+		named.SetUri(keypair["uri"].(string))
+		entries = append(entries, *named)
 	}
 	return entries
 }
 
-func mapMtlsEndpointFromDTO(endpoints *[]dto.NamedUri) []interface{} {
+func mapMtlsEndpointFromDTO(endpoints []authlete.NamedUri) []interface{} {
 
 	if endpoints != nil {
-		entries := make([]interface{}, len(*endpoints), len(*endpoints))
+		entries := make([]interface{}, len(endpoints), len(endpoints))
 
-		for i, v := range *endpoints {
+		for i, v := range endpoints {
 			newEntry := make(map[string]interface{})
 			newEntry["name"] = v.Name
 			newEntry["uri"] = v.Uri

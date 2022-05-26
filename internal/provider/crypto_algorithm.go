@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"github.com/authlete/authlete-go/types"
+	authlete "github.com/authlete/openapi-for-go"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -13,25 +13,25 @@ func createJWSAlgSchema() *schema.Schema {
 		Required: false,
 		Computed: true,
 		ValidateFunc: validation.StringInSlice([]string{
-			string(types.JWSAlg_NONE),
-			string(types.JWSAlg_HS256),
-			string(types.JWSAlg_HS384),
-			string(types.JWSAlg_HS512),
-			string(types.JWSAlg_RS256),
-			string(types.JWSAlg_RS384),
-			string(types.JWSAlg_RS512),
-			string(types.JWSAlg_ES256),
-			string(types.JWSAlg_ES384),
-			string(types.JWSAlg_ES512),
-			string(types.JWSAlg_PS256),
-			string(types.JWSAlg_PS384),
-			string(types.JWSAlg_PS512),
+			string(authlete.JWSALG_NONE),
+			string(authlete.JWSALG_HS256),
+			string(authlete.JWSALG_HS384),
+			string(authlete.JWSALG_HS512),
+			string(authlete.JWSALG_RS256),
+			string(authlete.JWSALG_RS384),
+			string(authlete.JWSALG_RS512),
+			string(authlete.JWSALG_ES256),
+			string(authlete.JWSALG_ES384),
+			string(authlete.JWSALG_ES512),
+			string(authlete.JWSALG_PS256),
+			string(authlete.JWSALG_PS384),
+			string(authlete.JWSALG_PS512),
 		}, false),
 	}
 }
 
-func mapJWSAlg(v interface{}) types.JWSAlg {
-	return types.JWSAlg(v.(string))
+func mapJWSAlg(v interface{}) authlete.JwsAlg {
+	return authlete.JwsAlg(v.(string))
 }
 
 func createJWEAlgSchema() *schema.Schema {
@@ -40,29 +40,29 @@ func createJWEAlgSchema() *schema.Schema {
 		Optional: true,
 		Required: false,
 		ValidateFunc: validation.StringInSlice([]string{
-			string(types.JWEAlg_RSA1_5),
-			string(types.JWEAlg_RSA_OAEP),
-			string(types.JWEAlg_RSA_OAEP_256),
-			string(types.JWEAlg_A128KW),
-			string(types.JWEAlg_A192KW),
-			string(types.JWEAlg_A256KW),
-			string(types.JWEAlg_DIR),
-			string(types.JWEAlg_ECDH_ES),
-			string(types.JWEAlg_ECDH_ES_A128KW),
-			string(types.JWEAlg_ECDH_ES_A192KW),
-			string(types.JWEAlg_ECDH_ES_A256KW),
-			string(types.JWEAlg_A128GCMKW),
-			string(types.JWEAlg_A192GCMKW),
-			string(types.JWEAlg_A256GCMKW),
-			string(types.JWEAlg_PBES2_HS256_A128KW),
-			string(types.JWEAlg_PBES2_HS384_A192KW),
-			string(types.JWEAlg_PBES2_HS512_A256KW),
+			string(authlete.JWEALG_RSA1_5),
+			string(authlete.JWEALG_RSA_OAEP),
+			string(authlete.JWEALG_RSA_OAEP_256),
+			string(authlete.JWEALG_A128_KW),
+			string(authlete.JWEALG_A192_KW),
+			string(authlete.JWEALG_A256_KW),
+			string(authlete.JWEALG_DIR),
+			string(authlete.JWEALG_ECDH_ES),
+			string(authlete.JWEALG_ECDH_ES_A128_KW),
+			string(authlete.JWEALG_ECDH_ES_A192_KW),
+			string(authlete.JWEALG_ECDH_ES_A256_KW),
+			string(authlete.JWEALG_A128_GCMKW),
+			string(authlete.JWEALG_A192_GCMKW),
+			string(authlete.JWEALG_A256_GCMKW),
+			string(authlete.JWEALG_PBES2_HS256_A128_KW),
+			string(authlete.JWEALG_PBES2_HS384_A192_KW),
+			string(authlete.JWEALG_PBES2_HS512_A256_KW),
 		}, false),
 	}
 }
 
-func mapJWEAlg(v interface{}) types.JWEAlg {
-	return types.JWEAlg(v.(string))
+func mapJWEAlg(v interface{}) authlete.JweAlg {
+	return authlete.JweAlg(v.(string))
 }
 
 func createJWEEncSchema() *schema.Schema {
@@ -71,14 +71,14 @@ func createJWEEncSchema() *schema.Schema {
 		Optional: true,
 		Required: false,
 		ValidateFunc: validation.StringInSlice([]string{
-			string(types.JWEEnc_A128CBC_HS256),
-			string(types.JWEEnc_A192CBC_HS384),
-			string(types.JWEEnc_A256CBC_HS512),
-			string(types.JWEEnc_A128GCM),
-			string(types.JWEEnc_A192GCM),
-			string(types.JWEEnc_A256GCM),
+			string(authlete.JWEENC_A128_CBC_HS256),
+			string(authlete.JWEENC_A192_CBC_HS384),
+			string(authlete.JWEENC_A256_CBC_HS512),
+			string(authlete.JWEENC_A128_GCM),
+			string(authlete.JWEENC_A192_GCM),
+			string(authlete.JWEENC_A256_GCM),
 		}, false)}
 }
-func mapJWEEnc(v interface{}) types.JWEEnc {
-	return types.JWEEnc(v.(string))
+func mapJWEEnc(v interface{}) authlete.JweEnc {
+	return authlete.JweEnc(v.(string))
 }

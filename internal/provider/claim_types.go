@@ -1,7 +1,7 @@
 package provider
 
 import (
-	"github.com/authlete/authlete-go/types"
+	authlete "github.com/authlete/openapi-for-go"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -14,31 +14,31 @@ func createSupportedClaimTypesSchema() *schema.Schema {
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(types.ClaimType_NORMAL),
-				string(types.ClaimType_AGGREGATED),
-				string(types.ClaimType_DISTRIBUTED),
+				string(authlete.CLAIMTYPE_NORMAL),
+				string(authlete.CLAIMTYPE_AGGREGATED),
+				string(authlete.CLAIMTYPE_DISTRIBUTED),
 			}, false),
 		},
 	}
 }
 
-func mapClaimTypes(vals []interface{}) []types.ClaimType {
+func mapClaimTypesToDTO(vals []interface{}) []authlete.ClaimType {
 
-	values := make([]types.ClaimType, len(vals))
+	values := make([]authlete.ClaimType, len(vals))
 
 	for i, v := range vals {
-		values[i] = types.ClaimType(v.(string))
+		values[i] = authlete.ClaimType(v.(string))
 	}
 
 	return values
 }
 
-func mapClaimTypesFromDTO(vals *[]types.ClaimType) []interface{} {
+func mapClaimTypesFromDTO(vals []authlete.ClaimType) []interface{} {
 
-	var result = make([]interface{}, len(*vals))
+	var result = make([]interface{}, len(vals))
 
 	if vals != nil {
-		for i, v := range *vals {
+		for i, v := range vals {
 			var str string
 			str = string(v)
 			result[i] = str
