@@ -78,20 +78,24 @@ jobs:
       run: |
         go mod download
 
-    - name: TF acceptance tests
+    - name: TF acceptance tests - shared cloud
       timeout-minutes: 10
       env:
         TF_ACC: "1"
         AUTHLETE_API_SERVER: ${{ secrets.AUTHLETE_API_SERVER }}
         AUTHLETE_SO_KEY: ${{ secrets.AUTHLETE_SO_KEY }}
         AUTHLETE_SO_SECRET: ${{ secrets.AUTHLETE_SO_SECRET }}
-        AUTHLETE_API_KEY: ${{ secrets.AUTHLETE_API_KEY }}
-        AUTHLETE_API_SECRET: ${{ secrets.AUTHLETE_API_SECRET }}
 
-        # Set whatever additional acceptance test env vars here. You can
-        # optionally use data from your repository secrets using the
-        # following syntax:
-        # SOME_VAR: ${{ secrets.SOME_VAR }}
+      run: |
+        go test -v -cover ./internal/provider/
+
+    - name: TF acceptance tests - fapi_dev
+      timeout-minutes: 10
+      env:
+        TF_ACC: "1"
+        AUTHLETE_API_SERVER: ${{ secrets.AUTHLETE_FAPI_DEV_API_SERVER }}
+        AUTHLETE_SO_KEY: ${{ secrets.AUTHLETE_FAPI_DEV_SO_KEY }}
+        AUTHLETE_SO_SECRET: ${{ secrets.AUTHLETE_FAPI_DEV_SO_SECRET }}
 
       run: |
         go test -v -cover ./internal/provider/
