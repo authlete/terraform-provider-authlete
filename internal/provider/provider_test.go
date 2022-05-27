@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 	"testing"
 
 	authlete "github.com/authlete/openapi-for-go"
@@ -85,11 +84,6 @@ func createTestClient() (authlete.ServiceManagementApi, context.Context) {
 	cnf := authlete.NewConfiguration()
 	cnf.UserAgent = "terraform-provider-authlete"
 
-	// Add /api to URL path
-	if !strings.HasSuffix(api_server, "/") {
-		api_server += "/"
-	}
-	api_server += "api"
 	cnf.Servers[0].URL = api_server
 
 	apiClientOpenAPI := authlete.NewAPIClient(cnf)
