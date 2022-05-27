@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"strings"
 
 	authlete "github.com/authlete/openapi-for-go"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -32,7 +33,7 @@ func New(version string) func() *schema.Provider {
 					Type:        schema.TypeString,
 					Required:    false,
 					Optional:    true,
-					DefaultFunc: schema.EnvDefaultFunc("AUTHLETE_API_SERVER", "https://api.authlete.com/api"),
+					DefaultFunc: schema.EnvDefaultFunc("AUTHLETE_API_SERVER", "https://api.authlete.com"),
 				},
 				"service_owner_key": {
 					Type:        schema.TypeString,
@@ -95,6 +96,12 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 
 		cnf := authlete.NewConfiguration()
 		cnf.UserAgent = p.UserAgent("terraform-provider-authlete", version)
+
+		// Add /api to URL path
+		if !strings.HasSuffix(api_server, "/") {
+			api_server += "/"
+		}
+		api_server += "api"
 		cnf.Servers[0].URL = api_server
 
 		apiClientOpenAPI := authlete.NewAPIClient(cnf)
