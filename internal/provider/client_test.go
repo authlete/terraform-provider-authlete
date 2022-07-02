@@ -101,19 +101,19 @@ resource "authlete_service" "prod" {
   service_name = "Service for client test"
   supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   supported_response_types = ["CODE"]
-supported_scopes {
+  supported_scopes {
 	name = "scope1"
     default_entry = false
   }
-supported_scopes {
+  supported_scopes {
 	name = "scope2"
     default_entry = false
   }
 }
 
 resource "authlete_client" "client1" {
-	apikey = authlete_service.prod.id
-	apisecret = authlete_service.prod.api_secret
+	api_key = authlete_service.prod.id
+	api_secret = authlete_service.prod.api_secret
 	developer = "test"
 	client_id_alias = "terraform_client"
     client_id_alias_enabled = false

@@ -2,8 +2,6 @@
 
 This is a Terraform provider for managing configuration of your [Authlete](https://www.authlete.com) OAuth 2 and OpenID Connect services and clients.
 
-⚠️ This provider is **currently under active development** and is not GA. Using it for live production services is not adviced, yet.
-
 👉 Authlete servers version 2.2+ are supported. (This includes the shared server at api.authlete.com)
 
 ## Requirements
@@ -25,9 +23,9 @@ $ make install
 
 ## Using the provider
 
-This provider support managing the services and its configuration from terraform script.
+Checkout the documentation on [Authlete website](https://www.authlete.com/developers/terraform/) on how to use this
+provider
 
-The provider can also generate random RSA and EC (including Ed25519 and  X235519) keys that will reside only on Authlete side.
 
 ## Developing the Provider
 
