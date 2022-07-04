@@ -22,8 +22,8 @@ func client() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
-			"api_key":                    {Type: schema.TypeString, Required: false, Optional: true},
-			"api_secret":                 {Type: schema.TypeString, Required: false, Optional: true, Sensitive: true},
+			"service_api_key":            {Type: schema.TypeString, Required: false, Optional: true},
+			"service_api_secret":         {Type: schema.TypeString, Required: false, Optional: true, Sensitive: true},
 			"developer":                  {Type: schema.TypeString, Required: true},
 			"client_id":                  {Type: schema.TypeInt, Required: false, Optional: true, Computed: true},
 			"client_secret":              {Type: schema.TypeString, Required: false, Computed: true, Sensitive: true},
@@ -113,9 +113,9 @@ func clientCreate(ctx context.Context, d *schema.ResourceData, meta interface{})
 	apiKey := client.api_key
 	apiSecret := client.api_secret
 
-	if d.Get("api_key") != "" && client.api_key != d.Get("api_key") {
-		apiKey = d.Get("api_key").(string)
-		apiSecret = d.Get("api_secret").(string)
+	if d.Get("service_api_key") != "" && client.api_key != d.Get("service_api_key") {
+		apiKey = d.Get("service_api_key").(string)
+		apiSecret = d.Get("service_api_secret").(string)
 	}
 
 	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
@@ -143,9 +143,9 @@ func clientRead(ctx context.Context, d *schema.ResourceData, meta interface{}) d
 	apiKey := client.api_key
 	apiSecret := client.api_secret
 
-	if d.Get("api_key") != "" && client.api_key != d.Get("api_key") {
-		apiKey = d.Get("api_key").(string)
-		apiSecret = d.Get("api_secret").(string)
+	if d.Get("service_api_key") != "" && client.api_key != d.Get("service_api_key") {
+		apiKey = d.Get("service_api_key").(string)
+		apiSecret = d.Get("service_api_secret").(string)
 	}
 
 	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
@@ -171,9 +171,9 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 	apiKey := client.api_key
 	apiSecret := client.api_secret
 
-	if d.Get("api_key") != "" && client.api_key != d.Get("api_key") {
-		apiKey = d.Get("api_key").(string)
-		apiSecret = d.Get("api_secret").(string)
+	if d.Get("service_api_key") != "" && client.api_key != d.Get("service_api_key") {
+		apiKey = d.Get("service_api_key").(string)
+		apiSecret = d.Get("service_api_secret").(string)
 	}
 
 	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
@@ -202,9 +202,9 @@ func clientDelete(ctx context.Context, d *schema.ResourceData, meta interface{})
 	apiKey := client.api_key
 	apiSecret := client.api_secret
 
-	if d.Get("api_key") != "" && client.api_key != d.Get("api_key") {
-		apiKey = d.Get("api_key").(string)
-		apiSecret = d.Get("api_secret").(string)
+	if d.Get("service_api_key") != "" && client.api_key != d.Get("service_api_key") {
+		apiKey = d.Get("service_api_key").(string)
+		apiSecret = d.Get("service_api_secret").(string)
 	}
 
 	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
