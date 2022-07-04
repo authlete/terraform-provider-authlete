@@ -112,8 +112,8 @@ resource "authlete_service" "prod" {
 }
 
 resource "authlete_client" "client1" {
-	api_key = authlete_service.prod.id
-	api_secret = authlete_service.prod.api_secret
+	service_api_key = authlete_service.prod.id
+	service_api_secret = authlete_service.prod.api_secret
 	developer = "test"
 	client_id_alias = "terraform_client"
     client_id_alias_enabled = false
