@@ -6,7 +6,11 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha1"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"fmt"
 
@@ -65,6 +69,14 @@ func createJWKSchema() *schema.Schema {
 				},
 				"key_size": {
 					Type:     schema.TypeInt,
+					Optional: true,
+				},
+				"pem_certificate": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+				"pem_private_key": {
+					Type:     schema.TypeString,
 					Optional: true,
 				},
 				"kty": {
@@ -127,6 +139,16 @@ func createJWKSchema() *schema.Schema {
 						Type: schema.TypeString,
 					},
 				},
+				"x5t": {
+					Type:      schema.TypeString,
+					Optional:  true,
+					Sensitive: true,
+				},
+				"x5ts256": {
+					Type:      schema.TypeString,
+					Optional:  true,
+					Sensitive: true,
+				},
 				"y": {
 					Type:      schema.TypeString,
 					Optional:  true,
@@ -138,23 +160,25 @@ func createJWKSchema() *schema.Schema {
 }
 
 type JWKStruct struct {
-	Kid string   `json:"kid,omitempty"`
-	Alg string   `json:"alg,omitempty"`
-	Use string   `json:"use,omitempty"`
-	Kty string   `json:"kty,omitempty"`
-	Crv string   `json:"crv,omitempty"`
-	D   string   `json:"d,omitempty"`
-	Dp  string   `json:"dp,omitempty"`
-	Dq  string   `json:"dq,omitempty"`
-	E   string   `json:"e,omitempty"`
-	K   string   `json:"k,omitempty"`
-	N   string   `json:"n,omitempty"`
-	P   string   `json:"p,omitempty"`
-	Q   string   `json:"q,omitempty"`
-	Qi  string   `json:"qi,omitempty"`
-	X   string   `json:"x,omitempty"`
-	X5c []string `json:"x5c,omitempty"`
-	Y   string   `json:"y,omitempty"`
+	Kid     string   `json:"kid,omitempty"`
+	Alg     string   `json:"alg,omitempty"`
+	Use     string   `json:"use,omitempty"`
+	Kty     string   `json:"kty,omitempty"`
+	Crv     string   `json:"crv,omitempty"`
+	D       string   `json:"d,omitempty"`
+	Dp      string   `json:"dp,omitempty"`
+	Dq      string   `json:"dq,omitempty"`
+	E       string   `json:"e,omitempty"`
+	K       string   `json:"k,omitempty"`
+	N       string   `json:"n,omitempty"`
+	P       string   `json:"p,omitempty"`
+	Q       string   `json:"q,omitempty"`
+	Qi      string   `json:"qi,omitempty"`
+	X       string   `json:"x,omitempty"`
+	X5c     []string `json:"x5c,omitempty"`
+	X5t     string   `json:"x5t,omitempty"`
+	X5ts256 string   `json:"x5t#S256,omitempty"`
+	Y       string   `json:"y,omitempty"`
 }
 
 func generateOKPKey(newKey map[string]interface{}) (JWKStruct, error) {
@@ -182,11 +206,8 @@ func generateOKPKey(newKey map[string]interface{}) (JWKStruct, error) {
 		return element, err
 	} else {
 		jsonContent, _ := json.Marshal(okpKey)
-
 		err = json.Unmarshal(jsonContent, &element)
-
 		return element, err
-
 	}
 
 }
@@ -209,7 +230,7 @@ func generateECKey(newKey map[string]interface{}) (JWKStruct, error) {
 	} else if crv == "P-521" {
 		curve = elliptic.P521()
 	} else if crv == "P-384" {
-		curve = elliptic.P521()
+		curve = elliptic.P384()
 	} else {
 		return element, errors.New("generating keys using " + crv + " is not implemented")
 	}
@@ -260,7 +281,7 @@ func generateRSAKey(keyMap map[string]interface{}) (JWKStruct, error) {
 	}
 }
 
-func generateKey(keyDef map[string]interface{}, diags diag.Diagnostics) JWKStruct {
+func generateKey(keyDef map[string]interface{}, diags diag.Diagnostics) (JWKStruct, diag.Diagnostics) {
 	var alg = keyDef["alg"].(string)
 	var crv = keyDef["crv"].(string)
 	var element JWKStruct
@@ -323,46 +344,59 @@ func generateKey(keyDef map[string]interface{}, diags diag.Diagnostics) JWKStruc
 
 	}
 
-	return element
+	return element, diags
 }
 
-func getAsString(newKey jwk.Key, key string) (string, bool) {
-	valRaw, rootValue := newKey.Get(key)
-
-	val := valRaw.([]byte)
-	return string(val), rootValue
-}
-
+// This method is used for the creation of resources, like service
+// or clients.
+// The method will traverse the keys marked to be generated and generate the random
+// pair of keys or process the pem files and populate the attributes accordingly.
+// The "pem_certificate" and "pem_private_key" and "generated" attributes can't be configured
+// with conjunction with the other key attributes
 func mapJWKS(vals []interface{}, diags diag.Diagnostics) (string, diag.Diagnostics) {
 
-	var keysArray = []JWKStruct{}
+	var keysArray = make([]JWKStruct, 0)
 
 	for _, aKey := range vals {
 		var val1 = aKey.(map[string]interface{})
 		var element JWKStruct
-
-		if val1["generate"] != nil && val1["generate"].(bool) {
-			element = generateKey(val1, diags)
+		if (val1["generate"] != nil && val1["generate"].(bool)) &&
+			((val1["pem_certificate"] != nil && val1["pem_certificate"] != "") ||
+				(val1["pem_private_key"] != nil && val1["pem_private_key"] != "")) {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Pem file provided and random key generation configured",
+				Detail: "key with id " + val1["kid"].(string) + " is a random key and a pem file was provided. " +
+					"The pem will be used.",
+			})
+		}
+		if (val1["pem_certificate"] != nil && val1["pem_certificate"] != "") ||
+			(val1["pem_private_key"] != nil && val1["pem_private_key"] != "") {
+			element, diags = loadPem(val1, diags)
+		} else if val1["generate"] != nil && val1["generate"].(bool) {
+			element, diags = generateKey(val1, diags)
 		} else {
 
 			element = JWKStruct{
-				Kid: val1["kid"].(string),
-				Alg: val1["alg"].(string),
-				Use: val1["use"].(string),
-				Kty: val1["kty"].(string),
-				Crv: val1["crv"].(string),
-				D:   val1["d"].(string),
-				Dp:  val1["dp"].(string),
-				Dq:  val1["dq"].(string),
-				E:   val1["e"].(string),
-				K:   val1["k"].(string),
-				N:   val1["n"].(string),
-				P:   val1["p"].(string),
-				Q:   val1["q"].(string),
-				Qi:  val1["qi"].(string),
-				X:   val1["x"].(string),
-				X5c: mapArray(val1["x5c"].([]interface{})),
-				Y:   val1["y"].(string),
+				Kid:     val1["kid"].(string),
+				Alg:     val1["alg"].(string),
+				Use:     val1["use"].(string),
+				Kty:     val1["kty"].(string),
+				Crv:     val1["crv"].(string),
+				D:       val1["d"].(string),
+				Dp:      val1["dp"].(string),
+				Dq:      val1["dq"].(string),
+				E:       val1["e"].(string),
+				K:       val1["k"].(string),
+				N:       val1["n"].(string),
+				P:       val1["p"].(string),
+				Q:       val1["q"].(string),
+				Qi:      val1["qi"].(string),
+				X:       val1["x"].(string),
+				X5c:     mapArray(val1["x5c"].([]interface{})),
+				X5t:     val1["x5t"].(string),
+				X5ts256: val1["x5ts256"].(string),
+				Y:       val1["y"].(string),
 			}
 		}
 		keysArray = append(keysArray, element)
@@ -374,6 +408,72 @@ func mapJWKS(vals []interface{}, diags diag.Diagnostics) (string, diag.Diagnosti
 	jsonString, _ := json.Marshal(toFormat)
 
 	return string(jsonString), diags
+}
+
+func loadPem(val map[string]interface{}, diags diag.Diagnostics) (JWKStruct, diag.Diagnostics) {
+	certFile := ""
+	keyFile := ""
+	if val["pem_certificate"] != nil {
+		certFile = val["pem_certificate"].(string)
+	}
+	if val["pem_private_key"] != nil {
+		keyFile = val["pem_private_key"].(string)
+	}
+	kid := val["kid"].(string)
+	toReturn := JWKStruct{
+		Kid: kid,
+		Alg: val["alg"].(string),
+		Use: val["use"].(string),
+	}
+
+	loadKeyFrom := certFile
+
+	if keyFile != "" {
+		loadKeyFrom = keyFile
+	}
+
+	key, err := jwk.ParseKey([]byte(loadKeyFrom), jwk.WithPEM(true))
+
+	if err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "key: " + kid,
+			Detail:   fmt.Sprintf("failed to parse %s content in PEM format: %s\n", keyFile, err),
+		})
+		return toReturn, diags
+	}
+
+	jsonContent, _ := json.Marshal(key)
+
+	err = json.Unmarshal(jsonContent, &toReturn)
+
+	if certFile != "" {
+		chain := make([]string, 0)
+
+		certPEMBlock := []byte(certFile)
+		firstCert := true
+		var certDERBlock *pem.Block
+		for {
+			certDERBlock, certPEMBlock = pem.Decode(certPEMBlock)
+			if certDERBlock == nil {
+				break
+			}
+			if certDERBlock.Type == "CERTIFICATE" {
+				certificate := certDERBlock.Bytes
+				if firstCert {
+					t256 := sha256.Sum256(certificate)
+					tsha1 := sha1.Sum(certificate)
+					toReturn.X5t = base64.URLEncoding.EncodeToString(tsha1[:])
+					toReturn.X5ts256 = base64.URLEncoding.EncodeToString(t256[:])
+					firstCert = false
+				}
+				chain = append(chain, base64.StdEncoding.EncodeToString(certificate))
+			}
+		}
+		toReturn.X5c = chain
+	}
+
+	return toReturn, diags
 }
 
 func mapArray(x5c []interface{}) []string {
@@ -418,10 +518,10 @@ func findLocalKey(kid string, existingKeys []interface{}) map[string]interface{}
 
 func updateJWKS(vals []interface{}, jwks string, diags diag.Diagnostics) (string, diag.Diagnostics) {
 
-	var keysArray = []JWKStruct{}
+	var keysArray = make([]JWKStruct, 0)
 
 	var keysMap map[string][]JWKStruct
-	json.Unmarshal([]byte(jwks), &keysMap)
+	_ = json.Unmarshal([]byte(jwks), &keysMap)
 
 	var keys = keysMap["keys"]
 
@@ -436,16 +536,21 @@ func updateJWKS(vals []interface{}, jwks string, diags diag.Diagnostics) (string
 
 		var element JWKStruct
 
-		if val1["generate"] != nil && val1["generate"].(bool) {
-			var raw = findKey(val1["kid"].(string), keys, diags)
+		var raw = findKey(val1["kid"].(string), keys, diags)
+		if (val1["pem_certificate"] != nil && val1["pem_certificate"].(string) != "") ||
+			(val1["pem_private_key"] != nil && val1["pem_private_key"].(string) != "") {
 			if raw == nil {
-				element = generateKey(val1, diags)
+				element, diags = loadPem(val1, diags)
 			} else {
 				element = raw.(JWKStruct)
 			}
-
+		} else if val1["generate"] != nil && val1["generate"].(bool) {
+			if raw == nil {
+				element, diags = generateKey(val1, diags)
+			} else {
+				element = raw.(JWKStruct)
+			}
 		} else {
-
 			element = JWKStruct{
 				Kid: val1["kid"].(string),
 				Alg: val1["alg"].(string),
@@ -497,7 +602,14 @@ func mapJWKFromDTO(localKeys []interface{}, jwks string) ([]interface{}, error) 
 
 	for i, aKey := range serverKeys {
 		localKey := findLocalKey(aKey.Kid, localKeys)
-		if localKey != nil && localKey["generate"] == true {
+
+		if localKey != nil &&
+			((localKey["pem_certificate"] != nil &&
+				localKey["pem_certificate"].(string) != "") ||
+				(localKey["pem_private_key"] != nil &&
+					localKey["pem_private_key"].(string) != "")) {
+			result[i] = localKey
+		} else if localKey != nil && localKey["generate"] == true {
 			result[i] = localKey
 		} else {
 			element := make(map[string]interface{})

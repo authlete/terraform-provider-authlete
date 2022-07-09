@@ -47,6 +47,7 @@ func client() *schema.Resource {
 			"tos_uris":                   createTaggedValuesSchema(),
 			"jwks_uri":                   {Type: schema.TypeString, Required: false, Optional: true},
 			"jwks":                       {Type: schema.TypeString, Required: false, Optional: true},
+			"jwk":                        createJWKSchema(),
 			"derived_sector_identifier":  {Type: schema.TypeString, Required: false, Optional: true, Computed: true},
 			"sector_identifier_uri":      {Type: schema.TypeString, Required: false, Optional: true},
 			"subject_type":               createSubjectTypeSchema(),
@@ -110,10 +111,10 @@ func clientCreate(ctx context.Context, d *schema.ResourceData, meta interface{})
 	tflog.Trace(ctx, "Creating a new client")
 	client := meta.(*apiClient)
 
-	apiKey := client.api_key
-	apiSecret := client.api_secret
+	apiKey := client.apiKey
+	apiSecret := client.apiSecret
 
-	if d.Get("service_api_key") != "" && client.api_key != d.Get("service_api_key") {
+	if d.Get("service_api_key") != "" && client.apiKey != d.Get("service_api_key") {
 		apiKey = d.Get("service_api_key").(string)
 		apiSecret = d.Get("service_api_secret").(string)
 	}
@@ -123,7 +124,7 @@ func clientCreate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		Password: apiSecret,
 	})
 
-	newClientDto := dataToClient(d)
+	newClientDto := dataToClient(d, diags)
 
 	newOauthClient, _, err := client.authleteClient.ClientManagementApi.ClientCreateApi(auth).Client(*newClientDto).Execute()
 
@@ -136,14 +137,14 @@ func clientCreate(ctx context.Context, d *schema.ResourceData, meta interface{})
 	return diags
 }
 
-func clientRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func clientRead(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	client := meta.(*apiClient)
 
-	apiKey := client.api_key
-	apiSecret := client.api_secret
+	apiKey := client.apiKey
+	apiSecret := client.apiSecret
 
-	if d.Get("service_api_key") != "" && client.api_key != d.Get("service_api_key") {
+	if d.Get("service_api_key") != "" && client.apiKey != d.Get("service_api_key") {
 		apiKey = d.Get("service_api_key").(string)
 		apiSecret = d.Get("service_api_secret").(string)
 	}
@@ -168,10 +169,10 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 	tflog.Trace(ctx, "Updating client")
 	client := meta.(*apiClient)
 
-	apiKey := client.api_key
-	apiSecret := client.api_secret
+	apiKey := client.apiKey
+	apiSecret := client.apiSecret
 
-	if d.Get("service_api_key") != "" && client.api_key != d.Get("service_api_key") {
+	if d.Get("service_api_key") != "" && client.apiKey != d.Get("service_api_key") {
 		apiKey = d.Get("service_api_key").(string)
 		apiSecret = d.Get("service_api_secret").(string)
 	}
@@ -180,29 +181,417 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		UserName: apiKey,
 		Password: apiSecret,
 	})
-	newClientDto := dataToClient(d)
 
-	newClient, _, err := client.authleteClient.ClientManagementApi.ClientUpdateApi(auth, d.Id()).Client(*newClientDto).Execute()
+	existingClient, _, getErr := client.authleteClient.ClientManagementApi.ClientGetApi(auth, d.Id()).Execute()
+
+	if getErr != nil {
+		return diag.FromErr(getErr)
+	}
+
+	if d.HasChange("developer") {
+		existingClient.SetDeveloper(d.Get("developer").(string))
+	}
+	if d.HasChange("client_id_alias") {
+		if NotZeroString(d, "client_id_alias") {
+			existingClient.SetClientIdAlias(d.Get("client_id_alias").(string))
+		} else {
+			existingClient.ClientIdAlias = nil
+		}
+	}
+	if d.HasChange("client_id_alias_enabled") {
+		existingClient.SetClientIdAliasEnabled(d.Get("client_id_alias_enabled").(bool))
+	}
+	if d.HasChange("client_type") {
+		if NotZeroString(d, "client_type") {
+			existingClient.SetClientType(authlete.ClientType(d.Get("client_type").(string)))
+		} else {
+			existingClient.ClientType = nil
+		}
+	}
+	if d.HasChange("redirect_uris") {
+		existingClient.SetRedirectUris(mapSetToString(d.Get("redirect_uris").([]interface{})))
+	}
+	if d.HasChange("response_types") {
+		existingClient.SetResponseTypes(mapResponseTypesToDTO(d.Get("response_types").([]interface{})))
+	}
+	if d.HasChange("grant_types") {
+		existingClient.SetGrantTypes(mapGrantTypesToDTO(d.Get("grant_types").([]interface{})))
+	}
+	if d.HasChange("application_type") {
+		if NotZeroString(d, "application_type") {
+			existingClient.SetApplicationType(mapApplicationTypeToDto(d.Get("application_type")))
+		} else {
+			existingClient.SetApplicationTypeNil()
+		}
+	}
+	if d.HasChange("contacts") {
+		existingClient.SetContacts(mapSetToString(d.Get("contacts").([]interface{})))
+	}
+	if d.HasChange("client_name") {
+		if NotZeroString(d, "client_name") {
+			existingClient.SetClientName(d.Get("client_name").(string))
+		} else {
+			existingClient.ClientName = nil
+		}
+	}
+	if d.HasChange("client_names") {
+		existingClient.SetClientNames(mapTaggedValuesToDTO(d.Get("client_names").([]interface{})))
+	}
+	if d.HasChange("logo_uri") {
+		if NotZeroString(d, "logo_uri") {
+			existingClient.SetLogoUri(d.Get("logo_uri").(string))
+		} else {
+			existingClient.LogoUri = nil
+		}
+	}
+	if d.HasChange("logo_uris") {
+		existingClient.SetLogoUris(mapTaggedValuesToDTO(d.Get("logo_uris").([]interface{})))
+	}
+	if d.HasChange("") {
+		if NotZeroString(d, "client_uri") {
+			existingClient.SetClientUri(d.Get("client_uri").(string))
+		} else {
+			existingClient.ClientUri = nil
+		}
+	}
+	if d.HasChange("client_uris") {
+		existingClient.SetClientUris(mapTaggedValuesToDTO(d.Get("client_uris").([]interface{})))
+	}
+	if d.HasChange("policy_uri") {
+		if NotZeroString(d, "policy_uri") {
+			existingClient.SetPolicyUri(d.Get("policy_uri").(string))
+		} else {
+			existingClient.PolicyUri = nil
+		}
+	}
+	if d.HasChange("policy_uris") {
+		existingClient.SetPolicyUris(mapTaggedValuesToDTO(d.Get("policy_uris").([]interface{})))
+	}
+	if d.HasChange("tos_uri") {
+		if NotZeroString(d, "tos_uri") {
+			existingClient.SetTosUri(d.Get("tos_uri").(string))
+		} else {
+			existingClient.TosUri = nil
+		}
+	}
+	if d.HasChange("tos_uris") {
+		existingClient.SetTosUris(mapTaggedValuesToDTO(d.Get("tos_uris").([]interface{})))
+	}
+	if d.HasChange("jwks_uri") {
+		if NotZeroString(d, "jwks_uri") {
+			existingClient.SetJwksUri(d.Get("jwks_uri").(string))
+		} else {
+			existingClient.JwksUri = nil
+		}
+	}
+	if d.HasChanges("jwks", "jwk") {
+		if NotZeroString(d, "jwks") {
+			existingClient.SetJwks(d.Get("jwks").(string))
+		} else if NotZeroArray(d, "jwk") {
+			var jwk string
+			jwk, diags = updateJWKS(d.Get("jwk").([]interface{}), existingClient.GetJwks(), diags)
+			existingClient.SetJwks(jwk)
+		}
+	}
+	if d.HasChange("derived_sector_identifier") {
+		if NotZeroString(d, "derived_sector_identifier") {
+			existingClient.SetDerivedSectorIdentifier(d.Get("derived_sector_identifier").(string))
+		} else {
+			existingClient.DerivedSectorIdentifier = nil
+		}
+	}
+	if d.HasChange("sector_identifier_uri") {
+		if NotZeroString(d, "sector_identifier_uri") {
+			existingClient.SetSectorIdentifierUri(d.Get("sector_identifier_uri").(string))
+		} else {
+			existingClient.SectorIdentifierUri = nil
+		}
+	}
+	if d.HasChange("subject_type") {
+		if NotZeroString(d, "subject_type") {
+			existingClient.SetSubjectType(mapSubjectTypeToDto(d.Get("subject_type")))
+		} else {
+			existingClient.SubjectType = nil
+		}
+	}
+	if d.HasChange("id_token_sign_alg") {
+		if NotZeroString(d, "id_token_sign_alg") {
+			existingClient.SetIdTokenSignAlg(mapJWSAlg(d.Get("id_token_sign_alg")))
+		} else {
+			existingClient.IdTokenSignAlg = nil
+		}
+	}
+	if d.HasChange("id_token_encryption_alg") {
+		if NotZeroString(d, "id_token_encryption_alg") {
+			existingClient.SetIdTokenEncryptionAlg(mapJWEAlg(d.Get("id_token_encryption_alg")))
+		} else {
+			existingClient.IdTokenEncryptionAlg = nil
+		}
+	}
+	if d.HasChange("id_token_encryption_enc") {
+		if NotZeroString(d, "id_token_encryption_enc") {
+			existingClient.SetIdTokenEncryptionEnc(mapJWEEnc(d.Get("id_token_encryption_enc")))
+		} else {
+			existingClient.IdTokenEncryptionEnc = nil
+		}
+	}
+	if d.HasChange("user_info_sign_alg") {
+		if NotZeroString(d, "user_info_sign_alg") {
+			existingClient.SetUserInfoSignAlg(mapJWSAlg(d.Get("user_info_sign_alg")))
+		} else {
+			existingClient.UserInfoSignAlg = nil
+		}
+	}
+	if d.HasChange("user_info_encryption_alg") {
+		if NotZeroString(d, "user_info_encryption_alg") {
+			existingClient.SetUserInfoEncryptionAlg(mapJWEAlg(d.Get("user_info_encryption_alg")))
+		} else {
+			existingClient.UserInfoEncryptionAlg = nil
+		}
+	}
+	if d.HasChange("user_info_encryption_enc") {
+		if NotZeroString(d, "user_info_encryption_enc") {
+			existingClient.SetUserInfoEncryptionEnc(mapJWEEnc(d.Get("user_info_encryption_enc")))
+		} else {
+			existingClient.UserInfoEncryptionEnc = nil
+		}
+	}
+	if d.HasChange("request_sign_alg") {
+		if NotZeroString(d, "request_sign_alg") {
+			existingClient.SetRequestSignAlg(mapJWSAlg(d.Get("request_sign_alg")))
+		} else {
+			existingClient.RequestSignAlg = nil
+		}
+	}
+	if d.HasChange("request_encryption_alg") {
+		if NotZeroString(d, "request_encryption_alg") {
+			existingClient.SetRequestEncryptionAlg(mapJWEAlg(d.Get("request_encryption_alg")))
+		} else {
+			existingClient.RequestEncryptionAlg = nil
+		}
+	}
+	if d.HasChange("request_encryption_enc") {
+		if NotZeroString(d, "request_encryption_enc") {
+			existingClient.SetRequestEncryptionEnc(mapJWEEnc(d.Get("request_encryption_enc")))
+		} else {
+			existingClient.RequestEncryptionEnc = nil
+		}
+	}
+	if d.HasChange("token_auth_method") {
+		if NotZeroString(d, "token_auth_method") {
+			existingClient.SetTokenAuthMethod(mapClientAuthMethodToDto(d.Get("token_auth_method")))
+		} else {
+			existingClient.TokenAuthMethod = nil
+		}
+	}
+	if d.HasChange("token_auth_sign_alg") {
+		if NotZeroString(d, "token_auth_sign_alg") {
+			existingClient.SetTokenAuthSignAlg(mapJWSAlg(d.Get("token_auth_sign_alg")))
+		} else {
+			existingClient.TokenAuthSignAlg = nil
+		}
+	}
+	if d.HasChange("default_max_age") {
+		existingClient.SetDefaultMaxAge(int32(d.Get("default_max_age").(int)))
+	}
+	if d.HasChange("default_acrs") {
+		existingClient.SetDefaultAcrs(mapSetToString(d.Get("default_acrs").([]interface{})))
+	}
+	if d.HasChange("auth_time_required") {
+		existingClient.SetAuthTimeRequired(d.Get("auth_time_required").(bool))
+	}
+	if d.HasChange("login_uri") {
+		if NotZeroString(d, "login_uri") {
+			existingClient.SetLoginUri(d.Get("login_uri").(string))
+		} else {
+			existingClient.LogoUri = nil
+		}
+	}
+	if d.HasChange("request_uris") {
+		existingClient.SetRequestUris(mapSetToString(d.Get("request_uris").([]interface{})))
+	}
+	if d.HasChange("description") {
+		if NotZeroString(d, "description") {
+			existingClient.SetDescription(d.Get("description").(string))
+		} else {
+			existingClient.Description = nil
+		}
+	}
+	if d.HasChange("descriptions") {
+		existingClient.SetDescriptions(mapTaggedValuesToDTO(d.Get("descriptions").([]interface{})))
+	}
+	if d.HasChanges("requestable_scopes_enabled", "requestable_scopes",
+		"access_token_duration", "refresh_token_duration") {
+
+		ext := authlete.NewClientExtension()
+		ext.SetRequestableScopesEnabled(d.Get("requestable_scopes_enabled").(bool))
+		ext.SetRequestableScopes(mapSetToString(d.Get("requestable_scopes").([]interface{})))
+		ext.SetAccessTokenDuration(int64(d.Get("access_token_duration").(int)))
+		ext.SetRefreshTokenDuration(int64(d.Get("refresh_token_duration").(int)))
+		existingClient.SetExtension(*ext)
+	}
+	if d.HasChange("tls_client_auth_subject_dn") {
+		if NotZeroString(d, "tls_client_auth_subject_dn") {
+			existingClient.SetTlsClientAuthSubjectDn(d.Get("tls_client_auth_subject_dn").(string))
+		} else {
+			existingClient.TlsClientAuthSubjectDn = nil
+		}
+	}
+	if d.HasChange("tls_client_auth_san_dns") {
+		if NotZeroString(d, "tls_client_auth_san_dns") {
+			existingClient.SetTlsClientAuthSanDns(d.Get("tls_client_auth_san_dns").(string))
+		} else {
+			existingClient.TlsClientAuthSanDns = nil
+		}
+	}
+	if d.HasChange("tls_client_auth_san_uri") {
+		if NotZeroString(d, "tls_client_auth_san_uri") {
+			existingClient.SetTlsClientAuthSanUri(d.Get("tls_client_auth_san_uri").(string))
+		} else {
+			existingClient.TlsClientAuthSanUri = nil
+		}
+	}
+	if d.HasChange("tls_client_auth_san_ip") {
+		if NotZeroString(d, "tls_client_auth_san_ip") {
+			existingClient.SetTlsClientAuthSanIp(d.Get("tls_client_auth_san_ip").(string))
+		} else {
+			existingClient.TlsClientAuthSanIp = nil
+		}
+	}
+	if d.HasChange("tls_client_auth_san_email") {
+		if NotZeroString(d, "tls_client_auth_san_email") {
+			existingClient.SetTlsClientAuthSanEmail(d.Get("tls_client_auth_san_email").(string))
+		} else {
+			existingClient.TlsClientAuthSanEmail = nil
+		}
+	}
+	if d.HasChange("tls_client_certificate_bound_access_tokens") {
+		existingClient.SetTlsClientCertificateBoundAccessTokens(d.Get("tls_client_certificate_bound_access_tokens").(bool))
+	}
+	if d.HasChange("self_signed_certificate_key_id") {
+		if NotZeroString(d, "self_signed_certificate_key_id") {
+			existingClient.SetSelfSignedCertificateKeyId(d.Get("self_signed_certificate_key_id").(string))
+		} else {
+			existingClient.SelfSignedCertificateKeyId = nil
+		}
+	}
+	if d.HasChange("software_id") {
+		if NotZeroString(d, "software_id") {
+			existingClient.SetSoftwareId(d.Get("software_id").(string))
+		} else {
+			existingClient.SoftwareId = nil
+		}
+	}
+	if d.HasChange("software_version") {
+		if NotZeroString(d, "software_version") {
+			existingClient.SetSoftwareVersion(d.Get("software_version").(string))
+		} else {
+			existingClient.SoftwareVersion = nil
+		}
+	}
+	if d.HasChange("authorization_sign_alg") {
+		if NotZeroString(d, "authorization_sign_alg") {
+			existingClient.SetAuthorizationSignAlg(mapJWSAlg(d.Get("authorization_sign_alg")))
+		} else {
+			existingClient.AuthorizationSignAlg = nil
+		}
+	}
+	if d.HasChange("authorization_encryption_alg") {
+		if NotZeroString(d, "authorization_encryption_alg") {
+			existingClient.SetAuthorizationEncryptionAlg(mapJWEAlg(d.Get("authorization_encryption_alg")))
+		} else {
+			existingClient.AuthorizationEncryptionAlg = nil
+		}
+	}
+	if d.HasChange("authorization_encryption_enc") {
+		if NotZeroString(d, "authorization_encryption_enc") {
+			existingClient.SetAuthorizationEncryptionEnc(mapJWEEnc(d.Get("authorization_encryption_enc")))
+		} else {
+			existingClient.AuthorizationEncryptionEnc = nil
+		}
+	}
+	if d.HasChange("bc_delivery_mode") {
+		if NotZeroString(d, "bc_delivery_mode") {
+			existingClient.SetBcDeliveryMode(d.Get("bc_delivery_mode").(string))
+		} else {
+			existingClient.BcDeliveryMode = nil
+		}
+	}
+	if d.HasChange("bc_notification_endpoint") {
+		if NotZeroString(d, "bc_notification_endpoint") {
+			existingClient.SetBcNotificationEndpoint(d.Get("bc_notification_endpoint").(string))
+		} else {
+			existingClient.BcNotificationEndpoint = nil
+		}
+	}
+	if d.HasChange("bc_request_sign_alg") {
+		if NotZeroString(d, "bc_request_sign_alg") {
+			existingClient.SetBcRequestSignAlg(mapJWSAlg(d.Get("bc_request_sign_alg")))
+		} else {
+			existingClient.BcRequestSignAlg = nil
+		}
+	}
+	if d.HasChange("bc_user_code_required") {
+		existingClient.SetBcUserCodeRequired(d.Get("bc_user_code_required").(bool))
+	}
+	if d.HasChange("dynamically_registered") {
+		existingClient.SetDynamicallyRegistered(d.Get("dynamically_registered").(bool))
+	}
+	if d.HasChange("registration_access_token_hash") {
+		if NotZeroString(d, "registration_access_token_hash") {
+			existingClient.SetRegistrationAccessTokenHash(d.Get("registration_access_token_hash").(string))
+		} else {
+			existingClient.RegistrationAccessTokenHash = nil
+		}
+	}
+	if d.HasChange("authorization_details_types") {
+		existingClient.SetAuthorizationDetailsTypes(mapSetToString(d.Get("authorization_details_types").([]interface{})))
+	}
+	if d.HasChange("par_required") {
+		existingClient.SetParRequired(d.Get("par_required").(bool))
+	}
+	if d.HasChange("request_object_required") {
+		existingClient.SetRequestObjectRequired(d.Get("request_object_required").(bool))
+	}
+	if d.HasChange("attributes") {
+		existingClient.SetAttributes(mapAttributesToDTO(d.Get("attributes").([]interface{})))
+	}
+	if d.HasChange("custom_metadata") {
+		if NotZeroString(d, "custom_metadata") {
+			existingClient.SetCustomMetadata(d.Get("custom_metadata").(string))
+		} else {
+			existingClient.CustomMetadata = nil
+		}
+	}
+	if d.HasChange("front_channel_request_object_encryption_required") {
+		existingClient.SetFrontChannelRequestObjectEncryptionRequired(d.Get("front_channel_request_object_encryption_required").(bool))
+	}
+	if d.HasChange("request_object_encryption_alg_match_required") {
+		existingClient.SetRequestObjectEncryptionAlgMatchRequired(d.Get("request_object_encryption_alg_match_required").(bool))
+	}
+	if d.HasChange("request_object_encryption_enc_match_required") {
+		existingClient.SetRequestObjectEncryptionEncMatchRequired(d.Get("request_object_encryption_enc_match_required").(bool))
+	}
+
+	_, _, err := client.authleteClient.ClientManagementApi.ClientUpdateApi(auth, d.Id()).Client(*existingClient).Execute()
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	tflog.Trace(ctx, "Client updated")
-	updateResourceFromClient(d, newClient)
-	d.SetId(strconv.FormatInt(newClient.GetClientId(), 10))
+	updateResourceFromClient(d, existingClient)
 	return diags
-
 }
 
-func clientDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func clientDelete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 
 	var diags diag.Diagnostics
 	client := meta.(*apiClient)
 
-	apiKey := client.api_key
-	apiSecret := client.api_secret
+	apiKey := client.apiKey
+	apiSecret := client.apiSecret
 
-	if d.Get("service_api_key") != "" && client.api_key != d.Get("service_api_key") {
+	if d.Get("service_api_key") != "" && client.apiKey != d.Get("service_api_key") {
 		apiKey = d.Get("service_api_key").(string)
 		apiSecret = d.Get("service_api_secret").(string)
 	}
@@ -219,7 +608,7 @@ func clientDelete(ctx context.Context, d *schema.ResourceData, meta interface{})
 	return diags
 }
 
-func dataToClient(d *schema.ResourceData) *authlete.Client {
+func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) *authlete.Client {
 
 	newClient := authlete.NewClient()
 
@@ -265,6 +654,10 @@ func dataToClient(d *schema.ResourceData) *authlete.Client {
 	}
 	if NotZeroString(d, "jwks") {
 		newClient.SetJwks(d.Get("jwks").(string))
+	} else if NotZeroArray(d, "jwk") {
+		var jwk string
+		jwk, diags = mapJWKS(d.Get("jwk").([]interface{}), diags)
+		newClient.SetJwks(jwk)
 	}
 	if NotZeroString(d, "derived_sector_identifier") {
 		newClient.SetDerivedSectorIdentifier(d.Get("derived_sector_identifier").(string))
@@ -390,82 +783,87 @@ func dataToClient(d *schema.ResourceData) *authlete.Client {
 }
 
 func updateResourceFromClient(d *schema.ResourceData, client *authlete.Client) {
-	d.Set("developer", client.GetDeveloper())
-	d.Set("client_id", client.GetClientId())
-	d.Set("client_secret", client.GetClientSecret())
-	d.Set("client_id_alias", client.GetClientIdAlias())
-	d.Set("client_id_alias_enabled", client.GetClientIdAliasEnabled())
-	d.Set("client_type", client.GetClientType())
-	d.Set("redirect_uris", client.GetRedirectUris())
-	d.Set("grant_types", client.GetGrantTypes())
-	d.Set("response_types", client.GetResponseTypes())
-	d.Set("application_type", client.GetApplicationType())
-	d.Set("contacts", client.GetContacts())
-	d.Set("client_name", client.GetClientName())
-	d.Set("client_names", client.GetClientNames())
-	d.Set("logo_uri", client.GetLogoUri())
-	d.Set("logo_uris", mapTaggedValuesFromDTO(client.GetLogoUris()))
-	d.Set("client_uri", client.GetClientUri())
-	d.Set("client_uris", mapTaggedValuesFromDTO(client.GetClientUris()))
-	d.Set("policy_uri", client.GetPolicyUri())
-	d.Set("policy_uris", mapTaggedValuesFromDTO(client.GetPolicyUris()))
-	d.Set("tos_uri", client.GetTosUri())
-	d.Set("tos_uris", mapTaggedValuesFromDTO(client.GetTosUris()))
-	d.Set("jwks_uri", client.GetJwksUri())
-	d.Set("jwks", client.GetJwks())
-	d.Set("derived_sector_identifier", client.GetDerivedSectorIdentifier())
-	d.Set("sector_identifier_uri", client.GetSectorIdentifierUri())
-	d.Set("subject_type", client.GetSubjectType())
-	d.Set("id_token_sign_alg", client.GetIdTokenSignAlg())
-	d.Set("id_token_encryption_alg", client.GetIdTokenEncryptionAlg())
-	d.Set("id_token_encryption_enc", client.GetIdTokenEncryptionEnc())
-	d.Set("user_info_sign_alg", client.GetUserInfoSignAlg())
-	d.Set("user_info_encryption_alg", client.GetUserInfoEncryptionAlg())
-	d.Set("user_info_encryption_enc", client.GetUserInfoEncryptionEnc())
-	d.Set("request_sign_alg", client.GetRequestSignAlg())
-	d.Set("request_encryption_alg", client.GetRequestEncryptionAlg())
-	d.Set("request_encryption_enc", client.GetRequestEncryptionEnc())
-	d.Set("token_auth_method", client.GetTokenAuthMethod())
-	d.Set("token_auth_sign_alg", client.GetTokenAuthSignAlg())
-	d.Set("default_max_age", client.GetDefaultMaxAge())
-	d.Set("default_acrs", client.GetDefaultAcrs())
-	d.Set("auth_time_required", client.GetAuthTimeRequired())
-	d.Set("login_uri", client.GetLoginUri())
-	d.Set("request_uris", client.GetRequestUris())
-	d.Set("description", client.GetDescription())
-	d.Set("descriptions", mapTaggedValuesFromDTO(client.GetDescriptions()))
-	d.Set("created_at", client.GetCreatedAt())
-	d.Set("modified_at", client.GetModifiedAt())
+	_ = d.Set("developer", client.GetDeveloper())
+	_ = d.Set("client_id", client.GetClientId())
+	_ = d.Set("client_secret", client.GetClientSecret())
+	_ = d.Set("client_id_alias", client.GetClientIdAlias())
+	_ = d.Set("client_id_alias_enabled", client.GetClientIdAliasEnabled())
+	_ = d.Set("client_type", client.GetClientType())
+	_ = d.Set("redirect_uris", client.GetRedirectUris())
+	_ = d.Set("grant_types", client.GetGrantTypes())
+	_ = d.Set("response_types", client.GetResponseTypes())
+	_ = d.Set("application_type", client.GetApplicationType())
+	_ = d.Set("contacts", client.GetContacts())
+	_ = d.Set("client_name", client.GetClientName())
+	_ = d.Set("client_names", client.GetClientNames())
+	_ = d.Set("logo_uri", client.GetLogoUri())
+	_ = d.Set("logo_uris", mapTaggedValuesFromDTO(client.GetLogoUris()))
+	_ = d.Set("client_uri", client.GetClientUri())
+	_ = d.Set("client_uris", mapTaggedValuesFromDTO(client.GetClientUris()))
+	_ = d.Set("policy_uri", client.GetPolicyUri())
+	_ = d.Set("policy_uris", mapTaggedValuesFromDTO(client.GetPolicyUris()))
+	_ = d.Set("tos_uri", client.GetTosUri())
+	_ = d.Set("tos_uris", mapTaggedValuesFromDTO(client.GetTosUris()))
+	_ = d.Set("jwks_uri", client.GetJwksUri())
+	_ = d.Set("jwks", nil)
+
+	jwk, _ := mapJWKFromDTO(d.Get("jwk").([]interface{}), client.GetJwks())
+
+	_ = d.Set("jwk", jwk)
+
+	_ = d.Set("derived_sector_identifier", client.GetDerivedSectorIdentifier())
+	_ = d.Set("sector_identifier_uri", client.GetSectorIdentifierUri())
+	_ = d.Set("subject_type", client.GetSubjectType())
+	_ = d.Set("id_token_sign_alg", client.GetIdTokenSignAlg())
+	_ = d.Set("id_token_encryption_alg", client.GetIdTokenEncryptionAlg())
+	_ = d.Set("id_token_encryption_enc", client.GetIdTokenEncryptionEnc())
+	_ = d.Set("user_info_sign_alg", client.GetUserInfoSignAlg())
+	_ = d.Set("user_info_encryption_alg", client.GetUserInfoEncryptionAlg())
+	_ = d.Set("user_info_encryption_enc", client.GetUserInfoEncryptionEnc())
+	_ = d.Set("request_sign_alg", client.GetRequestSignAlg())
+	_ = d.Set("request_encryption_alg", client.GetRequestEncryptionAlg())
+	_ = d.Set("request_encryption_enc", client.GetRequestEncryptionEnc())
+	_ = d.Set("token_auth_method", client.GetTokenAuthMethod())
+	_ = d.Set("token_auth_sign_alg", client.GetTokenAuthSignAlg())
+	_ = d.Set("default_max_age", client.GetDefaultMaxAge())
+	_ = d.Set("default_acrs", client.GetDefaultAcrs())
+	_ = d.Set("auth_time_required", client.GetAuthTimeRequired())
+	_ = d.Set("login_uri", client.GetLoginUri())
+	_ = d.Set("request_uris", client.GetRequestUris())
+	_ = d.Set("description", client.GetDescription())
+	_ = d.Set("descriptions", mapTaggedValuesFromDTO(client.GetDescriptions()))
+	_ = d.Set("created_at", client.GetCreatedAt())
+	_ = d.Set("modified_at", client.GetModifiedAt())
 	clientExtension := client.GetExtension()
-	d.Set("requestable_scopes_enabled", clientExtension.GetRequestableScopesEnabled())
-	d.Set("requestable_scopes", clientExtension.GetRequestableScopes())
-	d.Set("access_token_duration", clientExtension.GetAccessTokenDuration())
-	d.Set("refresh_token_duration", clientExtension.GetRefreshTokenDuration())
-	d.Set("tls_client_auth_subject_dn", client.GetTlsClientAuthSubjectDn())
-	d.Set("tls_client_auth_san_dns", client.GetTlsClientAuthSanDns())
-	d.Set("tls_client_auth_san_uri", client.GetTlsClientAuthSanUri())
-	d.Set("tls_client_auth_san_ip", client.GetTlsClientAuthSanIp())
-	d.Set("tls_client_auth_san_email", client.GetTlsClientAuthSanEmail())
-	d.Set("tls_client_certificate_bound_access_tokens", client.GetTlsClientCertificateBoundAccessTokens())
-	d.Set("self_signed_certificate_key_id", client.GetSelfSignedCertificateKeyId())
-	d.Set("software_id", client.GetSoftwareId())
-	d.Set("software_version", client.GetSoftwareVersion())
-	d.Set("authorization_sign_alg", client.GetAuthorizationSignAlg())
-	d.Set("authorization_encryption_alg", client.GetAuthorizationEncryptionAlg())
-	d.Set("authorization_encryption_enc", client.GetAuthorizationEncryptionEnc())
-	d.Set("bc_delivery_mode", client.GetBcDeliveryMode())
-	d.Set("bc_notification_endpoint", client.GetBcNotificationEndpoint())
-	d.Set("bc_request_sign_alg", client.GetBcRequestSignAlg())
-	d.Set("bc_user_code_required", client.GetBcUserCodeRequired())
-	d.Set("dynamically_registered", client.GetDynamicallyRegistered())
-	d.Set("registration_access_token_hash", client.GetRegistrationAccessTokenHash())
-	d.Set("authorization_details_types", client.GetAuthorizationDetailsTypes())
-	d.Set("par_required", client.GetParRequired())
-	d.Set("request_object_required", client.GetRequestObjectRequired())
-	d.Set("attributes", mapAttributesFromDTO(client.GetAttributes()))
-	d.Set("custom_metadata", client.GetCustomMetadata())
-	d.Set("front_channel_request_object_encryption_required", client.GetFrontChannelRequestObjectEncryptionRequired())
-	d.Set("request_object_encryption_alg_match_required", client.GetRequestObjectEncryptionAlgMatchRequired())
-	d.Set("request_object_encryption_enc_match_required", client.GetRequestObjectEncryptionAlgMatchRequired())
+	_ = d.Set("requestable_scopes_enabled", clientExtension.GetRequestableScopesEnabled())
+	_ = d.Set("requestable_scopes", clientExtension.GetRequestableScopes())
+	_ = d.Set("access_token_duration", clientExtension.GetAccessTokenDuration())
+	_ = d.Set("refresh_token_duration", clientExtension.GetRefreshTokenDuration())
+	_ = d.Set("tls_client_auth_subject_dn", client.GetTlsClientAuthSubjectDn())
+	_ = d.Set("tls_client_auth_san_dns", client.GetTlsClientAuthSanDns())
+	_ = d.Set("tls_client_auth_san_uri", client.GetTlsClientAuthSanUri())
+	_ = d.Set("tls_client_auth_san_ip", client.GetTlsClientAuthSanIp())
+	_ = d.Set("tls_client_auth_san_email", client.GetTlsClientAuthSanEmail())
+	_ = d.Set("tls_client_certificate_bound_access_tokens", client.GetTlsClientCertificateBoundAccessTokens())
+	_ = d.Set("self_signed_certificate_key_id", client.GetSelfSignedCertificateKeyId())
+	_ = d.Set("software_id", client.GetSoftwareId())
+	_ = d.Set("software_version", client.GetSoftwareVersion())
+	_ = d.Set("authorization_sign_alg", client.GetAuthorizationSignAlg())
+	_ = d.Set("authorization_encryption_alg", client.GetAuthorizationEncryptionAlg())
+	_ = d.Set("authorization_encryption_enc", client.GetAuthorizationEncryptionEnc())
+	_ = d.Set("bc_delivery_mode", client.GetBcDeliveryMode())
+	_ = d.Set("bc_notification_endpoint", client.GetBcNotificationEndpoint())
+	_ = d.Set("bc_request_sign_alg", client.GetBcRequestSignAlg())
+	_ = d.Set("bc_user_code_required", client.GetBcUserCodeRequired())
+	_ = d.Set("dynamically_registered", client.GetDynamicallyRegistered())
+	_ = d.Set("registration_access_token_hash", client.GetRegistrationAccessTokenHash())
+	_ = d.Set("authorization_details_types", client.GetAuthorizationDetailsTypes())
+	_ = d.Set("par_required", client.GetParRequired())
+	_ = d.Set("request_object_required", client.GetRequestObjectRequired())
+	_ = d.Set("attributes", mapAttributesFromDTO(client.GetAttributes()))
+	_ = d.Set("custom_metadata", client.GetCustomMetadata())
+	_ = d.Set("front_channel_request_object_encryption_required", client.GetFrontChannelRequestObjectEncryptionRequired())
+	_ = d.Set("request_object_encryption_alg_match_required", client.GetRequestObjectEncryptionAlgMatchRequired())
+	_ = d.Set("request_object_encryption_enc_match_required", client.GetRequestObjectEncryptionAlgMatchRequired())
 
 }

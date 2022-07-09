@@ -21,7 +21,7 @@ func createTaggedValuesSchema() *schema.Schema {
 }
 
 func mapTaggedValuesToDTO(entry []interface{}) []authlete.TaggedValue {
-	var entries = []authlete.TaggedValue{}
+	var entries = make([]authlete.TaggedValue, 0)
 
 	if entry != nil {
 		for _, v := range entry {
