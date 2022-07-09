@@ -21,7 +21,7 @@ func createAttributeSchema() *schema.Schema {
 }
 
 func mapAttributesToDTO(entry []interface{}) []authlete.Pair {
-	var entries = []authlete.Pair{}
+	var entries = make([]authlete.Pair, 0)
 
 	if entry != nil {
 		for _, v := range entry {

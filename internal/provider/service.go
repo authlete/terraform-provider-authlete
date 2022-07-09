@@ -145,8 +145,8 @@ func serviceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 
 	newServiceDto, diags := dataToService(d, diags)
 	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-		UserName: client.service_owner_key,
-		Password: client.service_owner_secret,
+		UserName: client.serviceOwnerKey,
+		Password: client.serviceOwnerSecret,
 	})
 	r, _, err := client.authleteClient.ServiceManagementApi.ServiceCreateApi(auth).Service(*newServiceDto).Execute()
 
@@ -155,14 +155,14 @@ func serviceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	}
 	tflog.Trace(ctx, "Service created")
 
-	api_key := r.ApiKey
-	api_secret := r.ApiSecret
+	apiKey := r.ApiKey
+	apiSecret := r.ApiSecret
 
 	// populate the state with default values coming from authlete api server.
 	diags = serviceToResource(r, d)
 
-	d.SetId(strconv.FormatInt(*api_key, 10))
-	d.Set("api_secret", api_secret)
+	d.SetId(strconv.FormatInt(*apiKey, 10))
+	_ = d.Set("api_secret", apiSecret)
 
 	return diags
 
@@ -174,12 +174,12 @@ func serviceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) 
 	return serviceReadInternal(ctx, d, meta, diags)
 }
 
-func serviceReadInternal(ctx context.Context, d *schema.ResourceData, meta interface{}, diags diag.Diagnostics) diag.Diagnostics {
+func serviceReadInternal(_ context.Context, d *schema.ResourceData, meta interface{}, diags diag.Diagnostics) diag.Diagnostics {
 	client := meta.(*apiClient)
 
 	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-		UserName: client.service_owner_key,
-		Password: client.service_owner_secret,
+		UserName: client.serviceOwnerKey,
+		Password: client.serviceOwnerSecret,
 	})
 	dto, _, err := client.authleteClient.ServiceManagementApi.ServiceGetApi(auth, d.Id()).Execute()
 
@@ -191,15 +191,15 @@ func serviceReadInternal(ctx context.Context, d *schema.ResourceData, meta inter
 	return diags
 }
 
-func serviceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 
 	var diags diag.Diagnostics
 
 	client := meta.(*apiClient)
 
 	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-		UserName: client.service_owner_key,
-		Password: client.service_owner_secret,
+		UserName: client.serviceOwnerKey,
+		Password: client.serviceOwnerSecret,
 	})
 	srv, _, err := client.authleteClient.ServiceManagementApi.ServiceGetApi(auth, d.Id()).Execute()
 
@@ -292,11 +292,9 @@ func serviceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	if d.HasChange("iss_response_parameter") {
 		srv.SetIssSuppressed(d.Get("iss_response_suppressed").(bool))
 	}
-	/*if d.HasChange("ignore_port_loopback_redirect") {
+	if d.HasChange("ignore_port_loopback_redirect") {
 		srv.SetLoopbackRedirectionUriVariable(d.Get("ignore_port_loopback_redirect").(bool))
 	}
-	*/
-
 	if d.HasChange("token_endpoint") {
 		srv.SetTokenEndpoint(d.Get("token_endpoint").(string))
 	}
@@ -450,10 +448,9 @@ func serviceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	if d.HasChange("dynamic_registration_supported") {
 		srv.SetDynamicRegistrationSupported(d.Get("dynamic_registration_supported").(bool))
 	}
-	/*if d.HasChange("dcr_scope_used_as_requestable") {
+	if d.HasChange("dcr_scope_used_as_requestable") {
 		srv.SetDcrScopeUsedAsRequestable(d.Get("dcr_scope_used_as_requestable").(bool))
 	}
-	*/
 	if d.HasChange("registration_endpoint") {
 		srv.SetRegistrationEndpoint(d.Get("registration_endpoint").(string))
 	}
@@ -541,15 +538,15 @@ func serviceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	return diags
 }
 
-func serviceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func serviceDelete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// use the meta value to retrieve your client from the provider configure method
 	// client := meta.(*apiClient)
 
 	client := meta.(*apiClient)
 
 	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-		UserName: client.service_owner_key,
-		Password: client.service_owner_secret,
+		UserName: client.serviceOwnerKey,
+		Password: client.serviceOwnerSecret,
 	})
 
 	_, err := client.authleteClient.ServiceManagementApi.ServiceDeleteApi(auth, d.Id()).Execute()
@@ -635,7 +632,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 		newServiceDto.SetAuthorizationResponseDuration(int64(data.Get("authorization_response_duration").(int)))
 	}
 	newServiceDto.SetIssSuppressed(data.Get("iss_response_suppressed").(bool))
-	// newServiceDto.SetLoopbackRedirectionUriVariable(data.Get("ignore_port_loopback_redirect").(bool))
+	newServiceDto.SetLoopbackRedirectionUriVariable(data.Get("ignore_port_loopback_redirect").(bool))
 	if NotZeroString(data, "token_endpoint") {
 		newServiceDto.SetTokenEndpoint(data.Get("token_endpoint").(string))
 	}
@@ -813,121 +810,121 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 func serviceToResource(dto *authlete.Service, data *schema.ResourceData) diag.Diagnostics {
 
 	data.SetId(strconv.FormatInt(dto.GetApiKey(), 10))
-	data.Set("api_secret", dto.GetApiSecret())
-	data.Set("service_name", dto.GetServiceName())
-	data.Set("issuer", dto.GetIssuer())
-	data.Set("description", dto.GetDescription())
-	data.Set("clients_per_developer", dto.GetClientsPerDeveloper())
-	data.Set("client_id_alias_enabled", dto.GetClientIdAliasEnabled())
+	_ = data.Set("api_secret", dto.GetApiSecret())
+	_ = data.Set("service_name", dto.GetServiceName())
+	_ = data.Set("issuer", dto.GetIssuer())
+	_ = data.Set("description", dto.GetDescription())
+	_ = data.Set("clients_per_developer", dto.GetClientsPerDeveloper())
+	_ = data.Set("client_id_alias_enabled", dto.GetClientIdAliasEnabled())
 
-	data.Set("attribute", mapAttributesFromDTO(dto.GetAttributes()))
-	data.Set("supported_custom_client_metadata", mapSchemaFromString(dto.GetSupportedCustomClientMetadata()))
-	data.Set("authentication_callback_endpoint", dto.GetAuthenticationCallbackEndpoint())
-	data.Set("authentication_callback_api_key", dto.GetAuthenticationCallbackApiKey())
-	data.Set("authentication_callback_api_secret", dto.GetAuthenticationCallbackApiSecret())
-	data.Set("supported_acrs", mapSchemaFromString(dto.GetSupportedAcrs()))
-	data.Set("developer_authentication_callback_endpoint", dto.GetDeveloperAuthenticationCallbackEndpoint())
-	data.Set("developer_authentication_callback_api_key", dto.GetDeveloperAuthenticationCallbackApiKey())
-	data.Set("developer_authentication_callback_api_secret", dto.GetDeveloperAuthenticationCallbackApiSecret())
-	data.Set("supported_grant_types", mapGrantTypesFromDTO(dto.GetSupportedGrantTypes()))
-	data.Set("supported_response_types", mapResponseTypesFromDTO(dto.GetSupportedResponseTypes()))
-	data.Set("supported_authorization_detail_types", mapSchemaFromString(dto.GetSupportedAuthorizationDetailsTypes()))
-	data.Set("supported_service_profiles", mapSupportedFrameworkFromDTO(dto.GetSupportedServiceProfiles()))
+	_ = data.Set("attribute", mapAttributesFromDTO(dto.GetAttributes()))
+	_ = data.Set("supported_custom_client_metadata", mapSchemaFromString(dto.GetSupportedCustomClientMetadata()))
+	_ = data.Set("authentication_callback_endpoint", dto.GetAuthenticationCallbackEndpoint())
+	_ = data.Set("authentication_callback_api_key", dto.GetAuthenticationCallbackApiKey())
+	_ = data.Set("authentication_callback_api_secret", dto.GetAuthenticationCallbackApiSecret())
+	_ = data.Set("supported_acrs", mapSchemaFromString(dto.GetSupportedAcrs()))
+	_ = data.Set("developer_authentication_callback_endpoint", dto.GetDeveloperAuthenticationCallbackEndpoint())
+	_ = data.Set("developer_authentication_callback_api_key", dto.GetDeveloperAuthenticationCallbackApiKey())
+	_ = data.Set("developer_authentication_callback_api_secret", dto.GetDeveloperAuthenticationCallbackApiSecret())
+	_ = data.Set("supported_grant_types", mapGrantTypesFromDTO(dto.GetSupportedGrantTypes()))
+	_ = data.Set("supported_response_types", mapResponseTypesFromDTO(dto.GetSupportedResponseTypes()))
+	_ = data.Set("supported_authorization_detail_types", mapSchemaFromString(dto.GetSupportedAuthorizationDetailsTypes()))
+	_ = data.Set("supported_service_profiles", mapSupportedFrameworkFromDTO(dto.GetSupportedServiceProfiles()))
 
-	data.Set("error_description_omitted", dto.GetErrorDescriptionOmitted())
-	data.Set("error_uri_omitted", dto.GetErrorUriOmitted())
-	data.Set("authorization_endpoint", dto.GetAuthorizationEndpoint())
-	data.Set("direct_authorization_endpoint_enabled", dto.GetDirectAuthorizationEndpointEnabled())
-	data.Set("supported_ui_locales", mapSchemaFromString(dto.GetSupportedUiLocales()))
-	data.Set("supported_displays", mapSupportedDisplayFromDTO(dto.GetSupportedDisplays()))
-	data.Set("pkce_required", dto.GetPkceRequired())
-	data.Set("pkce_s256_required", dto.GetPkceS256Required())
-	data.Set("authorization_response_duration", dto.GetAuthorizationResponseDuration())
-	data.Set("iss_response_suppressed", dto.GetIssSuppressed())
-	// data.Set("ignore_port_loopback_redirect", dto.GetLoopbackRedirectionUriVariable())
-	data.Set("token_endpoint", dto.GetTokenEndpoint())
-	data.Set("direct_token_endpoint_enabled", dto.GetDirectTokenEndpointEnabled())
-	data.Set("supported_token_auth_methods", mapClientAuthMethodsFromDTO(dto.GetSupportedTokenAuthMethods()))
-	data.Set("mutual_tls_validate_pki_cert_chain", dto.GetMutualTlsValidatePkiCertChain())
-	data.Set("trusted_root_certificates", mapSchemaFromString(dto.GetTrustedRootCertificates()))
-	data.Set("missing_client_id_allowed", dto.GetMissingClientIdAllowed())
-	data.Set("revocation_endpoint", dto.GetRevocationEndpoint())
-	data.Set("direct_revocation_endpoint_enabled", dto.GetDirectRevocationEndpointEnabled())
-	data.Set("supported_revocation_auth_methods", mapClientAuthMethodsFromDTO(dto.GetSupportedRevocationAuthMethods()))
-	data.Set("introspection_endpoint", dto.GetIntrospectionEndpoint())
-	data.Set("direct_introspection_endpoint_enabled", dto.GetDirectIntrospectionEndpointEnabled())
-	data.Set("supported_introspection_auth_methods", mapClientAuthMethodsFromDTO(dto.GetSupportedIntrospectionAuthMethods()))
-	data.Set("pushed_auth_req_endpoint", dto.GetPushedAuthReqEndpoint())
-	data.Set("pushed_auth_req_duration", dto.GetPushedAuthReqDuration())
-	data.Set("par_required", dto.GetParRequired())
-	data.Set("request_object_required", dto.GetRequestObjectRequired())
-	data.Set("traditional_request_object_processing_applied", dto.GetTraditionalRequestObjectProcessingApplied())
-	data.Set("nbf_optional", dto.GetNbfOptional())
-	data.Set("front_channel_encryption_request_obj_required", dto.GetFrontChannelRequestObjectEncryptionRequired())
-	data.Set("encryption_alg_req_obj_match", dto.GetRequestObjectEncryptionAlgMatchRequired())
-	data.Set("encryption_enc_alg_req_obj_match", dto.GetRequestObjectEncryptionEncMatchRequired())
-	data.Set("access_token_type", dto.GetAccessTokenType())
-	data.Set("tls_client_certificate_bound_access_tokens", dto.GetTlsClientCertificateBoundAccessTokens())
-	data.Set("access_token_duration", dto.GetAccessTokenDuration())
-	data.Set("single_access_token_per_subject", dto.GetSingleAccessTokenPerSubject())
-	data.Set("access_token_sign_alg", dto.GetAccessTokenSignAlg())
-	data.Set("access_token_signature_key_id", dto.GetAccessTokenSignatureKeyId())
-	data.Set("refresh_token_duration", dto.GetRefreshTokenDuration())
-	data.Set("refresh_token_duration_kept", dto.GetRefreshTokenDurationKept())
-	data.Set("refresh_token_duration_reset", dto.GetRefreshTokenDurationReset())
-	data.Set("refresh_token_kept", dto.GetRefreshTokenKept())
-	data.Set("token_expiration_link", dto.GetTokenExpirationLinked())
-	data.Set("supported_scopes", mapSupportedScopeFromDTO(dto.GetSupportedScopes()))
-	data.Set("scope_required", dto.GetScopeRequired())
-	data.Set("id_token_duration", dto.GetIdTokenDuration())
-	data.Set("allowable_clock_skew", dto.GetAllowableClockSkew())
-	data.Set("supported_claim_types", mapClaimTypesFromDTO(dto.GetSupportedClaimTypes()))
-	data.Set("supported_claim_locales", mapSchemaFromString(dto.GetSupportedClaimLocales()))
-	data.Set("supported_claims", mapSchemaFromString(dto.GetSupportedClaims()))
-	data.Set("claim_shortcut_restrictive", dto.GetClaimShortcutRestrictive())
-	data.Set("jwks_endpoint", dto.GetJwksUri())
-	data.Set("direct_jwks_endpoint_enabled", dto.GetDirectJwksEndpointEnabled())
+	_ = data.Set("error_description_omitted", dto.GetErrorDescriptionOmitted())
+	_ = data.Set("error_uri_omitted", dto.GetErrorUriOmitted())
+	_ = data.Set("authorization_endpoint", dto.GetAuthorizationEndpoint())
+	_ = data.Set("direct_authorization_endpoint_enabled", dto.GetDirectAuthorizationEndpointEnabled())
+	_ = data.Set("supported_ui_locales", mapSchemaFromString(dto.GetSupportedUiLocales()))
+	_ = data.Set("supported_displays", mapSupportedDisplayFromDTO(dto.GetSupportedDisplays()))
+	_ = data.Set("pkce_required", dto.GetPkceRequired())
+	_ = data.Set("pkce_s256_required", dto.GetPkceS256Required())
+	_ = data.Set("authorization_response_duration", dto.GetAuthorizationResponseDuration())
+	_ = data.Set("iss_response_suppressed", dto.GetIssSuppressed())
+	_ = data.Set("ignore_port_loopback_redirect", dto.GetLoopbackRedirectionUriVariable())
+	_ = data.Set("token_endpoint", dto.GetTokenEndpoint())
+	_ = data.Set("direct_token_endpoint_enabled", dto.GetDirectTokenEndpointEnabled())
+	_ = data.Set("supported_token_auth_methods", mapClientAuthMethodsFromDTO(dto.GetSupportedTokenAuthMethods()))
+	_ = data.Set("mutual_tls_validate_pki_cert_chain", dto.GetMutualTlsValidatePkiCertChain())
+	_ = data.Set("trusted_root_certificates", mapSchemaFromString(dto.GetTrustedRootCertificates()))
+	_ = data.Set("missing_client_id_allowed", dto.GetMissingClientIdAllowed())
+	_ = data.Set("revocation_endpoint", dto.GetRevocationEndpoint())
+	_ = data.Set("direct_revocation_endpoint_enabled", dto.GetDirectRevocationEndpointEnabled())
+	_ = data.Set("supported_revocation_auth_methods", mapClientAuthMethodsFromDTO(dto.GetSupportedRevocationAuthMethods()))
+	_ = data.Set("introspection_endpoint", dto.GetIntrospectionEndpoint())
+	_ = data.Set("direct_introspection_endpoint_enabled", dto.GetDirectIntrospectionEndpointEnabled())
+	_ = data.Set("supported_introspection_auth_methods", mapClientAuthMethodsFromDTO(dto.GetSupportedIntrospectionAuthMethods()))
+	_ = data.Set("pushed_auth_req_endpoint", dto.GetPushedAuthReqEndpoint())
+	_ = data.Set("pushed_auth_req_duration", dto.GetPushedAuthReqDuration())
+	_ = data.Set("par_required", dto.GetParRequired())
+	_ = data.Set("request_object_required", dto.GetRequestObjectRequired())
+	_ = data.Set("traditional_request_object_processing_applied", dto.GetTraditionalRequestObjectProcessingApplied())
+	_ = data.Set("nbf_optional", dto.GetNbfOptional())
+	_ = data.Set("front_channel_encryption_request_obj_required", dto.GetFrontChannelRequestObjectEncryptionRequired())
+	_ = data.Set("encryption_alg_req_obj_match", dto.GetRequestObjectEncryptionAlgMatchRequired())
+	_ = data.Set("encryption_enc_alg_req_obj_match", dto.GetRequestObjectEncryptionEncMatchRequired())
+	_ = data.Set("access_token_type", dto.GetAccessTokenType())
+	_ = data.Set("tls_client_certificate_bound_access_tokens", dto.GetTlsClientCertificateBoundAccessTokens())
+	_ = data.Set("access_token_duration", dto.GetAccessTokenDuration())
+	_ = data.Set("single_access_token_per_subject", dto.GetSingleAccessTokenPerSubject())
+	_ = data.Set("access_token_sign_alg", dto.GetAccessTokenSignAlg())
+	_ = data.Set("access_token_signature_key_id", dto.GetAccessTokenSignatureKeyId())
+	_ = data.Set("refresh_token_duration", dto.GetRefreshTokenDuration())
+	_ = data.Set("refresh_token_duration_kept", dto.GetRefreshTokenDurationKept())
+	_ = data.Set("refresh_token_duration_reset", dto.GetRefreshTokenDurationReset())
+	_ = data.Set("refresh_token_kept", dto.GetRefreshTokenKept())
+	_ = data.Set("token_expiration_link", dto.GetTokenExpirationLinked())
+	_ = data.Set("supported_scopes", mapSupportedScopeFromDTO(dto.GetSupportedScopes()))
+	_ = data.Set("scope_required", dto.GetScopeRequired())
+	_ = data.Set("id_token_duration", dto.GetIdTokenDuration())
+	_ = data.Set("allowable_clock_skew", dto.GetAllowableClockSkew())
+	_ = data.Set("supported_claim_types", mapClaimTypesFromDTO(dto.GetSupportedClaimTypes()))
+	_ = data.Set("supported_claim_locales", mapSchemaFromString(dto.GetSupportedClaimLocales()))
+	_ = data.Set("supported_claims", mapSchemaFromString(dto.GetSupportedClaims()))
+	_ = data.Set("claim_shortcut_restrictive", dto.GetClaimShortcutRestrictive())
+	_ = data.Set("jwks_endpoint", dto.GetJwksUri())
+	_ = data.Set("direct_jwks_endpoint_enabled", dto.GetDirectJwksEndpointEnabled())
 	jwk, err := mapJWKFromDTO(data.Get("jwk").([]interface{}), dto.GetJwks())
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	data.Set("jwk", jwk)
-	data.Set("id_token_signature_key_id", dto.GetIdTokenSignatureKeyId())
-	data.Set("user_info_signature_key_id", dto.GetUserInfoSignatureKeyId())
-	data.Set("authorization_signature_key_id", dto.GetAuthorizationSignatureKeyId())
-	data.Set("hsm_enabled", dto.GetHsmEnabled())
-	data.Set("user_info_endpoint", dto.GetUserInfoEndpoint())
-	data.Set("direct_user_info_endpoint_enabled", dto.GetDirectUserInfoEndpointEnabled())
-	data.Set("dynamic_registration_supported", dto.GetDynamicRegistrationSupported())
-	// data.Set("dcr_scope_used_as_requestable", dto.GetDcrScopeUsedAsRequestable())
-	data.Set("registration_endpoint", dto.GetRegistrationEndpoint())
-	data.Set("registration_management_endpoint", dto.GetRegistrationManagementEndpoint())
-	data.Set("mtls_endpoint_aliases", mapMtlsEndpointFromDTO(dto.GetMtlsEndpointAliases()))
-	data.Set("policy_uri", dto.GetPolicyUri())
-	data.Set("tos_uri", dto.GetTosUri())
-	data.Set("service_documentation", dto.GetServiceDocumentation())
-	data.Set("backchannel_authentication_endpoint", dto.GetBackchannelAuthenticationEndpoint())
-	data.Set("supported_backchannel_token_delivery_modes", mapBackchannelDeliveryFromDTO(dto.GetSupportedBackchannelTokenDeliveryModes()))
-	data.Set("backchannel_auth_req_id_duration", dto.GetBackchannelAuthReqIdDuration())
-	data.Set("backchannel_polling_interval", dto.GetBackchannelPollingInterval())
-	data.Set("backchannel_user_code_parameter_supported", dto.GetBackchannelUserCodeParameterSupported())
-	data.Set("backchannel_binding_message_required_in_fapi", dto.GetBackchannelBindingMessageRequiredInFapi())
-	data.Set("device_authorization_endpoint", dto.GetDeviceAuthorizationEndpoint())
-	data.Set("device_verification_uri", dto.GetDeviceVerificationUri())
-	data.Set("device_verification_uri_complete", dto.GetDeviceVerificationUriComplete())
-	data.Set("device_flow_code_duration", dto.GetDeviceFlowCodeDuration())
-	data.Set("device_flow_polling_interval", dto.GetDeviceFlowPollingInterval())
-	data.Set("user_code_charset", mapUserCodeCharsetsFromDTO(dto.GetUserCodeCharset()))
-	data.Set("user_code_length", dto.GetUserCodeLength())
+	_ = data.Set("jwk", jwk)
+	_ = data.Set("id_token_signature_key_id", dto.GetIdTokenSignatureKeyId())
+	_ = data.Set("user_info_signature_key_id", dto.GetUserInfoSignatureKeyId())
+	_ = data.Set("authorization_signature_key_id", dto.GetAuthorizationSignatureKeyId())
+	_ = data.Set("hsm_enabled", dto.GetHsmEnabled())
+	_ = data.Set("user_info_endpoint", dto.GetUserInfoEndpoint())
+	_ = data.Set("direct_user_info_endpoint_enabled", dto.GetDirectUserInfoEndpointEnabled())
+	_ = data.Set("dynamic_registration_supported", dto.GetDynamicRegistrationSupported())
+	_ = data.Set("dcr_scope_used_as_requestable", dto.GetDcrScopeUsedAsRequestable())
+	_ = data.Set("registration_endpoint", dto.GetRegistrationEndpoint())
+	_ = data.Set("registration_management_endpoint", dto.GetRegistrationManagementEndpoint())
+	_ = data.Set("mtls_endpoint_aliases", mapMtlsEndpointFromDTO(dto.GetMtlsEndpointAliases()))
+	_ = data.Set("policy_uri", dto.GetPolicyUri())
+	_ = data.Set("tos_uri", dto.GetTosUri())
+	_ = data.Set("service_documentation", dto.GetServiceDocumentation())
+	_ = data.Set("backchannel_authentication_endpoint", dto.GetBackchannelAuthenticationEndpoint())
+	_ = data.Set("supported_backchannel_token_delivery_modes", mapBackchannelDeliveryFromDTO(dto.GetSupportedBackchannelTokenDeliveryModes()))
+	_ = data.Set("backchannel_auth_req_id_duration", dto.GetBackchannelAuthReqIdDuration())
+	_ = data.Set("backchannel_polling_interval", dto.GetBackchannelPollingInterval())
+	_ = data.Set("backchannel_user_code_parameter_supported", dto.GetBackchannelUserCodeParameterSupported())
+	_ = data.Set("backchannel_binding_message_required_in_fapi", dto.GetBackchannelBindingMessageRequiredInFapi())
+	_ = data.Set("device_authorization_endpoint", dto.GetDeviceAuthorizationEndpoint())
+	_ = data.Set("device_verification_uri", dto.GetDeviceVerificationUri())
+	_ = data.Set("device_verification_uri_complete", dto.GetDeviceVerificationUriComplete())
+	_ = data.Set("device_flow_code_duration", dto.GetDeviceFlowCodeDuration())
+	_ = data.Set("device_flow_polling_interval", dto.GetDeviceFlowPollingInterval())
+	_ = data.Set("user_code_charset", mapUserCodeCharsetsFromDTO(dto.GetUserCodeCharset()))
+	_ = data.Set("user_code_length", dto.GetUserCodeLength())
 
 	/*
-		data.Set("supported_trust_frameworks", mapSchemaFromString(&dto.GetSupportedTrustFrameworks()))
-		data.Set("supported_evidence", mapSchemaFromString(&dto.GetSupportedEvidence()))
-		data.Set("supported_identity_documents", mapSchemaFromString(&dto.GetSupportedIdentityDocuments()))
-		data.Set("supported_verification_methods", mapSchemaFromString(&dto.GetSupportedVerificationMethods))
-		data.Set("supported_verified_claims", mapSchemaFromString(&dto.GetSupportedVerifiedClaims))
+		_ = data.Set("supported_trust_frameworks", mapSchemaFromString(&dto.GetSupportedTrustFrameworks()))
+		_ = data.Set("supported_evidence", mapSchemaFromString(&dto.GetSupportedEvidence()))
+		_ = data.Set("supported_identity_documents", mapSchemaFromString(&dto.GetSupportedIdentityDocuments()))
+		_ = data.Set("supported_verification_methods", mapSchemaFromString(&dto.GetSupportedVerificationMethods))
+		_ = data.Set("supported_verified_claims", mapSchemaFromString(&dto.GetSupportedVerifiedClaims))
 	*/
-	data.Set("end_session_endpoint", dto.GetEndSessionEndpoint())
+	_ = data.Set("end_session_endpoint", dto.GetEndSessionEndpoint())
 	return nil
 }
 
@@ -960,18 +957,4 @@ func createStringColSchema() *schema.Schema {
 			Type: schema.TypeString,
 		},
 	}
-}
-
-func difference(a, b []interface{}) []interface{} {
-	mb := make(map[interface{}]interface{}, len(b))
-	for _, x := range b {
-		mb[x] = struct{}{}
-	}
-	var diff []interface{}
-	for _, x := range a {
-		if _, found := mb[x]; !found {
-			diff = append(diff, x)
-		}
-	}
-	return diff
 }
