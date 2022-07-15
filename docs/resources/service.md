@@ -189,15 +189,13 @@ has a name like supported_custom_client_metadata, in the API it is named `suppor
 - `user_code_charset` (String)
 - `user_code_length` (Number)
 
-<!--
-Support for OIDC4IDA not implemented on terraform provider
+
 ## Identity Assurance
 - `supported_trust_frameworks` (Set of String)
 - `supported_evidence` (Set of String)
-- `supported_identity_documents` (Set of String)
+- `supported_documents` (Set of String)
 - `supported_verification_methods` (Set of String)
 - `supported_verified_claims` (Set of String)
--->
 
 - `end_session_endpoint` (String)
 

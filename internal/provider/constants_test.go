@@ -122,14 +122,14 @@ resource "authlete_service" "complete_described" {
 	  alg = "RS256" 
 	  use = "sig" 
 	  kty = "RSA"
-   key_size = 2048
+      key_size = 2048
       generate = true
    }
   jwk {
 	  kid = "kid2"
 	  alg = "RS256" 
 	  use = "sig" 
-   key_size = 2048
+      key_size = 2048
 	  kty = "RSA"
       generate = true
    }
@@ -162,13 +162,224 @@ resource "authlete_service" "complete_described" {
   device_flow_polling_interval = 1
   user_code_charset = "NUMERIC"
   user_code_length= 6
-  #supported_trust_frameworks = ["eidas_ial_high"]
-  #supported_evidence = ["id_document", "utility_bill"]
-  #supported_identity_documents = ["idcard", "password"]
-  #supported_verification_methods= ["pipp"]
-  #supported_verified_claims = ["given_name"]
   end_session_endpoint = "https://www.mystore.com/endsession"
   dcr_duplicate_software_id_blocked = true
+}
+
+output "api_key" {  
+  value = authlete_service.complete_described.id
+}
+output "api_secret" {  
+  value = authlete_service.complete_described.api_secret
+}
+`
+
+const testAccResourceServiceEveryAttribute23 = `
+
+provider "authlete" {
+	
+}
+
+resource "authlete_service" "complete_described" {
+	service_name = "attributes coverage test"
+	issuer = "https://test.com"
+	description = "Attributes support test"
+	clients_per_developer = 1
+	client_id_alias_enabled = true
+	attribute {
+		key = "require_2_fa"
+		value = "true"
+	}
+	attribute {
+		key = "high_risk_scopes"
+		value = "scope1 scope2 scope3"
+	}
+	supported_custom_client_metadata = ["basic_review", "domain_match"]
+	authentication_callback_endpoint = "https://api.mystore.com/authenticate"
+	authentication_callback_api_key = "lkjl3k44235kjlk5j43kjdkfslkdf"
+	authentication_callback_api_secret = "lknasdljjk42j435kjh34jkkjr"
+	supported_acrs = ["loa2", "loa3"]
+	developer_authentication_callback_endpoint = "https://api.mystore.com/partner_auth"
+	developer_authentication_callback_api_key = "lkjl3k44235kjlk5j43kjdkfslkdf"
+	developer_authentication_callback_api_secret = "lknasdljjk42j435kjh34jkkjr"
+	supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
+	supported_response_types = ["CODE"]
+	supported_authorization_detail_types = ["payment_initiation",]
+	supported_service_profiles = ["FAPI", "OPEN_BANKING",]
+	error_description_omitted = true
+	error_uri_omitted = false
+	authorization_endpoint = "https://www.mystore.com/authorize"
+	direct_authorization_endpoint_enabled = false
+	supported_ui_locales = ["fr-CA","fr", "en-GB", "en"]
+	supported_displays = [ "PAGE", "POPUP" ]
+	pkce_required = false
+	pkce_s256_required = true
+	authorization_response_duration = 10
+	iss_response_suppressed = true
+	ignore_port_loopback_redirect = true
+	token_endpoint = "https://api.mystore.com/token"
+	direct_token_endpoint_enabled = false
+	supported_token_auth_methods = ["CLIENT_SECRET_POST", "TLS_CLIENT_AUTH"]
+	mutual_tls_validate_pki_cert_chain = true
+	trusted_root_certificates = ["-----BEGIN CERTIFICATE-----\r\nMIIDpjCCAo6gAwIBAgIUS3mWeRx1uG/SMl/ql55VwRtNz7wwDQYJKoZIhvcNAQEL\r\nBQAwazELMAkGA1UEBhMCQlIxHDAaBgNVBAoTE09wZW4gQmFua2luZyBCcmFzaWwx\r\nFTATBgNVBAsTDE9wZW4gQmFua2luZzEnMCUGA1UEAxMeT3BlbiBCYW5raW5nIFJv\r\nb3QgU0FOREJPWCAtIEcxMB4XDTIwMTIxMTEwMDAwMFoXDTI1MTIxMDEwMDAwMFow\r\nazELMAkGA1UEBhMCQlIxHDAaBgNVBAoTE09wZW4gQmFua2luZyBCcmFzaWwxFTAT\r\nBgNVBAsTDE9wZW4gQmFua2luZzEnMCUGA1UEAxMeT3BlbiBCYW5raW5nIFJvb3Qg\r\nU0FOREJPWCAtIEcxMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp50j\r\njNh0wu8ioziC1HuWqOfgXwxeiePiRGw5tKDqKIbC7XV1ghEcDiymTHHWWJSQ1LEs\r\nmYpZVwaos5Mrz2xJwytg8K5eqFqa7QvfOOul29bnzEFk+1gX/0nOYws3Lba9E7S+\r\nuPaUmfElF4r2lcCNL2f3F87RozqZf+DQBdGUzAt9n+ipY1JpqfI3KF/5qgRkPoIf\r\nJD+aj2Y1D6eYjs5uMRLU8FMYt0CCfv/Ak6mq4Y9/7CaMKp5qjlrrDux00IDpxoXG\r\nKx5cK0KgACb2UBZ98oDQxcGrbRIyp8VGmv68BkEQcm7NljP863uBVxtnVTpRwQ1x\r\nwYEbmSSyoonXy575wQIDAQABo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/\r\nBAUwAwEB/zAdBgNVHQ4EFgQUhxPslj5i7CEcDEpWOvIlDOOU6cswDQYJKoZIhvcN\r\nAQELBQADggEBAFoYqwoH7zvr4v0SQ/hWx/bWFRIcV/Rf6rEWGyT/moVAEjPbGH6t\r\nyHhbxh3RdGcPY7Pzn797lXDGRu0pHv+GAHUA1v1PewCp0IHYukmN5D8+Qumem6by\r\nHyONyUASMlY0lUOzx9mHVBMuj6u6kvn9xjL6xsPS+Cglv/3SUXUR0mMCYf963xnF\r\nBIRLTRlbykgJomUptVl/F5U/+8cD+lB/fcZPoQVI0kK0VV51jAODSIhS6vqzQzH4\r\ncpUmcPh4dy+7RzdTTktxOTXTqAy9/Yx+fk18O9qSQw1MKa9dDZ4YLnAQS2fJJqIE\r\n1DXIta0LpqM4pMoRMXvp9SLU0atVZLEu6Sc=\r\n-----END CERTIFICATE-----"]
+	missing_client_id_allowed = true
+	revocation_endpoint = "https://api.mystore.com/revoke"
+	direct_revocation_endpoint_enabled = true
+	supported_revocation_auth_methods = ["CLIENT_SECRET_POST", "TLS_CLIENT_AUTH"]
+	pushed_auth_req_endpoint = "https://api.mystore.com/pushed"
+	pushed_auth_req_duration = 10
+	par_required = true
+	request_object_required = true
+	traditional_request_object_processing_applied = true
+	nbf_optional = false
+	front_channel_encryption_request_obj_required = true
+	encryption_alg_req_obj_match = true
+	encryption_enc_alg_req_obj_match = true
+	access_token_type = "Bearer"
+	tls_client_certificate_bound_access_tokens = true
+	access_token_duration = 99
+	single_access_token_per_subject = false
+	access_token_sign_alg = "PS256"
+	access_token_signature_key_id = "kid1"
+	refresh_token_duration = 150
+	refresh_token_duration_kept = false
+	refresh_token_duration_reset = false
+	refresh_token_kept = true
+	token_expiration_link = true
+	supported_scopes {
+		name = "address"
+		default_entry = false
+		description = "A permission to request an OpenID Provider to include the address claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
+	}
+	supported_scopes {
+		name = "email"
+		default_entry = true
+		description = "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
+		attribute {
+			key = "key1"
+			value = "val1"
+		}
+	}
+	scope_required = true
+	id_token_duration = 98
+	allowable_clock_skew = 1
+	supported_claim_types = ["NORMAL", "AGGREGATED", "DISTRIBUTED"]
+	supported_claim_locales = ["en", "fr", "jp"]
+	supported_claims = ["name","email", "profile", "gender"]
+	claim_shortcut_restrictive = true
+	jwks_endpoint = "https://www.mystore.com/jwks"
+	direct_jwks_endpoint_enabled = true
+	jwk {
+		kid = "kid1"
+		alg = "RS256" 
+		use = "sig" 
+		kty = "RSA"
+		key_size = 2048
+		generate = true
+	}
+	jwk {
+		kid = "kid2"
+		alg = "RS256" 
+		use = "sig" 
+		key_size = 2048
+		kty = "RSA"
+		generate = true
+	}
+	id_token_signature_key_id = "kid1"
+	user_info_signature_key_id = "kid1"
+	authorization_signature_key_id = "kid2"
+	hsm_enabled = false
+	user_info_endpoint = "https://api.mystore.com/userinfo"
+	direct_user_info_endpoint_enabled = false
+	dcr_scope_used_as_requestable = true
+	registration_endpoint = "https://api.mystore.com/dcr"
+	registration_management_endpoint = "https://api.mystore.com/client/"
+	mtls_endpoint_aliases {
+		name = "test"
+		uri = "https://test.com"
+	}
+	policy_uri = "https://www.mystore.com/policy"
+	tos_uri = "https://www.mystore.com/tos"
+	service_documentation= "https://www.mystore.com/doc"
+	backchannel_authentication_endpoint = "https://api.mystore.com/ciba"
+	supported_backchannel_token_delivery_modes = [ "POLL"]
+	backchannel_auth_req_id_duration = 15
+	backchannel_polling_interval = 3
+	backchannel_user_code_parameter_supported = true
+	backchannel_binding_message_required_in_fapi = true
+	device_authorization_endpoint = "https://api.mystore.com/device"
+	device_verification_uri= "https://api.mystore.com/devverify"
+	device_verification_uri_complete= "https://example.com/verification?user_code=USER_CODE"
+	device_flow_code_duration = 10
+	device_flow_polling_interval = 1
+	user_code_charset = "NUMERIC"
+	user_code_length= 6
+	supported_trust_frameworks = ["de_aml", "eidas"]
+	supported_evidence = ["id_document", "utility_bill"]
+	supported_documents = ["idcard", "passport"]
+	supported_verification_methods= ["pipp"]
+	supported_verified_claims = ["given_name"]
+	end_session_endpoint = "https://www.mystore.com/endsession"
+	dcr_duplicate_software_id_blocked = true
+	request_object_audience_checked = true
+	access_token_for_external_attachment_embedded = true
+	federation_enabled = true
+	federation_jwk {
+		kid = "fed1"
+		alg = "PS256" 
+		use = "sig" 
+		kty = "RSA"
+		generate = false
+		p = "9tbn_sEgxi3hkTlKfYegMLJsTn_6EPK3XdRJbJINIlH6sCGKKkxEs76aehNw2E08xbJE8Np3v4PdAnBkZkaMIWT8JxQxv_TS_TBqMNdO886PIM-fWitV3QUf2nzinYHf-_PXdZnqpd4S4x9Xe0pYMpb2g83X8NuevRu_HzxL8bM"
+		q = "nRzgvjEqLQRFzYX1ZqtJYB6L8MyhuEucOCHSr-fDVGBlM2iMTsgAG5icnz9BfwUK4_lBsxdYM938GcmrwT6ZE4ANKS9t1BZamctqZGKf4sY_QvjEkDV4DHvnUV2i_tsVvwDPaUvUT_8lU73Y08N7BVLhcY3wEJf9NKofbCONU_M"
+		d = "EVpIBBlbOksB2eiQ4Mt_lAlkuGYzhRjbP2v4mIxcpXO6r5OZgCcodoQTQKTLKx4zhzm6L3xb75BZNDrdu481EvcdJm1mXwhIi9B8DheOD3Y1rzrreulM_4yS1EJQjpIjwmXHiV9nK6qSM8FNFe98FGFA9X7dghBeAQm1ZmGdp-zzK4EMLvbSqMY1yK9GQ52TpvWW26V_V885zWZKbSoIOdLJ8cr_OwSAXp1wezpnscTwoqw1iwZAP1m9fehmLBKEOxUMOSpjbl53AjVVWvGX3ShV1JPnFeMb3zhWzt2_LdqJTWONSWS-zhNSsWDWdnYQTBb7Xz0HGdlegAuDxF1aDQ"
+		e = "AQAB"
+		qi = "9YboaIGrL8wY9JNvbkJ0-6D4sUZEMWuBJTD7mmTUeIy94hlNNZDdcgQo8hzOcOVXkjrrVKxsRekU05rg_XNLaODC2_au36VduYWQ1RM70OQ-kfk4zYJK63C8OFseh-9K4Teu82We7858yN4P-GvPeZYMvDlTagbGDUYKm7DTrgA"
+		dp = "RmXmRnbIJR1CvstLHmAG5LyOPRkstZazizQXOLqyuj4NNBxsrkGQOn86yWQwA9CLa4q7NMHp8xnld2OcjrrCDmghrfeJdMibQBCFyKYvY0Ne-KmeNfY0B9QFUKfbbbZzrgTOR0D9dg7O7i2rIoOCgfMiHVcgphXMwPxf1sW4lxc"
+		dq = "BykoySJehLy8HbjsTWijKIFb6Xa6LDcuAJTyEFhk27SlCCnMs06ESr2y7cMpTgvBylAzAWGgAIUul1JMxLsAqRXeA7GItPDr4jSWPcsM9H4KphfGhbgaJ5-CFIBLDIiZviHgUjFFlPvRDLcLaeNv-PclFVLdzTPQM5VJZ1lbeKc"
+		n = "l32kfAo1HkGMSmx4OFk45klYE736CttrvHPPLzHuZbQYQbBxniaxLiheR_SsAUY8rl6lTBlaDzgOEc2qNxJm_hAIGbs13GucJ3TchR51NRrx9xYFCpBh9-_8NYKaPLl0iwzaoUOS1-wDFIvYR6Hy1Qsg7voz7yZMXflUvsxn24nIWQE7zfDXSYJFB-v__OPhPvSO3bj6BOKGq85JIVYnpQHc8Yy835tfbGt7a_ZExrCkGSgvxMqSawVeXyltIyk9rd6g_VxrLomtPahw0LpiLzDFr2s8YpWRdxPbp2N6CxtIB_LFAzXyhB3hSww5V28fTCI2kW_DNk-I7MeWdAp16Q"
+	}
+	federation_signature_key_id = "ec1"
+	federation_configuration_duration = 132
+	federation_registration_endpoint = "https://example.com/federation/jwks"
+	organization_name = "Example"
+#	predefined_transform_claims = 
+	refresh_token_idempotent = true
+	signed_jwks_uri = "https://example.com/federation/jwks"
+	supported_attachments = ["EMBEDDED", "EXTERNAL"]
+	supported_digest_algorithms = ["sha-256"]
+	supported_documents_methods = ["vpip", "data"]
+	supported_documents_validation_methods = ["pipp"]
+	supported_documents_verification_methods = ["pipp", "eid"]
+	supported_electronic_records = ["birth_register", "voter_register"]
+	supported_client_registration_types = ["AUTOMATIC"]
+	token_exchange_by_identifiable_clients_only = true
+	token_exchange_by_confidential_clients_only = true
+	token_exchange_by_permitted_clients_only = true
+	token_exchange_encrypted_jwt_rejected = true
+	token_exchange_unsigned_jwt_rejected = true
+	jwt_grant_by_identifiable_clients_only = true
+	jwt_grant_encrypted_jwt_rejected = true
+	jwt_grant_unsigned_jwt_rejected = true
+	trust_anchors {
+		entity_id = "https://ca.example.com/"
+		jwk {
+			kid = "rsa1"
+			alg = "PS256" 
+			use = "sig" 
+			kty = "RSA"
+			generate = false
+			p = "9tbn_sEgxi3hkTlKfYegMLJsTn_6EPK3XdRJbJINIlH6sCGKKkxEs76aehNw2E08xbJE8Np3v4PdAnBkZkaMIWT8JxQxv_TS_TBqMNdO886PIM-fWitV3QUf2nzinYHf-_PXdZnqpd4S4x9Xe0pYMpb2g83X8NuevRu_HzxL8bM"
+			q = "nRzgvjEqLQRFzYX1ZqtJYB6L8MyhuEucOCHSr-fDVGBlM2iMTsgAG5icnz9BfwUK4_lBsxdYM938GcmrwT6ZE4ANKS9t1BZamctqZGKf4sY_QvjEkDV4DHvnUV2i_tsVvwDPaUvUT_8lU73Y08N7BVLhcY3wEJf9NKofbCONU_M"
+			d = "EVpIBBlbOksB2eiQ4Mt_lAlkuGYzhRjbP2v4mIxcpXO6r5OZgCcodoQTQKTLKx4zhzm6L3xb75BZNDrdu481EvcdJm1mXwhIi9B8DheOD3Y1rzrreulM_4yS1EJQjpIjwmXHiV9nK6qSM8FNFe98FGFA9X7dghBeAQm1ZmGdp-zzK4EMLvbSqMY1yK9GQ52TpvWW26V_V885zWZKbSoIOdLJ8cr_OwSAXp1wezpnscTwoqw1iwZAP1m9fehmLBKEOxUMOSpjbl53AjVVWvGX3ShV1JPnFeMb3zhWzt2_LdqJTWONSWS-zhNSsWDWdnYQTBb7Xz0HGdlegAuDxF1aDQ"
+			e = "AQAB"
+			qi = "9YboaIGrL8wY9JNvbkJ0-6D4sUZEMWuBJTD7mmTUeIy94hlNNZDdcgQo8hzOcOVXkjrrVKxsRekU05rg_XNLaODC2_au36VduYWQ1RM70OQ-kfk4zYJK63C8OFseh-9K4Teu82We7858yN4P-GvPeZYMvDlTagbGDUYKm7DTrgA"
+			dp = "RmXmRnbIJR1CvstLHmAG5LyOPRkstZazizQXOLqyuj4NNBxsrkGQOn86yWQwA9CLa4q7NMHp8xnld2OcjrrCDmghrfeJdMibQBCFyKYvY0Ne-KmeNfY0B9QFUKfbbbZzrgTOR0D9dg7O7i2rIoOCgfMiHVcgphXMwPxf1sW4lxc"
+			dq = "BykoySJehLy8HbjsTWijKIFb6Xa6LDcuAJTyEFhk27SlCCnMs06ESr2y7cMpTgvBylAzAWGgAIUul1JMxLsAqRXeA7GItPDr4jSWPcsM9H4KphfGhbgaJ5-CFIBLDIiZviHgUjFFlPvRDLcLaeNv-PclFVLdzTPQM5VJZ1lbeKc"
+			n = "l32kfAo1HkGMSmx4OFk45klYE736CttrvHPPLzHuZbQYQbBxniaxLiheR_SsAUY8rl6lTBlaDzgOEc2qNxJm_hAIGbs13GucJ3TchR51NRrx9xYFCpBh9-_8NYKaPLl0iwzaoUOS1-wDFIvYR6Hy1Qsg7voz7yZMXflUvsxn24nIWQE7zfDXSYJFB-v__OPhPvSO3bj6BOKGq85JIVYnpQHc8Yy835tfbGt7a_ZExrCkGSgvxMqSawVeXyltIyk9rd6g_VxrLomtPahw0LpiLzDFr2s8YpWRdxPbp2N6CxtIB_LFAzXyhB3hSww5V28fTCI2kW_DNk-I7MeWdAp16Q"
+	   	}
+	}
+	
 }
 
 output "api_key" {  
@@ -384,8 +595,8 @@ resource "authlete_service" "rsa" {
 	  kty = "RSA"
       key_size = 2048
       generate = true
-   }
-   jwk {
+  }
+  jwk {
 	  kid = "rsa2"
 	  alg = "RS384" 
 	  use = "sig" 
@@ -400,49 +611,49 @@ resource "authlete_service" "rsa" {
 	  kty = "RSA"
       key_size = 2048
       generate = true
-   }
-   jwk {
+  }
+  jwk {
 	kid = "psa1"
 	alg = "PS256" 
 	use = "sig"
  	key_size = 2048
     generate = true
-   } 
-   jwk {
+  } 
+  jwk {
 	kid = "psa2"
 	alg = "PS384" 
 	use = "sig"
  	key_size = 2048
     generate = true
-   } 
-   jwk {
+  } 
+  jwk {
 	kid = "psa3"
 	alg = "PS512" 
 	use = "sig"
  	key_size = 2048
     generate = true
-   } 
-   jwk {
+  } 
+  jwk {
 	kid = "encrsa1"
 	alg = "RSA-OAEP" 
 	use = "enc"
  	key_size = 2048
     generate = true
-   } 
-   jwk {
+  } 
+  jwk {
 	kid = "encrsa2"
 	alg = "RSA-OAEP-256" 
 	use = "enc" 
  	key_size = 2048
 	generate = true
-   }
-   jwk {
+  }
+  jwk {
 	kid = "encrsa3"
 	alg = "RSA-OAEP-256" 
 	use = "enc" 
     key_size = 4096
 	generate = true
-   }
+  }
 }
 `
 
@@ -769,6 +980,26 @@ resource "authlete_client" "client1" {
 
 `
 
+const stateUnsupportedMetadataClientState = `
+provider "authlete" {
+}
+
+
+resource "authlete_client" "client1" {
+	developer = "test"
+	client_id_alias = "terraform_client"
+    client_id_alias_enabled = false
+	client_type = "CONFIDENTIAL"
+	redirect_uris = [ "https://www.authlete.com/cb" ]
+    response_types = [ "CODE" ]
+	grant_types = [ "AUTHORIZATION_CODE", "REFRESH_TOKEN" ]
+	client_name = "Authlete client"
+    requestable_scopes = ["openid", "profile"]
+    custom_metadata = "{\"k2\":\"val2\",\"k3\":\"val3\"}"
+}
+
+`
+
 const stateDynamicServiceState = `
 provider "authlete" {
 }
@@ -895,6 +1126,265 @@ resource "authlete_client" "client1" {
 	  pem_certificate = "-----BEGIN CERTIFICATE-----\nMIIEqTCCApGgAwIBAgIIMS7U5PYTrDcwDQYJKoZIhvcNAQELBQAwUDELMAkGA1UE\nBhMCYnIxCzAJBgNVBAgTAkVTMRAwDgYDVQQHEwdWaXRvcmlhMREwDwYDVQQKEwhB\ndXRobGV0ZTEPMA0GA1UEAwwGcnNhX2NhMB4XDTIyMDcxMTE0MjgwMFoXDTIzMDcx\nMTE0MjgwMFowUTELMAkGA1UEBhMCYnIxCzAJBgNVBAgTAmVzMRAwDgYDVQQHEwd2\naXRvcmlhMREwDwYDVQQKEwhBdXRobGV0ZTEQMA4GA1UEAwwHcnNhX2NsaTCCASIw\nDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAL+Mn+vwYxJ6OsiHymHm9WprWamo\noT3x/qEtx41JQBWYFiEIHJS8fAYQIwqzNlzrn2WJJuH1kdG89hSDi6slSxYCt3ZH\nwpiNtaD8VqPH1GF0EL31n1IFXKjFECjKUhcvu07ow9WzoJ1ti+G8U/d1edjJOsTg\ndhrc+ehdhJA0PWUigLfCq639jHkFTAR37B3KXoNqVUROY39gMbx5V/PKCpwh7HoL\nlyydUnebb0qLtTwWIJgpGCV2vGuNj9CEJpN9NA3xX8pvG3YIZJjuuPCSZWIyps+t\n2BM+s799emygVu+PUIVG97/2Fh5dhTJ8dJo8eokYIH83tmwNmFCrezFkT4UCAwEA\nAaOBhTCBgjAMBgNVHRMBAf8EAjAAMB0GA1UdDgQWBBRq3YyxPGBl1t94kjg7oBvv\n+uSCHzALBgNVHQ8EBAMCA7gwEwYDVR0lBAwwCgYIKwYBBQUHAwIwEQYJYIZIAYb4\nQgEBBAQDAgWgMB4GCWCGSAGG+EIBDQQRFg94Y2EgY2VydGlmaWNhdGUwDQYJKoZI\nhvcNAQELBQADggIBAIt85Da0F8WvMXiFlaGMew+2vzoXzyZ5GYEvniHPjRIgO9f1\nurgXEjMKxS1dfn87Zd2TrTTO/UwbkTh6WnMgs5Uuhg9EYeZJ1tbHW3jdrbWOUFzD\napImM/JElO4k+Srdcr97m9lN9k8AWPK8IJWGrvvMnwkAQ4rT3gUIUe027CwFw2rL\n1UsUqpg2ZglzifLm6HcGJoC76eJi86+k+9+9rT02pWPvcvfIq+P3S6ZUjODoIF8O\nvuLG7SJXlssBMWY5rb/IyGhTvj/1lY0p0A41VbkC4jZLp1Ar69ukorh5Wnzaqtv3\nHsQ0o+07cxxVCgHdyBXZ5x/1SVPaKvBze2Klwzm+UXwT3miu1HiS26cX6Aa2WymF\nwtsK1m0NRIUx1H84eT77QvTeDx3IHlQFtOptoC7Mu8UQid7fbCzbk72+eHB5QE2I\nDAsT3+D/Th76w4fKh2v29/Si+tjT9/MqoQkERxTF/OMvhpriveoJ3p0Oilg15zCo\nmFstj6WplC1hjLmLOlaKwsi9BhmqBKTp84hD0GKiDExIezak8Z3yM5cdVi5d+mT+\ncO495Ispzt9Wgm5WHNldsIG0zsrPFYPC+8YRAw4aDMVqDj6RpB0quijhchyPp6Zc\nTENi9zQx9Bz8oIZwSTQOly8xxz04an4K/8pMGaVfBsSW7EQoueiR+69mucah\n-----END CERTIFICATE-----\n"
     }
 }
+`
+
+const stateCompleteClientState = `
+provider "authlete" {
+}
 
 
+resource "authlete_client" "client1" {
+	developer = "test"
+	client_id_alias = "terraform_client"
+	client_id_alias_enabled = true
+	client_type = "CONFIDENTIAL"
+	redirect_uris = [ "https://www.authlete.com/cb", "http://localhost:3000/cb" ]
+	response_types = [ "CODE", "CODE_ID_TOKEN" ]
+	grant_types = [ "AUTHORIZATION_CODE", "REFRESH_TOKEN" ]
+	application_type = "WEB"
+	contacts = [ "admin@nospam.com", "admin2@nospam.com" ]
+	client_name = "Authlete client"
+	client_names {
+		tag = "pt_BR"
+		value = "Cliente Portugues"
+	}
+	client_names {
+		tag = "en"
+		value = "Client English"
+	}
+	client_names {
+		tag = "jp"
+		value = "APIクライアント"
+	}
+	logo_uri = "https://example.authlete.com/cli/logo.png"
+	logo_uris {
+		tag = "pt_BR"
+		value = "https://example.authlete.com/cli/logo_pt.png"
+	}
+	logo_uris {
+		tag = "en"
+		value = "https://example.authlete.com/cli/logo_en.png"
+	}
+	logo_uris {
+		tag = "jp"
+		value = "https://example.authlete.com/cli/logo_jp.png"
+	}
+	client_uri = "https://example.authlete.com/cli/"
+	client_uris {
+		tag = "en_GB"
+		value = "https://example.authlete.com/cli/en/GB/"
+	}
+	client_uris {
+		tag = "de_CH"
+		value = "https://example.authlete.com/cli/de/CH/"
+	}
+	policy_uri = "https://example.authlete.com/cli/policy.html"
+	policy_uris {
+		tag = "es"
+		value = "https://example.authlete.com/cli/es/policy.html"
+	}
+	policy_uris {
+		tag = "de_CH"
+		value = "https://example.authlete.com/cli/de/CH/policy.html"
+	}
+	tos_uri = "https://example.authlete.com/cli/tos.html"
+	tos_uris {
+		tag = "es_MX"
+		value = "https://example.authlete.com/cli/es/MX/tos.html"
+	}
+	tos_uris {
+		tag = "fr"
+		value = "https://example.authlete.com/cli/fr/tos.html"
+	}
+	jwks_uri = "https://example.authlete.com/jwks/"
+	subject_type = "PUBLIC"
+	id_token_sign_alg = "RS256"
+	id_token_encryption_alg = "RSA_OAEP_256"
+	id_token_encryption_enc = "A128CBC_HS256"
+	user_info_sign_alg = "RS256"
+	user_info_encryption_alg = "RSA_OAEP_256"
+	user_info_encryption_enc = "A128CBC_HS256"
+	request_sign_alg = "RS256"
+	request_encryption_alg = "RSA_OAEP_256"
+	request_encryption_enc = "A128CBC_HS256"
+	token_auth_method = "PRIVATE_KEY_JWT"
+	token_auth_sign_alg = "ES256"
+	default_max_age = 123
+	default_acrs = ["loa2", "loa3" ]
+	auth_time_required = true
+	login_uri = "https://login.example.com"
+	request_uris = ["https://example.authlete.com/cli/req_obj.json"]
+	description = "this is the description of the client"
+	
+	descriptions {
+		tag = "fr"
+		value = "c'est la description du client"
+	}
+	requestable_scopes_enabled = true
+	
+	requestable_scopes = ["openid", "profile"]
+	access_token_duration = 100
+	refresh_token_duration = 300
+	tls_client_auth_subject_dn = "CN=Example, OU=OP, O=Authlete, C=GB"
+	tls_client_certificate_bound_access_tokens = true
+	self_signed_certificate_key_id = "kid1"
+	software_id = "id1"
+	software_version = "ver1"
+	authorization_sign_alg = "PS256"
+	authorization_encryption_alg = "RSA_OAEP_256"
+	authorization_encryption_enc = "A128CBC_HS256"
+	bc_delivery_mode = "PUSH"
+	bc_notification_endpoint = "https://example.authlete.com/ciba_cb"
+	bc_request_sign_alg = "PS256"
+	bc_user_code_required = true
+	dynamically_registered = false
+	authorization_details_types = ["str1", "str2", "str3"]
+	par_required = true
+	request_object_required = true
+	attributes {
+		key = "key1"
+		value = "val1"
+	}
+	attributes {
+		key = "key2"
+		value = "val2"
+	}
+	
+    custom_metadata = "{\"k1\":\"val1\"}"
+	front_channel_request_object_encryption_required = true
+	request_object_encryption_alg_match_required = true
+	request_object_encryption_enc_match_required = true
+}
+
+`
+
+const stateCompleteClientState23 = `
+provider "authlete" {
+}
+
+
+resource "authlete_client" "client1" {
+	developer = "test"
+	client_id_alias = "terraform_client"
+	client_id_alias_enabled = true
+	client_type = "CONFIDENTIAL"
+	redirect_uris = [ "https://www.authlete.com/cb", "http://localhost:3000/cb" ]
+	response_types = [ "CODE", "CODE_ID_TOKEN" ]
+	grant_types = [ "AUTHORIZATION_CODE", "REFRESH_TOKEN" ]
+	application_type = "WEB"
+	contacts = [ "admin@nospam.com", "admin2@nospam.com" ]
+	client_name = "Authlete client"
+	client_names {
+		tag = "pt_BR"
+		value = "Cliente Portugues"
+	}
+	client_names {
+		tag = "en"
+		value = "Client English"
+	}
+	client_names {
+		tag = "jp"
+		value = "APIクライアント"
+	}
+	logo_uri = "https://example.authlete.com/cli/logo.png"
+	logo_uris {
+		tag = "pt_BR"
+		value = "https://example.authlete.com/cli/logo_pt.png"
+	}
+	logo_uris {
+		tag = "en"
+		value = "https://example.authlete.com/cli/logo_en.png"
+	}
+	logo_uris {
+		tag = "jp"
+		value = "https://example.authlete.com/cli/logo_jp.png"
+	}
+	client_uri = "https://example.authlete.com/cli/"
+	client_uris {
+		tag = "en_GB"
+		value = "https://example.authlete.com/cli/en/GB/"
+	}
+	client_uris {
+		tag = "de_CH"
+		value = "https://example.authlete.com/cli/de/CH/"
+	}
+	policy_uri = "https://example.authlete.com/cli/policy.html"
+	policy_uris {
+		tag = "es"
+		value = "https://example.authlete.com/cli/es/policy.html"
+	}
+	policy_uris {
+		tag = "de_CH"
+		value = "https://example.authlete.com/cli/de/CH/policy.html"
+	}
+	tos_uri = "https://example.authlete.com/cli/tos.html"
+	tos_uris {
+		tag = "es_MX"
+		value = "https://example.authlete.com/cli/es/MX/tos.html"
+	}
+	tos_uris {
+		tag = "fr"
+		value = "https://example.authlete.com/cli/fr/tos.html"
+	}
+	jwks_uri = "https://example.authlete.com/jwks/"
+	subject_type = "PUBLIC"
+	id_token_sign_alg = "RS256"
+	id_token_encryption_alg = "RSA_OAEP_256"
+	id_token_encryption_enc = "A128CBC_HS256"
+	user_info_sign_alg = "RS256"
+	user_info_encryption_alg = "RSA_OAEP_256"
+	user_info_encryption_enc = "A128CBC_HS256"
+	request_sign_alg = "RS256"
+	request_encryption_alg = "RSA_OAEP_256"
+	request_encryption_enc = "A128CBC_HS256"
+	token_auth_method = "PRIVATE_KEY_JWT"
+	token_auth_sign_alg = "ES256"
+	default_max_age = 123
+	default_acrs = ["loa2", "loa3" ]
+	auth_time_required = true
+	login_uri = "https://login.example.com"
+	request_uris = ["https://example.authlete.com/cli/req_obj.json"]
+	description = "this is the description of the client"
+	
+	descriptions {
+		tag = "fr"
+		value = "c'est la description du client"
+	}
+	requestable_scopes_enabled = true
+	
+	requestable_scopes = ["openid", "profile"]
+	access_token_duration = 100
+	refresh_token_duration = 300
+	tls_client_auth_subject_dn = "CN=Example, OU=OP, O=Authlete, C=GB"
+	tls_client_certificate_bound_access_tokens = true
+	self_signed_certificate_key_id = "kid1"
+	software_id = "id1"
+	software_version = "ver1"
+	authorization_sign_alg = "PS256"
+	authorization_encryption_alg = "RSA_OAEP_256"
+	authorization_encryption_enc = "A128CBC_HS256"
+	bc_delivery_mode = "PUSH"
+	bc_notification_endpoint = "https://example.authlete.com/ciba_cb"
+	bc_request_sign_alg = "PS256"
+	bc_user_code_required = true
+	dynamically_registered = false
+	authorization_details_types = ["str1", "str2", "str3"]
+	par_required = true
+	request_object_required = true
+	attributes {
+		key = "key1"
+		value = "val1"
+	}
+	attributes {
+		key = "key2"
+		value = "val2"
+	}
+	custom_metadata = "{\"k1\":\"val1\"}"
+	
+	front_channel_request_object_encryption_required = true
+	request_object_encryption_alg_match_required = true
+	request_object_encryption_enc_match_required = true
+	digest_algorithm = "SHA-256"
+	single_access_token_per_subject = true
+}
 `

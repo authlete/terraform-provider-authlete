@@ -87,7 +87,7 @@ jobs:
         AUTHLETE_API_SERVER: ${{ secrets.AUTHLETE_API_SERVER }}
         AUTHLETE_SO_KEY: ${{ secrets.AUTHLETE_SO_KEY }}
         AUTHLETE_SO_SECRET: ${{ secrets.AUTHLETE_SO_SECRET }}
-
+        TC_ACC_AUTHLETE_VERSION: "2.2"
       run: |
         go test -v -cover ./internal/provider/
 
@@ -98,6 +98,6 @@ jobs:
         AUTHLETE_API_SERVER: ${{ secrets.AUTHLETE_FAPI_DEV_API_SERVER }}
         AUTHLETE_SO_KEY: ${{ secrets.AUTHLETE_FAPI_DEV_SO_KEY }}
         AUTHLETE_SO_SECRET: ${{ secrets.AUTHLETE_FAPI_DEV_SO_SECRET }}
-
+        TC_ACC_AUTHLETE_VERSION: "2.3"
       run: |
         go test -v -cover ./internal/provider/
