@@ -76,32 +76,32 @@ type apiClient struct {
 	// Add whatever fields, client or connection info, etc. here
 	// you would need to setup to communicate with the upstream
 	// API.
-	api_server           string
-	service_owner_key    string
-	service_owner_secret string
-	api_key              string
-	api_secret           string
-	authleteClient       *authlete.APIClient
+	apiServer          string
+	serviceOwnerKey    string
+	serviceOwnerSecret string
+	apiKey             string
+	apiSecret          string
+	authleteClient     *authlete.APIClient
 }
 
 func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	return func(ctx context.Context, data *schema.ResourceData) (interface{}, diag.Diagnostics) {
-		api_server := data.Get("api_server").(string)
-		service_owner_key := data.Get("service_owner_key").(string)
-		service_owner_secret := data.Get("service_owner_secret").(string)
+		apiServer := data.Get("api_server").(string)
+		serviceOwnerKey := data.Get("service_owner_key").(string)
+		serviceOwnerSecret := data.Get("service_owner_secret").(string)
 
-		api_key := data.Get("api_key").(string)
-		api_secret := data.Get("api_secret").(string)
+		apiKey := data.Get("api_key").(string)
+		apiSecret := data.Get("api_secret").(string)
 
 		cnf := authlete.NewConfiguration()
 		cnf.UserAgent = p.UserAgent("terraform-provider-authlete", version)
 
-		cnf.Servers[0].URL = api_server
+		cnf.Servers[0].URL = apiServer
 
 		apiClientOpenAPI := authlete.NewAPIClient(cnf)
 
-		return &apiClient{api_server: api_server, service_owner_key: service_owner_key,
-			service_owner_secret: service_owner_secret, api_key: api_key, api_secret: api_secret,
+		return &apiClient{apiServer: apiServer, serviceOwnerKey: serviceOwnerKey,
+			serviceOwnerSecret: serviceOwnerSecret, apiKey: apiKey, apiSecret: apiSecret,
 			authleteClient: apiClientOpenAPI}, nil
 	}
 }

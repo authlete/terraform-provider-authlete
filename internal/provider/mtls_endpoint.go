@@ -21,7 +21,7 @@ func createMtlsEndpointSchema() *schema.Schema {
 }
 
 func mapMtlsEndpoint(vals []interface{}) []authlete.NamedUri {
-	var entries = []authlete.NamedUri{}
+	var entries = make([]authlete.NamedUri, 0)
 
 	for _, v := range vals {
 		var keypair = v.(map[string]interface{})

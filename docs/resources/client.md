@@ -99,6 +99,9 @@ by Terraform. You can read more about this on [this provider documentation on Au
 - `default_max_age` (Number)
 
 ### ID Token Attributes
+- `single_access_token_per_subject` (Boolean)
+
+### ID Token Attributes
 - `id_token_sign_alg` (String)
 - `id_token_encryption_alg` (String)
 - `id_token_encryption_enc` (String)
@@ -109,7 +112,7 @@ by Terraform. You can read more about this on [this provider documentation on Au
 
 ### JWK Attributes
 - `jwks_uri` (String)
-- `jwks` (String)
+- `jwk` (Block Set) (see [below for nested schema](#nestedblock--jwk))
 
 ### OIDC Endpoint Attributes
 #### User Info Endpoint
@@ -140,6 +143,8 @@ by Terraform. You can read more about this on [this provider documentation on Au
 - `access_token_duration` (Number)
 - `refresh_token_duration` (Number)
 
+### IDA
+- `digest_algorithm` (String) - the IANA code for the hash algorithm to be used
 
 <a id="nestedblock--attributes"></a>
 ### Nested Schema for `attributes`
@@ -203,4 +208,35 @@ Required:
 - `tag` (String)
 - `value` (String)
 
+
+<a id="nestedblock--jwk"></a>
+
+### Nested Schema for `jwk`
+
+Required:
+
+- `alg` (String)
+- `kid` (String)
+- `use` (String)
+
+Optional:
+
+- `pem_private_key` (String) - the private key in PEM format
+- `pem_certificate` (String) - the X509 certificate (including or not the chain) in PEM format
+- `generate` (Boolean) - if the key should be random generated
+- `key_size` (Number) - the size of the RSA key to be generated
+- `crv` (String)
+- `d` (String, Sensitive)
+- `dp` (String, Sensitive)
+- `dq` (String, Sensitive)
+- `e` (String, Sensitive)
+- `k` (String, Sensitive)
+- `kty` (String)
+- `n` (String)
+- `p` (String, Sensitive)
+- `q` (String, Sensitive)
+- `qi` (String, Sensitive)
+- `x` (String, Sensitive)
+- `x5c` (List of String)
+- `y` (String, Sensitive)
 

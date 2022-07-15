@@ -6,16 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func createClientExtensionSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeMap,
-		Optional: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{},
-		},
-	}
-}
-
 func createClientTypeSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeString,

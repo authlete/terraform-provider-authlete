@@ -2,26 +2,10 @@ package provider
 
 import (
 	authlete "github.com/authlete/openapi-for-go"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func createTaggedSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeSet,
-		Optional: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"tag": {Type: schema.TypeString,
-					Required: true},
-				"value": {Type: schema.TypeString,
-					Required: true},
-			},
-		},
-	}
-}
-
 func mapTaggedValue(entry []interface{}) []authlete.TaggedValue {
-	var entries = []authlete.TaggedValue{}
+	var entries = make([]authlete.TaggedValue, 0)
 
 	if entry != nil {
 		for _, v := range entry {

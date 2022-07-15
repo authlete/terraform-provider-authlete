@@ -13,12 +13,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-var testAccProviders map[string]*schema.Provider
 var testAccProvider *schema.Provider
 
 func init() {
 	testAccProvider = New("dev")()
-	testAccProviders = map[string]*schema.Provider{"authlete": testAccProvider}
 }
 
 // providerFactories are used to instantiate a provider during acceptance testing.
@@ -38,10 +36,10 @@ func TestProvider(t *testing.T) {
 
 func testAccPreCheck(t *testing.T) {
 
-	so_key := os.Getenv("AUTHLETE_SO_KEY")
-	so_secret := os.Getenv("AUTHLETE_SO_SECRET")
+	soKey := os.Getenv("AUTHLETE_SO_KEY")
+	soSecret := os.Getenv("AUTHLETE_SO_SECRET")
 
-	if so_key == "" || so_secret == "" {
+	if soKey == "" || soSecret == "" {
 		t.Fatal("Environment variables AUTHLETE_SO_KEY and AUTHLETE_SO_SECRET are required for acceptance test")
 	}
 
@@ -59,32 +57,31 @@ func testCreateTestService(t *testing.T, service2 *authlete.Service) {
 	service2.ApiKey = newService.ApiKey
 	service2.ApiSecret = newService.ApiSecret
 
-	os.Setenv("AUTHLETE_API_KEY", strconv.FormatInt(service2.GetApiKey(), 10))
-	os.Setenv("AUTHLETE_API_SECRET", service2.GetApiSecret())
+	_ = os.Setenv("AUTHLETE_API_KEY", strconv.FormatInt(service2.GetApiKey(), 10))
+	_ = os.Setenv("AUTHLETE_API_SECRET", service2.GetApiSecret())
 
 	testAccProvider = New("dev")()
-	testAccProviders = map[string]*schema.Provider{"authlete": testAccProvider}
 
 }
 
 func createTestClient() (authlete.ServiceManagementApi, context.Context) {
-	so_key := os.Getenv("AUTHLETE_SO_KEY")
-	so_secret := os.Getenv("AUTHLETE_SO_SECRET")
-	api_server := os.Getenv("AUTHLETE_API_SERVER")
+	soKey := os.Getenv("AUTHLETE_SO_KEY")
+	soSecret := os.Getenv("AUTHLETE_SO_SECRET")
+	apiServer := os.Getenv("AUTHLETE_API_SERVER")
 
-	if api_server == "" {
-		api_server = "https://api.authlete.com"
+	if apiServer == "" {
+		apiServer = "https://api.authlete.com"
 	}
 
 	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-		UserName: so_key,
-		Password: so_secret,
+		UserName: soKey,
+		Password: soSecret,
 	})
 
 	cnf := authlete.NewConfiguration()
 	cnf.UserAgent = "terraform-provider-authlete"
 
-	cnf.Servers[0].URL = api_server
+	cnf.Servers[0].URL = apiServer
 
 	apiClientOpenAPI := authlete.NewAPIClient(cnf)
 
@@ -111,8 +108,8 @@ func pullServiceFromServer(s *terraform.State) (*authlete.Service, error) {
 		}
 
 		auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-			UserName: client.service_owner_key,
-			Password: client.service_owner_secret,
+			UserName: client.serviceOwnerKey,
+			Password: client.serviceOwnerSecret,
 		})
 
 		response, _, err := client.authleteClient.ServiceManagementApi.ServiceGetApi(auth, rs.Primary.ID).Execute()

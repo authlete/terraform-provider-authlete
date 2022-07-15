@@ -35,10 +35,6 @@ func createDeliveryModeSchema() *schema.Schema {
 	}
 }
 
-func mapDeliveryModeToDto(v interface{}) authlete.DeliveryMode {
-	return authlete.DeliveryMode(v.(string))
-}
-
 func mapBackchannelDelivery(vals []interface{}) []authlete.DeliveryMode {
 
 	values := make([]authlete.DeliveryMode, len(vals))
