@@ -99,6 +99,9 @@ by Terraform. You can read more about this on [this provider documentation on Au
 - `default_max_age` (Number)
 
 ### ID Token Attributes
+- `single_access_token_per_subject` (Boolean)
+
+### ID Token Attributes
 - `id_token_sign_alg` (String)
 - `id_token_encryption_alg` (String)
 - `id_token_encryption_enc` (String)
@@ -140,6 +143,8 @@ by Terraform. You can read more about this on [this provider documentation on Au
 - `access_token_duration` (Number)
 - `refresh_token_duration` (Number)
 
+### IDA
+- `digest_algorithm` (String) - the IANA code for the hash algorithm to be used
 
 <a id="nestedblock--attributes"></a>
 ### Nested Schema for `attributes`

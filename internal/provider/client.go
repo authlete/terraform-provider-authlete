@@ -97,10 +97,12 @@ func client() *schema.Resource {
 			"par_required":                                     {Type: schema.TypeBool, Required: false, Optional: true, Computed: true},
 			"request_object_required":                          {Type: schema.TypeBool, Required: false, Optional: true, Computed: true},
 			"attributes":                                       createAttributeSchema(),
-			"custom_metadata":                                  {Type: schema.TypeString, Required: false, Optional: true},
+			"custom_metadata":                                  {Type: schema.TypeString, Required: false, Optional: true, Computed: true},
 			"front_channel_request_object_encryption_required": {Type: schema.TypeBool, Required: false, Optional: true, Computed: true},
 			"request_object_encryption_alg_match_required":     {Type: schema.TypeBool, Required: false, Optional: true, Computed: true},
 			"request_object_encryption_enc_match_required":     {Type: schema.TypeBool, Required: false, Optional: true, Computed: true},
+			"digest_algorithm":                                 {Type: schema.TypeString, Required: false, Optional: true},
+			"single_access_token_per_subject":                  {Type: schema.TypeBool, Required: false, Optional: true, Computed: true},
 		},
 	}
 }
@@ -573,6 +575,14 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		existingClient.SetRequestObjectEncryptionEncMatchRequired(d.Get("request_object_encryption_enc_match_required").(bool))
 	}
 
+	if d.HasChange("digest_algorithm") {
+		existingClient.SetDigestAlgorithm(d.Get("digest_algorithm").(string))
+	}
+
+	if d.HasChange("single_access_token_per_subject") {
+		existingClient.SetSingleAccessTokenPerSubject(d.Get("single_access_token_per_subject").(bool))
+	}
+
 	_, _, err := client.authleteClient.ClientManagementApi.ClientUpdateApi(auth, d.Id()).Client(*existingClient).Execute()
 
 	if err != nil {
@@ -778,6 +788,8 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) *authlete.Clie
 	newClient.SetFrontChannelRequestObjectEncryptionRequired(d.Get("front_channel_request_object_encryption_required").(bool))
 	newClient.SetRequestObjectEncryptionAlgMatchRequired(d.Get("request_object_encryption_alg_match_required").(bool))
 	newClient.SetRequestObjectEncryptionEncMatchRequired(d.Get("request_object_encryption_enc_match_required").(bool))
+	newClient.SetDigestAlgorithm(d.Get("digest_algorithm").(string))
+	newClient.SetSingleAccessTokenPerSubject(d.Get("single_access_token_per_subject").(bool))
 
 	return newClient
 }
@@ -795,7 +807,7 @@ func updateResourceFromClient(d *schema.ResourceData, client *authlete.Client) {
 	_ = d.Set("application_type", client.GetApplicationType())
 	_ = d.Set("contacts", client.GetContacts())
 	_ = d.Set("client_name", client.GetClientName())
-	_ = d.Set("client_names", client.GetClientNames())
+	_ = d.Set("client_names", mapTaggedValuesFromDTO(client.GetClientNames()))
 	_ = d.Set("logo_uri", client.GetLogoUri())
 	_ = d.Set("logo_uris", mapTaggedValuesFromDTO(client.GetLogoUris()))
 	_ = d.Set("client_uri", client.GetClientUri())
@@ -865,5 +877,7 @@ func updateResourceFromClient(d *schema.ResourceData, client *authlete.Client) {
 	_ = d.Set("front_channel_request_object_encryption_required", client.GetFrontChannelRequestObjectEncryptionRequired())
 	_ = d.Set("request_object_encryption_alg_match_required", client.GetRequestObjectEncryptionAlgMatchRequired())
 	_ = d.Set("request_object_encryption_enc_match_required", client.GetRequestObjectEncryptionAlgMatchRequired())
+	_ = d.Set("digest_algorithm", client.GetDigestAlgorithm())
+	_ = d.Set("single_access_token_per_subject", client.GetSingleAccessTokenPerSubject())
 
 }

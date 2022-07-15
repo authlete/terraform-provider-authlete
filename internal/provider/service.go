@@ -122,15 +122,12 @@ func service() *schema.Resource {
 			"device_flow_polling_interval":                  {Type: schema.TypeInt, Required: false, Optional: true},
 			"user_code_charset":                             createUserCodeCharsetSchema(),
 			"user_code_length":                              {Type: schema.TypeInt, Required: false, Optional: true},
-			/*
-				"supported_trust_frameworks":                    createStringColSchema(),
-				"supported_evidence":                            createStringColSchema(),
-				"supported_identity_documents":                  createStringColSchema(),
-				"supported_verification_methods":                createStringColSchema(),
-				"supported_verified_claims":                     createStringColSchema(),
-			*/
-
-			"end_session_endpoint": {Type: schema.TypeString, Required: false, Optional: true},
+			"supported_trust_frameworks":                    createStringColSchema(),
+			"supported_evidence":                            createStringColSchema(),
+			"supported_documents":                           createStringColSchema(),
+			"supported_verification_methods":                createStringColSchema(),
+			"supported_verified_claims":                     createStringColSchema(),
+			"end_session_endpoint":                          {Type: schema.TypeString, Required: false, Optional: true},
 		},
 	}
 }
@@ -249,7 +246,6 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 	if d.HasChange("developer_authentication_callback_api_secret") {
 		srv.SetDeveloperAuthenticationCallbackApiSecret(d.Get("developer_authentication_callback_api_secret").(string))
 	}
-
 	if d.HasChange("supported_grant_types") {
 		srv.SetSupportedGrantTypes(mapGrantTypesToDTO(d.Get("supported_grant_types").([]interface{})))
 	}
@@ -364,7 +360,6 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 	if d.HasChange("single_access_token_per_subject") {
 		srv.SetSingleAccessTokenPerSubject(d.Get("single_access_token_per_subject").(bool))
 	}
-
 	if d.HasChange("access_token_sign_alg") {
 		srv.SetAccessTokenSignAlg(mapSignAlgorithms(d.Get("access_token_sign_alg").(string)))
 	}
@@ -508,23 +503,21 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 	if d.HasChange("user_code_length") {
 		srv.SetUserCodeLength(int32(d.Get("user_code_length").(int)))
 	}
-	/*
-		if d.HasChange("supported_trust_frameworks") {
-			srv.SetSupportedTrustFrameworks(mapSetToString(d.Get("supported_trust_frameworks").(*schema.Set)))
-		}
-		if d.HasChange("supported_evidence") {
-			srv.SetSupportedEvidence(mapSetToString(d.Get("supported_evidence").(*schema.Set)))
-		}
-		if d.HasChange("supported_identity_documents") {
-			srv.SetSupportedIdentityDocuments(mapSetToString(d.Get("supported_identity_documents").(*schema.Set)))
-		}
-		if d.HasChange("supported_verification_methods") {
-			srv.SetSupportedVerificationMethods(mapSetToString(d.Get("supported_verification_methods").(*schema.Set)))
-		}
-		if d.HasChange("supported_verified_claims") {
-			srv.SetSupportedVerifiedClaims(mapSetToString(d.Get("supported_verified_claims").(*schema.Set)))
-		}
-	*/
+	if d.HasChange("supported_trust_frameworks") {
+		srv.SetSupportedTrustFrameworks(mapSetToString(d.Get("supported_trust_frameworks").([]interface{})))
+	}
+	if d.HasChange("supported_evidence") {
+		srv.SetSupportedEvidence(mapSetToString(d.Get("supported_evidence").([]interface{})))
+	}
+	if d.HasChange("supported_documents") {
+		srv.SetSupportedDocuments(mapSetToString(d.Get("supported_documents").([]interface{})))
+	}
+	if d.HasChange("supported_verification_methods") {
+		srv.SetSupportedVerificationMethods(mapSetToString(d.Get("supported_verification_methods").([]interface{})))
+	}
+	if d.HasChange("supported_verified_claims") {
+		srv.SetSupportedVerifiedClaims(mapSetToString(d.Get("supported_verified_claims").([]interface{})))
+	}
 	if d.HasChange("end_session_endpoint") {
 		srv.SetEndSessionEndpoint(d.Get("end_session_endpoint").(string))
 	}
@@ -792,14 +785,21 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 	if NotZeroNumber(data, "user_code_length") {
 		newServiceDto.SetUserCodeLength(int32(data.Get("user_code_length").(int)))
 	}
-	/*
+	if NotZeroArray(data, "supported_trust_frameworks") {
 		newServiceDto.SetSupportedTrustFrameworks(mapSetToString(data.Get("supported_trust_frameworks").([]interface{})))
+	}
+	if NotZeroArray(data, "supported_evidence") {
 		newServiceDto.SetSupportedEvidence(mapSetToString(data.Get("supported_evidence").([]interface{})))
-		newServiceDto.SetSupportedIdentityDocuments(mapSetToString(data.Get("supported_identity_documents").([]interface{})))
+	}
+	if NotZeroArray(data, "supported_documents") {
+		newServiceDto.SetSupportedDocuments(mapSetToString(data.Get("supported_documents").([]interface{})))
+	}
+	if NotZeroArray(data, "supported_verification_methods") {
 		newServiceDto.SetSupportedVerificationMethods(mapSetToString(data.Get("supported_verification_methods").([]interface{})))
+	}
+	if NotZeroArray(data, "supported_verified_claims") {
 		newServiceDto.SetSupportedVerifiedClaims(mapSetToString(data.Get("supported_verified_claims").([]interface{})))
-
-	*/
+	}
 	if NotZeroString(data, "end_session_endpoint") {
 		newServiceDto.SetEndSessionEndpoint(data.Get("end_session_endpoint").(string))
 	}
@@ -816,7 +816,6 @@ func serviceToResource(dto *authlete.Service, data *schema.ResourceData) diag.Di
 	_ = data.Set("description", dto.GetDescription())
 	_ = data.Set("clients_per_developer", dto.GetClientsPerDeveloper())
 	_ = data.Set("client_id_alias_enabled", dto.GetClientIdAliasEnabled())
-
 	_ = data.Set("attribute", mapAttributesFromDTO(dto.GetAttributes()))
 	_ = data.Set("supported_custom_client_metadata", mapSchemaFromString(dto.GetSupportedCustomClientMetadata()))
 	_ = data.Set("authentication_callback_endpoint", dto.GetAuthenticationCallbackEndpoint())
@@ -830,7 +829,6 @@ func serviceToResource(dto *authlete.Service, data *schema.ResourceData) diag.Di
 	_ = data.Set("supported_response_types", mapResponseTypesFromDTO(dto.GetSupportedResponseTypes()))
 	_ = data.Set("supported_authorization_detail_types", mapSchemaFromString(dto.GetSupportedAuthorizationDetailsTypes()))
 	_ = data.Set("supported_service_profiles", mapSupportedFrameworkFromDTO(dto.GetSupportedServiceProfiles()))
-
 	_ = data.Set("error_description_omitted", dto.GetErrorDescriptionOmitted())
 	_ = data.Set("error_uri_omitted", dto.GetErrorUriOmitted())
 	_ = data.Set("authorization_endpoint", dto.GetAuthorizationEndpoint())
@@ -916,14 +914,11 @@ func serviceToResource(dto *authlete.Service, data *schema.ResourceData) diag.Di
 	_ = data.Set("device_flow_polling_interval", dto.GetDeviceFlowPollingInterval())
 	_ = data.Set("user_code_charset", mapUserCodeCharsetsFromDTO(dto.GetUserCodeCharset()))
 	_ = data.Set("user_code_length", dto.GetUserCodeLength())
-
-	/*
-		_ = data.Set("supported_trust_frameworks", mapSchemaFromString(&dto.GetSupportedTrustFrameworks()))
-		_ = data.Set("supported_evidence", mapSchemaFromString(&dto.GetSupportedEvidence()))
-		_ = data.Set("supported_identity_documents", mapSchemaFromString(&dto.GetSupportedIdentityDocuments()))
-		_ = data.Set("supported_verification_methods", mapSchemaFromString(&dto.GetSupportedVerificationMethods))
-		_ = data.Set("supported_verified_claims", mapSchemaFromString(&dto.GetSupportedVerifiedClaims))
-	*/
+	_ = data.Set("supported_trust_frameworks", mapSchemaFromString(dto.GetSupportedTrustFrameworks()))
+	_ = data.Set("supported_evidence", mapSchemaFromString(dto.GetSupportedEvidence()))
+	_ = data.Set("supported_documents", mapSchemaFromString(dto.GetSupportedDocuments()))
+	_ = data.Set("supported_verification_methods", mapSchemaFromString(dto.GetSupportedVerificationMethods()))
+	_ = data.Set("supported_verified_claims", mapSchemaFromString(dto.GetSupportedVerifiedClaims()))
 	_ = data.Set("end_session_endpoint", dto.GetEndSessionEndpoint())
 	return nil
 }
