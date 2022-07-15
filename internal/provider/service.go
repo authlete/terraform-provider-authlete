@@ -85,8 +85,8 @@ func service() *schema.Resource {
 			"refresh_token_kept":                               {Type: schema.TypeBool, Required: false, Optional: true},
 			"token_expiration_link":                            {Type: schema.TypeBool, Required: false, Optional: true},
 			"supported_scopes":                                 createSupportedScopeSchema(),
-			"scope_required":                                   {Type: schema.TypeBool, Required: false, Optional: true},
 			"openid_dropped_on_refresh_without_offline_access": {Type: schema.TypeBool, Required: false, Optional: true},
+			"scope_required":                                   {Type: schema.TypeBool, Required: false, Optional: true},
 			"id_token_duration":                                {Type: schema.TypeInt, Required: false, Optional: true},
 			"allowable_clock_skew":                             {Type: schema.TypeInt, Required: false, Optional: true},
 			"supported_claim_types":                            createSupportedClaimTypesSchema(),
@@ -123,16 +123,41 @@ func service() *schema.Resource {
 			"device_flow_polling_interval":                     {Type: schema.TypeInt, Required: false, Optional: true},
 			"user_code_charset":                                createUserCodeCharsetSchema(),
 			"user_code_length":                                 {Type: schema.TypeInt, Required: false, Optional: true},
-			/*
-				"supported_trust_frameworks":                    createStringColSchema(),
-				"supported_evidence":                            createStringColSchema(),
-				"supported_identity_documents":                  createStringColSchema(),
-				"supported_verification_methods":                createStringColSchema(),
-				"supported_verified_claims":                     createStringColSchema(),
-			*/
-
-			"end_session_endpoint":              {Type: schema.TypeString, Required: false, Optional: true},
-			"dcr_duplicate_software_id_blocked": {Type: schema.TypeBool, Required: false, Optional: true},
+			"supported_trust_frameworks":                       createStringColSchema(),
+			"supported_evidence":                               createStringColSchema(),
+			"supported_documents":                              createStringColSchema(),
+			"supported_verification_methods":                   createStringColSchema(),
+			"supported_verified_claims":                        createStringColSchema(),
+			"end_session_endpoint":                             {Type: schema.TypeString, Required: false, Optional: true},
+			"dcr_duplicate_software_id_blocked":                {Type: schema.TypeBool, Required: false, Optional: true},
+			"request_object_audience_checked":                  {Type: schema.TypeBool, Required: false, Optional: true},
+			"access_token_for_external_attachment_embedded":    {Type: schema.TypeBool, Required: false, Optional: true},
+			"authority_hints":                                  createStringColSchema(),
+			"federation_enabled":                               {Type: schema.TypeBool, Required: false, Optional: true},
+			"federation_jwk":                                   createJWKSchema(),
+			"federation_signature_key_id":                      {Type: schema.TypeString, Required: false, Optional: true},
+			"federation_configuration_duration":                {Type: schema.TypeInt, Required: false, Optional: true},
+			"federation_registration_endpoint":                 {Type: schema.TypeString, Required: false, Optional: true},
+			"organization_name":                                {Type: schema.TypeString, Required: false, Optional: true},
+			"predefined_transformed_claims":                    {Type: schema.TypeString, Required: false, Optional: true},
+			"refresh_token_idempotent":                         {Type: schema.TypeBool, Required: false, Optional: true},
+			"signed_jwks_uri":                                  {Type: schema.TypeString, Required: false, Optional: true},
+			"supported_attachments":                            createSupportedAttachmentsSchema(),
+			"supported_digest_algorithms":                      createStringColSchema(),
+			"supported_documents_methods":                      createStringColSchema(),
+			"supported_documents_validation_methods":           createStringColSchema(),
+			"supported_documents_verification_methods":         createStringColSchema(),
+			"supported_electronic_records":                     createStringColSchema(),
+			"supported_client_registration_types":              createClientRegistrationSchema(),
+			"token_exchange_by_identifiable_clients_only":      {Type: schema.TypeBool, Required: false, Optional: true},
+			"token_exchange_by_confidential_clients_only":      {Type: schema.TypeBool, Required: false, Optional: true},
+			"token_exchange_by_permitted_clients_only":         {Type: schema.TypeBool, Required: false, Optional: true},
+			"token_exchange_encrypted_jwt_rejected":            {Type: schema.TypeBool, Required: false, Optional: true},
+			"token_exchange_unsigned_jwt_rejected":             {Type: schema.TypeBool, Required: false, Optional: true},
+			"jwt_grant_by_identifiable_clients_only":           {Type: schema.TypeBool, Required: false, Optional: true},
+			"jwt_grant_encrypted_jwt_rejected":                 {Type: schema.TypeBool, Required: false, Optional: true},
+			"jwt_grant_unsigned_jwt_rejected":                  {Type: schema.TypeBool, Required: false, Optional: true},
+			"trust_anchors":                                    createTrustAnchorSchema(),
 		},
 	}
 }
@@ -251,7 +276,6 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 	if d.HasChange("developer_authentication_callback_api_secret") {
 		srv.SetDeveloperAuthenticationCallbackApiSecret(d.Get("developer_authentication_callback_api_secret").(string))
 	}
-
 	if d.HasChange("supported_grant_types") {
 		srv.SetSupportedGrantTypes(mapGrantTypesToDTO(d.Get("supported_grant_types").(*schema.Set)))
 	}
@@ -366,7 +390,6 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 	if d.HasChange("single_access_token_per_subject") {
 		srv.SetSingleAccessTokenPerSubject(d.Get("single_access_token_per_subject").(bool))
 	}
-
 	if d.HasChange("access_token_sign_alg") {
 		srv.SetAccessTokenSignAlg(mapSignAlgorithms(d.Get("access_token_sign_alg").(string)))
 	}
@@ -513,25 +536,116 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 	if d.HasChange("user_code_length") {
 		srv.SetUserCodeLength(int32(d.Get("user_code_length").(int)))
 	}
-	/*
-		if d.HasChange("supported_trust_frameworks") {
-			srv.SetSupportedTrustFrameworks(mapSetToString(d.Get("supported_trust_frameworks").(*schema.Set)))
-		}
-		if d.HasChange("supported_evidence") {
-			srv.SetSupportedEvidence(mapSetToString(d.Get("supported_evidence").(*schema.Set)))
-		}
-		if d.HasChange("supported_identity_documents") {
-			srv.SetSupportedIdentityDocuments(mapSetToString(d.Get("supported_identity_documents").(*schema.Set)))
-		}
-		if d.HasChange("supported_verification_methods") {
-			srv.SetSupportedVerificationMethods(mapSetToString(d.Get("supported_verification_methods").(*schema.Set)))
-		}
-		if d.HasChange("supported_verified_claims") {
-			srv.SetSupportedVerifiedClaims(mapSetToString(d.Get("supported_verified_claims").(*schema.Set)))
-		}
-	*/
+	if d.HasChange("supported_trust_frameworks") {
+		srv.SetSupportedTrustFrameworks(mapSetToString(d.Get("supported_trust_frameworks").([]interface{})))
+	}
+	if d.HasChange("supported_evidence") {
+		srv.SetSupportedEvidence(mapSetToString(d.Get("supported_evidence").([]interface{})))
+	}
+	if d.HasChange("supported_documents") {
+		srv.SetSupportedDocuments(mapSetToString(d.Get("supported_documents").([]interface{})))
+	}
+	if d.HasChange("supported_verification_methods") {
+		srv.SetSupportedVerificationMethods(mapSetToString(d.Get("supported_verification_methods").([]interface{})))
+	}
+	if d.HasChange("supported_verified_claims") {
+		srv.SetSupportedVerifiedClaims(mapSetToString(d.Get("supported_verified_claims").([]interface{})))
+	}
 	if d.HasChange("end_session_endpoint") {
 		srv.SetEndSessionEndpoint(d.Get("end_session_endpoint").(string))
+	}
+	if d.HasChange("dcr_duplicate_software_id_blocked") {
+		srv.SetDcrDuplicateSoftwareIdBlocked(d.Get("dcr_duplicate_software_id_blocked").(bool))
+	}
+	if d.HasChange("request_object_audience_checked") {
+		srv.SetRequestObjectAudienceChecked(d.Get("request_object_audience_checked").(bool))
+	}
+	if d.HasChange("access_token_for_external_attachment_embedded") {
+		srv.SetAccessTokenForExternalAttachmentEmbedded(d.Get("access_token_for_external_attachment_embedded").(bool))
+	}
+	if d.HasChange("authority_hints") {
+		srv.SetAuthorityHints(mapSetToString(d.Get("authority_hints").([]interface{})))
+	}
+	if d.HasChange("federation_enabled") {
+		srv.SetFederationEnabled(d.Get("federation_enabled").(bool))
+	}
+	if d.HasChange("federation_jwk") {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "Updating JWK",
+			Detail:   "Updating JWK ",
+		})
+		jwks, _ := updateJWKS(d.Get("federation_jwk").([]interface{}), srv.GetFederationJwks(), diags)
+		srv.SetFederationJwks(jwks)
+	}
+	if d.HasChange("federation_signature_key_id") {
+		srv.SetFederationSignatureKeyId(d.Get("federation_signature_key_id").(string))
+	}
+	if d.HasChange("federation_configuration_duration") {
+		srv.SetFederationConfigurationDuration(int32(d.Get("federation_configuration_duration").(int)))
+	}
+	if d.HasChange("federation_registration_endpoint") {
+		srv.SetFederationRegistrationEndpoint(d.Get("federation_registration_endpoint").(string))
+	}
+	if d.HasChange("organization_name") {
+		srv.SetOrganizationName(d.Get("organization_name").(string))
+	}
+	if d.HasChange("predefined_transformed_claims") {
+		srv.SetPredefinedTransformedClaims(d.Get("predefined_transformed_claims").(string))
+	}
+	if d.HasChange("refresh_token_idempotent") {
+		srv.SetRefreshTokenIdempotent(d.Get("refresh_token_idempotent").(bool))
+	}
+	if d.HasChange("signed_jwks_uri") {
+		srv.SetSignedJwksUri(d.Get("signed_jwks_uri").(string))
+	}
+	if d.HasChange("supported_attachments") {
+		srv.SetSupportedAttachments(mapSupportedAttachmentsToDTO(d.Get("supported_attachments").(*schema.Set).List()))
+	}
+	if d.HasChange("supported_digest_algorithms") {
+		srv.SetSupportedDigestAlgorithms(mapSetToString(d.Get("supported_digest_algorithms").(*schema.Set).List()))
+	}
+	if d.HasChange("supported_documents_methods") {
+		srv.SetSupportedDocumentsMethods(mapSetToString(d.Get("supported_documents_methods").(*schema.Set).List()))
+	}
+	if d.HasChange("supported_documents_validation_methods") {
+		srv.SetSupportedDocumentsValidationMethods(mapSetToString(d.Get("supported_documents_validation_methods").(*schema.Set).List()))
+	}
+	if d.HasChange("supported_documents_verification_methods") {
+		srv.SetSupportedDocumentsVerificationMethods(mapSetToString(d.Get("supported_documents_verification_methods").(*schema.Set).List()))
+	}
+	if d.HasChange("supported_electronic_records") {
+		srv.SetSupportedElectronicRecords(mapSetToString(d.Get("supported_electronic_records").(*schema.Set).List()))
+	}
+	if d.HasChange("supported_client_registration_types") {
+		srv.SetSupportedClientRegistrationTypes(mapClientRegistrationToDTO(d.Get("supported_client_registration_types").(*schema.Set).List()))
+	}
+	if d.HasChange("token_exchange_by_identifiable_clients_only") {
+		srv.SetTokenExchangeByIdentifiableClientsOnly(d.Get("token_exchange_by_identifiable_clients_only").(bool))
+	}
+	if d.HasChange("token_exchange_by_confidential_clients_only") {
+		srv.SetTokenExchangeByConfidentialClientsOnly(d.Get("token_exchange_by_confidential_clients_only").(bool))
+	}
+	if d.HasChange("token_exchange_by_permitted_clients_only") {
+		srv.SetTokenExchangeByPermittedClientsOnly(d.Get("token_exchange_by_permitted_clients_only").(bool))
+	}
+	if d.HasChange("token_exchange_encrypted_jwt_rejected") {
+		srv.SetTokenExchangeEncryptedJwtRejected(d.Get("token_exchange_encrypted_jwt_rejected").(bool))
+	}
+	if d.HasChange("token_exchange_unsigned_jwt_rejected") {
+		srv.SetTokenExchangeUnsignedJwtRejected(d.Get("token_exchange_unsigned_jwt_rejected").(bool))
+	}
+	if d.HasChange("jwt_grant_by_identifiable_clients_only") {
+		srv.SetJwtGrantByIdentifiableClientsOnly(d.Get("jwt_grant_by_identifiable_clients_only").(bool))
+	}
+	if d.HasChange("jwt_grant_encrypted_jwt_rejected") {
+		srv.SetJwtGrantEncryptedJwtRejected(d.Get("jwt_grant_encrypted_jwt_rejected").(bool))
+	}
+	if d.HasChange("jwt_grant_unsigned_jwt_rejected") {
+		srv.SetJwtGrantUnsignedJwtRejected(d.Get("jwt_grant_unsigned_jwt_rejected").(bool))
+	}
+	if d.HasChange("trust_anchors") {
+		srv.SetTrustAnchors(mapTrustAnchorToDTO(d.Get("trust_anchors").(*schema.Set).List(), diags))
 	}
 
 	_, _, err = client.authleteClient.ServiceManagementApi.ServiceUpdateApi(auth, d.Id()).Service(*srv).Execute()
@@ -798,19 +912,85 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 	if NotZeroNumber(data, "user_code_length") {
 		newServiceDto.SetUserCodeLength(int32(data.Get("user_code_length").(int)))
 	}
-	/*
-		newServiceDto.SetSupportedTrustFrameworks(mapSetToString(data.Get("supported_trust_frameworks").([]interface{})))
-		newServiceDto.SetSupportedEvidence(mapSetToString(data.Get("supported_evidence").([]interface{})))
-		newServiceDto.SetSupportedIdentityDocuments(mapSetToString(data.Get("supported_identity_documents").([]interface{})))
-		newServiceDto.SetSupportedVerificationMethods(mapSetToString(data.Get("supported_verification_methods").([]interface{})))
-		newServiceDto.SetSupportedVerifiedClaims(mapSetToString(data.Get("supported_verified_claims").([]interface{})))
-
-	*/
+	if NotZeroArray(data, "supported_trust_frameworks") {
+		newServiceDto.SetSupportedTrustFrameworks(mapSetToString(data.Get("supported_trust_frameworks").(*schema.Set).List()))
+	}
+	if NotZeroArray(data, "supported_evidence") {
+		newServiceDto.SetSupportedEvidence(mapSetToString(data.Get("supported_evidence").(*schema.Set).List()))
+	}
+	if NotZeroArray(data, "supported_documents") {
+		newServiceDto.SetSupportedDocuments(mapSetToString(data.Get("supported_documents").(*schema.Set).List()))
+	}
+	if NotZeroArray(data, "supported_verification_methods") {
+		newServiceDto.SetSupportedVerificationMethods(mapSetToString(data.Get("supported_verification_methods").(*schema.Set).List()))
+	}
+	if NotZeroArray(data, "supported_verified_claims") {
+		newServiceDto.SetSupportedVerifiedClaims(mapSetToString(data.Get("supported_verified_claims").(*schema.Set).List()))
+	}
 	if NotZeroString(data, "end_session_endpoint") {
 		newServiceDto.SetEndSessionEndpoint(data.Get("end_session_endpoint").(string))
 	}
-
 	newServiceDto.SetDcrDuplicateSoftwareIdBlocked(data.Get("dcr_duplicate_software_id_blocked").(bool))
+	newServiceDto.SetRequestObjectAudienceChecked(data.Get("request_object_audience_checked").(bool))
+	newServiceDto.SetAccessTokenForExternalAttachmentEmbedded(data.Get("access_token_for_external_attachment_embedded").(bool))
+	if NotZeroArray(data, "authority_hints") {
+		newServiceDto.SetAuthorityHints(mapSetToString(data.Get("authority_hints").(*schema.Set).List()))
+	}
+	newServiceDto.SetFederationEnabled(data.Get("federation_enabled").(bool))
+	if NotZeroArray(data, "federation_jwk") {
+		var jwk string
+		jwk, diags = mapJWKS(data.Get("federation_jwk").(*schema.Set).List(), diags)
+		newServiceDto.SetFederationJwks(jwk)
+	}
+	if NotZeroString(data, "federation_signature_key_id") {
+		newServiceDto.SetFederationSignatureKeyId(data.Get("federation_signature_key_id").(string))
+	}
+	newServiceDto.SetFederationConfigurationDuration(int32(data.Get("federation_configuration_duration").(int)))
+	newServiceDto.SetFederationRegistrationEndpoint(data.Get("federation_registration_endpoint").(string))
+	if NotZeroString(data, "organization_name") {
+		newServiceDto.SetOrganizationName(data.Get("organization_name").(string))
+	}
+	if NotZeroString(data, "predefined_transformed_claims") {
+		newServiceDto.SetPredefinedTransformedClaims(data.Get("predefined_transformed_claims").(string))
+	}
+	newServiceDto.SetRefreshTokenIdempotent(data.Get("refresh_token_idempotent").(bool))
+	if NotZeroString(data, "signed_jwks_uri") {
+		newServiceDto.SetSignedJwksUri(data.Get("signed_jwks_uri").(string))
+	}
+	if NotZeroArray(data, "supported_attachments") {
+		newServiceDto.SetSupportedAttachments(mapSupportedAttachmentsToDTO(data.Get("supported_attachments").(*schema.Set).List()))
+	}
+	if NotZeroArray(data, "supported_digest_algorithms") {
+		newServiceDto.SetSupportedDigestAlgorithms(mapSetToString(data.Get("supported_digest_algorithms").(*schema.Set).List()))
+	}
+	if NotZeroArray(data, "supported_documents_methods") {
+		newServiceDto.SetSupportedDocumentsMethods(mapSetToString(data.Get("supported_documents_methods").(*schema.Set).List()))
+	}
+	if NotZeroArray(data, "supported_documents_validation_methods") {
+		newServiceDto.SetSupportedDocumentsValidationMethods(mapSetToString(data.Get("supported_documents_validation_methods").(*schema.Set).List()))
+	}
+	if NotZeroArray(data, "supported_documents_verification_methods") {
+		newServiceDto.SetSupportedDocumentsVerificationMethods(mapSetToString(data.Get("supported_documents_verification_methods").(*schema.Set).List()))
+	}
+	if NotZeroArray(data, "supported_electronic_records") {
+		newServiceDto.SetSupportedElectronicRecords(mapSetToString(data.Get("supported_electronic_records").(*schema.Set).List()))
+	}
+	if NotZeroArray(data, "supported_client_registration_types") {
+		newServiceDto.SetSupportedClientRegistrationTypes(mapClientRegistrationToDTO(data.Get("supported_client_registration_types").(*schema.Set).List()))
+	}
+
+	newServiceDto.SetTokenExchangeByIdentifiableClientsOnly(data.Get("token_exchange_by_identifiable_clients_only").(bool))
+	newServiceDto.SetTokenExchangeByConfidentialClientsOnly(data.Get("token_exchange_by_confidential_clients_only").(bool))
+	newServiceDto.SetTokenExchangeByPermittedClientsOnly(data.Get("token_exchange_by_permitted_clients_only").(bool))
+	newServiceDto.SetTokenExchangeEncryptedJwtRejected(data.Get("token_exchange_encrypted_jwt_rejected").(bool))
+	newServiceDto.SetTokenExchangeUnsignedJwtRejected(data.Get("token_exchange_unsigned_jwt_rejected").(bool))
+	newServiceDto.SetJwtGrantByIdentifiableClientsOnly(data.Get("jwt_grant_by_identifiable_clients_only").(bool))
+	newServiceDto.SetJwtGrantEncryptedJwtRejected(data.Get("jwt_grant_encrypted_jwt_rejected").(bool))
+	newServiceDto.SetJwtGrantUnsignedJwtRejected(data.Get("jwt_grant_unsigned_jwt_rejected").(bool))
+
+	if NotZeroArray(data, "trust_anchors") {
+		newServiceDto.SetTrustAnchors(mapTrustAnchorToDTO(data.Get("trust_anchors").(*schema.Set).List(), diags))
+	}
 	return &newServiceDto, diags
 
 }
@@ -824,7 +1004,6 @@ func serviceToResource(dto *authlete.Service, data *schema.ResourceData) diag.Di
 	_ = data.Set("description", dto.GetDescription())
 	_ = data.Set("clients_per_developer", dto.GetClientsPerDeveloper())
 	_ = data.Set("client_id_alias_enabled", dto.GetClientIdAliasEnabled())
-
 	_ = data.Set("attribute", mapAttributesFromDTO(dto.GetAttributes()))
 	_ = data.Set("supported_custom_client_metadata", mapSchemaFromString(dto.GetSupportedCustomClientMetadata()))
 	_ = data.Set("authentication_callback_endpoint", dto.GetAuthenticationCallbackEndpoint())
@@ -838,7 +1017,6 @@ func serviceToResource(dto *authlete.Service, data *schema.ResourceData) diag.Di
 	_ = data.Set("supported_response_types", mapResponseTypesFromDTO(dto.GetSupportedResponseTypes()))
 	_ = data.Set("supported_authorization_detail_types", mapSchemaFromString(dto.GetSupportedAuthorizationDetailsTypes()))
 	_ = data.Set("supported_service_profiles", mapSupportedFrameworkFromDTO(dto.GetSupportedServiceProfiles()))
-
 	_ = data.Set("error_description_omitted", dto.GetErrorDescriptionOmitted())
 	_ = data.Set("error_uri_omitted", dto.GetErrorUriOmitted())
 	_ = data.Set("authorization_endpoint", dto.GetAuthorizationEndpoint())
@@ -925,16 +1103,46 @@ func serviceToResource(dto *authlete.Service, data *schema.ResourceData) diag.Di
 	_ = data.Set("device_flow_polling_interval", dto.GetDeviceFlowPollingInterval())
 	_ = data.Set("user_code_charset", mapUserCodeCharsetsFromDTO(dto.GetUserCodeCharset()))
 	_ = data.Set("user_code_length", dto.GetUserCodeLength())
-
-	/*
-		_ = data.Set("supported_trust_frameworks", mapSchemaFromString(&dto.GetSupportedTrustFrameworks()))
-		_ = data.Set("supported_evidence", mapSchemaFromString(&dto.GetSupportedEvidence()))
-		_ = data.Set("supported_identity_documents", mapSchemaFromString(&dto.GetSupportedIdentityDocuments()))
-		_ = data.Set("supported_verification_methods", mapSchemaFromString(&dto.GetSupportedVerificationMethods))
-		_ = data.Set("supported_verified_claims", mapSchemaFromString(&dto.GetSupportedVerifiedClaims))
-	*/
+	_ = data.Set("supported_trust_frameworks", mapSchemaFromString(dto.GetSupportedTrustFrameworks()))
+	_ = data.Set("supported_evidence", mapSchemaFromString(dto.GetSupportedEvidence()))
+	_ = data.Set("supported_documents", mapSchemaFromString(dto.GetSupportedDocuments()))
+	_ = data.Set("supported_verification_methods", mapSchemaFromString(dto.GetSupportedVerificationMethods()))
+	_ = data.Set("supported_verified_claims", mapSchemaFromString(dto.GetSupportedVerifiedClaims()))
 	_ = data.Set("end_session_endpoint", dto.GetEndSessionEndpoint())
 	_ = data.Set("dcr_duplicate_software_id_blocked", dto.GetDcrDuplicateSoftwareIdBlocked())
+	_ = data.Set("request_object_audience_checked", dto.GetRequestObjectAudienceChecked())
+	_ = data.Set("access_token_for_external_attachment_embedded", dto.GetAccessTokenForExternalAttachmentEmbedded())
+	_ = data.Set("authority_hints", dto.GetAuthorityHints())
+	_ = data.Set("federation_enabled", dto.GetFederationEnabled())
+	fedJwk, err := mapJWKFromDTO(data.Get("federation_jwk").(*schema.Set).List(), dto.GetFederationJwks())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	_ = data.Set("federation_jwk", fedJwk)
+	_ = data.Set("federation_signature_key_id", dto.GetFederationSignatureKeyId())
+	_ = data.Set("federation_configuration_duration", dto.GetFederationConfigurationDuration())
+	_ = data.Set("federation_registration_endpoint", dto.GetFederationRegistrationEndpoint())
+	_ = data.Set("organization_name", dto.GetOrganizationName())
+	_ = data.Set("predefined_transformed_claims", dto.GetPredefinedTransformedClaims())
+	_ = data.Set("refresh_token_idempotent", dto.GetRefreshTokenIdempotent())
+	_ = data.Set("signed_jwks_uri", dto.GetSignedJwksUri())
+	_ = data.Set("supported_attachments", mapSupportedAttachmentsFromDTO(dto.GetSupportedAttachments()))
+	_ = data.Set("supported_digest_algorithms", dto.GetSupportedDigestAlgorithms())
+	_ = data.Set("supported_documents_methods", dto.GetSupportedDocumentsMethods())
+	_ = data.Set("supported_documents_validation_methods", dto.GetSupportedDocumentsValidationMethods())
+	_ = data.Set("supported_documents_verification_methods", dto.GetSupportedDocumentsVerificationMethods())
+	_ = data.Set("supported_electronic_records", dto.GetSupportedElectronicRecords())
+	_ = data.Set("supported_client_registration_types", mapClientRegistrationFromDTO(dto.GetSupportedClientRegistrationTypes()))
+	_ = data.Set("token_exchange_by_identifiable_clients_only", dto.GetTokenExchangeByIdentifiableClientsOnly())
+	_ = data.Set("token_exchange_by_confidential_clients_only", dto.GetTokenExchangeByConfidentialClientsOnly())
+	_ = data.Set("token_exchange_by_permitted_clients_only", dto.GetTokenExchangeByPermittedClientsOnly())
+	_ = data.Set("token_exchange_encrypted_jwt_rejected", dto.GetTokenExchangeEncryptedJwtRejected())
+	_ = data.Set("token_exchange_unsigned_jwt_rejected", dto.GetTokenExchangeUnsignedJwtRejected())
+	_ = data.Set("jwt_grant_by_identifiable_clients_only", dto.GetJwtGrantByIdentifiableClientsOnly())
+	_ = data.Set("jwt_grant_encrypted_jwt_rejected", dto.GetJwtGrantEncryptedJwtRejected())
+	_ = data.Set("jwt_grant_unsigned_jwt_rejected", dto.GetJwtGrantUnsignedJwtRejected())
+	_ = data.Set("trust_anchors", mapTrustAnchorFromDTO(dto.GetTrustAnchors()))
+
 	return nil
 }
 
@@ -942,7 +1150,9 @@ func mapSetToString(vals []interface{}) []string {
 	values := make([]string, len(vals))
 
 	for i, v := range vals {
-		values[i] = v.(string)
+		if v != nil {
+			values[i] = v.(string)
+		}
 	}
 
 	return values

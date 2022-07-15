@@ -1,12 +1,8 @@
 package provider
 
 import (
-	"fmt"
-	"testing"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"testing"
 )
 
 func TestAccResourceService_basic(t *testing.T) {
@@ -99,7 +95,7 @@ func TestAccResourceService_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "pkce_s256_required", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "authorization_response_duration", "10"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "iss_response_suppressed", "true"),
-					// resource.TestCheckResourceAttr("authlete_service.complete_described", "ignore_port_loopback_redirect", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "ignore_port_loopback_redirect", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "token_endpoint", "https://api.mystore.com/token"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "direct_token_endpoint_enabled", "false"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_token_auth_methods.0", "CLIENT_SECRET_POST"),
@@ -162,7 +158,7 @@ func TestAccResourceService_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "hsm_enabled", "false"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "user_info_endpoint", "https://api.mystore.com/userinfo"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "direct_user_info_endpoint_enabled", "false"),
-					// resource.TestCheckResourceAttr("authlete_service.complete_described", "dcr_scope_used_as_requestable", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "dcr_scope_used_as_requestable", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "registration_endpoint", "https://api.mystore.com/dcr"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "registration_management_endpoint", "https://api.mystore.com/client/"),
 					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "mtls_endpoint_aliases.*",
@@ -186,16 +182,6 @@ func TestAccResourceService_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "device_flow_polling_interval", "1"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "user_code_charset", "NUMERIC"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "user_code_length", "6"),
-					/*
-						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_trust_frameworks.0", "eidas_ial_high"),
-						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_evidence.0", "id_document"),
-						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_evidence.1", "utility_bill"),
-						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_identity_documents.0", "idcard"),
-						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_identity_documents.1", "password"),
-						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_verification_methods.0", "pipp"),
-						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_verified_claims.0", "given_name"),
-
-					*/
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "end_session_endpoint", "https://www.mystore.com/endsession"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "dcr_duplicate_software_id_blocked", "true"),
 				),
@@ -407,21 +393,180 @@ func TestAccResourceService_unordered(t *testing.T) {
 	})
 }
 
-func CheckOutputPresent(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		ms := s.RootModule()
-		rs, ok := ms.Outputs[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
+func TestAccResourceService_extended_23(t *testing.T) {
 
-		if rs.Value == nil {
-			return fmt.Errorf(
-				"Output '%s': expected to have a value, got %#v",
-				name,
-				rs)
-		}
-
-		return nil
+	if testedAuthleteVersionNotBigger("2.3") {
+		t.Skip("Skipping test as Authlete version less than 2.3")
+		return
 	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		CheckDestroy:      testServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:             testAccResourceServiceEveryAttribute23,
+				ExpectNonEmptyPlan: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "service_name", "attributes coverage test"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "issuer", "https://test.com"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "description", "Attributes support test"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "clients_per_developer", "1"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "client_id_alias_enabled", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "attribute.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attribute.*",
+						map[string]string{
+							"key":   "high_risk_scopes",
+							"value": "scope1 scope2 scope3",
+						}),
+					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attribute.*",
+						map[string]string{
+							"key":   "require_2_fa",
+							"value": "true",
+						}),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_custom_client_metadata.#", "2"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_custom_client_metadata.*", "basic_review"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_custom_client_metadata.*", "domain_match"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "authentication_callback_endpoint", "https://api.mystore.com/authenticate"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "authentication_callback_api_key", "lkjl3k44235kjlk5j43kjdkfslkdf"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "authentication_callback_api_secret", "lknasdljjk42j435kjh34jkkjr"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_acrs.#", "2"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_acrs.*", "loa2"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_acrs.*", "loa3"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "developer_authentication_callback_endpoint", "https://api.mystore.com/partner_auth"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "developer_authentication_callback_api_key", "lkjl3k44235kjlk5j43kjdkfslkdf"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "developer_authentication_callback_api_secret", "lknasdljjk42j435kjh34jkkjr"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_grant_types.#", "2"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_grant_types.*", "AUTHORIZATION_CODE"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_grant_types.*", "REFRESH_TOKEN"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_response_types.0", "CODE"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_authorization_detail_types.0", "payment_initiation"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_service_profiles.*", "FAPI"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_service_profiles.*", "OPEN_BANKING"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "error_description_omitted", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "error_uri_omitted", "false"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "authorization_endpoint", "https://www.mystore.com/authorize"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "direct_authorization_endpoint_enabled", "false"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_ui_locales.#", "4"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_displays.#", "2"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "pkce_required", "false"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "pkce_s256_required", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "authorization_response_duration", "10"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "iss_response_suppressed", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "ignore_port_loopback_redirect", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "token_endpoint", "https://api.mystore.com/token"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "direct_token_endpoint_enabled", "false"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_token_auth_methods.*", "CLIENT_SECRET_POST"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_token_auth_methods.*", "TLS_CLIENT_AUTH"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "mutual_tls_validate_pki_cert_chain", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "trusted_root_certificates.#", "1"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "missing_client_id_allowed", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "revocation_endpoint", "https://api.mystore.com/revoke"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "direct_revocation_endpoint_enabled", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_revocation_auth_methods.#", "2"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_revocation_auth_methods.*", "CLIENT_SECRET_POST"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_revocation_auth_methods.*", "TLS_CLIENT_AUTH"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "pushed_auth_req_endpoint", "https://api.mystore.com/pushed"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "pushed_auth_req_duration", "10"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "par_required", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "request_object_required", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "traditional_request_object_processing_applied", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "nbf_optional", "false"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "front_channel_encryption_request_obj_required", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "encryption_alg_req_obj_match", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "encryption_enc_alg_req_obj_match", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "access_token_type", "Bearer"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "tls_client_certificate_bound_access_tokens", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "access_token_duration", "99"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "single_access_token_per_subject", "false"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "access_token_sign_alg", "PS256"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "access_token_signature_key_id", "kid1"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "refresh_token_duration", "150"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "refresh_token_duration_kept", "false"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "refresh_token_duration_reset", "false"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "refresh_token_kept", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "token_expiration_link", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_scopes.#", "2"),
+
+					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "supported_scopes.*", map[string]string{
+						"name":          "address",
+						"default_entry": "false",
+						"description":   "A permission to request an OpenID Provider to include the address claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details.",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "supported_scopes.*", map[string]string{
+						"name":              "email",
+						"default_entry":     "true",
+						"description":       "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details.",
+						"attribute.0.key":   "key1",
+						"attribute.0.value": "val1",
+					}),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "scope_required", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "id_token_duration", "98"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "allowable_clock_skew", "1"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_claim_types.#", "3"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_claim_locales.#", "3"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_claims.#", "4"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "claim_shortcut_restrictive", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "jwks_endpoint", "https://www.mystore.com/jwks"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "direct_jwks_endpoint_enabled", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "id_token_signature_key_id", "kid1"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "user_info_signature_key_id", "kid1"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "authorization_signature_key_id", "kid2"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "hsm_enabled", "false"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "user_info_endpoint", "https://api.mystore.com/userinfo"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "direct_user_info_endpoint_enabled", "false"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "dcr_scope_used_as_requestable", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "registration_endpoint", "https://api.mystore.com/dcr"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "registration_management_endpoint", "https://api.mystore.com/client/"),
+
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "mtls_endpoint_aliases.0.name", "test"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "mtls_endpoint_aliases.0.uri", "https://test.com"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "policy_uri", "https://www.mystore.com/policy"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "tos_uri", "https://www.mystore.com/tos"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "service_documentation", "https://www.mystore.com/doc"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "backchannel_authentication_endpoint", "https://api.mystore.com/ciba"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_backchannel_token_delivery_modes.0", "POLL"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "backchannel_auth_req_id_duration", "15"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "backchannel_polling_interval", "3"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "backchannel_user_code_parameter_supported", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "backchannel_binding_message_required_in_fapi", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "device_authorization_endpoint", "https://api.mystore.com/device"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "device_verification_uri", "https://api.mystore.com/devverify"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "device_verification_uri_complete", "https://example.com/verification?user_code=USER_CODE"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "device_flow_code_duration", "10"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "device_flow_polling_interval", "1"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "user_code_charset", "NUMERIC"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "user_code_length", "6"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_trust_frameworks.0", "de_aml"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_evidence.*", "id_document"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_evidence.*", "utility_bill"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_documents.*", "idcard"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_documents.*", "passport"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_verification_methods.*", "pipp"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_verified_claims.*", "given_name"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "end_session_endpoint", "https://www.mystore.com/endsession"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "dcr_duplicate_software_id_blocked", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "request_object_audience_checked", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "access_token_for_external_attachment_embedded", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "federation_enabled", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "federation_jwk.#", "1"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "federation_signature_key_id", "ec1"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "federation_configuration_duration", "132"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "federation_registration_endpoint", "https://example.com/federation/jwks"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "organization_name", "Example"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "refresh_token_idempotent", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "signed_jwks_uri", "https://example.com/federation/jwks"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_attachments.*", "EMBEDDED"),
+					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_attachments.*", "EXTERNAL"),
+				),
+			},
+			{
+				ResourceName:            "authlete_service.complete_described",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"api_secret", "jwk"},
+			},
+		},
+	})
 }
