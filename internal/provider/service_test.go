@@ -185,6 +185,7 @@ func TestAccResourceService_extended(t *testing.T) {
 
 					*/
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "end_session_endpoint", "https://www.mystore.com/endsession"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "dcr_duplicate_software_id_blocked", "true"),
 				),
 			},
 			{
