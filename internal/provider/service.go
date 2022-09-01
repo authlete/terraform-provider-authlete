@@ -130,7 +130,8 @@ func service() *schema.Resource {
 				"supported_verified_claims":                     createStringColSchema(),
 			*/
 
-			"end_session_endpoint": {Type: schema.TypeString, Required: false, Optional: true},
+			"end_session_endpoint":              {Type: schema.TypeString, Required: false, Optional: true},
+			"dcr_duplicate_software_id_blocked": {Type: schema.TypeBool, Required: false, Optional: true},
 		},
 	}
 }
@@ -803,6 +804,8 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 	if NotZeroString(data, "end_session_endpoint") {
 		newServiceDto.SetEndSessionEndpoint(data.Get("end_session_endpoint").(string))
 	}
+
+	newServiceDto.SetDcrDuplicateSoftwareIdBlocked(data.Get("dcr_duplicate_software_id_blocked").(bool))
 	return &newServiceDto, diags
 
 }
@@ -925,6 +928,7 @@ func serviceToResource(dto *authlete.Service, data *schema.ResourceData) diag.Di
 		_ = data.Set("supported_verified_claims", mapSchemaFromString(&dto.GetSupportedVerifiedClaims))
 	*/
 	_ = data.Set("end_session_endpoint", dto.GetEndSessionEndpoint())
+	_ = data.Set("dcr_duplicate_software_id_blocked", dto.GetDcrDuplicateSoftwareIdBlocked())
 	return nil
 }
 

@@ -167,6 +167,7 @@ resource "authlete_service" "complete_described" {
   #supported_verification_methods= ["pipp"]
   #supported_verified_claims = ["given_name"]
   end_session_endpoint = "https://www.mystore.com/endsession"
+  dcr_duplicate_software_id_blocked = true
 }
 
 output "api_key" {  
