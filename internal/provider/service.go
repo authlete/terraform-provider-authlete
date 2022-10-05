@@ -290,7 +290,7 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 	if d.HasChange("authorization_response_duration") {
 		srv.SetAuthorizationResponseDuration(int64(d.Get("authorization_response_duration").(int)))
 	}
-	if d.HasChange("iss_response_parameter") {
+	if d.HasChange("iss_response_suppressed") {
 		srv.SetIssSuppressed(d.Get("iss_response_suppressed").(bool))
 	}
 	if d.HasChange("ignore_port_loopback_redirect") {
