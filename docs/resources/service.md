@@ -64,7 +64,7 @@ has a name like supported_custom_client_metadata, in the API it is named `suppor
 - `pkce_required` (Boolean)
 - `pkce_s256_required` (Boolean)
 - `authorization_response_duration` (Number)
-- `iss_response_parameter` (Boolean)
+- `iss_response_suppressed` (Boolean)
 - `ignore_port_loopback_redirect` (Boolean)
 
 ## Token endpoint Attributes
