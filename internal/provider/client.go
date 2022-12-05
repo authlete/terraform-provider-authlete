@@ -215,7 +215,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		existingClient.SetResponseTypes(mapResponseTypesToDTO(d.Get("response_types").([]interface{})))
 	}
 	if d.HasChange("grant_types") {
-		existingClient.SetGrantTypes(mapGrantTypesToDTO(d.Get("grant_types").([]interface{})))
+		existingClient.SetGrantTypes(mapGrantTypesToDTO(d.Get("grant_types").(*schema.Set)))
 	}
 	if d.HasChange("application_type") {
 		if NotZeroString(d, "application_type") {
@@ -235,7 +235,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		}
 	}
 	if d.HasChange("client_names") {
-		existingClient.SetClientNames(mapTaggedValuesToDTO(d.Get("client_names").([]interface{})))
+		existingClient.SetClientNames(mapTaggedValuesToDTO(d.Get("client_names").(*schema.Set).List()))
 	}
 	if d.HasChange("logo_uri") {
 		if NotZeroString(d, "logo_uri") {
@@ -245,7 +245,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		}
 	}
 	if d.HasChange("logo_uris") {
-		existingClient.SetLogoUris(mapTaggedValuesToDTO(d.Get("logo_uris").([]interface{})))
+		existingClient.SetLogoUris(mapTaggedValuesToDTO(d.Get("logo_uris").(*schema.Set).List()))
 	}
 	if d.HasChange("") {
 		if NotZeroString(d, "client_uri") {
@@ -255,7 +255,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		}
 	}
 	if d.HasChange("client_uris") {
-		existingClient.SetClientUris(mapTaggedValuesToDTO(d.Get("client_uris").([]interface{})))
+		existingClient.SetClientUris(mapTaggedValuesToDTO(d.Get("client_uris").(*schema.Set).List()))
 	}
 	if d.HasChange("policy_uri") {
 		if NotZeroString(d, "policy_uri") {
@@ -265,7 +265,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		}
 	}
 	if d.HasChange("policy_uris") {
-		existingClient.SetPolicyUris(mapTaggedValuesToDTO(d.Get("policy_uris").([]interface{})))
+		existingClient.SetPolicyUris(mapTaggedValuesToDTO(d.Get("policy_uris").(*schema.Set).List()))
 	}
 	if d.HasChange("tos_uri") {
 		if NotZeroString(d, "tos_uri") {
@@ -275,7 +275,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		}
 	}
 	if d.HasChange("tos_uris") {
-		existingClient.SetTosUris(mapTaggedValuesToDTO(d.Get("tos_uris").([]interface{})))
+		existingClient.SetTosUris(mapTaggedValuesToDTO(d.Get("tos_uris").(*schema.Set).List()))
 	}
 	if d.HasChange("jwks_uri") {
 		if NotZeroString(d, "jwks_uri") {
@@ -418,7 +418,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		}
 	}
 	if d.HasChange("descriptions") {
-		existingClient.SetDescriptions(mapTaggedValuesToDTO(d.Get("descriptions").([]interface{})))
+		existingClient.SetDescriptions(mapTaggedValuesToDTO(d.Get("descriptions").(*schema.Set).List()))
 	}
 	if d.HasChanges("requestable_scopes_enabled", "requestable_scopes",
 		"access_token_duration", "refresh_token_duration") {
@@ -622,33 +622,33 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) *authlete.Clie
 	if NotZeroString(d, "client_type") {
 		newClient.SetClientType(authlete.ClientType(d.Get("client_type").(string)))
 	}
-	newClient.SetRedirectUris(mapSetToString(d.Get("redirect_uris").([]interface{})))
+	newClient.SetRedirectUris(mapSetToString(d.Get("redirect_uris").(*schema.Set).List()))
 	newClient.SetResponseTypes(mapResponseTypesToDTO(d.Get("response_types").([]interface{})))
-	newClient.SetGrantTypes(mapGrantTypesToDTO(d.Get("grant_types").([]interface{})))
+	newClient.SetGrantTypes(mapGrantTypesToDTO(d.Get("grant_types").(*schema.Set)))
 	if NotZeroString(d, "application_type") {
 		newClient.SetApplicationType(mapApplicationTypeToDto(d.Get("application_type")))
 	}
-	newClient.SetContacts(mapSetToString(d.Get("contacts").([]interface{})))
+	newClient.SetContacts(mapSetToString(d.Get("contacts").(*schema.Set).List()))
 	if NotZeroString(d, "client_name") {
 		newClient.SetClientName(d.Get("client_name").(string))
 	}
-	newClient.SetClientNames(mapTaggedValuesToDTO(d.Get("client_names").([]interface{})))
+	newClient.SetClientNames(mapTaggedValuesToDTO(d.Get("client_names").(*schema.Set).List()))
 	if NotZeroString(d, "logo_uri") {
 		newClient.SetLogoUri(d.Get("logo_uri").(string))
 	}
-	newClient.SetLogoUris(mapTaggedValuesToDTO(d.Get("logo_uris").([]interface{})))
+	newClient.SetLogoUris(mapTaggedValuesToDTO(d.Get("logo_uris").(*schema.Set).List()))
 	if NotZeroString(d, "client_uri") {
 		newClient.SetClientUri(d.Get("client_uri").(string))
 	}
-	newClient.SetClientUris(mapTaggedValuesToDTO(d.Get("client_uris").([]interface{})))
+	newClient.SetClientUris(mapTaggedValuesToDTO(d.Get("client_uris").(*schema.Set).List()))
 	if NotZeroString(d, "policy_uri") {
 		newClient.SetPolicyUri(d.Get("policy_uri").(string))
 	}
-	newClient.SetPolicyUris(mapTaggedValuesToDTO(d.Get("policy_uris").([]interface{})))
+	newClient.SetPolicyUris(mapTaggedValuesToDTO(d.Get("policy_uris").(*schema.Set).List()))
 	if NotZeroString(d, "tos_uri") {
 		newClient.SetTosUri(d.Get("tos_uri").(string))
 	}
-	newClient.SetTosUris(mapTaggedValuesToDTO(d.Get("tos_uris").([]interface{})))
+	newClient.SetTosUris(mapTaggedValuesToDTO(d.Get("tos_uris").(*schema.Set).List()))
 	if NotZeroString(d, "jwks_uri") {
 		newClient.SetJwksUri(d.Get("jwks_uri").(string))
 	}
@@ -702,20 +702,20 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) *authlete.Clie
 		newClient.SetTokenAuthSignAlg(mapJWSAlg(d.Get("token_auth_sign_alg")))
 	}
 	newClient.SetDefaultMaxAge(int32(d.Get("default_max_age").(int)))
-	newClient.SetDefaultAcrs(mapSetToString(d.Get("default_acrs").([]interface{})))
+	newClient.SetDefaultAcrs(mapSetToString(d.Get("default_acrs").(*schema.Set).List()))
 	newClient.SetAuthTimeRequired(d.Get("auth_time_required").(bool))
 	if NotZeroString(d, "login_uri") {
 		newClient.SetLoginUri(d.Get("login_uri").(string))
 	}
-	newClient.SetRequestUris(mapSetToString(d.Get("request_uris").([]interface{})))
+	newClient.SetRequestUris(mapSetToString(d.Get("request_uris").(*schema.Set).List()))
 	if NotZeroString(d, "description") {
 		newClient.SetDescription(d.Get("description").(string))
 	}
-	newClient.SetDescriptions(mapTaggedValuesToDTO(d.Get("descriptions").([]interface{})))
+	newClient.SetDescriptions(mapTaggedValuesToDTO(d.Get("descriptions").(*schema.Set).List()))
 
 	ext := authlete.NewClientExtension()
 	ext.SetRequestableScopesEnabled(d.Get("requestable_scopes_enabled").(bool))
-	ext.SetRequestableScopes(mapSetToString(d.Get("requestable_scopes").([]interface{})))
+	ext.SetRequestableScopes(mapSetToString(d.Get("requestable_scopes").(*schema.Set).List()))
 	ext.SetAccessTokenDuration(int64(d.Get("access_token_duration").(int)))
 	ext.SetRefreshTokenDuration(int64(d.Get("refresh_token_duration").(int)))
 	newClient.SetExtension(*ext)
@@ -768,10 +768,10 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) *authlete.Clie
 	if NotZeroString(d, "registration_access_token_hash") {
 		newClient.SetRegistrationAccessTokenHash(d.Get("registration_access_token_hash").(string))
 	}
-	newClient.SetAuthorizationDetailsTypes(mapSetToString(d.Get("authorization_details_types").([]interface{})))
+	newClient.SetAuthorizationDetailsTypes(mapSetToString(d.Get("authorization_details_types").(*schema.Set).List()))
 	newClient.SetParRequired(d.Get("par_required").(bool))
 	newClient.SetRequestObjectRequired(d.Get("request_object_required").(bool))
-	newClient.SetAttributes(mapAttributesToDTO(d.Get("attributes").([]interface{})))
+	newClient.SetAttributes(mapAttributesToDTO(d.Get("attributes").(*schema.Set).List()))
 	if NotZeroString(d, "custom_metadata") {
 		newClient.SetCustomMetadata(d.Get("custom_metadata").(string))
 	}

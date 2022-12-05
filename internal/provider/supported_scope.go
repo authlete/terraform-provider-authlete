@@ -7,7 +7,7 @@ import (
 
 func createSupportedScopeSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
+		Type:     schema.TypeSet,
 		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -32,17 +32,17 @@ func createSupportedScopeSchema() *schema.Schema {
 	}
 }
 
-func mapSupportedScopeToDTO(vals []interface{}) []authlete.Scope {
-	mapped := make([]authlete.Scope, len(vals))
+func mapSupportedScopeToDTO(vals *schema.Set) []authlete.Scope {
+	mapped := make([]authlete.Scope, vals.Len())
 
-	for i, v := range vals {
+	for i, v := range vals.List() {
 		var entry = v.(map[string]interface{})
 		newScope := authlete.NewScope()
 		newScope.SetName(entry["name"].(string))
 		newScope.SetDescription(entry["description"].(string))
 		newScope.SetDefaultEntry(entry["default_entry"].(bool))
-		newScope.SetDescriptions(mapTaggedValue(entry["descriptions"].([]interface{})))
-		newScope.SetAttributes(mapAttributesToDTO(entry["attribute"].([]interface{})))
+		newScope.SetDescriptions(mapTaggedValue(entry["descriptions"].(*schema.Set).List()))
+		newScope.SetAttributes(mapAttributesToDTO(entry["attribute"].(*schema.Set).List()))
 		mapped[i] = *newScope
 	}
 	return mapped
