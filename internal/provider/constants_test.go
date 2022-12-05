@@ -178,6 +178,32 @@ output "api_secret" {
 }
 `
 
+const testAccResourceServiceUnordered = `
+provider "authlete" {
+}
+
+resource "authlete_service" "prod" {
+  issuer = "https://test.com"
+  service_name = "Simplest Test API"
+  supported_grant_types = ["REFRESH_TOKEN", "AUTHORIZATION_CODE" ]
+  supported_response_types = ["CODE"]
+
+  supported_scopes {
+    name = "test2"
+  }
+  supported_scopes {
+    name = "test1"
+  }
+}
+
+output "api_key" {  
+  value = authlete_service.prod.id
+}
+output "api_secret" {  
+  value = authlete_service.prod.api_secret
+}
+`
+
 // Scenarios for crypto tests
 
 const testAccGenerateRSAKeys = `

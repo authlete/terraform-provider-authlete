@@ -252,7 +252,7 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("supported_grant_types") {
-		srv.SetSupportedGrantTypes(mapGrantTypesToDTO(d.Get("supported_grant_types").([]interface{})))
+		srv.SetSupportedGrantTypes(mapGrantTypesToDTO(d.Get("supported_grant_types").(*schema.Set)))
 	}
 	if d.HasChange("supported_response_types") {
 		srv.SetSupportedResponseTypes(mapResponseTypesToDTO(d.Get("supported_response_types").([]interface{})))
@@ -388,7 +388,7 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		srv.SetTokenExpirationLinked(d.Get("token_expiration_link").(bool))
 	}
 	if d.HasChange("supported_scopes") {
-		srv.SetSupportedScopes(mapSupportedScopeToDTO(d.Get("supported_scopes").([]interface{})))
+		srv.SetSupportedScopes(mapSupportedScopeToDTO(d.Get("supported_scopes").(*schema.Set)))
 	}
 	if d.HasChange("scope_required") {
 		srv.SetScopeRequired(d.Get("scope_required").(bool))
@@ -577,10 +577,10 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 	}
 	newServiceDto.SetClientIdAliasEnabled(data.Get("client_id_alias_enabled").(bool))
 	if NotZeroArray(data, "attribute") {
-		newServiceDto.SetAttributes(mapAttributesToDTO(data.Get("attribute").([]interface{})))
+		newServiceDto.SetAttributes(mapAttributesToDTO(data.Get("attribute").(*schema.Set).List()))
 	}
 	if NotZeroArray(data, "supported_custom_client_metadata") {
-		newServiceDto.SetSupportedCustomClientMetadata(mapSetToString(data.Get("supported_custom_client_metadata").([]interface{})))
+		newServiceDto.SetSupportedCustomClientMetadata(mapSetToString(data.Get("supported_custom_client_metadata").(*schema.Set).List()))
 	}
 	if NotZeroString(data, "authentication_callback_endpoint") {
 		newServiceDto.SetAuthenticationCallbackEndpoint(data.Get("authentication_callback_endpoint").(string))
@@ -592,7 +592,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 		newServiceDto.SetAuthenticationCallbackApiSecret(data.Get("authentication_callback_api_secret").(string))
 	}
 	if NotZeroArray(data, "supported_acrs") {
-		newServiceDto.SetSupportedAcrs(mapSetToString(data.Get("supported_acrs").([]interface{})))
+		newServiceDto.SetSupportedAcrs(mapSetToString(data.Get("supported_acrs").(*schema.Set).List()))
 	}
 	if NotZeroString(data, "developer_authentication_callback_endpoint") {
 		newServiceDto.SetDeveloperAuthenticationCallbackEndpoint(data.Get("developer_authentication_callback_endpoint").(string))
@@ -604,13 +604,13 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 		newServiceDto.SetDeveloperAuthenticationCallbackApiSecret(data.Get("developer_authentication_callback_api_secret").(string))
 	}
 	if NotZeroArray(data, "supported_grant_types") {
-		newServiceDto.SetSupportedGrantTypes(mapGrantTypesToDTO(data.Get("supported_grant_types").([]interface{})))
+		newServiceDto.SetSupportedGrantTypes(mapGrantTypesToDTO(data.Get("supported_grant_types").(*schema.Set)))
 	}
 	if NotZeroArray(data, "supported_response_types") {
 		newServiceDto.SetSupportedResponseTypes(mapResponseTypesToDTO(data.Get("supported_response_types").([]interface{})))
 	}
 	if NotZeroArray(data, "supported_authorization_detail_types") {
-		newServiceDto.SetSupportedAuthorizationDetailsTypes(mapSetToString(data.Get("supported_authorization_detail_types").([]interface{})))
+		newServiceDto.SetSupportedAuthorizationDetailsTypes(mapSetToString(data.Get("supported_authorization_detail_types").(*schema.Set).List()))
 	}
 	if NotZeroArray(data, "supported_service_profiles") {
 		newServiceDto.SetSupportedServiceProfiles(mapSupportedFrameworkToDTO(data.Get("supported_service_profiles").([]interface{})))
@@ -622,7 +622,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 	}
 	newServiceDto.SetDirectAuthorizationEndpointEnabled(data.Get("direct_authorization_endpoint_enabled").(bool))
 	if NotZeroArray(data, "supported_ui_locales") {
-		newServiceDto.SetSupportedUiLocales(mapSetToString(data.Get("supported_ui_locales").([]interface{})))
+		newServiceDto.SetSupportedUiLocales(mapSetToString(data.Get("supported_ui_locales").(*schema.Set).List()))
 	}
 	if NotZeroArray(data, "supported_displays") {
 		newServiceDto.SetSupportedDisplays(mapSupportedDisplayToDTO(data.Get("supported_displays").([]interface{})))
@@ -643,7 +643,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 	}
 	newServiceDto.SetMutualTlsValidatePkiCertChain(data.Get("mutual_tls_validate_pki_cert_chain").(bool))
 	if NotZeroArray(data, "trusted_root_certificates") {
-		newServiceDto.SetTrustedRootCertificates(mapSetToString(data.Get("trusted_root_certificates").([]interface{})))
+		newServiceDto.SetTrustedRootCertificates(mapSetToString(data.Get("trusted_root_certificates").(*schema.Set).List()))
 	}
 	newServiceDto.SetMissingClientIdAllowed(data.Get("missing_client_id_allowed").(bool))
 	if NotZeroString(data, "revocation_endpoint") {
@@ -695,7 +695,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 	newServiceDto.SetRefreshTokenKept(data.Get("refresh_token_kept").(bool))
 	newServiceDto.SetTokenExpirationLinked(data.Get("token_expiration_link").(bool))
 	if NotZeroArray(data, "supported_scopes") {
-		newServiceDto.SetSupportedScopes(mapSupportedScopeToDTO(data.Get("supported_scopes").([]interface{})))
+		newServiceDto.SetSupportedScopes(mapSupportedScopeToDTO(data.Get("supported_scopes").(*schema.Set)))
 	}
 	newServiceDto.SetScopeRequired(data.Get("scope_required").(bool))
 	if NotZeroNumber(data, "id_token_duration") {
@@ -708,10 +708,10 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 		newServiceDto.SetSupportedClaimTypes(mapClaimTypesToDTO(data.Get("supported_claim_types").([]interface{})))
 	}
 	if NotZeroArray(data, "supported_claim_locales") {
-		newServiceDto.SetSupportedClaimLocales(mapSetToString(data.Get("supported_claim_locales").([]interface{})))
+		newServiceDto.SetSupportedClaimLocales(mapSetToString(data.Get("supported_claim_locales").(*schema.Set).List()))
 	}
 	if NotZeroArray(data, "supported_claims") {
-		newServiceDto.SetSupportedClaims(mapSetToString(data.Get("supported_claims").([]interface{})))
+		newServiceDto.SetSupportedClaims(mapSetToString(data.Get("supported_claims").(*schema.Set).List()))
 	}
 	newServiceDto.SetClaimShortcutRestrictive(data.Get("claim_shortcut_restrictive").(bool))
 	if NotZeroString(data, "jwks_endpoint") {
@@ -955,7 +955,7 @@ func mapSchemaFromString(vals []string) []interface{} {
 
 func createStringColSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
+		Type:     schema.TypeSet,
 		Optional: true,
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
