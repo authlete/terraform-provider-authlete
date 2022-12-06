@@ -224,10 +224,10 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		srv.SetClientIdAliasEnabled(d.Get("client_id_alias_enabled").(bool))
 	}
 	if d.HasChange("attributes") {
-		srv.Attributes = mapAttributesToDTO(d.Get("attribute").([]interface{}))
+		srv.Attributes = mapAttributesToDTO(d.Get("attribute").(*schema.Set).List())
 	}
 	if d.HasChange("supported_custom_client_metadata") {
-		srv.SetSupportedCustomClientMetadata(mapSetToString(d.Get("supported_custom_client_metadata").([]interface{})))
+		srv.SetSupportedCustomClientMetadata(mapSetToString(d.Get("supported_custom_client_metadata").(*schema.Set).List()))
 	}
 	if d.HasChange("authentication_callback_endpoint") {
 		srv.SetAuthenticationCallbackEndpoint(d.Get("authentication_callback_endpoint").(string))
@@ -239,7 +239,7 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		srv.SetAuthenticationCallbackApiSecret(d.Get("authentication_callback_api_secret").(string))
 	}
 	if d.HasChange("supported_acrs") {
-		srv.SetSupportedAcrs(mapSetToString(d.Get("supported_acrs").([]interface{})))
+		srv.SetSupportedAcrs(mapSetToString(d.Get("supported_acrs").(*schema.Set).List()))
 	}
 	if d.HasChange("developer_authentication_callback_endpoint") {
 		srv.SetDeveloperAuthenticationCallbackEndpoint(d.Get("developer_authentication_callback_endpoint").(string))
@@ -255,13 +255,13 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		srv.SetSupportedGrantTypes(mapGrantTypesToDTO(d.Get("supported_grant_types").(*schema.Set)))
 	}
 	if d.HasChange("supported_response_types") {
-		srv.SetSupportedResponseTypes(mapResponseTypesToDTO(d.Get("supported_response_types").([]interface{})))
+		srv.SetSupportedResponseTypes(mapResponseTypesToDTO(d.Get("supported_response_types").(*schema.Set).List()))
 	}
 	if d.HasChange("supported_authorization_detail_types") {
-		srv.SetSupportedAuthorizationDetailsTypes(mapSetToString(d.Get("supported_authorization_detail_types").([]interface{})))
+		srv.SetSupportedAuthorizationDetailsTypes(mapSetToString(d.Get("supported_authorization_detail_types").(*schema.Set).List()))
 	}
 	if d.HasChange("supported_service_profiles") {
-		srv.SetSupportedServiceProfiles(mapSupportedFrameworkToDTO(d.Get("supported_service_profiles").([]interface{})))
+		srv.SetSupportedServiceProfiles(mapSupportedFrameworkToDTO(d.Get("supported_service_profiles").(*schema.Set).List()))
 	}
 	if d.HasChange("error_description_omitted") {
 		srv.SetErrorDescriptionOmitted(d.Get("error_description_omitted").(bool))
@@ -276,10 +276,10 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		srv.SetDirectAuthorizationEndpointEnabled(d.Get("direct_authorization_endpoint_enabled").(bool))
 	}
 	if d.HasChange("supported_ui_locales") {
-		srv.SetSupportedUiLocales(mapSetToString(d.Get("supported_ui_locales").([]interface{})))
+		srv.SetSupportedUiLocales(mapSetToString(d.Get("supported_ui_locales").(*schema.Set).List()))
 	}
 	if d.HasChange("supported_displays") {
-		srv.SetSupportedDisplays(mapSupportedDisplayToDTO(d.Get("supported_displays").([]interface{})))
+		srv.SetSupportedDisplays(mapSupportedDisplayToDTO(d.Get("supported_displays").(*schema.Set).List()))
 	}
 	if d.HasChange("pkce_required") {
 		srv.SetPkceRequired(d.Get("pkce_required").(bool))
@@ -303,13 +303,13 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		srv.SetDirectTokenEndpointEnabled(d.Get("direct_token_endpoint_enabled").(bool))
 	}
 	if d.HasChange("supported_token_auth_methods") {
-		srv.SetSupportedTokenAuthMethods(mapClientAuthMethods(d.Get("supported_token_auth_methods").([]interface{})))
+		srv.SetSupportedTokenAuthMethods(mapClientAuthMethods(d.Get("supported_token_auth_methods").(*schema.Set).List()))
 	}
 	if d.HasChange("mutual_tls_validate_pki_cert_chain") {
 		srv.SetMutualTlsValidatePkiCertChain(d.Get("mutual_tls_validate_pki_cert_chain").(bool))
 	}
 	if d.HasChange("trusted_root_certificates") {
-		srv.SetTrustedRootCertificates(mapSetToString(d.Get("trusted_root_certificates").([]interface{})))
+		srv.SetTrustedRootCertificates(mapSetToString(d.Get("trusted_root_certificates").(*schema.Set).List()))
 	}
 	if d.HasChange("missing_client_id_allowed") {
 		srv.SetMissingClientIdAllowed(d.Get("missing_client_id_allowed").(bool))
@@ -321,7 +321,7 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		srv.SetDirectRevocationEndpointEnabled(d.Get("direct_revocation_endpoint_enabled").(bool))
 	}
 	if d.HasChange("supported_revocation_auth_methods") {
-		srv.SetSupportedRevocationAuthMethods(mapClientAuthMethods(d.Get("supported_revocation_auth_methods").([]interface{})))
+		srv.SetSupportedRevocationAuthMethods(mapClientAuthMethods(d.Get("supported_revocation_auth_methods").(*schema.Set).List()))
 	}
 	if d.HasChange("introspection_endpoint") {
 		srv.SetIntrospectionEndpoint(d.Get("introspection_endpoint").(string))
@@ -330,7 +330,7 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		srv.SetDirectIntrospectionEndpointEnabled(d.Get("direct_introspection_endpoint_enabled").(bool))
 	}
 	if d.HasChange("supported_introspection_auth_methods") {
-		srv.SetSupportedIntrospectionAuthMethods(mapClientAuthMethods(d.Get("supported_introspection_auth_methods").([]interface{})))
+		srv.SetSupportedIntrospectionAuthMethods(mapClientAuthMethods(d.Get("supported_introspection_auth_methods").(*schema.Set).List()))
 	}
 	if d.HasChange("pushed_auth_req_endpoint") {
 		srv.SetPushedAuthReqEndpoint(d.Get("pushed_auth_req_endpoint").(string))
@@ -400,13 +400,13 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		srv.SetAllowableClockSkew(int32(d.Get("allowable_clock_skew").(int)))
 	}
 	if d.HasChange("supported_claim_types") {
-		srv.SetSupportedClaimTypes(mapClaimTypesToDTO(d.Get("supported_claim_types").([]interface{})))
+		srv.SetSupportedClaimTypes(mapClaimTypesToDTO(d.Get("supported_claim_types").(*schema.Set).List()))
 	}
 	if d.HasChange("supported_claim_locales") {
-		srv.SetSupportedClaimLocales(mapSetToString(d.Get("supported_claim_locales").([]interface{})))
+		srv.SetSupportedClaimLocales(mapSetToString(d.Get("supported_claim_locales").(*schema.Set).List()))
 	}
 	if d.HasChange("supported_claims") {
-		srv.SetSupportedClaims(mapSetToString(d.Get("supported_claims").([]interface{})))
+		srv.SetSupportedClaims(mapSetToString(d.Get("supported_claims").(*schema.Set).List()))
 	}
 	if d.HasChange("claim_shortcut_restrictive") {
 		srv.SetClaimShortcutRestrictive(d.Get("claim_shortcut_restrictive").(bool))
@@ -424,7 +424,7 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 			Detail:   "Updating JWK ",
 		})
 
-		jwks, _ := updateJWKS(d.Get("jwk").([]interface{}), srv.GetJwks(), diags)
+		jwks, _ := updateJWKS(d.Get("jwk").(*schema.Set).List(), srv.GetJwks(), diags)
 		srv.SetJwks(jwks)
 	}
 
@@ -459,7 +459,7 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		srv.SetRegistrationManagementEndpoint(d.Get("registration_management_endpoint").(string))
 	}
 	if d.HasChange("mtls_endpoint_aliases") {
-		srv.SetMtlsEndpointAliases(mapMtlsEndpoint(d.Get("mtls_endpoint_aliases").([]interface{})))
+		srv.SetMtlsEndpointAliases(mapMtlsEndpoint(d.Get("mtls_endpoint_aliases").(*schema.Set).List()))
 	}
 	if d.HasChange("policy_uri") {
 		srv.SetPolicyUri(d.Get("policy_uri").(string))
@@ -474,7 +474,7 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		srv.SetBackchannelAuthenticationEndpoint(d.Get("backchannel_authentication_endpoint").(string))
 	}
 	if d.HasChange("supported_backchannel_token_delivery_modes") {
-		srv.SetSupportedBackchannelTokenDeliveryModes(mapBackchannelDelivery(d.Get("supported_backchannel_token_delivery_modes").([]interface{})))
+		srv.SetSupportedBackchannelTokenDeliveryModes(mapBackchannelDelivery(d.Get("supported_backchannel_token_delivery_modes").(*schema.Set).List()))
 	}
 	if d.HasChange("backchannel_auth_req_id_duration") {
 		srv.SetBackchannelAuthReqIdDuration(int32(d.Get("backchannel_auth_req_id_duration").(int)))
@@ -607,13 +607,13 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 		newServiceDto.SetSupportedGrantTypes(mapGrantTypesToDTO(data.Get("supported_grant_types").(*schema.Set)))
 	}
 	if NotZeroArray(data, "supported_response_types") {
-		newServiceDto.SetSupportedResponseTypes(mapResponseTypesToDTO(data.Get("supported_response_types").([]interface{})))
+		newServiceDto.SetSupportedResponseTypes(mapResponseTypesToDTO(data.Get("supported_response_types").(*schema.Set).List()))
 	}
 	if NotZeroArray(data, "supported_authorization_detail_types") {
 		newServiceDto.SetSupportedAuthorizationDetailsTypes(mapSetToString(data.Get("supported_authorization_detail_types").(*schema.Set).List()))
 	}
 	if NotZeroArray(data, "supported_service_profiles") {
-		newServiceDto.SetSupportedServiceProfiles(mapSupportedFrameworkToDTO(data.Get("supported_service_profiles").([]interface{})))
+		newServiceDto.SetSupportedServiceProfiles(mapSupportedFrameworkToDTO(data.Get("supported_service_profiles").(*schema.Set).List()))
 	}
 	newServiceDto.SetErrorDescriptionOmitted(data.Get("error_description_omitted").(bool))
 	newServiceDto.SetErrorUriOmitted(data.Get("error_uri_omitted").(bool))
@@ -625,7 +625,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 		newServiceDto.SetSupportedUiLocales(mapSetToString(data.Get("supported_ui_locales").(*schema.Set).List()))
 	}
 	if NotZeroArray(data, "supported_displays") {
-		newServiceDto.SetSupportedDisplays(mapSupportedDisplayToDTO(data.Get("supported_displays").([]interface{})))
+		newServiceDto.SetSupportedDisplays(mapSupportedDisplayToDTO(data.Get("supported_displays").(*schema.Set).List()))
 	}
 	newServiceDto.SetPkceRequired(data.Get("pkce_required").(bool))
 	newServiceDto.SetPkceS256Required(data.Get("pkce_s256_required").(bool))
@@ -639,7 +639,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 	}
 	newServiceDto.SetDirectTokenEndpointEnabled(data.Get("direct_token_endpoint_enabled").(bool))
 	if NotZeroArray(data, "supported_token_auth_methods") {
-		newServiceDto.SetSupportedTokenAuthMethods(mapClientAuthMethods(data.Get("supported_token_auth_methods").([]interface{})))
+		newServiceDto.SetSupportedTokenAuthMethods(mapClientAuthMethods(data.Get("supported_token_auth_methods").(*schema.Set).List()))
 	}
 	newServiceDto.SetMutualTlsValidatePkiCertChain(data.Get("mutual_tls_validate_pki_cert_chain").(bool))
 	if NotZeroArray(data, "trusted_root_certificates") {
@@ -651,14 +651,14 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 	}
 	newServiceDto.SetDirectRevocationEndpointEnabled(data.Get("direct_revocation_endpoint_enabled").(bool))
 	if NotZeroArray(data, "supported_revocation_auth_methods") {
-		newServiceDto.SetSupportedRevocationAuthMethods(mapClientAuthMethods(data.Get("supported_revocation_auth_methods").([]interface{})))
+		newServiceDto.SetSupportedRevocationAuthMethods(mapClientAuthMethods(data.Get("supported_revocation_auth_methods").(*schema.Set).List()))
 	}
 	if NotZeroString(data, "introspection_endpoint") {
 		newServiceDto.SetIntrospectionEndpoint(data.Get("introspection_endpoint").(string))
 	}
 	newServiceDto.SetDirectIntrospectionEndpointEnabled(data.Get("direct_introspection_endpoint_enabled").(bool))
 	if NotZeroArray(data, "supported_introspection_auth_methods") {
-		newServiceDto.SetSupportedIntrospectionAuthMethods(mapClientAuthMethods(data.Get("supported_introspection_auth_methods").([]interface{})))
+		newServiceDto.SetSupportedIntrospectionAuthMethods(mapClientAuthMethods(data.Get("supported_introspection_auth_methods").(*schema.Set).List()))
 	}
 	if NotZeroString(data, "pushed_auth_req_endpoint") {
 		newServiceDto.SetPushedAuthReqEndpoint(data.Get("pushed_auth_req_endpoint").(string))
@@ -705,7 +705,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 		newServiceDto.SetAllowableClockSkew(int32(data.Get("allowable_clock_skew").(int)))
 	}
 	if NotZeroArray(data, "supported_claim_types") {
-		newServiceDto.SetSupportedClaimTypes(mapClaimTypesToDTO(data.Get("supported_claim_types").([]interface{})))
+		newServiceDto.SetSupportedClaimTypes(mapClaimTypesToDTO(data.Get("supported_claim_types").(*schema.Set).List()))
 	}
 	if NotZeroArray(data, "supported_claim_locales") {
 		newServiceDto.SetSupportedClaimLocales(mapSetToString(data.Get("supported_claim_locales").(*schema.Set).List()))
@@ -720,7 +720,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 	newServiceDto.SetDirectJwksEndpointEnabled(data.Get("direct_jwks_endpoint_enabled").(bool))
 	if NotZeroArray(data, "jwk") {
 		var jwk string
-		jwk, diags = mapJWKS(data.Get("jwk").([]interface{}), diags)
+		jwk, diags = mapJWKS(data.Get("jwk").(*schema.Set).List(), diags)
 		newServiceDto.SetJwks(jwk)
 	}
 	if NotZeroString(data, "id_token_signature_key_id") {
@@ -747,7 +747,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 		newServiceDto.SetRegistrationManagementEndpoint(data.Get("registration_management_endpoint").(string))
 	}
 	if NotZeroArray(data, "mtls_endpoint_aliases") {
-		newServiceDto.SetMtlsEndpointAliases(mapMtlsEndpoint(data.Get("mtls_endpoint_aliases").([]interface{})))
+		newServiceDto.SetMtlsEndpointAliases(mapMtlsEndpoint(data.Get("mtls_endpoint_aliases").(*schema.Set).List()))
 	}
 	if NotZeroString(data, "policy_uri") {
 		newServiceDto.SetPolicyUri(data.Get("policy_uri").(string))
@@ -762,7 +762,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics) (*authlete
 		newServiceDto.SetBackchannelAuthenticationEndpoint(data.Get("backchannel_authentication_endpoint").(string))
 	}
 	if NotZeroArray(data, "supported_backchannel_token_delivery_modes") {
-		newServiceDto.SetSupportedBackchannelTokenDeliveryModes(mapBackchannelDelivery(data.Get("supported_backchannel_token_delivery_modes").([]interface{})))
+		newServiceDto.SetSupportedBackchannelTokenDeliveryModes(mapBackchannelDelivery(data.Get("supported_backchannel_token_delivery_modes").(*schema.Set).List()))
 	}
 	if NotZeroNumber(data, "backchannel_auth_req_id_duration") {
 		newServiceDto.SetBackchannelAuthReqIdDuration(int32(data.Get("backchannel_auth_req_id_duration").(int)))
@@ -887,7 +887,7 @@ func serviceToResource(dto *authlete.Service, data *schema.ResourceData) diag.Di
 	_ = data.Set("claim_shortcut_restrictive", dto.GetClaimShortcutRestrictive())
 	_ = data.Set("jwks_endpoint", dto.GetJwksUri())
 	_ = data.Set("direct_jwks_endpoint_enabled", dto.GetDirectJwksEndpointEnabled())
-	jwk, err := mapJWKFromDTO(data.Get("jwk").([]interface{}), dto.GetJwks())
+	jwk, err := mapJWKFromDTO(data.Get("jwk").(*schema.Set).List(), dto.GetJwks())
 	if err != nil {
 		return diag.FromErr(err)
 	}

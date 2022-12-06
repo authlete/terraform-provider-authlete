@@ -23,8 +23,11 @@ func TestAccResourceServiceCrypto_rsa(t *testing.T) {
 				Config: testAccGenerateRSAKeys,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("authlete_service.rsa", "jwk.#", "9"),
-					resource.TestCheckResourceAttr("authlete_service.rsa", "jwk.0.kid", "rsa1"),
-					resource.TestCheckResourceAttr("authlete_service.rsa", "jwk.0.alg", "RS256"),
+					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.rsa", "jwk.*",
+						map[string]string{
+							"kid": "rsa1",
+							"alg": "RS256",
+						}),
 				),
 			},
 		},
@@ -97,8 +100,11 @@ func TestAccResourceServiceCrypto_import(t *testing.T) {
 				Config: testAccGenerateRSAKeysImport,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("authlete_service.import", "jwk.#", "2"),
-					resource.TestCheckResourceAttr("authlete_service.import", "jwk.0.kid", "rsa1"),
-					resource.TestCheckResourceAttr("authlete_service.import", "jwk.0.alg", "PS256"),
+					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.import", "jwk.*",
+						map[string]string{
+							"kid": "rsa1",
+							"alg": "PS256",
+						}),
 				),
 			},
 			{
