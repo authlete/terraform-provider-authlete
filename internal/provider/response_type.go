@@ -8,7 +8,7 @@ import (
 
 func createResponseTypeSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
+		Type:     schema.TypeSet,
 		Optional: false,
 		Required: true,
 		Elem: &schema.Schema{

@@ -223,7 +223,7 @@ resource "authlete_service" "rsa" {
 	  alg = "RS256" 
 	  use = "sig" 
 	  kty = "RSA"
-  key_size = 2048
+      key_size = 2048
       generate = true
    }
    jwk {
@@ -231,7 +231,7 @@ resource "authlete_service" "rsa" {
 	  alg = "RS384" 
 	  use = "sig" 
 	  kty = "RSA"
- key_size = 2048
+      key_size = 2048
       generate = true
    }
    jwk {

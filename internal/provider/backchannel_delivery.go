@@ -8,7 +8,7 @@ import (
 
 func createBackchannelDeliverySchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
+		Type:     schema.TypeSet,
 		Optional: true,
 		Elem: &schema.Schema{
 			Type: schema.TypeString,

@@ -623,7 +623,7 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) *authlete.Clie
 		newClient.SetClientType(authlete.ClientType(d.Get("client_type").(string)))
 	}
 	newClient.SetRedirectUris(mapSetToString(d.Get("redirect_uris").(*schema.Set).List()))
-	newClient.SetResponseTypes(mapResponseTypesToDTO(d.Get("response_types").([]interface{})))
+	newClient.SetResponseTypes(mapResponseTypesToDTO(d.Get("response_types").(*schema.Set).List()))
 	newClient.SetGrantTypes(mapGrantTypesToDTO(d.Get("grant_types").(*schema.Set)))
 	if NotZeroString(d, "application_type") {
 		newClient.SetApplicationType(mapApplicationTypeToDto(d.Get("application_type")))
@@ -656,7 +656,7 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) *authlete.Clie
 		newClient.SetJwks(d.Get("jwks").(string))
 	} else if NotZeroArray(d, "jwk") {
 		var jwk string
-		jwk, diags = mapJWKS(d.Get("jwk").([]interface{}), diags)
+		jwk, diags = mapJWKS(d.Get("jwk").(*schema.Set).List(), diags)
 		newClient.SetJwks(jwk)
 	}
 	if NotZeroString(d, "derived_sector_identifier") {
@@ -807,7 +807,7 @@ func updateResourceFromClient(d *schema.ResourceData, client *authlete.Client) {
 	_ = d.Set("jwks_uri", client.GetJwksUri())
 	_ = d.Set("jwks", nil)
 
-	jwk, _ := mapJWKFromDTO(d.Get("jwk").([]interface{}), client.GetJwks())
+	jwk, _ := mapJWKFromDTO(d.Get("jwk").(*schema.Set).List(), client.GetJwks())
 
 	_ = d.Set("jwk", jwk)
 
