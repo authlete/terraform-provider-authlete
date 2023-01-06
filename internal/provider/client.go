@@ -289,7 +289,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 			existingClient.SetJwks(d.Get("jwks").(string))
 		} else if NotZeroArray(d, "jwk") {
 			var jwk string
-			jwk, diags = updateJWKS(d.Get("jwk").([]interface{}), existingClient.GetJwks(), diags)
+			jwk, diags = updateJWKS(d.Get("jwk").(*schema.Set).List(), existingClient.GetJwks(), diags)
 			existingClient.SetJwks(jwk)
 		}
 	}

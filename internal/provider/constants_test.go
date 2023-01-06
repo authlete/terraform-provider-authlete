@@ -178,6 +178,163 @@ output "api_secret" {
 }
 `
 
+const testAccResourceServiceUpdateEveryAttribute = `
+
+provider "authlete" {
+	
+}
+
+resource "authlete_service" "complete_described" {
+  service_name = "attributes coverage test2"
+  issuer = "https://test2.com"
+  description = "Attributes support test2"
+  clients_per_developer = 2
+  client_id_alias_enabled = false
+  attribute {
+  	 key = "require_2_fa"
+     value = "false"
+  }
+  attribute {
+  	 key = "high_risk_scopes"
+     value = "scope1 scope2 scope3 scope4"
+  }
+  supported_custom_client_metadata = ["basic_review2", "domain_match"]
+  authentication_callback_endpoint = "https://api.mystore.com/authenticate"
+  authentication_callback_api_key = "lkjl3k44235kjlk5j43kjdkfslkdf"
+  authentication_callback_api_secret = "lknasdljjk42j435kjh34jkkjr"
+  supported_acrs = ["loa2", "loa4"]
+  developer_authentication_callback_endpoint = "https://api.mystore.com/partner_auth"
+  developer_authentication_callback_api_key = "lkjl3k44235kjlk5j43kjdkfslkdf"
+  developer_authentication_callback_api_secret = "lknasdljjk42j435kjh34jkkjr"
+  supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN", "IMPLICIT"]
+  supported_response_types = ["CODE", "CODE_ID_TOKEN"]
+  supported_authorization_detail_types = ["payment_initiation","test_detail"]
+  supported_service_profiles = ["FAPI" ]
+  error_description_omitted = false
+  error_uri_omitted = true
+  authorization_endpoint = "https://api.mystore.com/authorize"
+  direct_authorization_endpoint_enabled = false
+  supported_ui_locales = ["fr-CA","fr", "en-GB", "en"]
+  supported_displays = [ "PAGE" ]
+  pkce_required = true
+  pkce_s256_required = true
+  authorization_response_duration = 100
+  iss_response_suppressed = true
+  ignore_port_loopback_redirect = true
+  token_endpoint = "https://api.mystore.com/token"
+  direct_token_endpoint_enabled = false
+  supported_token_auth_methods = ["CLIENT_SECRET_POST", "TLS_CLIENT_AUTH"]
+  mutual_tls_validate_pki_cert_chain = true
+  trusted_root_certificates = ["-----BEGIN CERTIFICATE-----\r\nMIIDpjCCAo6gAwIBAgIUS3mWeRx1uG/SMl/ql55VwRtNz7wwDQYJKoZIhvcNAQEL\r\nBQAwazELMAkGA1UEBhMCQlIxHDAaBgNVBAoTE09wZW4gQmFua2luZyBCcmFzaWwx\r\nFTATBgNVBAsTDE9wZW4gQmFua2luZzEnMCUGA1UEAxMeT3BlbiBCYW5raW5nIFJv\r\nb3QgU0FOREJPWCAtIEcxMB4XDTIwMTIxMTEwMDAwMFoXDTI1MTIxMDEwMDAwMFow\r\nazELMAkGA1UEBhMCQlIxHDAaBgNVBAoTE09wZW4gQmFua2luZyBCcmFzaWwxFTAT\r\nBgNVBAsTDE9wZW4gQmFua2luZzEnMCUGA1UEAxMeT3BlbiBCYW5raW5nIFJvb3Qg\r\nU0FOREJPWCAtIEcxMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp50j\r\njNh0wu8ioziC1HuWqOfgXwxeiePiRGw5tKDqKIbC7XV1ghEcDiymTHHWWJSQ1LEs\r\nmYpZVwaos5Mrz2xJwytg8K5eqFqa7QvfOOul29bnzEFk+1gX/0nOYws3Lba9E7S+\r\nuPaUmfElF4r2lcCNL2f3F87RozqZf+DQBdGUzAt9n+ipY1JpqfI3KF/5qgRkPoIf\r\nJD+aj2Y1D6eYjs5uMRLU8FMYt0CCfv/Ak6mq4Y9/7CaMKp5qjlrrDux00IDpxoXG\r\nKx5cK0KgACb2UBZ98oDQxcGrbRIyp8VGmv68BkEQcm7NljP863uBVxtnVTpRwQ1x\r\nwYEbmSSyoonXy575wQIDAQABo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/\r\nBAUwAwEB/zAdBgNVHQ4EFgQUhxPslj5i7CEcDEpWOvIlDOOU6cswDQYJKoZIhvcN\r\nAQELBQADggEBAFoYqwoH7zvr4v0SQ/hWx/bWFRIcV/Rf6rEWGyT/moVAEjPbGH6t\r\nyHhbxh3RdGcPY7Pzn797lXDGRu0pHv+GAHUA1v1PewCp0IHYukmN5D8+Qumem6by\r\nHyONyUASMlY0lUOzx9mHVBMuj6u6kvn9xjL6xsPS+Cglv/3SUXUR0mMCYf963xnF\r\nBIRLTRlbykgJomUptVl/F5U/+8cD+lB/fcZPoQVI0kK0VV51jAODSIhS6vqzQzH4\r\ncpUmcPh4dy+7RzdTTktxOTXTqAy9/Yx+fk18O9qSQw1MKa9dDZ4YLnAQS2fJJqIE\r\n1DXIta0LpqM4pMoRMXvp9SLU0atVZLEu6Sc=\r\n-----END CERTIFICATE-----"]
+  missing_client_id_allowed = true
+  revocation_endpoint = "https://api.mystore.com/revoke"
+  direct_revocation_endpoint_enabled = true
+  supported_revocation_auth_methods = ["CLIENT_SECRET_POST", "TLS_CLIENT_AUTH"]
+  pushed_auth_req_endpoint = "https://api.mystore.com/pushed"
+  pushed_auth_req_duration = 100
+  par_required = true
+  request_object_required = true
+  traditional_request_object_processing_applied = true
+  nbf_optional = true
+  front_channel_encryption_request_obj_required = true
+  encryption_alg_req_obj_match = true
+  encryption_enc_alg_req_obj_match = true
+  access_token_type = "Bearer"
+  tls_client_certificate_bound_access_tokens = true
+  access_token_duration = 990
+  single_access_token_per_subject = false
+  access_token_sign_alg = "PS256"
+  access_token_signature_key_id = "kid1"
+  refresh_token_duration = 1500
+  refresh_token_duration_kept = false
+  refresh_token_duration_reset = false
+  refresh_token_kept = true
+  token_expiration_link = true
+  supported_scopes {
+	name = "address"
+    default_entry = false
+    description = "A permission to request an OpenID Provider to include the address claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
+  }
+  supported_scopes {
+	name = "email"
+    default_entry = true
+    description = "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
+    attribute {
+		key = "key1"
+        value = "val1"
+	}
+  }
+  scope_required = true
+  id_token_duration = 980
+  allowable_clock_skew = 10
+  supported_claim_types = ["NORMAL", "AGGREGATED", "DISTRIBUTED"]
+  supported_claim_locales = ["en", "fr", "jp"]
+  supported_claims = ["name","email", "profile", "gender"]
+  claim_shortcut_restrictive = true
+  jwks_endpoint = "https://www.mystore.com/jwks"
+  direct_jwks_endpoint_enabled = true
+  jwk {
+	  kid = "kid1"
+	  alg = "RS256" 
+	  use = "sig" 
+	  kty = "RSA"
+   key_size = 2048
+      generate = true
+   }
+  jwk {
+	  kid = "kid2"
+	  alg = "RS256" 
+	  use = "sig" 
+      key_size = 2048
+	  kty = "RSA"
+      generate = true
+   }
+  id_token_signature_key_id = "kid1"
+  user_info_signature_key_id = "kid1"
+  authorization_signature_key_id = "kid2"
+  hsm_enabled = false
+  user_info_endpoint = "https://api.mystore.com/userinfo"
+  direct_user_info_endpoint_enabled = false
+  dcr_scope_used_as_requestable = true
+  registration_endpoint = "https://api.mystore.com/dcr"
+  registration_management_endpoint = "https://api.mystore.com/client/"
+  mtls_endpoint_aliases {
+	name = "test"
+    uri = "https://test.com"
+  }
+  policy_uri = "https://www.mystore.com/policy"
+  tos_uri = "https://www.mystore.com/tos"
+  service_documentation= "https://www.mystore.com/doc"
+  backchannel_authentication_endpoint = "https://api.mystore.com/ciba"
+  supported_backchannel_token_delivery_modes = [ "POLL"]
+  backchannel_auth_req_id_duration = 150
+  backchannel_polling_interval = 30
+  backchannel_user_code_parameter_supported = true
+  backchannel_binding_message_required_in_fapi = true
+  device_authorization_endpoint = "https://api.mystore.com/device"
+  device_verification_uri= "https://api.mystore.com/devverify"
+  device_verification_uri_complete= "https://example.com/verification?user_code=USER_CODE"
+  device_flow_code_duration = 100
+  device_flow_polling_interval = 10
+  user_code_charset = "NUMERIC"
+  user_code_length= 3
+  #supported_trust_frameworks = ["eidas_ial_high"]
+  #supported_evidence = ["id_document", "utility_bill"]
+  #supported_identity_documents = ["idcard", "password"]
+  #supported_verification_methods= ["pipp"]
+  #supported_verified_claims = ["given_name"]
+  end_session_endpoint = "https://www.mystore.com/endsession"
+  dcr_duplicate_software_id_blocked = true
+}
+
+output "api_key" {  
+  value = authlete_service.complete_described.id
+}
+output "api_secret" {  
+  value = authlete_service.complete_described.api_secret
+}
+`
+
 const testAccResourceServiceUnordered = `
 provider "authlete" {
 }
@@ -641,6 +798,52 @@ resource "authlete_client" "client1" {
 	grant_types = [ "AUTHORIZATION_CODE", "REFRESH_TOKEN" ]
 	client_name = "Authlete client"
     requestable_scopes = ["scope1", "scope2"]
+}
+
+`
+
+const stateDynamicServiceState2 = `
+provider "authlete" {
+}
+
+resource "authlete_service" "prod" {
+  issuer = "https://test.com"
+  service_name = "Service for client test"
+  supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
+  supported_response_types = ["CODE"]
+  supported_scopes {
+	name = "scope1"
+    default_entry = false
+  }
+  supported_scopes {
+	name = "scope2"
+    default_entry = false
+  }
+
+
+}
+
+resource "authlete_client" "client1" {
+	service_api_key = authlete_service.prod.id
+	service_api_secret = authlete_service.prod.api_secret
+	developer = "test"
+	client_id_alias = "terraform_client"
+    client_id_alias_enabled = false
+	client_type = "CONFIDENTIAL"
+	redirect_uris = [ "https://www.authlete.com/cb" ]
+    response_types = [ "CODE" ]
+	grant_types = [ "AUTHORIZATION_CODE", "REFRESH_TOKEN" ]
+	client_name = "Authlete client"
+    requestable_scopes = ["scope1", "scope2"]
+	
+	jwk {
+	  kid = "rsa1"
+	  alg = "RS256" 
+	  use = "sig" 
+	  kty = "RSA"
+      key_size = 2048
+      generate = true
+   }
 }
 
 `

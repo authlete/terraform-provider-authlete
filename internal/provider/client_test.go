@@ -70,6 +70,14 @@ func TestClient_dynamic_services(t *testing.T) {
 					resource.TestCheckResourceAttrSet("authlete_client.client1", "client_secret"),
 				),
 			},
+			{
+				Config: stateDynamicServiceState2,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("authlete_client.client1", "client_id_alias", "terraform_client"),
+					resource.TestCheckResourceAttrSet("authlete_client.client1", "client_id"),
+					resource.TestCheckResourceAttrSet("authlete_client.client1", "client_secret"),
+				),
+			},
 		},
 	})
 }

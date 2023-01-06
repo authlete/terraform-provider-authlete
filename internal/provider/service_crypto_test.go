@@ -30,6 +30,17 @@ func TestAccResourceServiceCrypto_rsa(t *testing.T) {
 						}),
 				),
 			},
+			{
+				Config: testAccGenerateRSAKeys,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("authlete_service.rsa", "jwk.#", "9"),
+					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.rsa", "jwk.*",
+						map[string]string{
+							"kid": "rsa1",
+							"alg": "RS256",
+						}),
+				),
+			},
 		},
 	})
 }
@@ -124,6 +135,12 @@ func TestAccResourceServiceCrypto_ec(t *testing.T) {
 		ProviderFactories: providerFactories,
 		CheckDestroy:      testServiceDestroy,
 		Steps: []resource.TestStep{
+			{
+				Config: testAccGenerateECKeys,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("authlete_service.ec", "jwk.#", "6"),
+				),
+			},
 			{
 				Config: testAccGenerateECKeys,
 				Check: resource.ComposeTestCheckFunc(

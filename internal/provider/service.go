@@ -218,7 +218,7 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		srv.SetDescription(d.Get("description").(string))
 	}
 	if d.HasChange("clients_per_developer") {
-		srv.SetClientsPerDeveloper(int32(d.Get("clients_per_developer").(uint16)))
+		srv.SetClientsPerDeveloper(int32(d.Get("clients_per_developer").(int)))
 	}
 	if d.HasChange("client_id_alias_enabled") {
 		srv.SetClientIdAliasEnabled(d.Get("client_id_alias_enabled").(bool))
