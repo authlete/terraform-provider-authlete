@@ -209,7 +209,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		}
 	}
 	if d.HasChange("redirect_uris") {
-		existingClient.SetRedirectUris(mapSetToString(d.Get("redirect_uris").([]interface{})))
+		existingClient.SetRedirectUris(mapSetToString(d.Get("redirect_uris").(*schema.Set).List()))
 	}
 	if d.HasChange("response_types") {
 		existingClient.SetResponseTypes(mapResponseTypesToDTO(d.Get("response_types").([]interface{})))
@@ -225,7 +225,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		}
 	}
 	if d.HasChange("contacts") {
-		existingClient.SetContacts(mapSetToString(d.Get("contacts").([]interface{})))
+		existingClient.SetContacts(mapSetToString(d.Get("contacts").(*schema.Set).List()))
 	}
 	if d.HasChange("client_name") {
 		if NotZeroString(d, "client_name") {
@@ -395,7 +395,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		existingClient.SetDefaultMaxAge(int32(d.Get("default_max_age").(int)))
 	}
 	if d.HasChange("default_acrs") {
-		existingClient.SetDefaultAcrs(mapSetToString(d.Get("default_acrs").([]interface{})))
+		existingClient.SetDefaultAcrs(mapSetToString(d.Get("default_acrs").(*schema.Set).List()))
 	}
 	if d.HasChange("auth_time_required") {
 		existingClient.SetAuthTimeRequired(d.Get("auth_time_required").(bool))
@@ -408,7 +408,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		}
 	}
 	if d.HasChange("request_uris") {
-		existingClient.SetRequestUris(mapSetToString(d.Get("request_uris").([]interface{})))
+		existingClient.SetRequestUris(mapSetToString(d.Get("request_uris").(*schema.Set).List()))
 	}
 	if d.HasChange("description") {
 		if NotZeroString(d, "description") {
@@ -425,7 +425,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 
 		ext := authlete.NewClientExtension()
 		ext.SetRequestableScopesEnabled(d.Get("requestable_scopes_enabled").(bool))
-		ext.SetRequestableScopes(mapSetToString(d.Get("requestable_scopes").([]interface{})))
+		ext.SetRequestableScopes(mapSetToString(d.Get("requestable_scopes").(*schema.Set).List()))
 		ext.SetAccessTokenDuration(int64(d.Get("access_token_duration").(int)))
 		ext.SetRefreshTokenDuration(int64(d.Get("refresh_token_duration").(int)))
 		existingClient.SetExtension(*ext)
@@ -545,7 +545,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		}
 	}
 	if d.HasChange("authorization_details_types") {
-		existingClient.SetAuthorizationDetailsTypes(mapSetToString(d.Get("authorization_details_types").([]interface{})))
+		existingClient.SetAuthorizationDetailsTypes(mapSetToString(d.Get("authorization_details_types").(*schema.Set).List()))
 	}
 	if d.HasChange("par_required") {
 		existingClient.SetParRequired(d.Get("par_required").(bool))

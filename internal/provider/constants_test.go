@@ -820,6 +820,10 @@ resource "authlete_service" "prod" {
     default_entry = false
   }
 
+  supported_scopes {
+	name = "scope3"
+    default_entry = false
+  }
 
 }
 
@@ -834,7 +838,7 @@ resource "authlete_client" "client1" {
     response_types = [ "CODE" ]
 	grant_types = [ "AUTHORIZATION_CODE", "REFRESH_TOKEN" ]
 	client_name = "Authlete client"
-    requestable_scopes = ["scope1", "scope2"]
+    requestable_scopes = ["scope1", "scope2", "scope3"]
 	
 	jwk {
 	  kid = "rsa1"
