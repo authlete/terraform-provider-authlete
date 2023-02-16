@@ -147,6 +147,7 @@ func TestAccResourceService_extended(t *testing.T) {
 					}),
 
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "scope_required", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "openid_dropped_on_refresh_without_offline_access", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "id_token_duration", "98"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "allowable_clock_skew", "1"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_claim_types.#", "3"),
@@ -318,6 +319,7 @@ func TestAccResourceService_update_extended(t *testing.T) {
 					}),
 
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "scope_required", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "openid_dropped_on_refresh_without_offline_access", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "id_token_duration", "980"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "allowable_clock_skew", "10"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_claim_types.#", "3"),

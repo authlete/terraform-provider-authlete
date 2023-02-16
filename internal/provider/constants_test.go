@@ -108,6 +108,7 @@ resource "authlete_service" "complete_described" {
 	}
   }
   scope_required = true
+  openid_dropped_on_refresh_without_offline_access = true
   id_token_duration = 98
   allowable_clock_skew = 1
   supported_claim_types = ["NORMAL", "AGGREGATED", "DISTRIBUTED"]
@@ -265,6 +266,7 @@ resource "authlete_service" "complete_described" {
 	}
   }
   scope_required = true
+  openid_dropped_on_refresh_without_offline_access = true
   id_token_duration = 980
   allowable_clock_skew = 10
   supported_claim_types = ["NORMAL", "AGGREGATED", "DISTRIBUTED"]
