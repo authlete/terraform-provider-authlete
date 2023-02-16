@@ -124,6 +124,7 @@ has a name like supported_custom_client_metadata, in the API it is named `suppor
 
 - `supported_scopes` (Block Set) (see [below for nested schema](#nestedblock--supported_scopes))
 - `scope_required` (Boolean)
+- `openid_dropped_on_refresh_without_offline_access` (Boolean)
 
 ## IDToken attributes
 
