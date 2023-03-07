@@ -1,6 +1,6 @@
 module github.com/authlete/terraform-provider-authlete
 
-go 1.17
+go 1.19
 
 require (
 	github.com/authlete/openapi-for-go v1.1.1
