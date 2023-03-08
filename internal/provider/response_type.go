@@ -6,11 +6,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func createResponseTypeSchema() *schema.Schema {
+func createResponseTypeSchema(optional bool) *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
-		Optional: false,
-		Required: true,
+		Optional: optional,
+		Required: !optional,
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
