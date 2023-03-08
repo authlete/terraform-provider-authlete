@@ -34,7 +34,8 @@ func createJWKSchema() *schema.Schema {
 				},
 				"alg": {
 					Type:     schema.TypeString,
-					Required: true,
+					Required: false,
+					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"RS256", "RS384", "RS512",
 						"PS256", "PS384", "PS512",
@@ -49,7 +50,8 @@ func createJWKSchema() *schema.Schema {
 				},
 				"use": {
 					Type:     schema.TypeString,
-					Required: true,
+					Required: false,
+					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"sig", "enc",
 					}, false),
