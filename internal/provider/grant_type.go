@@ -21,6 +21,8 @@ func createGrantTypeSchema(optional bool) *schema.Schema {
 				string(authlete.GRANTTYPE_REFRESH_TOKEN),
 				string(authlete.GRANTTYPE_CIBA),
 				string(authlete.GRANTTYPE_DEVICE_CODE),
+				string(authlete.GRANTTYPE_JWT_BEARER),
+				string(authlete.GRANTTYPE_TOKEN_EXCHANGE),
 			}, false),
 		},
 	}
