@@ -257,7 +257,6 @@ func TestAccResourceService_update_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "pkce_s256_required", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "authorization_response_duration", "100"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "iss_response_suppressed", "true"),
-					// resource.TestCheckResourceAttr("authlete_service.complete_described", "ignore_port_loopback_redirect", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "token_endpoint", "https://api.mystore.com/token"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "direct_token_endpoint_enabled", "false"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_token_auth_methods.0", "CLIENT_SECRET_POST"),
@@ -320,7 +319,6 @@ func TestAccResourceService_update_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "hsm_enabled", "false"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "user_info_endpoint", "https://api.mystore.com/userinfo"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "direct_user_info_endpoint_enabled", "false"),
-					// resource.TestCheckResourceAttr("authlete_service.complete_described", "dcr_scope_used_as_requestable", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "registration_endpoint", "https://api.mystore.com/dcr"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "registration_management_endpoint", "https://api.mystore.com/client/"),
 					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "mtls_endpoint_aliases.*",
@@ -344,16 +342,6 @@ func TestAccResourceService_update_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "device_flow_polling_interval", "10"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "user_code_charset", "NUMERIC"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "user_code_length", "3"),
-					/*
-						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_trust_frameworks.0", "eidas_ial_high"),
-						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_evidence.0", "id_document"),
-						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_evidence.1", "utility_bill"),
-						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_identity_documents.0", "idcard"),
-						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_identity_documents.1", "password"),
-						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_verification_methods.0", "pipp"),
-						resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_verified_claims.0", "given_name"),
-
-					*/
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "end_session_endpoint", "https://www.mystore.com/endsession"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "dcr_duplicate_software_id_blocked", "true"),
 				),
