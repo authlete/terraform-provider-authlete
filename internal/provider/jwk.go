@@ -30,7 +30,8 @@ func createJWKSchema() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				"kid": {
 					Type:     schema.TypeString,
-					Required: true,
+					Required: false,
+					Optional: true,
 				},
 				"alg": {
 					Type:     schema.TypeString,
@@ -374,11 +375,20 @@ func mapJWKS(vals []interface{}, diags diag.Diagnostics) (string, diag.Diagnosti
 		}
 		if (val1["pem_certificate"] != nil && val1["pem_certificate"] != "") ||
 			(val1["pem_private_key"] != nil && val1["pem_private_key"] != "") {
-			element, diags = loadPem(val1, diags)
+			err := checkRequiredAttributes(val1)
+			if err != nil {
+				return "", diag.FromErr(err)
+			} else {
+				element, diags = loadPem(val1, diags)
+			}
 		} else if val1["generate"] != nil && val1["generate"].(bool) {
-			element, diags = generateKey(val1, diags)
+			err := checkRequiredAttributes(val1)
+			if err != nil {
+				return "", diag.FromErr(err)
+			} else {
+				element, diags = generateKey(val1, diags)
+			}
 		} else {
-
 			element = JWKStruct{
 				Kid:     val1["kid"].(string),
 				Alg:     val1["alg"].(string),
@@ -486,20 +496,12 @@ func mapArray(x5c []interface{}) []string {
 	return x5cAux
 }
 
-func findKey(kid string, existingKeys []JWKStruct, diags diag.Diagnostics) interface{} {
+func findKey(kid string, alg string, use string, existingKeys []JWKStruct, diags diag.Diagnostics) interface{} {
 
 	for _, aKey := range existingKeys {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Warning,
-			Summary:  "key: " + aKey.Kid,
-			Detail:   "key: " + aKey.Kid + " => " + kid,
-		})
-		if aKey.Kid == kid {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "found key: " + aKey.Kid,
-				Detail:   "key: " + aKey.Kid + " => " + kid,
-			})
+		if (aKey.Kid != "" && aKey.Kid == kid) &&
+			(aKey.Alg != "" && aKey.Alg == alg) &&
+			(aKey.Use != "" && aKey.Use == use) {
 			return aKey
 		}
 	}
@@ -520,6 +522,18 @@ func findLocalKey(kid string, existingKeys []interface{}) map[string]interface{}
 
 func updateJWKS(vals []interface{}, jwks string, diags diag.Diagnostics) (string, diag.Diagnostics) {
 
+	keysArray, diags := calcUpdatedJWKS(vals, jwks, diags)
+
+	var toReturn string
+	var toFormat = map[string][]JWKStruct{"keys": keysArray}
+
+	jsonString, _ := json.Marshal(toFormat)
+
+	toReturn = string(jsonString)
+	return toReturn, diags
+}
+
+func calcUpdatedJWKS(vals []interface{}, jwks string, diags diag.Diagnostics) ([]JWKStruct, diag.Diagnostics) {
 	var keysArray = make([]JWKStruct, 0)
 
 	var keysMap map[string][]JWKStruct
@@ -538,19 +552,30 @@ func updateJWKS(vals []interface{}, jwks string, diags diag.Diagnostics) (string
 
 		var element JWKStruct
 
-		var raw = findKey(val1["kid"].(string), keys, diags)
 		if (val1["pem_certificate"] != nil && val1["pem_certificate"].(string) != "") ||
 			(val1["pem_private_key"] != nil && val1["pem_private_key"].(string) != "") {
-			if raw == nil {
-				element, diags = loadPem(val1, diags)
+			err := checkRequiredAttributes(val1)
+			if err != nil {
+				return nil, diag.FromErr(err)
 			} else {
-				element = raw.(JWKStruct)
+				var raw = findKey(val1["kid"].(string), val1["alg"].(string), val1["use"].(string), keys, diags)
+				if raw == nil {
+					element, diags = loadPem(val1, diags)
+				} else {
+					element = raw.(JWKStruct)
+				}
 			}
 		} else if val1["generate"] != nil && val1["generate"].(bool) {
-			if raw == nil {
-				element, diags = generateKey(val1, diags)
+			err := checkRequiredAttributes(val1)
+			if err != nil {
+				return nil, diag.FromErr(err)
 			} else {
-				element = raw.(JWKStruct)
+				var raw = findKey(val1["kid"].(string), val1["alg"].(string), val1["use"].(string), keys, diags)
+				if raw == nil {
+					element, diags = generateKey(val1, diags)
+				} else {
+					element = raw.(JWKStruct)
+				}
 			}
 		} else {
 			element = JWKStruct{
@@ -576,14 +601,7 @@ func updateJWKS(vals []interface{}, jwks string, diags diag.Diagnostics) (string
 		keysArray = append(keysArray, element)
 
 	}
-
-	var toReturn string
-	var toFormat = map[string][]JWKStruct{"keys": keysArray}
-
-	jsonString, _ := json.Marshal(toFormat)
-
-	toReturn = string(jsonString)
-	return toReturn, diags
+	return keysArray, diags
 }
 
 func mapJWKFromDTO(localKeys []interface{}, jwks string) ([]interface{}, error) {
@@ -665,4 +683,24 @@ func mapJWKFromDTO(localKeys []interface{}, jwks string) ([]interface{}, error) 
 
 	}
 	return result, nil
+}
+
+// this function check map from terraform contains the attributes
+// kid, alg and use.
+// this is prevent that we reload pem files or generate random keys
+// every terraform execution
+func checkRequiredAttributes(key map[string]interface{}) error {
+	if key["kid"] == nil || key["kid"] == "" {
+		return errors.New("key is missing attribute kid")
+	}
+
+	if key["alg"] == nil || key["alg"] == "" {
+		return errors.New("key is missing attribute alg")
+	}
+
+	if key["use"] == nil || key["use"] == "" {
+		return errors.New("key is missing attribute use")
+	}
+
+	return nil
 }
