@@ -2,6 +2,8 @@ package provider
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
 	"strconv"
 
 	authlete "github.com/authlete/openapi-for-go"
@@ -175,10 +177,11 @@ func serviceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 		UserName: client.serviceOwnerKey,
 		Password: client.serviceOwnerSecret,
 	})
-	r, _, err := client.authleteClient.ServiceManagementApi.ServiceCreateApi(auth).Service(*newServiceDto).Execute()
+	r, resp, err := client.authleteClient.ServiceManagementApi.ServiceCreateApi(auth).Service(*newServiceDto).Execute()
 
 	if err != nil {
-		return diag.FromErr(err)
+		body, _ := ioutil.ReadAll(resp.Body)
+		return diag.Errorf("%s", fmt.Sprintf("%s\nResponse body: %s", err.Error(), string(body)))
 	}
 	tflog.Trace(ctx, "Service created")
 
@@ -208,10 +211,11 @@ func serviceReadInternal(_ context.Context, d *schema.ResourceData, meta interfa
 		UserName: client.serviceOwnerKey,
 		Password: client.serviceOwnerSecret,
 	})
-	dto, _, err := client.authleteClient.ServiceManagementApi.ServiceGetApi(auth, d.Id()).Execute()
+	dto, resp, err := client.authleteClient.ServiceManagementApi.ServiceGetApi(auth, d.Id()).Execute()
 
 	if err != nil {
-		return diag.FromErr(err)
+		body, _ := ioutil.ReadAll(resp.Body)
+		return diag.Errorf("%s", string(body))
 	}
 	diags = serviceToResource(dto, d)
 
@@ -228,10 +232,11 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		UserName: client.serviceOwnerKey,
 		Password: client.serviceOwnerSecret,
 	})
-	srv, _, err := client.authleteClient.ServiceManagementApi.ServiceGetApi(auth, d.Id()).Execute()
+	srv, resp, err := client.authleteClient.ServiceManagementApi.ServiceGetApi(auth, d.Id()).Execute()
 
 	if err != nil {
-		return diag.FromErr(err)
+		body, _ := ioutil.ReadAll(resp.Body)
+		return diag.Errorf("%s", fmt.Sprintf("%s\nResponse body: %s", err.Error(), string(body)))
 	}
 
 	if d.HasChange("service_name") {
@@ -648,10 +653,11 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		srv.SetTrustAnchors(mapTrustAnchorToDTO(d.Get("trust_anchors").(*schema.Set).List(), diags))
 	}
 
-	_, _, err = client.authleteClient.ServiceManagementApi.ServiceUpdateApi(auth, d.Id()).Service(*srv).Execute()
+	_, resp, err = client.authleteClient.ServiceManagementApi.ServiceUpdateApi(auth, d.Id()).Service(*srv).Execute()
 
 	if err != nil {
-		return diag.FromErr(err)
+		body, _ := ioutil.ReadAll(resp.Body)
+		return diag.Errorf("%s", fmt.Sprintf("%s\nResponse body: %s", err.Error(), string(body)))
 	}
 
 	return diags
@@ -668,10 +674,11 @@ func serviceDelete(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		Password: client.serviceOwnerSecret,
 	})
 
-	_, err := client.authleteClient.ServiceManagementApi.ServiceDeleteApi(auth, d.Id()).Execute()
+	resp, err := client.authleteClient.ServiceManagementApi.ServiceDeleteApi(auth, d.Id()).Execute()
 
 	if err != nil {
-		return diag.FromErr(err)
+		body, _ := ioutil.ReadAll(resp.Body)
+		return diag.Errorf("%s", fmt.Sprintf("%s\nResponse body: %s", err.Error(), string(body)))
 	}
 
 	return nil
