@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
 	authlete "github.com/authlete/openapi-for-go"
@@ -155,8 +156,26 @@ func clientRead(_ context.Context, d *schema.ResourceData, meta interface{}) dia
 		UserName: apiKey,
 		Password: apiSecret,
 	})
+	resourceClientAliasId := ""
+	if d.Get("client_alias_id") != nil {
+		resourceClientAliasId = d.Get("client_alias_id").(string)
+	}
+	resourceClientId := ""
+	if d.Get("client_id") != nil {
+		resourceClientId = strconv.Itoa(d.Get("client_id").(int))
+	}
 
-	clientDto, _, err := client.authleteClient.ClientManagementApi.ClientGetApi(auth, d.Id()).Execute()
+	var clientDto *authlete.Client
+	var err error = errors.New("Every Id is empty string")
+	for _, id := range []string{resourceClientId, d.Id(), resourceClientAliasId} {
+		if id != "" {
+			clientDto, _, err = client.authleteClient.ClientManagementApi.ClientGetApi(auth, id).Execute()
+		}
+		if err == nil {
+			break
+		}
+	}
+
 	if err != nil {
 		return diag.FromErr(err)
 	}
