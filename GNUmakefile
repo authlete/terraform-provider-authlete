@@ -4,7 +4,7 @@ HOSTNAME=registry.terraform.io
 NAMESPACE=authlete
 NAME=authlete
 BINARY=terraform-provider-${NAME}
-VERSION=1.1.0
+VERSION=1.3.6
 OS_ARCH=darwin_arm64
 
 default: install
