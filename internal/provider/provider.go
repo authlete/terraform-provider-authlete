@@ -2,6 +2,9 @@ package provider
 
 import (
 	"context"
+	"crypto/tls"
+	"net/http"
+	"os"
 
 	authlete "github.com/authlete/openapi-for-go"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -97,6 +100,17 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 		cnf.UserAgent = p.UserAgent("terraform-provider-authlete", version)
 
 		cnf.Servers[0].URL = apiServer
+
+		tlsInsecure := os.Getenv("AUTHLETE_TLS_INSECURE")
+		if tlsInsecure == "true" {
+			mTLSConfig := &tls.Config{
+				InsecureSkipVerify: true,
+			}
+			tr := &http.Transport{
+				TLSClientConfig: mTLSConfig,
+			}
+			cnf.HTTPClient = &http.Client{Transport: tr}
+		}
 
 		apiClientOpenAPI := authlete.NewAPIClient(cnf)
 
