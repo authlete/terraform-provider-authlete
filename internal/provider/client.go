@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	authlete "github.com/authlete/openapi-for-go"
@@ -22,11 +23,19 @@ func client() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
-			"service_api_key":            {Type: schema.TypeString, Required: false, Optional: true},
-			"service_api_secret":         {Type: schema.TypeString, Required: false, Optional: true, Sensitive: true},
-			"developer":                  {Type: schema.TypeString, Required: true},
-			"client_id":                  {Type: schema.TypeInt, Required: false, Optional: true, Computed: true},
-			"client_secret":              {Type: schema.TypeString, Required: false, Computed: true, Sensitive: true},
+			"service_api_key":    {Type: schema.TypeString, Required: false, Optional: true},
+			"service_api_secret": {Type: schema.TypeString, Required: false, Optional: true, Sensitive: true},
+			"developer":          {Type: schema.TypeString, Required: true},
+			"client_id":          {Type: schema.TypeInt, Required: false, Optional: true, Computed: true},
+			"client_secret": {Type: schema.TypeString,
+				Required: false, Optional: true, Computed: true, Sensitive: true,
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := val.(string)
+					if len(v) > 86 {
+						errs = append(errs, fmt.Errorf("%q must be shorter than 86 chars long, got: %s", key, v))
+					}
+					return
+				}},
 			"client_id_alias":            {Type: schema.TypeString, Required: false, Optional: true},
 			"client_id_alias_enabled":    {Type: schema.TypeBool, Required: false, Optional: true, Computed: true},
 			"client_type":                createClientTypeSchema(),
@@ -134,6 +143,18 @@ func clientCreate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		return diag.FromErr(err)
 	}
 	tflog.Trace(ctx, "Client created")
+	if d.Get("client_secret").(string) != "" {
+		cliSecretUpdateRequest := authlete.ClientSecretUpdateRequest{ClientSecret: d.Get("client_secret").(string)}
+		updateSecretRequest := client.authleteClient.ClientManagementApi.ClientSecretUpdateApi(auth,
+			strconv.FormatInt(newOauthClient.GetClientId(), 10))
+
+		_, _, err := updateSecretRequest.ClientSecretUpdateRequest(cliSecretUpdateRequest).Execute()
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		newOauthClient.SetClientSecret(d.Get("client_secret").(string))
+	}
+
 	updateResourceFromClient(d, newOauthClient)
 	d.SetId(strconv.FormatInt(newOauthClient.GetClientId(), 10))
 	return diags
@@ -589,6 +610,21 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		return diag.FromErr(err)
 	}
 	tflog.Trace(ctx, "Client updated")
+
+	if d.HasChange("client_secret") {
+		if d.Get("client_secret").(string) != "" {
+			cliSecretUpdateRequest := authlete.ClientSecretUpdateRequest{ClientSecret: d.Get("client_secret").(string)}
+			updateSecretRequest := client.authleteClient.ClientManagementApi.ClientSecretUpdateApi(auth,
+				d.Get("client_id").(string))
+
+			_, _, err := updateSecretRequest.ClientSecretUpdateRequest(cliSecretUpdateRequest).Execute()
+
+			if err != nil {
+				return diag.FromErr(err)
+			}
+		}
+	}
+
 	updateResourceFromClient(d, existingClient)
 	return diags
 }

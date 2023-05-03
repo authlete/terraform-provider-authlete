@@ -400,3 +400,21 @@ func TestClientUnsupportedCustomMetadata(t *testing.T) {
 		},
 	})
 }
+
+func TestClient_client_secret_setup(t *testing.T) {
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		CheckDestroy:      testServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: clientSecretSupportClientTests,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("authlete_client.client1", "client_secret"),
+					resource.TestCheckResourceAttr("authlete_client.client1", "client_secret", "terraform_client"),
+				),
+			},
+		},
+	})
+}
