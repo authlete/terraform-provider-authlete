@@ -1388,3 +1388,37 @@ resource "authlete_client" "client1" {
 	single_access_token_per_subject = true
 }
 `
+const clientSecretSupportClientTests = `
+provider "authlete" {
+}
+
+resource "authlete_service" "prod" {
+  issuer = "https://test.com"
+  service_name = "Service for client test"
+  supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
+  supported_response_types = ["CODE"]
+  supported_scopes {
+	name = "scope1"
+    default_entry = false
+  }
+  supported_scopes {
+	name = "scope2"
+    default_entry = false
+  }
+}
+
+resource "authlete_client" "client1" {
+	service_api_key = authlete_service.prod.id
+	service_api_secret = authlete_service.prod.api_secret
+	developer = "test"
+	client_id_alias = "terraform_client"
+    client_id_alias_enabled = false
+	client_type = "CONFIDENTIAL"
+	client_secret = "terraform_client"
+	redirect_uris = [ "https://www.authlete.com/cb" ]
+    response_types = [ "CODE" ]
+	grant_types = [ "AUTHORIZATION_CODE", "REFRESH_TOKEN" ]
+	client_name = "Authlete client"
+   
+}
+`
