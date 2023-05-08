@@ -614,8 +614,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 	if d.HasChange("client_secret") {
 		if d.Get("client_secret").(string) != "" {
 			cliSecretUpdateRequest := authlete.ClientSecretUpdateRequest{ClientSecret: d.Get("client_secret").(string)}
-			updateSecretRequest := client.authleteClient.ClientManagementApi.ClientSecretUpdateApi(auth,
-				d.Get("client_id").(string))
+			updateSecretRequest := client.authleteClient.ClientManagementApi.ClientSecretUpdateApi(auth, d.Id())
 
 			_, _, err := updateSecretRequest.ClientSecretUpdateRequest(cliSecretUpdateRequest).Execute()
 
