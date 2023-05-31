@@ -577,7 +577,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		existingClient.SetRequestObjectRequired(d.Get("request_object_required").(bool))
 	}
 	if d.HasChange("attributes") {
-		existingClient.SetAttributes(mapAttributesToDTO(d.Get("attributes").([]interface{})))
+		existingClient.SetAttributes(mapAttributesToDTO(d.Get("attributes").(*schema.Set).List()))
 	}
 	if d.HasChange("custom_metadata") {
 		if NotZeroString(d, "custom_metadata") {
