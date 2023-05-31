@@ -235,7 +235,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		existingClient.SetRedirectUris(mapSetToString(d.Get("redirect_uris").(*schema.Set).List()))
 	}
 	if d.HasChange("response_types") {
-		existingClient.SetResponseTypes(mapResponseTypesToDTO(d.Get("response_types").([]interface{})))
+		existingClient.SetResponseTypes(mapResponseTypesToDTO(d.Get("response_types").(*schema.Set).List()))
 	}
 	if d.HasChange("grant_types") {
 		existingClient.SetGrantTypes(mapGrantTypesToDTO(d.Get("grant_types").(*schema.Set)))
