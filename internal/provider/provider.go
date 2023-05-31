@@ -79,6 +79,7 @@ type apiClient struct {
 	// Add whatever fields, client or connection info, etc. here
 	// you would need to setup to communicate with the upstream
 	// API.
+	serverVersion      int
 	apiServer          string
 	serviceOwnerKey    string
 	serviceOwnerSecret string
