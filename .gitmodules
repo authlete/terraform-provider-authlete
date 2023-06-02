@@ -1,0 +1,7 @@
+[submodule "openapi-for-go/v2"]
+	path = openapi-for-go/v2
+	url = https://github.com/authlete/openapi-for-go
+[submodule "openapi-for-go/v3"]
+	path = openapi-for-go/v3
+	url = https://github.com/authlete/openapi-for-go
+	branch = client-for-3.0

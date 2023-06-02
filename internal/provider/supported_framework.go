@@ -1,7 +1,10 @@
+//go:build !v3
+// +build !v3
+
 package provider
 
 import (
-	authlete "github.com/authlete/openapi-for-go"
+	authlete "github.com/authlete/openapi-for-go/v2"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )

@@ -3,11 +3,21 @@ module github.com/authlete/terraform-provider-authlete
 go 1.19
 
 require (
-	github.com/authlete/openapi-for-go v1.2.2-0.20230531091540-1d580f9a94cd
+	// github.com/authlete/openapi-for-go v1.2.2-0.20230531091540-1d580f9a94cd
 	github.com/hashicorp/terraform-plugin-docs v0.14.1
 	github.com/hashicorp/terraform-plugin-log v0.8.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.26.1
 	github.com/lestrrat-go/jwx v1.2.25
+)
+
+replace (
+	github.com/authlete/openapi-for-go/v2 => ./openapi-for-go/v2
+	github.com/authlete/openapi-for-go/v3 => ./openapi-for-go/v3
+)
+
+require (
+	github.com/authlete/openapi-for-go/v2 v2.0.0-00010101000000-000000000000
+	github.com/authlete/openapi-for-go/v3 v3.0.0-00010101000000-000000000000
 )
 
 require (

@@ -1,5 +1,5 @@
-//go:build !v3
-// +build !v3
+//go:build v3
+// +build v3
 
 package provider
 
@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"testing"
 
-	authlete "github.com/authlete/openapi-for-go/v2"
+	authlete "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -68,7 +68,7 @@ func testCreateTestService(t *testing.T, service2 *authlete.Service) {
 }
 
 func createTestClient() (authlete.ServiceManagementApi, context.Context) {
-	soKey := os.Getenv("AUTHLETE_SO_KEY")
+	// soKey := os.Getenv("AUTHLETE_SO_KEY")
 	soSecret := os.Getenv("AUTHLETE_SO_SECRET")
 	apiServer := os.Getenv("AUTHLETE_API_SERVER")
 
@@ -76,10 +76,7 @@ func createTestClient() (authlete.ServiceManagementApi, context.Context) {
 		apiServer = "https://api.authlete.com"
 	}
 
-	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-		UserName: soKey,
-		Password: soSecret,
-	})
+	auth := context.WithValue(context.Background(), authlete.ContextAccessToken, soSecret)
 
 	cnf := authlete.NewConfiguration()
 	cnf.UserAgent = "terraform-provider-authlete"
@@ -110,10 +107,7 @@ func pullServiceFromServer(s *terraform.State) (*authlete.Service, error) {
 			continue
 		}
 
-		auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-			UserName: client.serviceOwnerKey,
-			Password: client.serviceOwnerSecret,
-		})
+		auth := context.WithValue(context.Background(), authlete.ContextAccessToken, client.serviceOwnerSecret)
 
 		response, _, err := client.authleteClient.ServiceManagementApi.ServiceGetApi(auth, rs.Primary.ID).Execute()
 		if err != nil {

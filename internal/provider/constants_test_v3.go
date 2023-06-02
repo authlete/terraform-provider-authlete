@@ -1,5 +1,5 @@
-//go:build !v3
-// +build !v3
+//go:build v3
+// +build v3
 
 package provider
 

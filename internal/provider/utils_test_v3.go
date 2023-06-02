@@ -1,15 +1,14 @@
-//go:build !v3
-// +build !v3
+//go:build v3
+// +build v3
 
 package provider
 
 import (
 	"fmt"
-	"os"
-	"strings"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"os"
+	"strings"
 )
 
 func testedAuthleteVersionNotBigger(requiredVersion string) bool {

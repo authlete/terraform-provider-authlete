@@ -1,5 +1,5 @@
-//go:build !v3
-// +build !v3
+//go:build v3
+// +build v3
 
 package provider
 
@@ -7,7 +7,7 @@ import (
 	"context"
 	"strconv"
 
-	authlete "github.com/authlete/openapi-for-go/v2"
+	authlete "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -174,10 +174,7 @@ func serviceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	tflog.Trace(ctx, "Creating a new service")
 
 	newServiceDto, diags := dataToService(d, diags)
-	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-		UserName: client.serviceOwnerKey,
-		Password: client.serviceOwnerSecret,
-	})
+	auth := context.WithValue(context.Background(), authlete.ContextAccessToken, client.serviceOwnerSecret)
 	r, _, err := client.authleteClient.ServiceManagementApi.ServiceCreateApi(auth).Service(*newServiceDto).Execute()
 
 	if err != nil {
@@ -207,10 +204,7 @@ func serviceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) 
 func serviceReadInternal(_ context.Context, d *schema.ResourceData, meta interface{}, diags diag.Diagnostics) diag.Diagnostics {
 	client := meta.(*apiClient)
 
-	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-		UserName: client.serviceOwnerKey,
-		Password: client.serviceOwnerSecret,
-	})
+	auth := context.WithValue(context.Background(), authlete.ContextAccessToken, client.serviceOwnerSecret)
 	dto, _, err := client.authleteClient.ServiceManagementApi.ServiceGetApi(auth, d.Id()).Execute()
 
 	if err != nil {
@@ -227,10 +221,7 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 
 	client := meta.(*apiClient)
 
-	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-		UserName: client.serviceOwnerKey,
-		Password: client.serviceOwnerSecret,
-	})
+	auth := context.WithValue(context.Background(), authlete.ContextAccessToken, client.serviceOwnerSecret)
 	srv, _, err := client.authleteClient.ServiceManagementApi.ServiceGetApi(auth, d.Id()).Execute()
 
 	if err != nil {
@@ -666,10 +657,7 @@ func serviceDelete(_ context.Context, d *schema.ResourceData, meta interface{}) 
 
 	client := meta.(*apiClient)
 
-	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-		UserName: client.serviceOwnerKey,
-		Password: client.serviceOwnerSecret,
-	})
+	auth := context.WithValue(context.Background(), authlete.ContextAccessToken, client.serviceOwnerSecret)
 
 	_, err := client.authleteClient.ServiceManagementApi.ServiceDeleteApi(auth, d.Id()).Execute()
 

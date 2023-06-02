@@ -1,43 +1,40 @@
-//go:build !v3
-// +build !v3
+//go:build v3
+// +build v3
 
 package provider
 
 import (
-	authlete "github.com/authlete/openapi-for-go/v2"
+	authlete "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func createSupportedDisplaySchema() *schema.Schema {
+func createSupportedFrameworkSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Optional: true,
-		Computed: true,
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(authlete.DISPLAY_PAGE),
-				string(authlete.DISPLAY_POPUP),
-				string(authlete.DISPLAY_TOUCH),
-				string(authlete.DISPLAY_WAP),
+				string(authlete.SERVICEPROFILE_FAPI),
+				string(authlete.SERVICEPROFILE_OPEN_BANKING),
 			}, false),
 		},
 	}
 }
 
-func mapSupportedDisplayToDTO(vals []interface{}) []authlete.Display {
+func mapSupportedFrameworkToDTO(vals []interface{}) []authlete.ServiceProfile {
 
-	values := make([]authlete.Display, len(vals))
+	values := make([]authlete.ServiceProfile, len(vals))
 
 	for i, v := range vals {
-		values[i] = authlete.Display(v.(string))
+		values[i] = authlete.ServiceProfile(v.(string))
 	}
 
 	return values
 }
 
-func mapSupportedDisplayFromDTO(vals []authlete.Display) []interface{} {
+func mapSupportedFrameworkFromDTO(vals []authlete.ServiceProfile) []interface{} {
 
 	if vals != nil {
 		entries := make([]interface{}, len(vals), len(vals))

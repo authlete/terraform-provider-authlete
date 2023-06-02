@@ -1,20 +1,20 @@
-//go:build !v3
-// +build !v3
+//go:build v3
+// +build v3
 
 package provider
 
 import (
-	authlete "github.com/authlete/openapi-for-go/v2"
+	authlete "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func createAttributeSchema() *schema.Schema {
+func createTaggedValuesSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"key": {Type: schema.TypeString,
+				"tag": {Type: schema.TypeString,
 					Required: true},
 				"value": {Type: schema.TypeString,
 					Required: true},
@@ -23,29 +23,29 @@ func createAttributeSchema() *schema.Schema {
 	}
 }
 
-func mapAttributesToDTO(entry []interface{}) []authlete.Pair {
-	var entries = make([]authlete.Pair, 0)
+func mapTaggedValuesToDTO(entry []interface{}) []authlete.TaggedValue {
+	var entries = make([]authlete.TaggedValue, 0)
 
 	if entry != nil {
 		for _, v := range entry {
 			var keypair = v.(map[string]interface{})
-			newPair := authlete.NewPair()
-			newPair.SetKey(keypair["key"].(string))
-			newPair.SetValue(keypair["value"].(string))
-			entries = append(entries, *newPair)
+			newTag := authlete.NewTaggedValue()
+			newTag.SetTag(keypair["tag"].(string))
+			newTag.SetValue(keypair["value"].(string))
+			entries = append(entries, *newTag)
 		}
 	}
 	return entries
 }
 
-func mapAttributesFromDTO(pairs []authlete.Pair) []interface{} {
+func mapTaggedValuesFromDTO(pairs []authlete.TaggedValue) []interface{} {
 
 	if pairs != nil {
 		entries := make([]interface{}, len(pairs), len(pairs))
 
 		for i, v := range pairs {
 			newEntry := make(map[string]interface{})
-			newEntry["key"] = v.Key
+			newEntry["tag"] = v.Tag
 			newEntry["value"] = v.Value
 			entries[i] = newEntry
 		}

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	authlete "github.com/authlete/openapi-for-go"
+	authlete "github.com/authlete/openapi-for-go/v3"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 

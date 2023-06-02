@@ -26,10 +26,6 @@ github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj
 github.com/armon/go-radix v1.0.0 h1:F4z6KzEeeQIMeLFa97iZU6vupzoecKdU5TX24SNppXI=
 github.com/armon/go-radix v1.0.0/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5/go.mod h1:wHh0iHkYZB8zMSxRWpUBQtwG5a7fFgvEO+odwuTv2gs=
-github.com/authlete/openapi-for-go v1.2.2-0.20230531044255-cd47697bc448 h1:rrxgohDFeyV2+U7zWfL4NbsQlDE55SHRWOpjnNgUke4=
-github.com/authlete/openapi-for-go v1.2.2-0.20230531044255-cd47697bc448/go.mod h1:aef7AzA/qvP2FgWZ9uevzwpjqxzRHU/0nRskl7iF3e0=
-github.com/authlete/openapi-for-go v1.2.2-0.20230531091540-1d580f9a94cd h1:KnmoHA62rP8VT1Liiu2gwBznZIUavoB3hFAIU50qcD8=
-github.com/authlete/openapi-for-go v1.2.2-0.20230531091540-1d580f9a94cd/go.mod h1:aef7AzA/qvP2FgWZ9uevzwpjqxzRHU/0nRskl7iF3e0=
 github.com/bgentry/speakeasy v0.1.0 h1:ByYyxL9InA1OWqxJqqp2A5pYHUrCiAL6K3J+LKSsQkY=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=

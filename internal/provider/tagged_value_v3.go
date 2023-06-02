@@ -1,10 +1,10 @@
-//go:build !v3
-// +build !v3
+//go:build v3
+// +build v3
 
 package provider
 
 import (
-	authlete "github.com/authlete/openapi-for-go/v2"
+	authlete "github.com/authlete/openapi-for-go/v3"
 )
 
 func mapTaggedValue(entry []interface{}) []authlete.TaggedValue {
