@@ -1,6 +1,3 @@
-//go:build !v3
-// +build !v3
-
 package provider
 
 // Scenarios for simple service tests

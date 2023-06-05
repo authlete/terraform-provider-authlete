@@ -1,6 +1,3 @@
-//go:build !v3
-// +build !v3
-
 package provider
 
 import (
@@ -21,18 +18,6 @@ func createClientRegistrationSchema() *schema.Schema {
 			}, false),
 		},
 	}
-}
-
-func mapClientRegistrationToDTO(entry []interface{}) []authlete.ClientRegistrationType {
-	var entries = make([]authlete.ClientRegistrationType, 0)
-
-	if entry != nil {
-		for _, v := range entry {
-			newPair, _ := authlete.NewClientRegistrationTypeFromValue(v.(string))
-			entries = append(entries, *newPair)
-		}
-	}
-	return entries
 }
 
 func mapClientRegistrationFromDTO(registrationTypes []authlete.ClientRegistrationType) []interface{} {

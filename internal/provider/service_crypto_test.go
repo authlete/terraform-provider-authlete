@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	authlete "github.com/authlete/openapi-for-go/v3"
+	authlete "github.com/authlete/openapi-for-go/v2"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
@@ -279,9 +279,12 @@ func findJWKStructure(s *terraform.State, kid string) (JWKStruct, error) {
 			continue
 		}
 
-		auth := context.WithValue(context.Background(), authlete.ContextAccessToken, client.apiSecret)
+		auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
+			UserName: client.serviceOwnerKey,
+			Password: client.serviceOwnerSecret,
+		})
 
-		response, _, err := client.authleteClient.ServiceManagementApi.ServiceGetApi(auth, rs.Primary.ID).Execute()
+		response, _, err := client.authleteClient.v2.ServiceManagementApi.ServiceGetApi(auth, rs.Primary.ID).Execute()
 		if err != nil {
 			return JWKStruct{}, err
 		}

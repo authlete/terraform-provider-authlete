@@ -1,6 +1,3 @@
-//go:build !v3
-// +build !v3
-
 package provider
 
 import (
@@ -36,17 +33,6 @@ func createDeliveryModeSchema() *schema.Schema {
 			string(authlete.DELIVERYMODE_PUSH),
 		}, false),
 	}
-}
-
-func mapBackchannelDelivery(vals []interface{}) []authlete.DeliveryMode {
-
-	values := make([]authlete.DeliveryMode, len(vals))
-
-	for i, v := range vals {
-		values[i] = authlete.DeliveryMode(v.(string))
-	}
-
-	return values
 }
 
 func mapBackchannelDeliveryFromDTO(vals []authlete.DeliveryMode) []interface{} {

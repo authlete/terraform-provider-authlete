@@ -1,6 +1,3 @@
-//go:build !v3
-// +build !v3
-
 package provider
 
 import (
@@ -23,17 +20,6 @@ func createSupportedClaimTypesSchema() *schema.Schema {
 			}, false),
 		},
 	}
-}
-
-func mapClaimTypesToDTO(vals []interface{}) []authlete.ClaimType {
-
-	values := make([]authlete.ClaimType, len(vals))
-
-	for i, v := range vals {
-		values[i] = authlete.ClaimType(v.(string))
-	}
-
-	return values
 }
 
 func mapClaimTypesFromDTO(vals []authlete.ClaimType) []interface{} {

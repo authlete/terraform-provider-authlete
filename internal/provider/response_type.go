@@ -1,6 +1,3 @@
-//go:build !v3
-// +build !v3
-
 package provider
 
 import (
@@ -43,7 +40,7 @@ func mapResponseTypesToDTO(vals []interface{}) []authlete.ResponseType {
 func mapResponseTypesFromDTO(vals []authlete.ResponseType) []interface{} {
 
 	if vals != nil {
-		entries := make([]interface{}, len(vals), len(vals))
+		entries := make([]interface{}, len(vals))
 		for i, v := range vals {
 			entries[i] = v
 		}

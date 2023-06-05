@@ -1,6 +1,3 @@
-//go:build !v3
-// +build !v3
-
 package provider
 
 import (
@@ -33,10 +30,6 @@ func createJWSAlgSchema() *schema.Schema {
 	}
 }
 
-func mapJWSAlg(v interface{}) authlete.JwsAlg {
-	return authlete.JwsAlg(v.(string))
-}
-
 func createJWEAlgSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeString,
@@ -62,10 +55,6 @@ func createJWEAlgSchema() *schema.Schema {
 			string(authlete.JWEALG_PBES2_HS512_A256_KW),
 		}, false),
 	}
-}
-
-func mapJWEAlg(v interface{}) authlete.JweAlg {
-	return authlete.JweAlg(v.(string))
 }
 
 func createJWEEncSchema() *schema.Schema {

@@ -1,6 +1,3 @@
-//go:build !v3
-// +build !v3
-
 package provider
 
 import (
@@ -23,22 +20,10 @@ func createSupportedAttachmentsSchema() *schema.Schema {
 	}
 }
 
-func mapSupportedAttachmentsToDTO(entry []interface{}) []authlete.AttachmentType {
-	var entries = make([]authlete.AttachmentType, 0)
-
-	if entry != nil {
-		for _, v := range entry {
-			newPair, _ := authlete.NewAttachmentTypeFromValue(v.(string))
-			entries = append(entries, *newPair)
-		}
-	}
-	return entries
-}
-
 func mapSupportedAttachmentsFromDTO(supportedAttachments []authlete.AttachmentType) []interface{} {
 
 	if supportedAttachments != nil {
-		entries := make([]interface{}, len(supportedAttachments), len(supportedAttachments))
+		entries := make([]interface{}, len(supportedAttachments))
 
 		for i, v := range supportedAttachments {
 			newEntry := v.Ptr()

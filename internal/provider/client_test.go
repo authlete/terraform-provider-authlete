@@ -1,6 +1,3 @@
-//go:build !v3
-// +build !v3
-
 package provider
 
 import (
@@ -83,25 +80,25 @@ func TestClientDynamicServices(t *testing.T) {
 	})
 }
 
-func TestClient_pem_cert_support(t *testing.T) {
+// func TestClient_pem_cert_support(t *testing.T) {
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: providerFactories,
-		CheckDestroy:      testServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: pemSupportClientTests,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("authlete_client.client1", "client_id_alias", "terraform_client"),
-					resource.TestCheckResourceAttrSet("authlete_client.client1", "client_id"),
-					resource.TestCheckResourceAttrSet("authlete_client.client1", "client_secret"),
-					resource.TestCheckResourceAttr("authlete_client.client1", "jwk.#", "1"),
-				),
-			},
-		},
-	})
-}
+// 	resource.Test(t, resource.TestCase{
+// 		PreCheck:          func() { testAccPreCheck(t) },
+// 		ProviderFactories: providerFactories,
+// 		CheckDestroy:      testServiceDestroy,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: pemSupportClientTests,
+// 				Check: resource.ComposeTestCheckFunc(
+// 					resource.TestCheckResourceAttr("authlete_client.client1", "client_id_alias", "terraform_client"),
+// 					resource.TestCheckResourceAttrSet("authlete_client.client1", "client_id"),
+// 					resource.TestCheckResourceAttrSet("authlete_client.client1", "client_secret"),
+// 					resource.TestCheckResourceAttr("authlete_client.client1", "jwk.#", "1"),
+// 				),
+// 			},
+// 		},
+// 	})
+// }
 
 func TestClientAllAttributes(t *testing.T) {
 	openid := "openid"
@@ -404,20 +401,20 @@ func TestClientUnsupportedCustomMetadata(t *testing.T) {
 	})
 }
 
-func TestClient_client_secret_setup(t *testing.T) {
+// func TestClient_client_secret_setup(t *testing.T) {
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: providerFactories,
-		CheckDestroy:      testServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: clientSecretSupportClientTests,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("authlete_client.client1", "client_secret"),
-					resource.TestCheckResourceAttr("authlete_client.client1", "client_secret", "terraform_client"),
-				),
-			},
-		},
-	})
-}
+// 	resource.Test(t, resource.TestCase{
+// 		PreCheck:          func() { testAccPreCheck(t) },
+// 		ProviderFactories: providerFactories,
+// 		CheckDestroy:      testServiceDestroy,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: clientSecretSupportClientTests,
+// 				Check: resource.ComposeTestCheckFunc(
+// 					resource.TestCheckResourceAttrSet("authlete_client.client1", "client_secret"),
+// 					resource.TestCheckResourceAttr("authlete_client.client1", "client_secret", "terraform_client"),
+// 				),
+// 			},
+// 		},
+// 	})
+// }

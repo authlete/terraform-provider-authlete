@@ -1,6 +1,3 @@
-//go:build !v3
-// +build !v3
-
 package provider
 
 import (
@@ -115,7 +112,7 @@ func pullServiceFromServer(s *terraform.State) (*authlete.Service, error) {
 			Password: client.serviceOwnerSecret,
 		})
 
-		response, _, err := client.authleteClient.ServiceManagementApi.ServiceGetApi(auth, rs.Primary.ID).Execute()
+		response, _, err := client.authleteClient.v2.ServiceManagementApi.ServiceGetApi(auth, rs.Primary.ID).Execute()
 		if err != nil {
 			return response, fmt.Errorf("Service (%s) could not be found.", rs.Primary.ID)
 		}
@@ -133,6 +130,5 @@ func testServiceDestroy(s *terraform.State) error {
 	if err == nil && response != nil {
 		return fmt.Errorf("Service still exists.")
 	}
-
 	return nil
 }
