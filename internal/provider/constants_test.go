@@ -1515,6 +1515,8 @@ resource "authlete_client" "client1" {
 	request_object_encryption_enc_match_required = true
 	digest_algorithm = "SHA-256"
 	single_access_token_per_subject = true
+    pkce_required = true
+    pkce_s256_required = false
 }
 `
 const clientSecretSupportClientTests = `
