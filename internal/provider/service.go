@@ -537,19 +537,19 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		srv.SetUserCodeLength(int32(d.Get("user_code_length").(int)))
 	}
 	if d.HasChange("supported_trust_frameworks") {
-		srv.SetSupportedTrustFrameworks(mapSetToString(d.Get("supported_trust_frameworks").([]interface{})))
+		srv.SetSupportedTrustFrameworks(mapSetToString(d.Get("supported_trust_frameworks").(*schema.Set).List()))
 	}
 	if d.HasChange("supported_evidence") {
-		srv.SetSupportedEvidence(mapSetToString(d.Get("supported_evidence").([]interface{})))
+		srv.SetSupportedEvidence(mapSetToString(d.Get("supported_evidence").(*schema.Set).List()))
 	}
 	if d.HasChange("supported_documents") {
-		srv.SetSupportedDocuments(mapSetToString(d.Get("supported_documents").([]interface{})))
+		srv.SetSupportedDocuments(mapSetToString(d.Get("supported_documents").(*schema.Set).List()))
 	}
 	if d.HasChange("supported_verification_methods") {
-		srv.SetSupportedVerificationMethods(mapSetToString(d.Get("supported_verification_methods").([]interface{})))
+		srv.SetSupportedVerificationMethods(mapSetToString(d.Get("supported_verification_methods").(*schema.Set).List()))
 	}
 	if d.HasChange("supported_verified_claims") {
-		srv.SetSupportedVerifiedClaims(mapSetToString(d.Get("supported_verified_claims").([]interface{})))
+		srv.SetSupportedVerifiedClaims(mapSetToString(d.Get("supported_verified_claims").(*schema.Set).List()))
 	}
 	if d.HasChange("end_session_endpoint") {
 		srv.SetEndSessionEndpoint(d.Get("end_session_endpoint").(string))
@@ -564,7 +564,7 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		srv.SetAccessTokenForExternalAttachmentEmbedded(d.Get("access_token_for_external_attachment_embedded").(bool))
 	}
 	if d.HasChange("authority_hints") {
-		srv.SetAuthorityHints(mapSetToString(d.Get("authority_hints").([]interface{})))
+		srv.SetAuthorityHints(mapSetToString(d.Get("authority_hints").(*schema.Set).List()))
 	}
 	if d.HasChange("federation_enabled") {
 		srv.SetFederationEnabled(d.Get("federation_enabled").(bool))
@@ -575,7 +575,7 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 			Summary:  "Updating JWK",
 			Detail:   "Updating JWK ",
 		})
-		jwks, _ := updateJWKS(d.Get("federation_jwk").([]interface{}), srv.GetFederationJwks(), diags)
+		jwks, _ := updateJWKS(d.Get("federation_jwk").(*schema.Set).List(), srv.GetFederationJwks(), diags)
 		srv.SetFederationJwks(jwks)
 	}
 	if d.HasChange("federation_signature_key_id") {
