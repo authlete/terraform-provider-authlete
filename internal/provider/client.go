@@ -60,6 +60,8 @@ func client() *schema.Resource {
 			"derived_sector_identifier":  {Type: schema.TypeString, Required: false, Optional: true, Computed: true},
 			"sector_identifier_uri":      {Type: schema.TypeString, Required: false, Optional: true},
 			"subject_type":               createSubjectTypeSchema(),
+			"pkce_required":              {Type: schema.TypeBool, Required: false, Optional: true},
+			"pkce_s256_required":         {Type: schema.TypeBool, Required: false, Optional: true},
 			"id_token_sign_alg":          createJWSAlgSchema(),
 			"id_token_encryption_alg":    createJWEAlgSchema(),
 			"id_token_encryption_enc":    createJWEEncSchema(),
@@ -336,6 +338,12 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		} else {
 			existingClient.SubjectType = nil
 		}
+	}
+	if d.HasChange("pkce_required") {
+		existingClient.SetPkceRequired(d.Get("pkce_required").(bool))
+	}
+	if d.HasChange("pkce_s256_required") {
+		existingClient.SetPkceRequired(d.Get("pkce_s256_required").(bool))
 	}
 	if d.HasChange("id_token_sign_alg") {
 		if NotZeroString(d, "id_token_sign_alg") {
@@ -685,6 +693,12 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) *authlete.Clie
 	if NotZeroString(d, "client_uri") {
 		newClient.SetClientUri(d.Get("client_uri").(string))
 	}
+	if NotZeroString(d, "pkce_required") {
+		newClient.SetPkceRequired(d.Get("pkce_required").(bool))
+	}
+	if NotZeroString(d, "pkce_s256_required") {
+		newClient.SetPkceS256Required(d.Get("pkce_s256_required").(bool))
+	}
 	newClient.SetClientUris(mapTaggedValuesToDTO(d.Get("client_uris").(*schema.Set).List()))
 	if NotZeroString(d, "policy_uri") {
 		newClient.SetPolicyUri(d.Get("policy_uri").(string))
@@ -857,7 +871,8 @@ func updateResourceFromClient(d *schema.ResourceData, client *authlete.Client) {
 	jwk, _ := mapJWKFromDTO(d.Get("jwk").(*schema.Set).List(), client.GetJwks())
 
 	_ = d.Set("jwk", jwk)
-
+	_ = d.Set("pkce_required", client.GetPkceRequired())
+	_ = d.Set("pkce_s256_required", client.GetPkceS256Required())
 	_ = d.Set("derived_sector_identifier", client.GetDerivedSectorIdentifier())
 	_ = d.Set("sector_identifier_uri", client.GetSectorIdentifierUri())
 	_ = d.Set("subject_type", client.GetSubjectType())
