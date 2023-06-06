@@ -60,8 +60,8 @@ func client() *schema.Resource {
 			"derived_sector_identifier":  {Type: schema.TypeString, Required: false, Optional: true, Computed: true},
 			"sector_identifier_uri":      {Type: schema.TypeString, Required: false, Optional: true},
 			"subject_type":               createSubjectTypeSchema(),
-			"pkce_required":              {Type: schema.TypeBool, Required: false, Optional: true},
-			"pkce_s256_required":         {Type: schema.TypeBool, Required: false, Optional: true},
+			"pkce_required":              {Type: schema.TypeBool, Required: false, Optional: true, Computed: true},
+			"pkce_s256_required":         {Type: schema.TypeBool, Required: false, Optional: true, Computed: true},
 			"id_token_sign_alg":          createJWSAlgSchema(),
 			"id_token_encryption_alg":    createJWEAlgSchema(),
 			"id_token_encryption_enc":    createJWEEncSchema(),
@@ -693,12 +693,8 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) *authlete.Clie
 	if NotZeroString(d, "client_uri") {
 		newClient.SetClientUri(d.Get("client_uri").(string))
 	}
-	if NotZeroString(d, "pkce_required") {
-		newClient.SetPkceRequired(d.Get("pkce_required").(bool))
-	}
-	if NotZeroString(d, "pkce_s256_required") {
-		newClient.SetPkceS256Required(d.Get("pkce_s256_required").(bool))
-	}
+	newClient.SetPkceRequired(d.Get("pkce_required").(bool))
+	newClient.SetPkceS256Required(d.Get("pkce_s256_required").(bool))
 	newClient.SetClientUris(mapTaggedValuesToDTO(d.Get("client_uris").(*schema.Set).List()))
 	if NotZeroString(d, "policy_uri") {
 		newClient.SetPolicyUri(d.Get("policy_uri").(string))
