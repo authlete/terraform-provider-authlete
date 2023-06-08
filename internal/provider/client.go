@@ -343,7 +343,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		existingClient.SetPkceRequired(d.Get("pkce_required").(bool))
 	}
 	if d.HasChange("pkce_s256_required") {
-		existingClient.SetPkceRequired(d.Get("pkce_s256_required").(bool))
+		existingClient.SetPkceS256Required(d.Get("pkce_s256_required").(bool))
 	}
 	if d.HasChange("id_token_sign_alg") {
 		if NotZeroString(d, "id_token_sign_alg") {
