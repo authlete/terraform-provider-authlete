@@ -452,7 +452,7 @@ resource "authlete_service" "complete_described" {
   encryption_alg_req_obj_match = true
   encryption_enc_alg_req_obj_match = true
   access_token_type = "Bearer"
-  tls_client_certificate_bound_access_tokens = true
+  tls_client_certificate_bound_access_tokens = false
   access_token_duration = 990
   single_access_token_per_subject = false
   access_token_sign_alg = "PS256"
