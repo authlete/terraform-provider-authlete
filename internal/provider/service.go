@@ -648,6 +648,14 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 		srv.SetTrustAnchors(mapTrustAnchorToDTO(d.Get("trust_anchors").(*schema.Set).List(), diags))
 	}
 
+	if d.HasChange("access_token_duration") {
+		srv.SetAccessTokenDuration(int64(d.Get("access_token_duration").(int)))
+	}
+
+	if d.HasChange("tls_client_certificate_bound_access_tokens") {
+		srv.SetTlsClientCertificateBoundAccessTokens(d.Get("tls_client_certificate_bound_access_tokens").(bool))
+	}
+
 	_, _, err = client.authleteClient.ServiceManagementApi.ServiceUpdateApi(auth, d.Id()).Service(*srv).Execute()
 
 	if err != nil {
