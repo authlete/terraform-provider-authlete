@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	authlete "github.com/authlete/openapi-for-go/v2"
+	authlete "github.com/authlete/openapi-for-go"
 	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"

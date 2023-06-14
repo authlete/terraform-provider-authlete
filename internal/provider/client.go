@@ -1,6 +1,3 @@
-//go:build !v3
-// +build !v3
-
 package provider
 
 import (
@@ -8,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	authlete "github.com/authlete/openapi-for-go/v2"
+	authlete "github.com/authlete/openapi-for-go"
 	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -173,7 +170,6 @@ func clientCreate(ctx context.Context, d *schema.ResourceData, meta interface{})
 	newClientDto := dataToClient(d, diags)
 	n := newClientDto.(*authlete.Client)
 	newOauthClient, _, err := client.authleteClient.v2.ClientManagementApi.ClientCreateApi(auth).Client(*n).Execute()
-
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -309,7 +305,6 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 			}
 		}
 	}
-
 	updateResourceFromClient(d, existingClient)
 	return diags
 }
@@ -707,7 +702,7 @@ func setDataToClient(d *schema.ResourceData, diags diag.Diagnostics, client myCl
 			client.(*authlete.Client).SetLogoUris(mapTaggedValuesToDTO(d.Get("logo_uris").(*schema.Set).List()))
 		}
 	}
-	if d.HasChange("") {
+	if d.HasChange("client_uri") {
 		if NotZeroString(d, "client_uri") {
 			client.SetClientUri(d.Get("client_uri").(string))
 		} else {
@@ -1278,6 +1273,12 @@ func setDataToClient(d *schema.ResourceData, diags diag.Diagnostics, client myCl
 	if d.HasChange("single_access_token_per_subject") {
 		client.SetSingleAccessTokenPerSubject(d.Get("single_access_token_per_subject").(bool))
 	}
+	if d.HasChange("pkce_required") {
+		client.SetPkceRequired(d.Get("pkce_required").(bool))
+	}
+	if d.HasChange("pkce_s256_required") {
+		client.SetPkceS256Required(d.Get("pkce_s256_required").(bool))
+	}
 }
 
 func updateResourceFromClient(d *schema.ResourceData, client myClient) {
@@ -1318,6 +1319,11 @@ func updateResourceFromClient(d *schema.ResourceData, client myClient) {
 		_ = d.Set("authorization_encryption_enc", c.GetAuthorizationEncryptionEnc())
 		_ = d.Set("bc_request_sign_alg", c.GetBcRequestSignAlg())
 		_ = d.Set("attributes", mapAttributesFromDTOV3(c.GetAttributes()))
+		clientExtension := (client).(*authlete3.Client).GetExtension()
+		_ = d.Set("requestable_scopes_enabled", clientExtension.GetRequestableScopesEnabled())
+		_ = d.Set("requestable_scopes", clientExtension.GetRequestableScopes())
+		_ = d.Set("access_token_duration", clientExtension.GetAccessTokenDuration())
+		_ = d.Set("refresh_token_duration", clientExtension.GetRefreshTokenDuration())
 	} else {
 		c := client.(*authlete.Client)
 		_ = d.Set("client_type", c.GetClientType())
@@ -1347,6 +1353,11 @@ func updateResourceFromClient(d *schema.ResourceData, client myClient) {
 		_ = d.Set("authorization_encryption_enc", c.GetAuthorizationEncryptionEnc())
 		_ = d.Set("bc_request_sign_alg", c.GetBcRequestSignAlg())
 		_ = d.Set("attributes", mapAttributesFromDTO(c.GetAttributes()))
+		clientExtension := (client).(*authlete.Client).GetExtension()
+		_ = d.Set("requestable_scopes_enabled", clientExtension.GetRequestableScopesEnabled())
+		_ = d.Set("requestable_scopes", clientExtension.GetRequestableScopes())
+		_ = d.Set("access_token_duration", clientExtension.GetAccessTokenDuration())
+		_ = d.Set("refresh_token_duration", clientExtension.GetRefreshTokenDuration())
 	}
 	_ = d.Set("redirect_uris", client.GetRedirectUris())
 	_ = d.Set("contacts", client.GetContacts())
@@ -1373,19 +1384,6 @@ func updateResourceFromClient(d *schema.ResourceData, client myClient) {
 	_ = d.Set("description", client.GetDescription())
 	_ = d.Set("created_at", client.GetCreatedAt())
 	_ = d.Set("modified_at", client.GetModifiedAt())
-	if v3 {
-		clientExtension := (client).(*authlete3.Client).GetExtension()
-		_ = d.Set("requestable_scopes_enabled", clientExtension.GetRequestableScopesEnabled())
-		_ = d.Set("requestable_scopes", clientExtension.GetRequestableScopes())
-		_ = d.Set("access_token_duration", clientExtension.GetAccessTokenDuration())
-		_ = d.Set("refresh_token_duration", clientExtension.GetRefreshTokenDuration())
-	} else {
-		clientExtension := (client).(*authlete.Client).GetExtension()
-		_ = d.Set("requestable_scopes_enabled", clientExtension.GetRequestableScopesEnabled())
-		_ = d.Set("requestable_scopes", clientExtension.GetRequestableScopes())
-		_ = d.Set("access_token_duration", clientExtension.GetAccessTokenDuration())
-		_ = d.Set("refresh_token_duration", clientExtension.GetRefreshTokenDuration())
-	}
 	_ = d.Set("tls_client_auth_subject_dn", client.GetTlsClientAuthSubjectDn())
 	_ = d.Set("tls_client_auth_san_dns", client.GetTlsClientAuthSanDns())
 	_ = d.Set("tls_client_auth_san_uri", client.GetTlsClientAuthSanUri())

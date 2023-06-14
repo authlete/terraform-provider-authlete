@@ -3,7 +3,7 @@ package provider
 import (
 	"testing"
 
-	authlete "github.com/authlete/openapi-for-go/v2"
+	authlete "github.com/authlete/openapi-for-go"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
