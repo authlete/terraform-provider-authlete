@@ -9,9 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// type APIClient authlete.APIClient
-type Configuration *authlete.Configuration
-
 type Pair interface {
 	// GetKey returns the Key field value if set, zero value otherwise.
 	GetKey() string
@@ -41,10 +38,6 @@ type ClientWrapper struct {
 	v3 *authlete3.APIClient
 }
 
-type TrustAnchor interface {
-	authlete.TrustAnchor | authlete3.TrustAnchor | any
-}
-
 func NewAPIClient(cfg interface{}) ClientWrapper {
 	if v3 {
 		cnf := cfg.(authlete3.Configuration)
@@ -58,14 +51,15 @@ func NewAPIClient(cfg interface{}) ClientWrapper {
 
 }
 
-// ConvertArray converts an array of one type to an array of another type
 type V3 interface {
 	authlete.GrantType | authlete3.GrantType | authlete3.ResponseType | authlete.ResponseType |
 		authlete3.ServiceProfile | authlete.ServiceProfile | authlete3.ClaimType | authlete.ClaimType |
 		authlete3.Display | authlete.Display | authlete3.ClientAuthenticationMethod | authlete.ClientAuthenticationMethod |
 		authlete3.DeliveryMode | authlete.DeliveryMode | authlete3.AttachmentType | authlete.AttachmentType |
 		authlete3.ClientRegistrationType | authlete.ClientRegistrationType | string | authlete3.JwsAlg | authlete.JwsAlg |
-		authlete.JweAlg | authlete3.JweAlg
+		authlete.JweAlg | authlete3.JweAlg | authlete3.ApplicationType | authlete.ApplicationType |
+		authlete3.SubjectType | authlete.SubjectType | authlete3.JweEnc | authlete.JweEnc |
+		authlete3.UserCodeCharset | authlete.UserCodeCharset
 }
 
 type structList interface {
@@ -115,4 +109,8 @@ func mapInterfaceListToStruct[K structList](vals []interface{}) []K {
 
 func mapInterfaceToType[K V3](val interface{}) K {
 	return K(val.(string))
+}
+
+func mapTypeToString[K V3](val K) string {
+	return string(val)
 }

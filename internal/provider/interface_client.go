@@ -17,18 +17,12 @@ type myClient interface {
 	GetClientNameOk() (*string, bool)
 	HasClientName() bool
 	SetClientName(v string)
-	// GetClientNames() []TaggedValue
-	// GetClientNamesOk() ([]TaggedValue, bool)
 	HasClientNames() bool
-	// SetClientNames(v []TaggedValue)
 	GetDescription() string
 	GetDescriptionOk() (*string, bool)
 	HasDescription() bool
 	SetDescription(v string)
-	// GetDescriptions() []TaggedValue
-	// GetDescriptionsOk() ([]TaggedValue, bool)
 	HasDescriptions() bool
-	// SetDescriptions(v []TaggedValue)
 	GetClientId() int64
 	GetClientIdOk() (*int64, bool)
 	HasClientId() bool
@@ -45,24 +39,15 @@ type myClient interface {
 	GetClientIdAliasEnabledOk() (*bool, bool)
 	HasClientIdAliasEnabled() bool
 	SetClientIdAliasEnabled(v bool)
-	// GetClientType() ClientType
-	// GetClientTypeOk() (*ClientType, bool)
 	HasClientType() bool
-	// SetClientType(v ClientType)
-	// GetApplicationType() ApplicationType
-	// GetApplicationTypeOk() (*ApplicationType, bool)
 	HasApplicationType() bool
-	// SetApplicationType(v ApplicationType)
 	SetApplicationTypeNil()
 	UnsetApplicationType()
 	GetLogoUri() string
 	GetLogoUriOk() (*string, bool)
 	HasLogoUri() bool
 	SetLogoUri(v string)
-	// GetLogoUris() []TaggedValue
-	// GetLogoUrisOk() ([]TaggedValue, bool)
 	HasLogoUris() bool
-	// SetLogoUris(v []TaggedValue)
 	GetContacts() []string
 	GetContactsOk() ([]string, bool)
 	HasContacts() bool
@@ -95,38 +80,17 @@ type myClient interface {
 	GetModifiedAtOk() (*int64, bool)
 	HasModifiedAt() bool
 	SetModifiedAt(v int64)
-	// GetGrantTypes() []GrantType
-	// GetGrantTypesOk() ([]GrantType, bool)
 	HasGrantTypes() bool
-	// SetGrantTypes(v []GrantType)
-	// GetResponseTypes() []ResponseType
-	// GetResponseTypesOk() ([]ResponseType, bool)
 	HasResponseTypes() bool
-	// SetResponseTypes(v []ResponseType)
 	GetRedirectUris() []string
 	GetRedirectUrisOk() ([]string, bool)
 	HasRedirectUris() bool
 	SetRedirectUris(v []string)
-	// GetAuthorizationSignAlg() JwsAlg
-	// GetAuthorizationSignAlgOk() (*JwsAlg, bool)
 	HasAuthorizationSignAlg() bool
-	// SetAuthorizationSignAlg(v JwsAlg)
-	// GetAuthorizationEncryptionAlg() JweAlg
-	// GetAuthorizationEncryptionAlgOk() (*JweAlg, bool)
 	HasAuthorizationEncryptionAlg() bool
-	// SetAuthorizationEncryptionAlg(v JweAlg)
-	// GetAuthorizationEncryptionEnc() JweEnc
-	// GetAuthorizationEncryptionEncOk() (*JweEnc, bool)
 	HasAuthorizationEncryptionEnc() bool
-	// SetAuthorizationEncryptionEnc(v JweEnc)
-	// GetTokenAuthMethod() ClientAuthenticationMethod
-	// GetTokenAuthMethodOk() (*ClientAuthenticationMethod, bool)
 	HasTokenAuthMethod() bool
-	// SetTokenAuthMethod(v ClientAuthenticationMethod)
-	// GetTokenAuthSignAlg() JwsAlg
-	// GetTokenAuthSignAlgOk() (*JwsAlg, bool)
 	HasTokenAuthSignAlg() bool
-	// SetTokenAuthSignAlg(v JwsAlg)
 	GetSelfSignedCertificateKeyId() string
 	GetSelfSignedCertificateKeyIdOk() (*string, bool)
 	HasSelfSignedCertificateKeyId() bool
@@ -159,18 +123,9 @@ type myClient interface {
 	GetRequestObjectRequiredOk() (*bool, bool)
 	HasRequestObjectRequired() bool
 	SetRequestObjectRequired(v bool)
-	// GetRequestSignAlg() JwsAlg
-	// GetRequestSignAlgOk() (*JwsAlg, bool)
 	HasRequestSignAlg() bool
-	// SetRequestSignAlg(v JwsAlg)
-	// GetRequestEncryptionAlg() JweAlg
-	// GetRequestEncryptionAlgOk() (*JweAlg, bool)
 	HasRequestEncryptionAlg() bool
-	// SetRequestEncryptionAlg(v JweAlg)
-	// GetRequestEncryptionEnc() JweEnc
-	// GetRequestEncryptionEncOk() (*JweEnc, bool)
 	HasRequestEncryptionEnc() bool
-	// SetRequestEncryptionEnc(v JweEnc)
 	GetRequestUris() []string
 	GetRequestUrisOk() ([]string, bool)
 	HasRequestUris() bool
@@ -183,26 +138,14 @@ type myClient interface {
 	GetDefaultAcrsOk() ([]string, bool)
 	HasDefaultAcrs() bool
 	SetDefaultAcrs(v []string)
-	// GetIdTokenSignAlg() JwsAlg
-	// GetIdTokenSignAlgOk() (*JwsAlg, bool)
 	HasIdTokenSignAlg() bool
-	// SetIdTokenSignAlg(v JwsAlg)
-	// GetIdTokenEncryptionAlg() JweAlg
-	// GetIdTokenEncryptionAlgOk() (*JweAlg, bool)
 	HasIdTokenEncryptionAlg() bool
-	// SetIdTokenEncryptionAlg(v JweAlg)
-	// GetIdTokenEncryptionEnc() JweEnc
-	// GetIdTokenEncryptionEncOk() (*JweEnc, bool)
 	HasIdTokenEncryptionEnc() bool
-	// SetIdTokenEncryptionEnc(v JweEnc)
 	GetAuthTimeRequired() bool
 	GetAuthTimeRequiredOk() (*bool, bool)
 	HasAuthTimeRequired() bool
 	SetAuthTimeRequired(v bool)
-	// GetSubjectType() SubjectType
-	// GetSubjectTypeOk() (*SubjectType, bool)
 	HasSubjectType() bool
-	// SetSubjectType(v SubjectType)
 	GetSectorIdentifierUri() string
 	GetSectorIdentifierUriOk() (*string, bool)
 	HasSectorIdentifierUri() bool
@@ -219,18 +162,9 @@ type myClient interface {
 	GetJwksOk() (*string, bool)
 	HasJwks() bool
 	SetJwks(v string)
-	// GetUserInfoSignAlg() JwsAlg
-	// GetUserInfoSignAlgOk() (*JwsAlg, bool)
 	HasUserInfoSignAlg() bool
-	// SetUserInfoSignAlg(v JwsAlg)
-	// GetUserInfoEncryptionAlg() JweAlg
-	// GetUserInfoEncryptionAlgOk() (*JweAlg, bool)
 	HasUserInfoEncryptionAlg() bool
-	// SetUserInfoEncryptionAlg(v JweAlg)
-	// GetUserInfoEncryptionEnc() JweEnc
-	// GetUserInfoEncryptionEncOk() (*JweEnc, bool)
 	HasUserInfoEncryptionEnc() bool
-	// SetUserInfoEncryptionEnc(v JweEnc)
 	GetLoginUri() string
 	GetLoginUriOk() (*string, bool)
 	HasLoginUri() bool
@@ -239,26 +173,17 @@ type myClient interface {
 	GetTosUriOk() (*string, bool)
 	HasTosUri() bool
 	SetTosUri(v string)
-	// GetTosUris() []TaggedValue
-	// GetTosUrisOk() ([]TaggedValue, bool)
 	HasTosUris() bool
-	// SetTosUris(v []TaggedValue)
 	GetPolicyUri() string
 	GetPolicyUriOk() (*string, bool)
 	HasPolicyUri() bool
 	SetPolicyUri(v string)
-	// GetPolicyUris() []TaggedValue
-	// GetPolicyUrisOk() ([]TaggedValue, bool)
 	HasPolicyUris() bool
-	// SetPolicyUris(v []TaggedValue)
 	GetClientUri() string
 	GetClientUriOk() (*string, bool)
 	HasClientUri() bool
 	SetClientUri(v string)
-	// GetClientUris() []TaggedValue
-	// GetClientUrisOk() ([]TaggedValue, bool)
 	HasClientUris() bool
-	// SetClientUris(v []TaggedValue)
 	GetBcDeliveryMode() string
 	GetBcDeliveryModeOk() (*string, bool)
 	HasBcDeliveryMode() bool
@@ -267,22 +192,13 @@ type myClient interface {
 	GetBcNotificationEndpointOk() (*string, bool)
 	HasBcNotificationEndpoint() bool
 	SetBcNotificationEndpoint(v string)
-	// GetBcRequestSignAlg() JwsAlg
-	// GetBcRequestSignAlgOk() (*JwsAlg, bool)
 	HasBcRequestSignAlg() bool
-	// SetBcRequestSignAlg(v JwsAlg)
 	GetBcUserCodeRequired() bool
 	GetBcUserCodeRequiredOk() (*bool, bool)
 	HasBcUserCodeRequired() bool
 	SetBcUserCodeRequired(v bool)
-	// GetAttributes() []Pair
-	// GetAttributesOk() ([]Pair, bool)
 	HasAttributes() bool
-	// SetAttributes(v []interface{})
-	// GetExtension() ClientExtension
-	// GetExtensionOk() (*ClientExtension, bool)
 	HasExtension() bool
-	// SetExtension(v
 	GetAuthorizationDetailsTypes() []string
 	GetAuthorizationDetailsTypesOk() ([]string, bool)
 	HasAuthorizationDetailsTypes() bool
@@ -339,10 +255,7 @@ type myClient interface {
 	GetRsSignedRequestKeyIdOk() (*string, bool)
 	HasRsSignedRequestKeyId() bool
 	SetRsSignedRequestKeyId(v string)
-	// GetClientRegistrationTypes() []ClientRegistrationType
-	// GetClientRegistrationTypesOk() ([]ClientRegistrationType, bool)
 	HasClientRegistrationTypes() bool
-	// SetClientRegistrationTypes(v []ClientRegistrationType)
 	GetOrganizationName() string
 	GetOrganizationNameOk() (*string, bool)
 	HasOrganizationName() bool
@@ -374,26 +287,3 @@ type myClient interface {
 	MarshalJSON() ([]byte, error)
 	ToMap() (map[string]interface{}, error)
 }
-
-// type myClientExtension interface {
-// 	GetRequestableScopes() []string
-// 	GetRequestableScopesOk() ([]string, bool)
-// 	HasRequestableScopes() bool
-// 	SetRequestableScopes(v []string)
-// 	GetRequestableScopesEnabled() bool
-// 	GetRequestableScopesEnabledOk() (*bool, bool)
-// 	HasRequestableScopesEnabled() bool
-// 	SetRequestableScopesEnabled(v bool)
-// 	GetAccessTokenDuration() int64
-// 	GetAccessTokenDurationOk() (*int64, bool)
-// 	HasAccessTokenDuration() bool
-// 	SetAccessTokenDuration(v int64)
-// 	GetRefreshTokenDuration() int64
-// 	GetRefreshTokenDurationOk() (*int64, bool)
-// 	HasRefreshTokenDuration() bool
-// 	SetRefreshTokenDuration(v int64)
-// 	GetTokenExchangePermitted() bool
-// 	GetTokenExchangePermittedOk() (*bool, bool)
-// 	HasTokenExchangePermitted() bool
-// 	SetTokenExchangePermitted(v bool)
-// }

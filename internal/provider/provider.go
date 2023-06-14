@@ -127,9 +127,7 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 				cnf.HTTPClient = &http.Client{Transport: tr}
 			}
 
-			c := authlete3.NewAPIClient(cnf)
-			apiClientOpenAPI := ClientWrapper{v3: c}
-			// apiClientOpenAPI := NewAPIClient(cnf)
+			apiClientOpenAPI := ClientWrapper{v3: authlete3.NewAPIClient(cnf)}
 			return &apiClient{apiServer: apiServer, serviceOwnerKey: serviceOwnerKey,
 				serviceOwnerSecret: serviceOwnerSecret, apiKey: apiKey, apiSecret: apiSecret,
 				authleteClient: &apiClientOpenAPI}, nil
@@ -150,9 +148,7 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 			}
 			cnf.HTTPClient = &http.Client{Transport: tr}
 		}
-		// apiClientOpenAPI := NewAPIClient(cnf)
-		c := authlete.NewAPIClient(cnf)
-		apiClientOpenAPI := ClientWrapper{v2: c}
+		apiClientOpenAPI := ClientWrapper{v2: authlete.NewAPIClient(cnf)}
 		return &apiClient{apiServer: apiServer, serviceOwnerKey: serviceOwnerKey,
 			serviceOwnerSecret: serviceOwnerSecret, apiKey: apiKey, apiSecret: apiSecret,
 			authleteClient: &apiClientOpenAPI}, nil

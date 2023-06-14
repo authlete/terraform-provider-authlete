@@ -34,15 +34,3 @@ func createDeliveryModeSchema() *schema.Schema {
 		}, false),
 	}
 }
-
-func mapBackchannelDeliveryFromDTO(vals []authlete.DeliveryMode) []interface{} {
-
-	if vals != nil {
-		entries := make([]interface{}, len(vals), len(vals))
-		for i, v := range vals {
-			entries[i] = v
-		}
-		return entries
-	}
-	return make([]interface{}, 0)
-}

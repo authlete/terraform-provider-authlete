@@ -19,26 +19,3 @@ func createSupportedFrameworkSchema() *schema.Schema {
 		},
 	}
 }
-
-func mapSupportedFrameworkToDTO(vals []interface{}) []authlete.ServiceProfile {
-
-	values := make([]authlete.ServiceProfile, len(vals))
-
-	for i, v := range vals {
-		values[i] = authlete.ServiceProfile(v.(string))
-	}
-
-	return values
-}
-
-func mapSupportedFrameworkFromDTO(vals []authlete.ServiceProfile) []interface{} {
-
-	if vals != nil {
-		entries := make([]interface{}, len(vals), len(vals))
-		for i, v := range vals {
-			entries[i] = v
-		}
-		return entries
-	}
-	return make([]interface{}, 0)
-}

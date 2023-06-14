@@ -19,17 +19,3 @@ func createSupportedAttachmentsSchema() *schema.Schema {
 		},
 	}
 }
-
-func mapSupportedAttachmentsFromDTO(supportedAttachments []authlete.AttachmentType) []interface{} {
-
-	if supportedAttachments != nil {
-		entries := make([]interface{}, len(supportedAttachments))
-
-		for i, v := range supportedAttachments {
-			newEntry := v.Ptr()
-			entries[i] = string(*newEntry)
-		}
-		return entries
-	}
-	return make([]interface{}, 0)
-}

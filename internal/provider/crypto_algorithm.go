@@ -71,6 +71,3 @@ func createJWEEncSchema() *schema.Schema {
 			string(authlete.JWEENC_A256_GCM),
 		}, false)}
 }
-func mapJWEEnc(v interface{}) authlete.JweEnc {
-	return authlete.JweEnc(v.(string))
-}

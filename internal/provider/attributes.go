@@ -21,36 +21,6 @@ func createAttributeSchema() *schema.Schema {
 	}
 }
 
-func mapAttributesToDTO(entry []interface{}) []authlete.Pair {
-	var entries = make([]authlete.Pair, 0)
-
-	if entry != nil {
-		for _, v := range entry {
-			var keypair = v.(map[string]interface{})
-			newPair := authlete.NewPair()
-			newPair.SetKey(keypair["key"].(string))
-			newPair.SetValue(keypair["value"].(string))
-			entries = append(entries, *newPair)
-		}
-	}
-	return entries
-}
-
-func mapAttributesToDTOV3(entry []interface{}) []authlete3.Pair {
-	var entries = make([]authlete3.Pair, 0)
-
-	if entry != nil {
-		for _, v := range entry {
-			var keypair = v.(map[string]interface{})
-			newPair := authlete3.NewPair()
-			newPair.SetKey(keypair["key"].(string))
-			newPair.SetValue(keypair["value"].(string))
-			entries = append(entries, *newPair)
-		}
-	}
-	return entries
-}
-
 func mapAttributesFromDTO(pairs []authlete.Pair) []interface{} {
 
 	if pairs != nil {

@@ -22,26 +22,3 @@ func createSupportedDisplaySchema() *schema.Schema {
 		},
 	}
 }
-
-func mapSupportedDisplayToDTO(vals []interface{}) []authlete.Display {
-
-	values := make([]authlete.Display, len(vals))
-
-	for i, v := range vals {
-		values[i] = authlete.Display(v.(string))
-	}
-
-	return values
-}
-
-func mapSupportedDisplayFromDTO(vals []authlete.Display) []interface{} {
-
-	if vals != nil {
-		entries := make([]interface{}, len(vals), len(vals))
-		for i, v := range vals {
-			entries[i] = v
-		}
-		return entries
-	}
-	return make([]interface{}, 0)
-}

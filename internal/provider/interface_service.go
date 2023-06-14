@@ -37,10 +37,7 @@ type myService interface {
 	GetClientIdAliasEnabledOk() (*bool, bool)
 	HasClientIdAliasEnabled() bool
 	SetClientIdAliasEnabled(v bool)
-	// GetMetadata() []Pair
-	// GetMetadataOk() ([]Pair, bool)
 	HasMetadata() bool
-	// SetMetadata(v []Pair)
 	GetCreatedAt() int64
 	GetCreatedAtOk() (*int64, bool)
 	HasCreatedAt() bool
@@ -61,14 +58,8 @@ type myService interface {
 	GetAuthenticationCallbackApiSecretOk() (*string, bool)
 	HasAuthenticationCallbackApiSecret() bool
 	SetAuthenticationCallbackApiSecret(v string)
-	// GetSupportedSnses() []Sns
-	// GetSupportedSnsesOk() ([]Sns, bool)
 	HasSupportedSnses() bool
-	// SetSupportedSnses(v []Sns)
-	// GetSnsCredentials() []SnsCredentials
-	// GetSnsCredentialsOk() ([]SnsCredentials, bool)
 	HasSnsCredentials() bool
-	// SetSnsCredentials(v []SnsCredentials)
 	GetSupportedAcrs() []string
 	GetSupportedAcrsOk() ([]string, bool)
 	HasSupportedAcrs() bool
@@ -85,30 +76,18 @@ type myService interface {
 	GetDeveloperAuthenticationCallbackApiSecretOk() (*string, bool)
 	HasDeveloperAuthenticationCallbackApiSecret() bool
 	SetDeveloperAuthenticationCallbackApiSecret(v string)
-	// GetSupportedDeveloperSnses() []Sns
-	// GetSupportedDeveloperSnsesOk() ([]Sns, bool)
 	HasSupportedDeveloperSnses() bool
-	// SetSupportedDeveloperSnses(v []Sns)
 	GetDeveloperSnsCredentials() string
 	GetDeveloperSnsCredentialsOk() (*string, bool)
 	HasDeveloperSnsCredentials() bool
 	SetDeveloperSnsCredentials(v string)
-	// GetSupportedGrantTypes() []GrantType
-	// GetSupportedGrantTypesOk() ([]GrantType, bool)
 	HasSupportedGrantTypes() bool
-	// SetSupportedGrantTypes(v []GrantType)
-	// GetSupportedResponseTypes() []ResponseType
-	// GetSupportedResponseTypesOk() ([]ResponseType, bool)
 	HasSupportedResponseTypes() bool
-	// SetSupportedResponseTypes(v []ResponseType)
 	GetSupportedAuthorizationDetailsTypes() []string
 	GetSupportedAuthorizationDetailsTypesOk() ([]string, bool)
 	HasSupportedAuthorizationDetailsTypes() bool
 	SetSupportedAuthorizationDetailsTypes(v []string)
-	// GetSupportedServiceProfiles() []ServiceProfile
-	// GetSupportedServiceProfilesOk() ([]ServiceProfile, bool)
 	HasSupportedServiceProfiles() bool
-	// SetSupportedServiceProfiles(v []ServiceProfile)
 	GetErrorDescriptionOmitted() bool
 	GetErrorDescriptionOmittedOk() (*bool, bool)
 	HasErrorDescriptionOmitted() bool
@@ -129,10 +108,7 @@ type myService interface {
 	GetSupportedUiLocalesOk() ([]string, bool)
 	HasSupportedUiLocales() bool
 	SetSupportedUiLocales(v []string)
-	// GetSupportedDisplays() []Display
-	// GetSupportedDisplaysOk() ([]Display, bool)
 	HasSupportedDisplays() bool
-	// SetSupportedDisplays(v []Display)
 	GetPkceRequired() bool
 	GetPkceRequiredOk() (*bool, bool)
 	HasPkceRequired() bool
@@ -153,10 +129,7 @@ type myService interface {
 	GetDirectTokenEndpointEnabledOk() (*bool, bool)
 	HasDirectTokenEndpointEnabled() bool
 	SetDirectTokenEndpointEnabled(v bool)
-	// GetSupportedTokenAuthMethods() []ClientAuthenticationMethod
-	// GetSupportedTokenAuthMethodsOk() ([]ClientAuthenticationMethod, bool)
 	HasSupportedTokenAuthMethods() bool
-	// SetSupportedTokenAuthMethods(v []ClientAuthenticationMethod)
 	GetMissingClientIdAllowed() bool
 	GetMissingClientIdAllowedOk() (*bool, bool)
 	HasMissingClientIdAllowed() bool
@@ -169,10 +142,7 @@ type myService interface {
 	GetDirectRevocationEndpointEnabledOk() (*bool, bool)
 	HasDirectRevocationEndpointEnabled() bool
 	SetDirectRevocationEndpointEnabled(v bool)
-	// GetSupportedRevocationAuthMethods() []ClientAuthenticationMethod
-	// GetSupportedRevocationAuthMethodsOk() ([]ClientAuthenticationMethod, bool)
 	HasSupportedRevocationAuthMethods() bool
-	// SetSupportedRevocationAuthMethods(v []ClientAuthenticationMethod)
 	GetIntrospectionEndpoint() string
 	GetIntrospectionEndpointOk() (*string, bool)
 	HasIntrospectionEndpoint() bool
@@ -181,10 +151,7 @@ type myService interface {
 	GetDirectIntrospectionEndpointEnabledOk() (*bool, bool)
 	HasDirectIntrospectionEndpointEnabled() bool
 	SetDirectIntrospectionEndpointEnabled(v bool)
-	// GetSupportedIntrospectionAuthMethods() []ClientAuthenticationMethod
-	// GetSupportedIntrospectionAuthMethodsOk() ([]ClientAuthenticationMethod, bool)
 	HasSupportedIntrospectionAuthMethods() bool
-	// SetSupportedIntrospectionAuthMethods(v []ClientAuthenticationMethod)
 	GetPushedAuthReqEndpoint() string
 	GetPushedAuthReqEndpointOk() (*string, bool)
 	HasPushedAuthReqEndpoint() bool
@@ -213,10 +180,7 @@ type myService interface {
 	GetTrustedRootCertificatesOk() ([]string, bool)
 	HasTrustedRootCertificates() bool
 	SetTrustedRootCertificates(v []string)
-	// GetMtlsEndpointAliases() []NamedUri
-	// GetMtlsEndpointAliasesOk() ([]NamedUri, bool)
 	HasMtlsEndpointAliases() bool
-	// SetMtlsEndpointAliases(v []NamedUri)
 	GetAccessTokenType() string
 	GetAccessTokenTypeOk() (*string, bool)
 	HasAccessTokenType() bool
@@ -233,10 +197,7 @@ type myService interface {
 	GetSingleAccessTokenPerSubjectOk() (*bool, bool)
 	HasSingleAccessTokenPerSubject() bool
 	SetSingleAccessTokenPerSubject(v bool)
-	// GetAccessTokenSignAlg() JwsAlg
-	// GetAccessTokenSignAlgOk() (*JwsAlg, bool)
 	HasAccessTokenSignAlg() bool
-	// SetAccessTokenSignAlg(v JwsAlg)
 	GetAccessTokenSignatureKeyId() string
 	GetAccessTokenSignatureKeyIdOk() (*string, bool)
 	HasAccessTokenSignatureKeyId() bool
@@ -257,10 +218,7 @@ type myService interface {
 	GetRefreshTokenKeptOk() (*bool, bool)
 	HasRefreshTokenKept() bool
 	SetRefreshTokenKept(v bool)
-	// GetSupportedScopes() []Scope
-	// GetSupportedScopesOk() ([]Scope, bool)
 	HasSupportedScopes() bool
-	// SetSupportedScopes(v []Scope)
 	GetScopeRequired() bool
 	GetScopeRequiredOk() (*bool, bool)
 	HasScopeRequired() bool
@@ -273,10 +231,7 @@ type myService interface {
 	GetAllowableClockSkewOk() (*int32, bool)
 	HasAllowableClockSkew() bool
 	SetAllowableClockSkew(v int32)
-	// GetSupportedClaimTypes() []ClaimType
-	// GetSupportedClaimTypesOk() ([]ClaimType, bool)
 	HasSupportedClaimTypes() bool
-	// SetSupportedClaimTypes(v []ClaimType)
 	GetSupportedClaimLocales() []string
 	GetSupportedClaimLocalesOk() ([]string, bool)
 	HasSupportedClaimLocales() bool
@@ -349,10 +304,7 @@ type myService interface {
 	GetBackchannelAuthenticationEndpointOk() (*string, bool)
 	HasBackchannelAuthenticationEndpoint() bool
 	SetBackchannelAuthenticationEndpoint(v string)
-	// GetSupportedBackchannelTokenDeliveryModes() []DeliveryMode
-	// GetSupportedBackchannelTokenDeliveryModesOk() ([]DeliveryMode, bool)
 	HasSupportedBackchannelTokenDeliveryModes() bool
-	// SetSupportedBackchannelTokenDeliveryModes(v []DeliveryMode)
 	GetBackchannelAuthReqIdDuration() int32
 	GetBackchannelAuthReqIdDurationOk() (*int32, bool)
 	HasBackchannelAuthReqIdDuration() bool
@@ -389,10 +341,7 @@ type myService interface {
 	GetDeviceFlowPollingIntervalOk() (*int32, bool)
 	HasDeviceFlowPollingInterval() bool
 	SetDeviceFlowPollingInterval(v int32)
-	// GetUserCodeCharset() UserCodeCharset
-	// GetUserCodeCharsetOk() (*UserCodeCharset, bool)
 	HasUserCodeCharset() bool
-	// SetUserCodeCharset(v UserCodeCharset)
 	GetUserCodeLength() int32
 	GetUserCodeLengthOk() (*int32, bool)
 	HasUserCodeLength() bool
@@ -417,10 +366,7 @@ type myService interface {
 	GetSupportedVerifiedClaimsOk() ([]string, bool)
 	HasSupportedVerifiedClaims() bool
 	SetSupportedVerifiedClaims(v []string)
-	// GetAttributes() []Pair
-	// GetAttributesOk() ([]Pair, bool)
 	HasAttributes() bool
-	// SetAttributes(v []Pair)
 	GetNbfOptional() bool
 	GetNbfOptionalOk() (*bool, bool)
 	HasNbfOptional() bool
@@ -453,10 +399,7 @@ type myService interface {
 	GetHsmEnabledOk() (*bool, bool)
 	HasHsmEnabled() bool
 	SetHsmEnabled(v bool)
-	// GetHsks() []Pair
-	// GetHsksOk() ([]Pair, bool)
 	HasHsks() bool
-	// SetHsks(v []Pair)
 	GetGrantManagementEndpoint() string
 	GetGrantManagementEndpointOk() (*string, bool)
 	HasGrantManagementEndpoint() bool
@@ -529,10 +472,7 @@ type myService interface {
 	GetSignedJwksUriOk() (*string, bool)
 	HasSignedJwksUri() bool
 	SetSignedJwksUri(v string)
-	// GetSupportedAttachments() []AttachmentType
-	// GetSupportedAttachmentsOk() ([]AttachmentType, bool)
 	HasSupportedAttachments() bool
-	// SetSupportedAttachments(v []AttachmentType)
 	GetSupportedDigestAlgorithms() []string
 	GetSupportedDigestAlgorithmsOk() ([]string, bool)
 	HasSupportedDigestAlgorithms() bool
@@ -557,10 +497,7 @@ type myService interface {
 	GetSupportedElectronicRecordsOk() ([]string, bool)
 	HasSupportedElectronicRecords() bool
 	SetSupportedElectronicRecords(v []string)
-	// GetSupportedClientRegistrationTypes() []ClientRegistrationType
-	// GetSupportedClientRegistrationTypesOk() ([]ClientRegistrationType, bool)
 	HasSupportedClientRegistrationTypes() bool
-	// SetSupportedClientRegistrationTypes(v []ClientRegistrationType)
 	GetTokenExchangeByIdentifiableClientsOnly() bool
 	GetTokenExchangeByIdentifiableClientsOnlyOk() (*bool, bool)
 	HasTokenExchangeByIdentifiableClientsOnly() bool
@@ -597,10 +534,7 @@ type myService interface {
 	GetDcrDuplicateSoftwareIdBlockedOk() (*bool, bool)
 	HasDcrDuplicateSoftwareIdBlocked() bool
 	SetDcrDuplicateSoftwareIdBlocked(v bool)
-	// GetTrustAnchors() []TrustAnchor
-	// GetTrustAnchorsOk() ([]TrustAnchor, bool)
 	HasTrustAnchors() bool
-	// SetTrustAnchors(v []TrustAnchor)
 	GetOpenidDroppedOnRefreshWithoutOfflineAccess() bool
 	GetOpenidDroppedOnRefreshWithoutOfflineAccessOk() (*bool, bool)
 	HasOpenidDroppedOnRefreshWithoutOfflineAccess() bool

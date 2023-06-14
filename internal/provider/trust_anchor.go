@@ -21,22 +21,6 @@ func createTrustAnchorSchema() *schema.Schema {
 	}
 }
 
-func genericMapTrustAnchorToDTO(entry []interface{}, diags diag.Diagnostics) []TrustAnchor {
-	var entries = make([]TrustAnchor, 0)
-
-	if entry != nil {
-		for _, v := range entry {
-			var keypair = v.(map[string]interface{})
-			newTag := authlete.NewTrustAnchor()
-			newTag.SetEntityId(keypair["entity_id"].(string))
-			jwks, _ := mapJWKS(keypair["jwk"].(*schema.Set).List(), diags)
-			newTag.SetJwks(jwks)
-			entries = append(entries, *newTag)
-		}
-	}
-	return entries
-}
-
 func mapTrustAnchorToDTO(entry []interface{}, diags diag.Diagnostics) []authlete.TrustAnchor {
 	var entries = make([]authlete.TrustAnchor, 0)
 

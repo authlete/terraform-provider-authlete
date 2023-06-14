@@ -46,7 +46,7 @@ func mapSupportedScopeToDTO(vals *schema.Set) []authlete.Scope {
 		newScope.SetDescription(entry["description"].(string))
 		newScope.SetDefaultEntry(entry["default_entry"].(bool))
 		newScope.SetDescriptions(mapTaggedValue(entry["descriptions"].(*schema.Set).List()))
-		newScope.SetAttributes(mapAttributesToDTO(entry["attribute"].(*schema.Set).List()))
+		newScope.SetAttributes(mapInterfaceListToStruct[authlete.Pair](entry["attribute"].(*schema.Set).List()))
 		mapped[i] = *newScope
 	}
 	return mapped
@@ -62,7 +62,7 @@ func mapSupportedScopeToDTOV3(vals *schema.Set) []authlete3.Scope {
 		newScope.SetDescription(entry["description"].(string))
 		newScope.SetDefaultEntry(entry["default_entry"].(bool))
 		newScope.SetDescriptions(mapTaggedValueV3(entry["descriptions"].(*schema.Set).List()))
-		newScope.SetAttributes(mapAttributesToDTOV3(entry["attribute"].(*schema.Set).List()))
+		newScope.SetAttributes(mapInterfaceListToStruct[authlete3.Pair](entry["attribute"].(*schema.Set).List()))
 		mapped[i] = *newScope
 	}
 	return mapped
@@ -71,7 +71,7 @@ func mapSupportedScopeToDTOV3(vals *schema.Set) []authlete3.Scope {
 func mapSupportedScopeFromDTO(scopes []authlete.Scope) []interface{} {
 
 	if scopes != nil {
-		entries := make([]interface{}, len(scopes), len(scopes))
+		entries := make([]interface{}, len(scopes))
 
 		for i, v := range scopes {
 			newEntry := make(map[string]interface{})
@@ -90,7 +90,7 @@ func mapSupportedScopeFromDTO(scopes []authlete.Scope) []interface{} {
 func mapSupportedScopeFromDTOV3(scopes []authlete3.Scope) []interface{} {
 
 	if scopes != nil {
-		entries := make([]interface{}, len(scopes), len(scopes))
+		entries := make([]interface{}, len(scopes))
 
 		for i, v := range scopes {
 			newEntry := make(map[string]interface{})

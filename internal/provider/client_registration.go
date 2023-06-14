@@ -19,17 +19,3 @@ func createClientRegistrationSchema() *schema.Schema {
 		},
 	}
 }
-
-func mapClientRegistrationFromDTO(registrationTypes []authlete.ClientRegistrationType) []interface{} {
-
-	if registrationTypes != nil {
-		entries := make([]interface{}, len(registrationTypes), len(registrationTypes))
-
-		for i, v := range registrationTypes {
-			newEntry := v.Ptr()
-			entries[i] = string(*newEntry)
-		}
-		return entries
-	}
-	return make([]interface{}, 0)
-}

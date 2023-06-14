@@ -189,7 +189,7 @@ func serviceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 		apiSecret := r.ApiSecret
 
 		// populate the state with default values coming from authlete api server.
-		diags = serviceToResourceV3(r, d)
+		diags = serviceToResource(r, d)
 
 		d.SetId(strconv.FormatInt(*apiKey, 10))
 		_ = d.Set("api_secret", apiSecret)
@@ -238,7 +238,7 @@ func serviceReadInternal(_ context.Context, d *schema.ResourceData, meta interfa
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		diags = serviceToResourceV3(dto, d)
+		diags = serviceToResource(dto, d)
 		return diags
 	}
 

@@ -27,8 +27,3 @@ func createSignAlgorithmSchema() *schema.Schema {
 		}, false),
 	}
 }
-
-func mapSignAlgorithms(v string) authlete.JwsAlg {
-
-	return authlete.JwsAlg(v)
-}

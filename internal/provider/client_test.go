@@ -10,8 +10,7 @@ import (
 func TestClientCreateImport(t *testing.T) {
 	openid := "openid"
 	profile := "profile"
-	var testService *authlete.Service
-	testService = authlete.NewService()
+	var testService *authlete.Service = authlete.NewService()
 	testService.SetServiceName("Test Service for client testing")
 	testService.SetIssuer("https://test.com")
 	testService.SetSupportedGrantTypes([]authlete.GrantType{
@@ -103,8 +102,7 @@ func TestClientDynamicServices(t *testing.T) {
 func TestClientAllAttributes(t *testing.T) {
 	openid := "openid"
 	profile := "profile"
-	var testService *authlete.Service
-	testService = authlete.NewService()
+	var testService *authlete.Service = authlete.NewService()
 	testService.SetServiceName("Test Service for client testing")
 	testService.SetIssuer("https://test.com")
 	testService.SetSupportedGrantTypes([]authlete.GrantType{
@@ -235,8 +233,7 @@ func TestClientAllAttributes23(t *testing.T) {
 
 	openid := "openid"
 	profile := "profile"
-	var testService *authlete.Service
-	testService = authlete.NewService()
+	var testService *authlete.Service = authlete.NewService()
 	testService.SetServiceName("Test Service for client testing")
 	testService.SetIssuer("https://test.com")
 	testService.SetSupportedGrantTypes([]authlete.GrantType{
@@ -360,8 +357,7 @@ func TestClientAllAttributes23(t *testing.T) {
 func TestClientUnsupportedCustomMetadata(t *testing.T) {
 	openid := "openid"
 	profile := "profile"
-	var testService *authlete.Service
-	testService = authlete.NewService()
+	var testService *authlete.Service = authlete.NewService()
 	testService.SetServiceName("Test Service for client testing")
 	testService.SetIssuer("https://test.com")
 	testService.SetSupportedGrantTypes([]authlete.GrantType{
