@@ -31,6 +31,9 @@ jobs:
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v3
+    
+    - name: Get Submodules
+      run: git submodule update --init --recursive
 
     - name: Get dependencies
       run: |
@@ -75,6 +78,9 @@ jobs:
 
     - name: Check out code into the Go module directory
       uses: actions/checkout@v3
+
+    - name: Get Submodules
+      run: git submodule update --init --recursive
 
     - name: Get dependencies
       run: |

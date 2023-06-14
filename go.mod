@@ -9,14 +9,14 @@ require (
 	github.com/lestrrat-go/jwx v1.2.25
 )
 
-replace (
-	github.com/authlete/openapi-for-go/v2 => ./openapi-for-go/v2
-	github.com/authlete/openapi-for-go/v3 => ./openapi-for-go/v3
-)
-
 require (
 	github.com/authlete/openapi-for-go/v2 v2.0.0-00010101000000-000000000000
 	github.com/authlete/openapi-for-go/v3 v3.0.0-00010101000000-000000000000
+)
+
+replace (
+	github.com/authlete/openapi-for-go/v2 => ./openapi-for-go/v2
+	github.com/authlete/openapi-for-go/v3 => ./openapi-for-go/v3
 )
 
 require (

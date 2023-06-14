@@ -24,6 +24,9 @@ jobs:
       -
         name: Unshallow
         run: git fetch --prune --unshallow
+       -
+        name: With Submodules
+        run: git submodule update --init --recursive
       -
         name: Set up Go
         uses: actions/setup-go@v4
