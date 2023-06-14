@@ -64,6 +64,8 @@ func client() *schema.Resource {
 			"derived_sector_identifier":  {Type: schema.TypeString, Required: false, Optional: true, Computed: true},
 			"sector_identifier_uri":      {Type: schema.TypeString, Required: false, Optional: true},
 			"subject_type":               createSubjectTypeSchema(),
+			"pkce_required":              {Type: schema.TypeBool, Required: false, Optional: true, Computed: true},
+			"pkce_s256_required":         {Type: schema.TypeBool, Required: false, Optional: true, Computed: true},
 			"id_token_sign_alg":          createJWSAlgSchema(),
 			"id_token_encryption_alg":    createJWEAlgSchema(),
 			"id_token_encryption_enc":    createJWEEncSchema(),
@@ -428,6 +430,8 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) myClient {
 			newClient.(*authlete3.Client).SetBcRequestSignAlg(mapInterfaceToType[authlete3.JwsAlg](d.Get("bc_request_sign_alg")))
 		}
 		newClient.(*authlete3.Client).SetAttributes(mapInterfaceListToStruct[authlete3.Pair](d.Get("attributes").(*schema.Set).List()))
+
+		newClient.(*authlete3.Client).SetClientUris(mapTaggedValuesToDTOV3(d.Get("client_uris").(*schema.Set).List()))
 	} else {
 		newClient.(*authlete.Client).SetResponseTypes(mapListToDTO[authlete.ResponseType](d.Get("response_types").(*schema.Set).List()))
 		newClient.(*authlete.Client).SetGrantTypes(mapSetToDTO[authlete.GrantType](d.Get("grant_types").(*schema.Set)))
@@ -495,6 +499,7 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) myClient {
 			newClient.(*authlete.Client).SetBcRequestSignAlg(mapInterfaceToType[authlete.JwsAlg](d.Get("bc_request_sign_alg")))
 		}
 		newClient.(*authlete.Client).SetAttributes(mapInterfaceListToStruct[authlete.Pair](d.Get("attributes").(*schema.Set).List()))
+		newClient.(*authlete.Client).SetClientUris(mapTaggedValuesToDTO(d.Get("client_uris").(*schema.Set).List()))
 	}
 
 	newClient.SetContacts(mapSetToString(d.Get("contacts").(*schema.Set).List()))
@@ -509,7 +514,8 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) myClient {
 	if NotZeroString(d, "client_uri") {
 		newClient.SetClientUri(d.Get("client_uri").(string))
 	}
-
+	newClient.SetPkceRequired(d.Get("pkce_required").(bool))
+	newClient.SetPkceS256Required(d.Get("pkce_s256_required").(bool))
 	if NotZeroString(d, "policy_uri") {
 		newClient.SetPolicyUri(d.Get("policy_uri").(string))
 	}
@@ -1355,7 +1361,8 @@ func updateResourceFromClient(d *schema.ResourceData, client myClient) {
 	jwk, _ := mapJWKFromDTO(d.Get("jwk").(*schema.Set).List(), client.GetJwks())
 
 	_ = d.Set("jwk", jwk)
-
+	_ = d.Set("pkce_required", client.GetPkceRequired())
+	_ = d.Set("pkce_s256_required", client.GetPkceS256Required())
 	_ = d.Set("derived_sector_identifier", client.GetDerivedSectorIdentifier())
 	_ = d.Set("sector_identifier_uri", client.GetSectorIdentifierUri())
 	_ = d.Set("default_max_age", client.GetDefaultMaxAge())

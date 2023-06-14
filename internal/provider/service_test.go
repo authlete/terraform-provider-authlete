@@ -280,7 +280,7 @@ func TestAccResourceService_update_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "encryption_alg_req_obj_match", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "encryption_enc_alg_req_obj_match", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "access_token_type", "Bearer"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "tls_client_certificate_bound_access_tokens", "true"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "tls_client_certificate_bound_access_tokens", "false"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "access_token_duration", "990"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "single_access_token_per_subject", "false"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "access_token_sign_alg", "PS256"),

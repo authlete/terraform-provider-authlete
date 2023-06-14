@@ -73,6 +73,8 @@ The provider will not check the complexity of the secret, nor the min or max siz
 - `authorization_sign_alg` (String)
 - `authorization_encryption_alg` (String)
 - `authorization_encryption_enc` (String)
+- `pkce_required` (Boolean)
+- `pkce_s256_required` (Boolean)
 
 #### Token endpoint
 - `token_auth_method` (String)
