@@ -214,6 +214,7 @@ func clientRead(_ context.Context, d *schema.ResourceData, meta interface{}) dia
 		updateResourceFromClient(d, clientDto)
 		return diags
 	}
+
 	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
 		UserName: apiKey,
 		Password: apiSecret,
@@ -322,6 +323,16 @@ func clientDelete(_ context.Context, d *schema.ResourceData, meta interface{}) d
 		apiSecret = d.Get("service_api_secret").(string)
 	}
 
+	if v3 {
+		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, apiSecret)
+
+		_, err := client.authleteClient.v3.ClientManagementApi.ClientDeleteApi(auth, d.Id(), apiKey).Execute()
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		return diags
+	}
+
 	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
 		UserName: apiKey,
 		Password: apiSecret,
@@ -334,9 +345,9 @@ func clientDelete(_ context.Context, d *schema.ResourceData, meta interface{}) d
 	return diags
 }
 
-func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) myClient {
+func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) IClient {
 
-	var newClient myClient
+	var newClient IClient
 	if v3 {
 		newClient = authlete3.NewClient()
 	} else {
@@ -424,7 +435,7 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) myClient {
 		if NotZeroString(d, "bc_request_sign_alg") {
 			newClient.(*authlete3.Client).SetBcRequestSignAlg(mapInterfaceToType[authlete3.JwsAlg](d.Get("bc_request_sign_alg")))
 		}
-		newClient.(*authlete3.Client).SetAttributes(mapInterfaceListToStruct[authlete3.Pair](d.Get("attributes").(*schema.Set).List()))
+		newClient.(*authlete3.Client).SetAttributes(mapInterfaceListToStructList[authlete3.Pair](d.Get("attributes").(*schema.Set).List()))
 
 		newClient.(*authlete3.Client).SetClientUris(mapTaggedValuesToDTOV3(d.Get("client_uris").(*schema.Set).List()))
 	} else {
@@ -493,7 +504,7 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) myClient {
 		if NotZeroString(d, "bc_request_sign_alg") {
 			newClient.(*authlete.Client).SetBcRequestSignAlg(mapInterfaceToType[authlete.JwsAlg](d.Get("bc_request_sign_alg")))
 		}
-		newClient.(*authlete.Client).SetAttributes(mapInterfaceListToStruct[authlete.Pair](d.Get("attributes").(*schema.Set).List()))
+		newClient.(*authlete.Client).SetAttributes(mapInterfaceListToStructList[authlete.Pair](d.Get("attributes").(*schema.Set).List()))
 		newClient.(*authlete.Client).SetClientUris(mapTaggedValuesToDTO(d.Get("client_uris").(*schema.Set).List()))
 	}
 
@@ -598,7 +609,7 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) myClient {
 	return newClient
 }
 
-func setDataToClient(d *schema.ResourceData, diags diag.Diagnostics, client myClient) {
+func setDataToClient(d *schema.ResourceData, diags diag.Diagnostics, client IClient) {
 	if d.HasChange("developer") {
 		client.SetDeveloper(d.Get("developer").(string))
 	}
@@ -1239,10 +1250,10 @@ func setDataToClient(d *schema.ResourceData, diags diag.Diagnostics, client myCl
 	if d.HasChange("attributes") {
 		if v3 {
 			client.(*authlete3.Client).SetAttributes(
-				mapInterfaceListToStruct[authlete3.Pair](d.Get("attributes").(*schema.Set).List()))
+				mapInterfaceListToStructList[authlete3.Pair](d.Get("attributes").(*schema.Set).List()))
 		} else {
 			client.(*authlete.Client).SetAttributes(
-				mapInterfaceListToStruct[authlete.Pair](d.Get("attributes").(*schema.Set).List()))
+				mapInterfaceListToStructList[authlete.Pair](d.Get("attributes").(*schema.Set).List()))
 		}
 	}
 	if d.HasChange("custom_metadata") {
@@ -1281,7 +1292,7 @@ func setDataToClient(d *schema.ResourceData, diags diag.Diagnostics, client myCl
 	}
 }
 
-func updateResourceFromClient(d *schema.ResourceData, client myClient) {
+func updateResourceFromClient(d *schema.ResourceData, client IClient) {
 	_ = d.Set("developer", client.GetDeveloper())
 	_ = d.Set("client_id", client.GetClientId())
 	_ = d.Set("client_secret", client.GetClientSecret())

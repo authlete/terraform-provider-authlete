@@ -46,7 +46,7 @@ func mapSupportedScopeToDTO(vals *schema.Set) []authlete.Scope {
 		newScope.SetDescription(entry["description"].(string))
 		newScope.SetDefaultEntry(entry["default_entry"].(bool))
 		newScope.SetDescriptions(mapTaggedValue(entry["descriptions"].(*schema.Set).List()))
-		newScope.SetAttributes(mapInterfaceListToStruct[authlete.Pair](entry["attribute"].(*schema.Set).List()))
+		newScope.SetAttributes(mapInterfaceListToStructList[authlete.Pair](entry["attribute"].(*schema.Set).List()))
 		mapped[i] = *newScope
 	}
 	return mapped
@@ -62,7 +62,7 @@ func mapSupportedScopeToDTOV3(vals *schema.Set) []authlete3.Scope {
 		newScope.SetDescription(entry["description"].(string))
 		newScope.SetDefaultEntry(entry["default_entry"].(bool))
 		newScope.SetDescriptions(mapTaggedValueV3(entry["descriptions"].(*schema.Set).List()))
-		newScope.SetAttributes(mapInterfaceListToStruct[authlete3.Pair](entry["attribute"].(*schema.Set).List()))
+		newScope.SetAttributes(mapInterfaceListToStructList[authlete3.Pair](entry["attribute"].(*schema.Set).List()))
 		mapped[i] = *newScope
 	}
 	return mapped

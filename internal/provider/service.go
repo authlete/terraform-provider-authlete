@@ -175,7 +175,7 @@ func serviceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	tflog.Trace(ctx, "Creating a new service")
 
 	if v3 {
-		newServiceDto, _ := dataToServiceGeneric(d, diags, authlete3.NewService())
+		newServiceDto, _ := dataToService(d, diags, authlete3.NewService())
 		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, client.serviceOwnerSecret)
 		n, _ := (*newServiceDto).(*authlete3.Service)
 		r, _, err := client.authleteClient.v3.ServiceManagementApi.ServiceCreateApi(auth).Service(*n).Execute()
@@ -188,7 +188,6 @@ func serviceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 		apiKey := r.ApiKey
 		apiSecret := r.ApiSecret
 
-		// populate the state with default values coming from authlete api server.
 		diags = serviceToResource(r, d)
 
 		d.SetId(strconv.FormatInt(*apiKey, 10))
@@ -197,7 +196,7 @@ func serviceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 		return diags
 	}
 
-	newServiceDto, _ := dataToServiceGeneric(d, diags, authlete.NewService())
+	newServiceDto, _ := dataToService(d, diags, authlete.NewService())
 	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
 		UserName: client.serviceOwnerKey,
 		Password: client.serviceOwnerSecret,
@@ -307,13 +306,20 @@ func serviceDelete(_ context.Context, d *schema.ResourceData, meta interface{}) 
 	// client := meta.(*apiClient)
 
 	client := meta.(*apiClient)
+	var err error = nil
 
-	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-		UserName: client.serviceOwnerKey,
-		Password: client.serviceOwnerSecret,
-	})
+	if v3 {
+		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, client.serviceOwnerSecret)
 
-	_, err := client.authleteClient.v2.ServiceManagementApi.ServiceDeleteApi(auth, d.Id()).Execute()
+		_, err = client.authleteClient.v3.ServiceManagementApi.ServiceDeleteApi(auth, d.Id()).Execute()
+	} else {
+		auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
+			UserName: client.serviceOwnerKey,
+			Password: client.serviceOwnerSecret,
+		})
+
+		_, err = client.authleteClient.v2.ServiceManagementApi.ServiceDeleteApi(auth, d.Id()).Execute()
+	}
 
 	if err != nil {
 		return diag.FromErr(err)

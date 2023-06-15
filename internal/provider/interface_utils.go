@@ -9,30 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-type Pair interface {
-	// GetKey returns the Key field value if set, zero value otherwise.
-	GetKey() string
-
-	// GetKeyOk returns a tuple with the Key field value if set, nil otherwise
-	// and a boolean to check if the value has been set.
-	GetKeyOk() (*string, bool)
-
-	HasKey() bool
-
-	SetKey(v string)
-
-	GetValue() string
-
-	GetValueOk() (*string, bool)
-
-	HasValue() bool
-
-	SetValue(v string)
-
-	MarshalJSON() ([]byte, error)
-
-	ToMap() (map[string]interface{}, error)
-}
 type ClientWrapper struct {
 	v2 *authlete.APIClient
 	v3 *authlete3.APIClient
@@ -51,7 +27,7 @@ func NewAPIClient(cfg interface{}) ClientWrapper {
 
 }
 
-type V3 interface {
+type stringTypes interface {
 	authlete.GrantType | authlete3.GrantType | authlete3.ResponseType | authlete.ResponseType |
 		authlete3.ServiceProfile | authlete.ServiceProfile | authlete3.ClaimType | authlete.ClaimType |
 		authlete3.Display | authlete.Display | authlete3.ClientAuthenticationMethod | authlete.ClientAuthenticationMethod |
@@ -66,7 +42,7 @@ type structList interface {
 	authlete.Pair | authlete3.Pair | authlete3.Scope | authlete.Scope
 }
 
-func mapSetToDTO[K V3](vals *schema.Set) []K {
+func mapSetToDTO[K stringTypes](vals *schema.Set) []K {
 	values := make([]K, vals.Len())
 	for i, v := range vals.List() {
 		values[i] = K(v.(string))
@@ -75,7 +51,7 @@ func mapSetToDTO[K V3](vals *schema.Set) []K {
 	return values
 }
 
-func mapListToDTO[K V3](vals []interface{}) []K {
+func mapListToDTO[K stringTypes](vals []interface{}) []K {
 
 	values := make([]K, len(vals))
 
@@ -85,7 +61,7 @@ func mapListToDTO[K V3](vals []interface{}) []K {
 	return values
 }
 
-func mapFromDTO[K V3](vals []K) []interface{} {
+func mapFromDTO[K stringTypes](vals []K) []interface{} {
 	var result = make([]interface{}, len(vals))
 
 	if vals != nil {
@@ -97,7 +73,7 @@ func mapFromDTO[K V3](vals []K) []interface{} {
 	return result
 }
 
-func mapInterfaceListToStruct[K structList](vals []interface{}) []K {
+func mapInterfaceListToStructList[K structList](vals []interface{}) []K {
 	targetStruct := []K{}
 	temporaryVariable, _ := json.Marshal(vals)
 	err := json.Unmarshal(temporaryVariable, &targetStruct)
@@ -107,10 +83,10 @@ func mapInterfaceListToStruct[K structList](vals []interface{}) []K {
 	return targetStruct
 }
 
-func mapInterfaceToType[K V3](val interface{}) K {
+func mapInterfaceToType[K stringTypes](val interface{}) K {
 	return K(val.(string))
 }
 
-func mapTypeToString[K V3](val K) string {
+func mapTypeToString[K stringTypes](val K) string {
 	return string(val)
 }

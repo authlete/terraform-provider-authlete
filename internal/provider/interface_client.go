@@ -1,6 +1,6 @@
 package provider
 
-type myClient interface {
+type IClient interface {
 	GetNumber() int32
 	GetNumberOk() (*int32, bool)
 	HasNumber() bool

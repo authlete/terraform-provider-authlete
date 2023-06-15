@@ -104,9 +104,9 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 		serviceOwnerSecret := data.Get("service_owner_secret").(string)
 		apiKey := data.Get("api_key").(string)
 		apiSecret := data.Get("api_secret").(string)
-		authleteVersion := data.Get("authlete_version").(string)
+		authVersion := data.Get("authlete_version").(string)
 
-		if authleteVersion == "3" {
+		if authVersion == "3" {
 			v3 = true
 		}
 

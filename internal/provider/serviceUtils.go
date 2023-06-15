@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func dataToServiceGeneric(data *schema.ResourceData, diags diag.Diagnostics, newServiceDto myService) (*myService, diag.Diagnostics) {
+func dataToService(data *schema.ResourceData, diags diag.Diagnostics, newServiceDto IService) (*IService, diag.Diagnostics) {
 
 	if NotZeroString(data, "service_name") {
 		newServiceDto.SetServiceName(data.Get("service_name").(string))
@@ -26,9 +26,9 @@ func dataToServiceGeneric(data *schema.ResourceData, diags diag.Diagnostics, new
 	newServiceDto.SetClientIdAliasEnabled(data.Get("client_id_alias_enabled").(bool))
 	if NotZeroArray(data, "attribute") {
 		if v3 {
-			newServiceDto.(*authlete3.Service).SetAttributes(mapInterfaceListToStruct[authlete3.Pair](data.Get("attribute").(*schema.Set).List()))
+			newServiceDto.(*authlete3.Service).SetAttributes(mapInterfaceListToStructList[authlete3.Pair](data.Get("attribute").(*schema.Set).List()))
 		} else {
-			newServiceDto.(*authlete.Service).SetAttributes(mapInterfaceListToStruct[authlete.Pair](data.Get("attribute").(*schema.Set).List()))
+			newServiceDto.(*authlete.Service).SetAttributes(mapInterfaceListToStructList[authlete.Pair](data.Get("attribute").(*schema.Set).List()))
 		}
 	}
 	if NotZeroArray(data, "supported_custom_client_metadata") {
@@ -428,7 +428,7 @@ func dataToServiceGeneric(data *schema.ResourceData, diags diag.Diagnostics, new
 	return &newServiceDto, diags
 }
 
-func setDataToService(d *schema.ResourceData, diags diag.Diagnostics, srv myService) {
+func setDataToService(d *schema.ResourceData, diags diag.Diagnostics, srv IService) {
 	if d.HasChange("service_name") {
 		srv.SetServiceName(d.Get("service_name").(string))
 	}
@@ -446,9 +446,9 @@ func setDataToService(d *schema.ResourceData, diags diag.Diagnostics, srv myServ
 	}
 	if d.HasChange("attributes") {
 		if v3 {
-			srv.(*authlete3.Service).Attributes = mapInterfaceListToStruct[authlete3.Pair](d.Get("attribute").(*schema.Set).List())
+			srv.(*authlete3.Service).Attributes = mapInterfaceListToStructList[authlete3.Pair](d.Get("attribute").(*schema.Set).List())
 		} else {
-			srv.(*authlete.Service).Attributes = mapInterfaceListToStruct[authlete.Pair](d.Get("attribute").(*schema.Set).List())
+			srv.(*authlete.Service).Attributes = mapInterfaceListToStructList[authlete.Pair](d.Get("attribute").(*schema.Set).List())
 		}
 	}
 	if d.HasChange("supported_custom_client_metadata") {
@@ -916,7 +916,7 @@ func setDataToService(d *schema.ResourceData, diags diag.Diagnostics, srv myServ
 	}
 }
 
-func serviceToResource(dto myService, data *schema.ResourceData) diag.Diagnostics {
+func serviceToResource(dto IService, data *schema.ResourceData) diag.Diagnostics {
 
 	data.SetId(strconv.FormatInt(dto.GetApiKey(), 10))
 	_ = data.Set("api_secret", dto.GetApiSecret())

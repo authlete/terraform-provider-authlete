@@ -1,6 +1,6 @@
 package provider
 
-type myService interface {
+type IService interface {
 	GetNumber() int32
 	GetNumberOk() (*int32, bool)
 	HasNumber() bool
