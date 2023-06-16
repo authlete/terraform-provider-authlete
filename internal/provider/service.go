@@ -186,7 +186,7 @@ func serviceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 		tflog.Trace(ctx, "Service created")
 
 		apiKey := r.ApiKey
-		apiSecret := r.ApiSecret
+		apiSecret := &client.serviceOwnerSecret
 
 		diags = serviceToResource(r, d)
 

@@ -4,29 +4,55 @@ import (
 	"testing"
 
 	authlete "github.com/authlete/openapi-for-go"
+	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestClientCreateImport(t *testing.T) {
 	openid := "openid"
 	profile := "profile"
-	var testService *authlete.Service = authlete.NewService()
+	var testService IService
+	testAccPreCheck(t)
+
+	if v3 {
+		testService = authlete3.NewService()
+
+		testService.(*authlete3.Service).SetSupportedGrantTypes([]authlete3.GrantType{
+			authlete3.GRANTTYPE_AUTHORIZATION_CODE,
+			authlete3.GRANTTYPE_REFRESH_TOKEN})
+		testService.(*authlete3.Service).SetSupportedResponseTypes(
+			[]authlete3.ResponseType{authlete3.RESPONSETYPE_CODE})
+		testService.(*authlete3.Service).SupportedScopes = []authlete3.Scope{
+			{
+				Name: &openid,
+			},
+			{
+				Name: &profile,
+			},
+		}
+	} else {
+		testService = authlete.NewService()
+
+		testService.(*authlete.Service).SetSupportedGrantTypes([]authlete.GrantType{
+			authlete.GRANTTYPE_AUTHORIZATION_CODE,
+			authlete.GRANTTYPE_REFRESH_TOKEN})
+		testService.(*authlete.Service).SetSupportedResponseTypes(
+			[]authlete.ResponseType{authlete.RESPONSETYPE_CODE})
+		testService.(*authlete.Service).SupportedScopes = []authlete.Scope{
+			{
+				Name: &openid,
+			},
+			{
+				Name: &profile,
+			},
+		}
+	}
+	t.Log("v3: ", v3)
+	t.Log("service key here", testService.GetApiKey())
 	testService.SetServiceName("Test Service for client testing")
 	testService.SetIssuer("https://test.com")
-	testService.SetSupportedGrantTypes([]authlete.GrantType{
-		authlete.GRANTTYPE_AUTHORIZATION_CODE,
-		authlete.GRANTTYPE_REFRESH_TOKEN})
-	testService.SetSupportedResponseTypes(
-		[]authlete.ResponseType{authlete.RESPONSETYPE_CODE})
-	testService.SupportedScopes = []authlete.Scope{
-		{
-			Name: &openid,
-		},
-		{
-			Name: &profile,
-		},
-	}
 	defer testDestroyTestService(t, testService)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
@@ -79,47 +105,69 @@ func TestClientDynamicServices(t *testing.T) {
 	})
 }
 
-// func TestClient_pem_cert_support(t *testing.T) {
+func TestClient_pem_cert_support(t *testing.T) {
 
-// 	resource.Test(t, resource.TestCase{
-// 		PreCheck:          func() { testAccPreCheck(t) },
-// 		ProviderFactories: providerFactories,
-// 		CheckDestroy:      testServiceDestroy,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: pemSupportClientTests,
-// 				Check: resource.ComposeTestCheckFunc(
-// 					resource.TestCheckResourceAttr("authlete_client.client1", "client_id_alias", "terraform_client"),
-// 					resource.TestCheckResourceAttrSet("authlete_client.client1", "client_id"),
-// 					resource.TestCheckResourceAttrSet("authlete_client.client1", "client_secret"),
-// 					resource.TestCheckResourceAttr("authlete_client.client1", "jwk.#", "1"),
-// 				),
-// 			},
-// 		},
-// 	})
-// }
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		CheckDestroy:      testServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: pemSupportClientTests,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("authlete_client.client1", "client_id_alias", "terraform_client"),
+					resource.TestCheckResourceAttrSet("authlete_client.client1", "client_id"),
+					resource.TestCheckResourceAttrSet("authlete_client.client1", "client_secret"),
+					resource.TestCheckResourceAttr("authlete_client.client1", "jwk.#", "1"),
+				),
+			},
+		},
+	})
+}
 
 func TestClientAllAttributes(t *testing.T) {
+	testAccPreCheck(t)
 	openid := "openid"
 	profile := "profile"
-	var testService *authlete.Service = authlete.NewService()
+	var testService IService
+
+	if v3 {
+		testService = authlete3.NewService()
+		testService.(*authlete3.Service).SetSupportedGrantTypes([]authlete3.GrantType{
+			authlete3.GRANTTYPE_AUTHORIZATION_CODE,
+			authlete3.GRANTTYPE_REFRESH_TOKEN})
+		testService.(*authlete3.Service).SetSupportedResponseTypes(
+			[]authlete3.ResponseType{authlete3.RESPONSETYPE_CODE})
+		testService.(*authlete3.Service).SupportedScopes = []authlete3.Scope{
+			{
+				Name: &openid,
+			},
+			{
+				Name: &profile,
+			},
+		}
+	} else {
+		testService = authlete.NewService()
+		testService.(*authlete.Service).SetSupportedGrantTypes([]authlete.GrantType{
+			authlete.GRANTTYPE_AUTHORIZATION_CODE,
+			authlete.GRANTTYPE_REFRESH_TOKEN})
+		testService.(*authlete.Service).SetSupportedResponseTypes(
+			[]authlete.ResponseType{authlete.RESPONSETYPE_CODE})
+		testService.(*authlete.Service).SupportedScopes = []authlete.Scope{
+			{
+				Name: &openid,
+			},
+			{
+				Name: &profile,
+			},
+		}
+	}
+
 	testService.SetServiceName("Test Service for client testing")
 	testService.SetIssuer("https://test.com")
-	testService.SetSupportedGrantTypes([]authlete.GrantType{
-		authlete.GRANTTYPE_AUTHORIZATION_CODE,
-		authlete.GRANTTYPE_REFRESH_TOKEN})
-	testService.SetSupportedResponseTypes(
-		[]authlete.ResponseType{authlete.RESPONSETYPE_CODE})
-	testService.SupportedScopes = []authlete.Scope{
-		{
-			Name: &openid,
-		},
-		{
-			Name: &profile,
-		},
-	}
 	testService.SetSupportedCustomClientMetadata([]string{"k1", "k2"})
 	defer testDestroyTestService(t, testService)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
@@ -324,22 +372,41 @@ func TestClientAllAttributes23(t *testing.T) {
 
 	openid := "openid"
 	profile := "profile"
-	var testService *authlete.Service = authlete.NewService()
+	var testService IService
+
+	if v3 {
+		testService = authlete3.NewService()
+		testService.(*authlete3.Service).SetSupportedGrantTypes([]authlete3.GrantType{
+			authlete3.GRANTTYPE_AUTHORIZATION_CODE,
+			authlete3.GRANTTYPE_REFRESH_TOKEN})
+		testService.(*authlete3.Service).SetSupportedResponseTypes(
+			[]authlete3.ResponseType{authlete3.RESPONSETYPE_CODE})
+		testService.(*authlete3.Service).SupportedScopes = []authlete3.Scope{
+			{
+				Name: &openid,
+			},
+			{
+				Name: &profile,
+			},
+		}
+	} else {
+		testService = authlete.NewService()
+		testService.(*authlete.Service).SetSupportedGrantTypes([]authlete.GrantType{
+			authlete.GRANTTYPE_AUTHORIZATION_CODE,
+			authlete.GRANTTYPE_REFRESH_TOKEN})
+		testService.(*authlete.Service).SetSupportedResponseTypes(
+			[]authlete.ResponseType{authlete.RESPONSETYPE_CODE})
+		testService.(*authlete.Service).SupportedScopes = []authlete.Scope{
+			{
+				Name: &openid,
+			},
+			{
+				Name: &profile,
+			},
+		}
+	}
 	testService.SetServiceName("Test Service for client testing")
 	testService.SetIssuer("https://test.com")
-	testService.SetSupportedGrantTypes([]authlete.GrantType{
-		authlete.GRANTTYPE_AUTHORIZATION_CODE,
-		authlete.GRANTTYPE_REFRESH_TOKEN})
-	testService.SetSupportedResponseTypes(
-		[]authlete.ResponseType{authlete.RESPONSETYPE_CODE})
-	testService.SupportedScopes = []authlete.Scope{
-		{
-			Name: &openid,
-		},
-		{
-			Name: &profile,
-		},
-	}
 	testService.SetSupportedCustomClientMetadata([]string{"k1", "k2"})
 	defer testDestroyTestService(t, testService)
 	resource.Test(t, resource.TestCase{
@@ -544,22 +611,45 @@ func TestClientAllAttributes23(t *testing.T) {
 func TestClientUnsupportedCustomMetadata(t *testing.T) {
 	openid := "openid"
 	profile := "profile"
-	var testService *authlete.Service = authlete.NewService()
+	var testService IService
+	if v3 {
+		testService = authlete3.NewService()
+		testService.(*authlete3.Service).SetSupportedGrantTypes([]authlete3.GrantType{
+			authlete3.GRANTTYPE_AUTHORIZATION_CODE,
+			authlete3.GRANTTYPE_REFRESH_TOKEN},
+		)
+		testService.(*authlete3.Service).SetSupportedResponseTypes(
+			[]authlete3.ResponseType{authlete3.RESPONSETYPE_CODE},
+		)
+		testService.(*authlete3.Service).SupportedScopes = []authlete3.Scope{
+			{
+				Name: &openid,
+			},
+			{
+				Name: &profile,
+			},
+		}
+	} else {
+		testService = authlete.NewService()
+		testService.(*authlete.Service).SetSupportedGrantTypes([]authlete.GrantType{
+			authlete.GRANTTYPE_AUTHORIZATION_CODE,
+			authlete.GRANTTYPE_REFRESH_TOKEN},
+		)
+		testService.(*authlete.Service).SetSupportedResponseTypes(
+			[]authlete.ResponseType{authlete.RESPONSETYPE_CODE},
+		)
+		testService.(*authlete.Service).SupportedScopes = []authlete.Scope{
+			{
+				Name: &openid,
+			},
+			{
+				Name: &profile,
+			},
+		}
+	}
+
 	testService.SetServiceName("Test Service for client testing")
 	testService.SetIssuer("https://test.com")
-	testService.SetSupportedGrantTypes([]authlete.GrantType{
-		authlete.GRANTTYPE_AUTHORIZATION_CODE,
-		authlete.GRANTTYPE_REFRESH_TOKEN})
-	testService.SetSupportedResponseTypes(
-		[]authlete.ResponseType{authlete.RESPONSETYPE_CODE})
-	testService.SupportedScopes = []authlete.Scope{
-		{
-			Name: &openid,
-		},
-		{
-			Name: &profile,
-		},
-	}
 	testService.SetSupportedCustomClientMetadata([]string{"k1", "k2"})
 	defer testDestroyTestService(t, testService)
 	resource.Test(t, resource.TestCase{
@@ -584,20 +674,19 @@ func TestClientUnsupportedCustomMetadata(t *testing.T) {
 	})
 }
 
-// func TestClient_client_secret_setup(t *testing.T) {
-
-// 	resource.Test(t, resource.TestCase{
-// 		PreCheck:          func() { testAccPreCheck(t) },
-// 		ProviderFactories: providerFactories,
-// 		CheckDestroy:      testServiceDestroy,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: clientSecretSupportClientTests,
-// 				Check: resource.ComposeTestCheckFunc(
-// 					resource.TestCheckResourceAttrSet("authlete_client.client1", "client_secret"),
-// 					resource.TestCheckResourceAttr("authlete_client.client1", "client_secret", "terraform_client"),
-// 				),
-// 			},
-// 		},
-// 	})
-// }
+func TestClient_client_secret_setup(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: providerFactories,
+		CheckDestroy:      testServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: clientSecretSupportClientTests,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet("authlete_client.client1", "client_secret"),
+					resource.TestCheckResourceAttr("authlete_client.client1", "client_secret", "terraform_client"),
+				),
+			},
+		},
+	})
+}

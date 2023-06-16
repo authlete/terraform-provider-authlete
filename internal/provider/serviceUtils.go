@@ -919,7 +919,9 @@ func setDataToService(d *schema.ResourceData, diags diag.Diagnostics, srv IServi
 func serviceToResource(dto IService, data *schema.ResourceData) diag.Diagnostics {
 
 	data.SetId(strconv.FormatInt(dto.GetApiKey(), 10))
-	_ = data.Set("api_secret", dto.GetApiSecret())
+	if !v3 {
+		_ = data.Set("api_secret", dto.GetApiSecret())
+	}
 	_ = data.Set("service_name", dto.GetServiceName())
 	_ = data.Set("issuer", dto.GetIssuer())
 	_ = data.Set("description", dto.GetDescription())

@@ -106,7 +106,7 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 		apiSecret := data.Get("api_secret").(string)
 		authVersion := data.Get("authlete_version").(string)
 
-		if authVersion == "3" {
+		if authVersion == "3.0" {
 			v3 = true
 		}
 

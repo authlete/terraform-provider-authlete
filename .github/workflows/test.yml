@@ -101,3 +101,14 @@ jobs:
         TC_ACC_AUTHLETE_VERSION: "2.3"
       run: |
         go test -v -cover ./internal/provider/
+
+    - name: TF acceptance tests - nextdev
+      timeout-minutes: 10
+      env:
+        TF_ACC: "1"
+        AUTHLETE_API_SERVER: ${{ secrets.AUTHLETE_NEXTDEV_API_SERVER }}
+        AUTHLETE_SO_KEY: ${{ secrets.AUTHLETE_NEXTDEV_SO_KEY }}
+        AUTHLETE_SO_SECRET: ${{ secrets.AUTHLETE_NEXTDEV_SO_SECRET }}
+        TC_ACC_AUTHLETE_VERSION: "3.0"
+      run: |
+        go test -v -cover ./internal/provider/

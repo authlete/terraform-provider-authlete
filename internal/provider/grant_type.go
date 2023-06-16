@@ -27,14 +27,3 @@ func createGrantTypeSchema(optional bool) *schema.Schema {
 		},
 	}
 }
-
-// func mapGrantTypesToDTO(vals *schema.Set) []authlete.GrantType {
-
-// 	values := make([]authlete.GrantType, vals.Len())
-
-// 	for i, v := range vals.List() {
-// 		values[i] = authlete.GrantType(v.(string))
-// 	}
-
-// 	return values
-// }
