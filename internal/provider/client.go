@@ -122,6 +122,7 @@ func client() *schema.Resource {
 			"request_object_encryption_enc_match_required":     {Type: schema.TypeBool, Required: false, Optional: true, Computed: true},
 			"digest_algorithm":                                 {Type: schema.TypeString, Required: false, Optional: true},
 			"single_access_token_per_subject":                  {Type: schema.TypeBool, Required: false, Optional: true, Computed: true},
+			"client_identifier":                                {Type: schema.TypeString, Required: false, Optional: false, Computed: true},
 		},
 	}
 }
@@ -168,7 +169,7 @@ func clientCreate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		}
 
 		updateResourceFromClient(d, newOauthClient)
-		d.Set("client_id_alias", newOauthClient.GetClientIdAlias())
+		d.Set("client_identifier", newOauthClient.GetClientIdAlias())
 		d.SetId(strconv.FormatInt(newOauthClient.GetClientId(), 10))
 		return diags
 	}
@@ -197,7 +198,6 @@ func clientCreate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		newOauthClient.SetClientSecret(d.Get("client_secret").(string))
 	}
 
-	d.Set("client_id_alias", newOauthClient.GetClientIdAlias())
 	updateResourceFromClient(d, newOauthClient)
 	d.SetId(strconv.FormatInt(newOauthClient.GetClientId(), 10))
 	return diags
@@ -217,10 +217,7 @@ func clientRead(_ context.Context, d *schema.ResourceData, meta interface{}) dia
 
 	if v3 {
 		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, apiSecret)
-		identifier := d.Get("client_id_alias").(string)
-		if identifier == "" {
-			identifier = strconv.FormatInt(int64(d.Get("client_id").(int)), 10)
-		}
+		identifier := d.Get("client_identifier").(string)
 		clientDto, _, err := client.authleteClient.v3.ClientManagementApi.ClientGetApi(auth, identifier, apiKey).Execute()
 		if err != nil {
 			return diag.FromErr(err)
@@ -260,16 +257,13 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 	if v3 {
 		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, apiSecret)
 
-		identifier := d.Get("client_id_alias").(string)
-		if identifier == "" {
-			identifier = strconv.FormatInt(int64(d.Get("client_id").(int)), 10)
-		}
-
+		identifier := d.Get("client_identifier").(string)
 		existingClient, _, getErr := client.authleteClient.v3.ClientManagementApi.ClientGetApi(auth, identifier, apiKey).Execute()
 
 		if getErr != nil {
 			return diag.FromErr(getErr)
 		}
+
 		setDataToClient(d, diags, existingClient)
 		_, _, err := client.authleteClient.v3.ClientManagementApi.ClientUpdateApi(auth, identifier, apiKey).Client(*existingClient).Execute()
 
@@ -292,6 +286,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		}
 
 		updateResourceFromClient(d, existingClient)
+		d.Set("client_identifier", existingClient.GetClientIdAlias())
 		return diags
 	}
 
