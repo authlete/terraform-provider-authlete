@@ -18,6 +18,14 @@ func testedAuthleteVersionNotBigger(requiredVersion string) bool {
 
 }
 
+func testedAuthleteVersionNotSmaller(requiredVersion string) bool {
+	authleteVersion := os.Getenv("TC_ACC_AUTHLETE_VERSION")
+	if authleteVersion == "" {
+		authleteVersion = "2.2"
+	}
+	return strings.Compare(authleteVersion, requiredVersion) >= 0
+}
+
 func CheckOutputPresent(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ms := s.RootModule()

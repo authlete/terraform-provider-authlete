@@ -147,7 +147,6 @@ func clientCreate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		newClientDto := dataToClient(d, diags)
 		n := newClientDto.(*authlete3.Client)
 		newOauthClient, _, err := client.authleteClient.v3.ClientManagementApi.ClientCreateApi(auth, apiKey).Client(*n).Execute()
-
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -155,9 +154,6 @@ func clientCreate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		if d.Get("client_secret").(string) != "" {
 			cliSecretUpdateRequest := authlete3.ClientSecretUpdateRequest{ClientSecret: d.Get("client_secret").(string)}
 			identifier := newOauthClient.GetClientIdAlias()
-			if identifier == "" {
-				identifier = strconv.FormatInt(newOauthClient.GetClientId(), 10)
-			}
 			updateSecretRequest := client.authleteClient.v3.ClientManagementApi.ClientSecretUpdateApi(auth,
 				identifier, apiKey)
 
@@ -170,7 +166,7 @@ func clientCreate(ctx context.Context, d *schema.ResourceData, meta interface{})
 
 		updateResourceFromClient(d, newOauthClient)
 		d.Set("client_identifier", newOauthClient.GetClientIdAlias())
-		d.SetId(strconv.FormatInt(newOauthClient.GetClientId(), 10))
+		d.SetId(newOauthClient.GetClientIdAlias())
 		return diags
 	}
 
@@ -217,7 +213,8 @@ func clientRead(_ context.Context, d *schema.ResourceData, meta interface{}) dia
 
 	if v3 {
 		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, apiSecret)
-		identifier := d.Get("client_identifier").(string)
+
+		identifier := getClientIdentifierForV3(d)
 		clientDto, _, err := client.authleteClient.v3.ClientManagementApi.ClientGetApi(auth, identifier, apiKey).Execute()
 		if err != nil {
 			return diag.FromErr(err)
@@ -257,7 +254,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 	if v3 {
 		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, apiSecret)
 
-		identifier := d.Get("client_identifier").(string)
+		identifier := getClientIdentifierForV3(d)
 		existingClient, _, getErr := client.authleteClient.v3.ClientManagementApi.ClientGetApi(auth, identifier, apiKey).Execute()
 
 		if getErr != nil {
@@ -340,11 +337,8 @@ func clientDelete(_ context.Context, d *schema.ResourceData, meta interface{}) d
 	if v3 {
 		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, apiSecret)
 
-		clientAlias := d.Get("client_id_alias").(string)
-		if clientAlias == "" {
-			clientAlias = strconv.FormatInt(int64(d.Get("client_id").(int)), 10)
-		}
-		_, err := client.authleteClient.v3.ClientManagementApi.ClientDeleteApi(auth, clientAlias, apiKey).Execute()
+		identifier := getClientIdentifierForV3(d)
+		_, err := client.authleteClient.v3.ClientManagementApi.ClientDeleteApi(auth, identifier, apiKey).Execute()
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -1435,4 +1429,12 @@ func updateResourceFromClient(d *schema.ResourceData, client IClient) {
 	_ = d.Set("request_object_encryption_enc_match_required", client.GetRequestObjectEncryptionAlgMatchRequired())
 	_ = d.Set("digest_algorithm", client.GetDigestAlgorithm())
 	_ = d.Set("single_access_token_per_subject", client.GetSingleAccessTokenPerSubject())
+}
+
+func getClientIdentifierForV3(d *schema.ResourceData) string {
+	clientIdentifier := d.Get("client_identifier").(string)
+	if clientIdentifier != "" {
+		return clientIdentifier
+	}
+	return d.Id()
 }

@@ -980,6 +980,24 @@ resource "authlete_client" "client1" {
 
 `
 
+const stateSimpleClientState30 = `
+provider "authlete" {
+}
+
+
+resource "authlete_client" "client1" {
+	client_id_alias = "terraform_client"
+    client_id_alias_enabled = false
+	client_type = "CONFIDENTIAL"
+	redirect_uris = [ "https://www.authlete.com/cb" ]
+    response_types = [ "CODE" ]
+	grant_types = [ "AUTHORIZATION_CODE", "REFRESH_TOKEN" ]
+	client_name = "Authlete client"
+    requestable_scopes = ["openid", "profile"]
+}
+
+`
+
 const stateUnsupportedMetadataClientState = `
 provider "authlete" {
 }
@@ -1527,6 +1545,270 @@ provider "authlete" {
 
 resource "authlete_client" "client1" {
 	developer = "test"
+	client_id_alias = "terraform_client"
+	client_id_alias_enabled = true
+	client_type = "CONFIDENTIAL"
+	redirect_uris = [ "https://www.authlete.com/cb", "http://localhost:3000/cb" ]
+	response_types = [ "CODE", "CODE_ID_TOKEN" ]
+	grant_types = [ "AUTHORIZATION_CODE", "REFRESH_TOKEN" ]
+	application_type = "WEB"
+	contacts = [ "admin@nospam.com", "admin2@nospam.com" ]
+	client_name = "Authlete client"
+	client_names {
+		tag = "pt_BR"
+		value = "Cliente Portugues"
+	}
+	client_names {
+		tag = "en"
+		value = "Client English"
+	}
+	client_names {
+		tag = "jp"
+		value = "APIクライアント"
+	}
+	logo_uri = "https://example.authlete.com/cli/logo.png"
+	logo_uris {
+		tag = "pt_BR"
+		value = "https://example.authlete.com/cli/logo_pt.png"
+	}
+	logo_uris {
+		tag = "en"
+		value = "https://example.authlete.com/cli/logo_en.png"
+	}
+	logo_uris {
+		tag = "jp"
+		value = "https://example.authlete.com/cli/logo_jp.png"
+	}
+	client_uri = "https://example.authlete.com/cli/"
+	client_uris {
+		tag = "en_GB"
+		value = "https://example.authlete.com/cli/en/GB/"
+	}
+	client_uris {
+		tag = "de_CH"
+		value = "https://example.authlete.com/cli/de/CH/"
+	}
+	policy_uri = "https://example.authlete.com/cli/policy.html"
+	policy_uris {
+		tag = "es"
+		value = "https://example.authlete.com/cli/es/policy.html"
+	}
+	policy_uris {
+		tag = "de_CH"
+		value = "https://example.authlete.com/cli/de/CH/policy.html"
+	}
+	tos_uri = "https://example.authlete.com/cli/tos.html"
+	tos_uris {
+		tag = "es_MX"
+		value = "https://example.authlete.com/cli/es/MX/tos.html"
+	}
+	tos_uris {
+		tag = "fr"
+		value = "https://example.authlete.com/cli/fr/tos.html"
+	}
+	jwks_uri = "https://example.authlete.com/jwks/"
+	subject_type = "PUBLIC"
+	id_token_sign_alg = "RS256"
+	id_token_encryption_alg = "RSA_OAEP_256"
+	id_token_encryption_enc = "A128CBC_HS256"
+	user_info_sign_alg = "RS256"
+	user_info_encryption_alg = "RSA_OAEP_256"
+	user_info_encryption_enc = "A128CBC_HS256"
+	request_sign_alg = "RS256"
+	request_encryption_alg = "RSA_OAEP_256"
+	request_encryption_enc = "A128CBC_HS256"
+	token_auth_method = "PRIVATE_KEY_JWT"
+	token_auth_sign_alg = "ES256"
+	default_max_age = 123
+	default_acrs = ["loa2", "loa3" ]
+	auth_time_required = true
+	login_uri = "https://login.example.com"
+	request_uris = ["https://example.authlete.com/cli/req_obj.json"]
+	description = "this is the description of the client"
+	
+	descriptions {
+		tag = "fr"
+		value = "c'est la description du client"
+	}
+	requestable_scopes_enabled = true
+	
+	requestable_scopes = ["openid", "profile"]
+	access_token_duration = 100
+	refresh_token_duration = 300
+	tls_client_auth_subject_dn = "CN=Example, OU=OP, O=Authlete, C=GB"
+	tls_client_certificate_bound_access_tokens = true
+	self_signed_certificate_key_id = "kid1"
+	software_id = "id1"
+	software_version = "ver1"
+	authorization_sign_alg = "PS256"
+	authorization_encryption_alg = "RSA_OAEP_256"
+	authorization_encryption_enc = "A128CBC_HS256"
+	bc_delivery_mode = "PUSH"
+	bc_notification_endpoint = "https://example.authlete.com/ciba_cb"
+	bc_request_sign_alg = "PS256"
+	bc_user_code_required = true
+	dynamically_registered = false
+	authorization_details_types = ["str1", "str2", "str3"]
+	par_required = true
+	request_object_required = true
+	attributes {
+		key = "key1"
+		value = "val1"
+	}
+	attributes {
+		key = "key2"
+		value = "val2"
+	}
+	custom_metadata = "{\"k1\":\"val1\"}"
+	
+	front_channel_request_object_encryption_required = true
+	request_object_encryption_alg_match_required = true
+	request_object_encryption_enc_match_required = true
+	digest_algorithm = "SHA-256"
+	single_access_token_per_subject = true
+    pkce_required = false
+    pkce_s256_required = true
+}
+`
+
+const stateCompleteClientState30 = `
+provider "authlete" {
+}
+
+
+resource "authlete_client" "client1" {
+	client_id_alias = "terraform_client"
+	client_id_alias_enabled = true
+	client_type = "CONFIDENTIAL"
+	redirect_uris = [ "https://www.authlete.com/cb", "http://localhost:3000/cb" ]
+	response_types = [ "CODE", "CODE_ID_TOKEN" ]
+	grant_types = [ "AUTHORIZATION_CODE", "REFRESH_TOKEN" ]
+	application_type = "WEB"
+	contacts = [ "admin@nospam.com", "admin2@nospam.com" ]
+	client_name = "Authlete client"
+	client_names {
+		tag = "pt_BR"
+		value = "Cliente Portugues"
+	}
+	client_names {
+		tag = "en"
+		value = "Client English"
+	}
+	client_names {
+		tag = "jp"
+		value = "APIクライアント"
+	}
+	logo_uri = "https://example.authlete.com/cli/logo.png"
+	logo_uris {
+		tag = "pt_BR"
+		value = "https://example.authlete.com/cli/logo_pt.png"
+	}
+	logo_uris {
+		tag = "en"
+		value = "https://example.authlete.com/cli/logo_en.png"
+	}
+	logo_uris {
+		tag = "jp"
+		value = "https://example.authlete.com/cli/logo_jp.png"
+	}
+	client_uri = "https://example.authlete.com/cli/"
+	client_uris {
+		tag = "en_GB"
+		value = "https://example.authlete.com/cli/en/GB/"
+	}
+	client_uris {
+		tag = "de_CH"
+		value = "https://example.authlete.com/cli/de/CH/"
+	}
+	policy_uri = "https://example.authlete.com/cli/policy.html"
+	policy_uris {
+		tag = "es"
+		value = "https://example.authlete.com/cli/es/policy.html"
+	}
+	policy_uris {
+		tag = "de_CH"
+		value = "https://example.authlete.com/cli/de/CH/policy.html"
+	}
+	tos_uri = "https://example.authlete.com/cli/tos.html"
+	tos_uris {
+		tag = "es_MX"
+		value = "https://example.authlete.com/cli/es/MX/tos.html"
+	}
+	tos_uris {
+		tag = "fr"
+		value = "https://example.authlete.com/cli/fr/tos.html"
+	}
+	jwks_uri = "https://example.authlete.com/jwks/"
+	subject_type = "PUBLIC"
+	id_token_sign_alg = "RS256"
+	id_token_encryption_alg = "RSA_OAEP_256"
+	id_token_encryption_enc = "A128CBC_HS256"
+	user_info_sign_alg = "RS256"
+	user_info_encryption_alg = "RSA_OAEP_256"
+	user_info_encryption_enc = "A128CBC_HS256"
+	request_sign_alg = "RS256"
+	request_encryption_alg = "RSA_OAEP_256"
+	request_encryption_enc = "A128CBC_HS256"
+	token_auth_method = "PRIVATE_KEY_JWT"
+	token_auth_sign_alg = "ES256"
+	default_max_age = 123
+	default_acrs = ["loa2", "loa3" ]
+	auth_time_required = true
+	login_uri = "https://login.example.com"
+	request_uris = ["https://example.authlete.com/cli/req_obj.json"]
+	description = "this is the description of the client"
+	
+	descriptions {
+		tag = "fr"
+		value = "c'est la description du client"
+	}
+	requestable_scopes_enabled = true
+	
+	requestable_scopes = ["openid", "profile"]
+	access_token_duration = 100
+	refresh_token_duration = 300
+	tls_client_auth_subject_dn = "CN=Example, OU=OP, O=Authlete, C=GB"
+	tls_client_certificate_bound_access_tokens = true
+	self_signed_certificate_key_id = "kid1"
+	software_id = "id1"
+	software_version = "ver1"
+	authorization_sign_alg = "PS256"
+	authorization_encryption_alg = "RSA_OAEP_256"
+	authorization_encryption_enc = "A128CBC_HS256"
+	bc_delivery_mode = "PUSH"
+	bc_notification_endpoint = "https://example.authlete.com/ciba_cb"
+	bc_request_sign_alg = "PS256"
+	bc_user_code_required = true
+	dynamically_registered = false
+	authorization_details_types = ["str1", "str2", "str3"]
+	par_required = true
+	request_object_required = true
+	attributes {
+		key = "key1"
+		value = "val1"
+	}
+	attributes {
+		key = "key2"
+		value = "val2"
+	}
+	custom_metadata = "{\"k1\":\"val1\"}"
+	
+	front_channel_request_object_encryption_required = true
+	request_object_encryption_alg_match_required = true
+	request_object_encryption_enc_match_required = true
+	digest_algorithm = "SHA-256"
+	single_access_token_per_subject = true
+    pkce_required = true
+    pkce_s256_required = false
+}
+`
+
+const stateUpdatedClientState30 = `
+provider "authlete" {
+}
+
+
+resource "authlete_client" "client1" {
 	client_id_alias = "terraform_client"
 	client_id_alias_enabled = true
 	client_type = "CONFIDENTIAL"

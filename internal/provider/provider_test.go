@@ -71,6 +71,7 @@ func testCreateTestService(t *testing.T, service2 IService) {
 	service2.SetApiKey(newService.GetApiKey())
 	if v3 {
 		service2.SetApiSecret(os.Getenv("AUTHLETE_SO_SECRET"))
+		newService.SetApiSecret(os.Getenv("AUTHLETE_SO_SECRET"))
 	} else {
 		service2.SetApiSecret(newService.GetApiSecret())
 	}
@@ -119,7 +120,6 @@ func testDestroyTestService(t *testing.T, service2 IService) {
 	var err error = nil
 	authleteClient, auth := createTestClient()
 
-	t.Log("service api_key", service2.GetApiKey())
 	if v3 {
 		_, err = authleteClient.(authlete3.ServiceManagementApi).ServiceDeleteApi(auth, strconv.FormatInt(service2.GetApiKey(), 10)).Execute()
 	} else {
