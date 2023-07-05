@@ -17,8 +17,8 @@ github.com/apparentlymart/go-textseg/v13 v13.0.0/go.mod h1:ZK2fH7c4NqDTLtiYLvIkE
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/armon/go-radix v1.0.0 h1:F4z6KzEeeQIMeLFa97iZU6vupzoecKdU5TX24SNppXI=
 github.com/armon/go-radix v1.0.0/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
-github.com/authlete/openapi-for-go v1.2.1 h1:BwBOe3EoQbtaF20ywNYR9OZi3Nyvi05yBwBj5w/nXUQ=
-github.com/authlete/openapi-for-go v1.2.1/go.mod h1:aef7AzA/qvP2FgWZ9uevzwpjqxzRHU/0nRskl7iF3e0=
+github.com/authlete/openapi-for-go v1.2.2 h1:7Vr6+5BDAC0iPgPAwTdSvMAVs0iWXmIt7f1H56ISHHg=
+github.com/authlete/openapi-for-go v1.2.2/go.mod h1:9NYNzoCEblpR5MMRyTSN86ZNcDJc81vc491aCtp7Kjw=
 github.com/authlete/openapi-for-go/v3 v3.0.0-alpha1 h1:NH6LuRojKhfm6BX0b/SIelSb5tbEyVsJ5I6mVEH0ejE=
 github.com/authlete/openapi-for-go/v3 v3.0.0-alpha1/go.mod h1:/EvWe9pzkUvCP6dYRDbjN54Qmu5PapE3XSjUNzM6Dsw=
 github.com/bgentry/speakeasy v0.1.0 h1:ByYyxL9InA1OWqxJqqp2A5pYHUrCiAL6K3J+LKSsQkY=
@@ -186,6 +186,7 @@ github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.2/go.mod h1:R6va5+xMeoiuVRoj+gSkQ7d3FALtqAAGI1FQKckRals=
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
+github.com/stretchr/testify v1.8.2/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/vmihailenco/msgpack v3.3.3+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
