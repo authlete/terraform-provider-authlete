@@ -30,10 +30,6 @@ func createJWSAlgSchema() *schema.Schema {
 	}
 }
 
-func mapJWSAlg(v interface{}) authlete.JwsAlg {
-	return authlete.JwsAlg(v.(string))
-}
-
 func createJWEAlgSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeString,
@@ -61,10 +57,6 @@ func createJWEAlgSchema() *schema.Schema {
 	}
 }
 
-func mapJWEAlg(v interface{}) authlete.JweAlg {
-	return authlete.JweAlg(v.(string))
-}
-
 func createJWEEncSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeString,
@@ -78,7 +70,4 @@ func createJWEEncSchema() *schema.Schema {
 			string(authlete.JWEENC_A192_GCM),
 			string(authlete.JWEENC_A256_GCM),
 		}, false)}
-}
-func mapJWEEnc(v interface{}) authlete.JweEnc {
-	return authlete.JweEnc(v.(string))
 }

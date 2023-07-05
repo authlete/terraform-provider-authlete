@@ -19,29 +19,3 @@ func createSupportedAttachmentsSchema() *schema.Schema {
 		},
 	}
 }
-
-func mapSupportedAttachmentsToDTO(entry []interface{}) []authlete.AttachmentType {
-	var entries = make([]authlete.AttachmentType, 0)
-
-	if entry != nil {
-		for _, v := range entry {
-			newPair, _ := authlete.NewAttachmentTypeFromValue(v.(string))
-			entries = append(entries, *newPair)
-		}
-	}
-	return entries
-}
-
-func mapSupportedAttachmentsFromDTO(supportedAttachments []authlete.AttachmentType) []interface{} {
-
-	if supportedAttachments != nil {
-		entries := make([]interface{}, len(supportedAttachments), len(supportedAttachments))
-
-		for i, v := range supportedAttachments {
-			newEntry := v.Ptr()
-			entries[i] = string(*newEntry)
-		}
-		return entries
-	}
-	return make([]interface{}, 0)
-}

@@ -7,9 +7,12 @@ import (
 	"os"
 
 	authlete "github.com/authlete/openapi-for-go"
+	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
+
+var v3 bool = false
 
 func init() {
 	// Set descriptions to support markdown syntax, this will be used in document generation
@@ -61,6 +64,12 @@ func New(version string) func() *schema.Provider {
 					Optional:    true,
 					DefaultFunc: schema.EnvDefaultFunc("AUTHLETE_API_SECRET", ""),
 				},
+				"authlete_version": {
+					Type:        schema.TypeString,
+					Required:    false,
+					Optional:    true,
+					DefaultFunc: schema.EnvDefaultFunc("AUTHLETE_API_VERSION", "2"),
+				},
 			},
 
 			ResourcesMap: map[string]*schema.Resource{
@@ -79,12 +88,13 @@ type apiClient struct {
 	// Add whatever fields, client or connection info, etc. here
 	// you would need to setup to communicate with the upstream
 	// API.
+	// serverVersion      int
 	apiServer          string
 	serviceOwnerKey    string
 	serviceOwnerSecret string
 	apiKey             string
 	apiSecret          string
-	authleteClient     *authlete.APIClient
+	authleteClient     *ClientWrapper
 }
 
 func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
@@ -92,9 +102,36 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 		apiServer := data.Get("api_server").(string)
 		serviceOwnerKey := data.Get("service_owner_key").(string)
 		serviceOwnerSecret := data.Get("service_owner_secret").(string)
-
 		apiKey := data.Get("api_key").(string)
 		apiSecret := data.Get("api_secret").(string)
+		authVersion := data.Get("authlete_version").(string)
+
+		if authVersion == "3.0" {
+			v3 = true
+		}
+
+		if v3 {
+			cnf := authlete3.NewConfiguration()
+			cnf.UserAgent = p.UserAgent("terraform-provider-authlete", version)
+
+			cnf.Servers[0].URL = apiServer
+
+			tlsInsecure := os.Getenv("AUTHLETE_TLS_INSECURE")
+			if tlsInsecure == "true" {
+				mTLSConfig := &tls.Config{
+					InsecureSkipVerify: true,
+				}
+				tr := &http.Transport{
+					TLSClientConfig: mTLSConfig,
+				}
+				cnf.HTTPClient = &http.Client{Transport: tr}
+			}
+
+			apiClientOpenAPI := ClientWrapper{v3: authlete3.NewAPIClient(cnf)}
+			return &apiClient{apiServer: apiServer, serviceOwnerKey: serviceOwnerKey,
+				serviceOwnerSecret: serviceOwnerSecret, apiKey: apiKey, apiSecret: apiSecret,
+				authleteClient: &apiClientOpenAPI}, nil
+		}
 
 		cnf := authlete.NewConfiguration()
 		cnf.UserAgent = p.UserAgent("terraform-provider-authlete", version)
@@ -111,11 +148,9 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 			}
 			cnf.HTTPClient = &http.Client{Transport: tr}
 		}
-
-		apiClientOpenAPI := authlete.NewAPIClient(cnf)
-
+		apiClientOpenAPI := ClientWrapper{v2: authlete.NewAPIClient(cnf)}
 		return &apiClient{apiServer: apiServer, serviceOwnerKey: serviceOwnerKey,
 			serviceOwnerSecret: serviceOwnerSecret, apiKey: apiKey, apiSecret: apiSecret,
-			authleteClient: apiClientOpenAPI}, nil
+			authleteClient: &apiClientOpenAPI}, nil
 	}
 }

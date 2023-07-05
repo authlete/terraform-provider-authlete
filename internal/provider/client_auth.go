@@ -42,30 +42,3 @@ func createClientAuthMethodSchema() *schema.Schema {
 		}, false),
 	}
 }
-
-func mapClientAuthMethodToDto(v interface{}) authlete.ClientAuthenticationMethod {
-	return authlete.ClientAuthenticationMethod(v.(string))
-}
-
-func mapClientAuthMethods(auth []interface{}) []authlete.ClientAuthenticationMethod {
-
-	authMethods := make([]authlete.ClientAuthenticationMethod, len(auth))
-
-	for i, v := range auth {
-		authMethods[i] = mapClientAuthMethodToDto(v)
-	}
-
-	return authMethods
-}
-
-func mapClientAuthMethodsFromDTO(vals []authlete.ClientAuthenticationMethod) []interface{} {
-
-	if vals != nil {
-		entries := make([]interface{}, len(vals), len(vals))
-		for i, v := range vals {
-			entries[i] = v
-		}
-		return entries
-	}
-	return make([]interface{}, 0)
-}

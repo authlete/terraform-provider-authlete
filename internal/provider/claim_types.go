@@ -21,28 +21,3 @@ func createSupportedClaimTypesSchema() *schema.Schema {
 		},
 	}
 }
-
-func mapClaimTypesToDTO(vals []interface{}) []authlete.ClaimType {
-
-	values := make([]authlete.ClaimType, len(vals))
-
-	for i, v := range vals {
-		values[i] = authlete.ClaimType(v.(string))
-	}
-
-	return values
-}
-
-func mapClaimTypesFromDTO(vals []authlete.ClaimType) []interface{} {
-
-	var result = make([]interface{}, len(vals))
-
-	if vals != nil {
-		for i, v := range vals {
-			var str string
-			str = string(v)
-			result[i] = str
-		}
-	}
-	return result
-}

@@ -26,25 +26,3 @@ func createResponseTypeSchema(optional bool) *schema.Schema {
 		},
 	}
 }
-
-func mapResponseTypesToDTO(vals []interface{}) []authlete.ResponseType {
-	mapped := make([]authlete.ResponseType, len(vals))
-
-	for i, v := range vals {
-		mapped[i] = authlete.ResponseType(v.(string))
-	}
-
-	return mapped
-}
-
-func mapResponseTypesFromDTO(vals []authlete.ResponseType) []interface{} {
-
-	if vals != nil {
-		entries := make([]interface{}, len(vals), len(vals))
-		for i, v := range vals {
-			entries[i] = v
-		}
-		return entries
-	}
-	return make([]interface{}, 0)
-}

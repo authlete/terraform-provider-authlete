@@ -32,10 +32,6 @@ func createSubjectTypeSchema() *schema.Schema {
 	}
 }
 
-func mapSubjectTypeToDto(v interface{}) authlete.SubjectType {
-	return authlete.SubjectType(v.(string))
-}
-
 func createApplicationTypeSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeString,
@@ -47,8 +43,4 @@ func createApplicationTypeSchema() *schema.Schema {
 			string(authlete.APPLICATIONTYPE_NATIVE),
 		}, false),
 	}
-}
-
-func mapApplicationTypeToDto(v interface{}) authlete.ApplicationType {
-	return authlete.ApplicationType(v.(string))
 }
