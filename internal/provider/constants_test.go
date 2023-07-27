@@ -11,6 +11,7 @@ resource "authlete_service" "prod" {
   service_name = "Simplest Test API"
   supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   supported_response_types = ["CODE"]
+  client_id_alias_enabled = true
 }
 
 output "api_key" {  
@@ -709,6 +710,7 @@ resource "authlete_service" "prod" {
   service_name = "Simplest Test API"
   supported_grant_types = ["REFRESH_TOKEN", "AUTHORIZATION_CODE" ]
   supported_response_types = ["CODE"]
+  client_id_alias_enabled = true
 
   supported_scopes {
     name = "test2"
@@ -736,6 +738,7 @@ provider "authlete" {
 resource "authlete_service" "rsa" {
   issuer = "https://test.com"
   service_name = "RSA Test API"
+  client_id_alias_enabled = true
   supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   supported_response_types = ["CODE"]
   access_token_sign_alg = "RS256"
@@ -817,6 +820,7 @@ provider "authlete" {
 resource "authlete_service" "rsa" {
   issuer = "https://test.com"
   service_name = "RSA Test API"
+  client_id_alias_enabled = true
   supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   supported_response_types = ["CODE"]
   access_token_sign_alg = "RS256"
@@ -848,6 +852,7 @@ provider "authlete" {
 resource "authlete_service" "rsa" {
   issuer = "https://test.com"
   service_name = "RSA Test API"
+  client_id_alias_enabled = true
   supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   supported_response_types = ["CODE"]
   access_token_sign_alg = "RS256"
@@ -880,6 +885,7 @@ provider "authlete" {
 resource "authlete_service" "ec" {
   issuer = "https://test.com"
   service_name = "EC Test API"
+  client_id_alias_enabled = true
   supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   supported_response_types = ["CODE"]
   access_token_sign_alg = "ES256"
@@ -938,6 +944,7 @@ provider "authlete" {
 resource "authlete_service" "ec" {
   issuer = "https://test.com"
   service_name = "EC Test API"
+  client_id_alias_enabled = true
   supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   supported_response_types = ["CODE"]
   access_token_sign_alg = "ES256"
@@ -982,6 +989,7 @@ provider "authlete" {
 resource "authlete_service" "ec" {
   issuer = "https://test.com"
   service_name = "EC Test API"
+  client_id_alias_enabled = true
   supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   supported_response_types = ["CODE"]
   access_token_sign_alg = "ES256"
@@ -1026,6 +1034,7 @@ provider "authlete" {
 resource "authlete_service" "import" {
   issuer = "https://test.com"
   service_name = "RSA Test API"
+  client_id_alias_enabled = true
   supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   supported_response_types = ["CODE"]
   access_token_sign_alg = "RS256"
@@ -1071,6 +1080,7 @@ provider "authlete" {
 resource "authlete_service" "rsa" {
   issuer = "https://test.com"
   service_name = "RSA Test API"
+  client_id_alias_enabled = true
   supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   supported_response_types = ["CODE"]
   access_token_sign_alg = "RS256"
@@ -1139,7 +1149,7 @@ provider "authlete" {
 
 resource "authlete_client" "client1" {
 	client_id_alias = "terraform_client"
-    client_id_alias_enabled = false
+    client_id_alias_enabled = true
 	client_type = "CONFIDENTIAL"
 	redirect_uris = [ "https://www.authlete.com/cb" ]
     response_types = [ "CODE" ]
@@ -1177,6 +1187,7 @@ provider "authlete" {
 resource "authlete_service" "prod" {
   issuer = "https://test.com"
   service_name = "Service for client test"
+  client_id_alias_enabled = true
   supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   supported_response_types = ["CODE"]
   supported_scopes {
@@ -1212,6 +1223,7 @@ provider "authlete" {
 resource "authlete_service" "prod" {
   issuer = "https://test.com"
   service_name = "Service for client test"
+  client_id_alias_enabled = true
   supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   supported_response_types = ["CODE"]
   supported_scopes {
@@ -1264,6 +1276,7 @@ provider "authlete" {
 resource "authlete_service" "prod" {
   issuer = "https://test.com"
   service_name = "Service for client test"
+  client_id_alias_enabled = true
   supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   supported_response_types = ["CODE"]
   supported_scopes {
@@ -1838,58 +1851,10 @@ resource "authlete_client" "client1" {
 	application_type = "WEB"
 	contacts = [ "admin@nospam.com", "admin2@nospam.com" ]
 	client_name = "Authlete client"
-	client_names {
-		tag = "pt_BR"
-		value = "Cliente Portugues"
-	}
-	client_names {
-		tag = "en"
-		value = "Client English"
-	}
-	client_names {
-		tag = "jp"
-		value = "APIクライアント"
-	}
 	logo_uri = "https://example.authlete.com/cli/logo.png"
-	logo_uris {
-		tag = "pt_BR"
-		value = "https://example.authlete.com/cli/logo_pt.png"
-	}
-	logo_uris {
-		tag = "en"
-		value = "https://example.authlete.com/cli/logo_en.png"
-	}
-	logo_uris {
-		tag = "jp"
-		value = "https://example.authlete.com/cli/logo_jp.png"
-	}
 	client_uri = "https://example.authlete.com/cli/"
-	client_uris {
-		tag = "en_GB"
-		value = "https://example.authlete.com/cli/en/GB/"
-	}
-	client_uris {
-		tag = "de_CH"
-		value = "https://example.authlete.com/cli/de/CH/"
-	}
 	policy_uri = "https://example.authlete.com/cli/policy.html"
-	policy_uris {
-		tag = "es"
-		value = "https://example.authlete.com/cli/es/policy.html"
-	}
-	policy_uris {
-		tag = "de_CH"
-		value = "https://example.authlete.com/cli/de/CH/policy.html"
-	}
 	tos_uri = "https://example.authlete.com/cli/tos.html"
-	tos_uris {
-		tag = "es_MX"
-		value = "https://example.authlete.com/cli/es/MX/tos.html"
-	}
-	tos_uris {
-		tag = "fr"
-		value = "https://example.authlete.com/cli/fr/tos.html"
-	}
 	jwks_uri = "https://example.authlete.com/jwks/"
 	subject_type = "PUBLIC"
 	id_token_sign_alg = "RS256"
@@ -1909,11 +1874,7 @@ resource "authlete_client" "client1" {
 	login_uri = "https://login.example.com"
 	request_uris = ["https://example.authlete.com/cli/req_obj.json"]
 	description = "this is the description of the client"
-	
-	descriptions {
-		tag = "fr"
-		value = "c'est la description du client"
-	}
+
 	requestable_scopes_enabled = true
 	
 	requestable_scopes = ["openid", "profile"]
@@ -1970,58 +1931,10 @@ resource "authlete_client" "client1" {
 	application_type = "WEB"
 	contacts = [ "admin@nospam.com", "admin2@nospam.com" ]
 	client_name = "Authlete client"
-	client_names {
-		tag = "pt_BR"
-		value = "Cliente Portugues"
-	}
-	client_names {
-		tag = "en"
-		value = "Client English"
-	}
-	client_names {
-		tag = "jp"
-		value = "APIクライアント"
-	}
 	logo_uri = "https://example.authlete.com/cli/logo.png"
-	logo_uris {
-		tag = "pt_BR"
-		value = "https://example.authlete.com/cli/logo_pt.png"
-	}
-	logo_uris {
-		tag = "en"
-		value = "https://example.authlete.com/cli/logo_en.png"
-	}
-	logo_uris {
-		tag = "jp"
-		value = "https://example.authlete.com/cli/logo_jp.png"
-	}
 	client_uri = "https://example.authlete.com/cli/"
-	client_uris {
-		tag = "en_GB"
-		value = "https://example.authlete.com/cli/en/GB/"
-	}
-	client_uris {
-		tag = "de_CH"
-		value = "https://example.authlete.com/cli/de/CH/"
-	}
 	policy_uri = "https://example.authlete.com/cli/policy.html"
-	policy_uris {
-		tag = "es"
-		value = "https://example.authlete.com/cli/es/policy.html"
-	}
-	policy_uris {
-		tag = "de_CH"
-		value = "https://example.authlete.com/cli/de/CH/policy.html"
-	}
 	tos_uri = "https://example.authlete.com/cli/tos.html"
-	tos_uris {
-		tag = "es_MX"
-		value = "https://example.authlete.com/cli/es/MX/tos.html"
-	}
-	tos_uris {
-		tag = "fr"
-		value = "https://example.authlete.com/cli/fr/tos.html"
-	}
 	jwks_uri = "https://example.authlete.com/jwks/"
 	subject_type = "PUBLIC"
 	id_token_sign_alg = "RS256"
@@ -2041,11 +1954,6 @@ resource "authlete_client" "client1" {
 	login_uri = "https://login.example.com"
 	request_uris = ["https://example.authlete.com/cli/req_obj.json"]
 	description = "this is the description of the client"
-	
-	descriptions {
-		tag = "fr"
-		value = "c'est la description du client"
-	}
 	requestable_scopes_enabled = true
 	
 	requestable_scopes = ["openid", "profile"]
@@ -2094,6 +2002,7 @@ provider "authlete" {
 resource "authlete_service" "prod" {
   issuer = "https://test.com"
   service_name = "Service for client test"
+  client_id_alias_enabled = true
   supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   supported_response_types = ["CODE"]
   supported_scopes {
