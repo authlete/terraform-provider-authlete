@@ -17,8 +17,8 @@ github.com/apparentlymart/go-textseg/v13 v13.0.0/go.mod h1:ZK2fH7c4NqDTLtiYLvIkE
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/armon/go-radix v1.0.0 h1:F4z6KzEeeQIMeLFa97iZU6vupzoecKdU5TX24SNppXI=
 github.com/armon/go-radix v1.0.0/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
-github.com/authlete/openapi-for-go v1.2.1 h1:BwBOe3EoQbtaF20ywNYR9OZi3Nyvi05yBwBj5w/nXUQ=
-github.com/authlete/openapi-for-go v1.2.1/go.mod h1:aef7AzA/qvP2FgWZ9uevzwpjqxzRHU/0nRskl7iF3e0=
+github.com/authlete/openapi-for-go v1.2.3 h1:W3fj3RNk8i4RxE8cnOQ7OQ5ai3QLBX5g7E7SkAjE8SI=
+github.com/authlete/openapi-for-go v1.2.3/go.mod h1:aef7AzA/qvP2FgWZ9uevzwpjqxzRHU/0nRskl7iF3e0=
 github.com/authlete/openapi-for-go/v3 v3.0.0-alpha1 h1:NH6LuRojKhfm6BX0b/SIelSb5tbEyVsJ5I6mVEH0ejE=
 github.com/authlete/openapi-for-go/v3 v3.0.0-alpha1/go.mod h1:/EvWe9pzkUvCP6dYRDbjN54Qmu5PapE3XSjUNzM6Dsw=
 github.com/bgentry/speakeasy v0.1.0 h1:ByYyxL9InA1OWqxJqqp2A5pYHUrCiAL6K3J+LKSsQkY=
