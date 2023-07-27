@@ -129,6 +129,7 @@ func service() *schema.Resource {
 			"supported_documents":                              createStringColSchema(),
 			"supported_verification_methods":                   createStringColSchema(),
 			"supported_verified_claims":                        createStringColSchema(),
+			"verified_claims_validation_schema_set":            createVerifiedClaimsType(),
 			"end_session_endpoint":                             {Type: schema.TypeString, Required: false, Optional: true},
 			"dcr_duplicate_software_id_blocked":                {Type: schema.TypeBool, Required: false, Optional: true},
 			"request_object_audience_checked":                  {Type: schema.TypeBool, Required: false, Optional: true},

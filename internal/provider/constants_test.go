@@ -266,6 +266,7 @@ resource "authlete_service" "complete_described" {
 	supported_claim_types = ["NORMAL", "AGGREGATED", "DISTRIBUTED"]
 	supported_claim_locales = ["en", "fr", "jp"]
 	supported_claims = ["name","email", "profile", "gender"]
+	verified_claims_validation_schema_set = "standard"
 	claim_shortcut_restrictive = true
 	jwks_endpoint = "https://www.mystore.com/jwks"
 	direct_jwks_endpoint_enabled = true
@@ -480,6 +481,7 @@ resource "authlete_service" "complete_described" {
   supported_claim_types = ["NORMAL", "AGGREGATED", "DISTRIBUTED"]
   supported_claim_locales = ["en", "fr", "jp"]
   supported_claims = ["name","email", "profile", "gender"]
+  verified_claims_validation_schema_set = "standard"
   claim_shortcut_restrictive = true
   jwks_endpoint = "https://www.mystore.com/jwks"
   direct_jwks_endpoint_enabled = true

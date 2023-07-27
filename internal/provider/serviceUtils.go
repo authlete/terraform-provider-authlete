@@ -247,6 +247,15 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics, newService
 	if NotZeroString(data, "user_info_endpoint") {
 		newServiceDto.SetUserInfoEndpoint(data.Get("user_info_endpoint").(string))
 	}
+	if NotZeroString(data, "verified_claims_validation_schema_set") {
+		if v3 {
+			newServiceDto.(*authlete3.Service).SetVerifiedClaimsValidationSchemaSet(
+				authlete3.VerifiedClaimsValidationSchema(data.Get("verified_claims_validation_schema_set").(string)))
+		} else {
+			newServiceDto.(*authlete.Service).SetVerifiedClaimsValidationSchemaSet(
+				authlete.VerifiedClaimsValidationSchema(data.Get("verified_claims_validation_schema_set").(string)))
+		}
+	}
 	newServiceDto.SetDirectUserInfoEndpointEnabled(data.Get("direct_user_info_endpoint_enabled").(bool))
 	newServiceDto.SetDynamicRegistrationSupported(data.Get("dynamic_registration_supported").(bool))
 	newServiceDto.SetDcrScopeUsedAsRequestable(data.Get("dcr_scope_used_as_requestable").(bool))
@@ -474,6 +483,17 @@ func setDataToService(d *schema.ResourceData, diags diag.Diagnostics, srv IServi
 	}
 	if d.HasChange("developer_authentication_callback_api_secret") {
 		srv.SetDeveloperAuthenticationCallbackApiSecret(d.Get("developer_authentication_callback_api_secret").(string))
+	}
+	if d.HasChange("verified_claims_validation_schema_set") {
+		if v3 {
+			srv.(*authlete3.Service).SetVerifiedClaimsValidationSchemaSet(
+				authlete3.VerifiedClaimsValidationSchema(d.Get("verified_claims_validation_schema_set").(string)),
+			)
+		} else {
+			srv.(*authlete.Service).SetVerifiedClaimsValidationSchemaSet(
+				authlete.VerifiedClaimsValidationSchema(d.Get("verified_claims_validation_schema_set").(string)),
+			)
+		}
 	}
 	if d.HasChange("supported_grant_types") {
 		if v3 {
@@ -928,6 +948,7 @@ func serviceToResource(dto IService, data *schema.ResourceData) diag.Diagnostics
 	_ = data.Set("clients_per_developer", dto.GetClientsPerDeveloper())
 	_ = data.Set("client_id_alias_enabled", dto.GetClientIdAliasEnabled())
 	if v3 {
+		_ = data.Set("verified_claims_validation_schema_set", dto.(*authlete3.Service).GetVerifiedClaimsValidationSchemaSet())
 		_ = data.Set("attribute", mapAttributesFromDTOV3(dto.(*authlete3.Service).GetAttributes()))
 		_ = data.Set("supported_grant_types", mapFromDTO(dto.(*authlete3.Service).GetSupportedGrantTypes()))
 		_ = data.Set("supported_response_types", mapFromDTO(dto.(*authlete3.Service).GetSupportedResponseTypes()))
@@ -946,6 +967,7 @@ func serviceToResource(dto IService, data *schema.ResourceData) diag.Diagnostics
 		_ = data.Set("supported_client_registration_types", mapFromDTO(dto.(*authlete3.Service).GetSupportedClientRegistrationTypes()))
 		_ = data.Set("trust_anchors", mapTrustAnchorFromDTOV3(dto.(*authlete3.Service).GetTrustAnchors()))
 	} else {
+		_ = data.Set("verified_claims_validation_schema_set", dto.(*authlete.Service).GetVerifiedClaimsValidationSchemaSet())
 		_ = data.Set("attribute", mapAttributesFromDTO(dto.(*authlete.Service).GetAttributes()))
 		_ = data.Set("supported_grant_types", mapFromDTO(dto.(*authlete.Service).GetSupportedGrantTypes()))
 		_ = data.Set("supported_response_types", mapFromDTO(dto.(*authlete.Service).GetSupportedResponseTypes()))
