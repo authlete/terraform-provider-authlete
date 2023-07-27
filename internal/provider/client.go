@@ -165,7 +165,7 @@ func clientCreate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		}
 
 		updateResourceFromClient(d, newOauthClient)
-		d.Set("client_identifier", newOauthClient.GetClientId())
+		d.Set("client_identifier", strconv.FormatInt(newOauthClient.GetClientId(), 10))
 		d.SetId(strconv.FormatInt(newOauthClient.GetClientId(), 10))
 		return diags
 	}
@@ -260,7 +260,6 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		if getErr != nil {
 			return diag.FromErr(getErr)
 		}
-
 		setDataToClient(d, diags, existingClient)
 		_, _, err := client.authleteClient.v3.ClientManagementApi.ClientUpdateApi(auth, identifier, apiKey).Client(*existingClient).Execute()
 
@@ -283,7 +282,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		}
 
 		updateResourceFromClient(d, existingClient)
-		d.Set("client_identifier", existingClient.GetClientId())
+		d.Set("client_identifier", strconv.FormatInt(existingClient.GetClientId(), 10))
 		return diags
 	}
 
