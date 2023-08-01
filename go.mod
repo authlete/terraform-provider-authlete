@@ -3,8 +3,8 @@ module github.com/authlete/terraform-provider-authlete
 go 1.19
 
 require (
-	github.com/authlete/openapi-for-go v1.2.1
-	github.com/authlete/openapi-for-go/v3 v3.0.0-alpha1
+	github.com/authlete/openapi-for-go v1.2.3
+	github.com/authlete/openapi-for-go/v3 v3.0.0-alpha2
 	github.com/hashicorp/terraform-plugin-docs v0.15.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.27.0
