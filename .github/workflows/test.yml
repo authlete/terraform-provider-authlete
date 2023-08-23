@@ -107,8 +107,11 @@ jobs:
       env:
         TF_ACC: "1"
         AUTHLETE_API_SERVER: ${{ secrets.AUTHLETE_NEXTDEV_API_SERVER }}
+        AUTHLETE_IDP_SERVER: ${{ secrets.AUTHLETE_IDP_SERVER }}
         AUTHLETE_SO_KEY: ${{ secrets.AUTHLETE_NEXTDEV_SO_KEY }}
-        AUTHLETE_SO_SECRET: ${{ secrets.AUTHLETE_NEXTDEV_SO_SECRET }}
+        AUTHLETE_SO_SECRET: ${{ secrets.IDP_ORG_TOKEN }}
         TC_ACC_AUTHLETE_VERSION: "3.0"
+        AUTHLETE_API_SERVER_ID: ${{ secrets.AUTHLETE_API_SERVER_ID }}
+        AUTHLETE_ORGANIZATION_ID: ${{ secrets.AUTHLETE_ORGANIZATION_ID }}
       run: |
         go test -v -cover ./internal/provider/
