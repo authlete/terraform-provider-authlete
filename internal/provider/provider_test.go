@@ -2,11 +2,14 @@ package provider
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"testing"
 
+	idp "github.com/authlete/idp-api"
 	authlete "github.com/authlete/openapi-for-go"
 	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -55,11 +58,23 @@ func testAccPreCheck(t *testing.T) {
 func testCreateTestService(t *testing.T, service2 IService) {
 	var err error = nil
 	var newService IService
+	var apiServerId, organizationId int
+	var orgToken string
 
 	authleteClient, auth := createTestClient()
 	if v3 {
-		s, _ := service2.(*authlete3.Service)
-		newService, _, err = authleteClient.(authlete3.ServiceManagementApi).ServiceCreateApi(auth).Service(*s).Execute()
+		apiServerId, err = strconv.Atoi(os.Getenv("AUTHLETE_API_SERVER_ID"))
+		if err != nil {
+			t.Fatal("Error during converting AUTHLETE_API_SERVER_ID to integer ", err)
+		}
+		organizationId, err = strconv.Atoi(os.Getenv("AUTHLETE_ORGANIZATION_ID"))
+		if err != nil {
+			t.Fatal("Error during converting AUTHLETE_ORGANIZATION_ID to integer ", err)
+		}
+		crsr := idp.NewCreateServiceRequest(int64(apiServerId), int64(organizationId))
+		crsr.SetService(*service2.(*idp.Service))
+		orgToken = "Bearer " + auth.Value(idp.ContextAccessToken).(string)
+		newService, _, err = authleteClient.(*idp.ServiceApiApiService).CreateService(context.Background()).CreateServiceRequest(*crsr).Authorization(orgToken).Execute()
 	} else {
 		s, _ := service2.(*authlete.Service)
 		newService, _, err = authleteClient.(authlete.ServiceManagementApi).ServiceCreateApi(auth).Service(*s).Execute()
@@ -71,7 +86,7 @@ func testCreateTestService(t *testing.T, service2 IService) {
 	service2.SetApiKey(newService.GetApiKey())
 	if v3 {
 		service2.SetApiSecret(os.Getenv("AUTHLETE_SO_SECRET"))
-		newService.SetApiSecret(os.Getenv("AUTHLETE_SO_SECRET"))
+		// newService.SetApiSecret(os.Getenv("AUTHLETE_SO_SECRET"))
 	} else {
 		service2.SetApiSecret(newService.GetApiSecret())
 	}
@@ -87,18 +102,29 @@ func createTestClient() (ServiceManagementApi, context.Context) {
 	soKey := os.Getenv("AUTHLETE_SO_KEY")
 	soSecret := os.Getenv("AUTHLETE_SO_SECRET")
 	apiServer := os.Getenv("AUTHLETE_API_SERVER")
+	idpServer := os.Getenv("AUTHLETE_IDP_SERVER")
 
 	if apiServer == "" {
 		apiServer = "https://api.authlete.com"
 	}
 
 	if v3 {
-		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, soSecret)
-		cnf := authlete3.NewConfiguration()
+		auth := context.WithValue(context.Background(), idp.ContextAccessToken, soSecret)
+		cnf := idp.NewConfiguration()
+		tlsInsecure := os.Getenv("AUTHLETE_TLS_INSECURE")
+		if tlsInsecure == "true" {
+			mTLSConfig := &tls.Config{
+				InsecureSkipVerify: true,
+			}
+			tr := &http.Transport{
+				TLSClientConfig: mTLSConfig,
+			}
+			cnf.HTTPClient = &http.Client{Transport: tr}
+		}
 		cnf.UserAgent = "terraform-provider-authlete"
-		cnf.Servers[0].URL = apiServer
-		apiClientOpenAPI := authlete3.NewAPIClient(cnf)
-		return apiClientOpenAPI.ServiceManagementApi, auth
+		cnf.Servers[0].URL = idpServer
+		apiClientOpenAPI := idp.NewAPIClient(cnf)
+		return apiClientOpenAPI.ServiceApiApi, auth
 	}
 
 	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
@@ -118,10 +144,27 @@ func createTestClient() (ServiceManagementApi, context.Context) {
 
 func testDestroyTestService(t *testing.T, service2 IService) {
 	var err error = nil
+	var apiServerId, organizationId int
+	var serviceId int64
+	var orgToken string
 	authleteClient, auth := createTestClient()
 
 	if v3 {
-		_, err = authleteClient.(authlete3.ServiceManagementApi).ServiceDeleteApi(auth, strconv.FormatInt(service2.GetApiKey(), 10)).Execute()
+		apiServerId, err = strconv.Atoi(os.Getenv("AUTHLETE_API_SERVER_ID"))
+		if err != nil {
+			t.Fatal("Error during converting AUTHLETE_API_SERVER_ID to integer ", err)
+		}
+		organizationId, err = strconv.Atoi(os.Getenv("AUTHLETE_ORGANIZATION_ID"))
+		if err != nil {
+			t.Fatal("Error during converting AUTHLETE_ORGANIZATION_ID to integer ", err)
+		}
+		serviceId = service2.GetApiKey()
+		if serviceId == 0 {
+			t.Fatal("Error getting service api_key")
+		}
+		dsreq := idp.NewDeleteServiceRequest(int64(apiServerId), int64(organizationId), serviceId)
+		orgToken = "Bearer " + auth.Value(idp.ContextAccessToken).(string)
+		_, err = authleteClient.(*idp.ServiceApiApiService).DeleteService(context.Background()).Authorization(orgToken).DeleteServiceRequest(*dsreq).Execute()
 	} else {
 		_, err = authleteClient.(authlete.ServiceManagementApi).ServiceDeleteApi(auth, strconv.FormatInt(service2.GetApiKey(), 10)).Execute()
 	}
