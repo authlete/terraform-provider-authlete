@@ -1,6 +1,7 @@
 package provider
 
 import (
+	idp "github.com/authlete/idp-api"
 	authlete "github.com/authlete/openapi-for-go"
 	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -54,6 +55,22 @@ func mapTrustAnchorToDTOV3(entry []interface{}, diags diag.Diagnostics) []authle
 	}
 	return entries
 }
+func mapTrustAnchorToDTOIDP(entry []interface{}, diags diag.Diagnostics) []idp.TrustAnchor {
+	var entries = make([]idp.TrustAnchor, 0)
+
+	if entry != nil {
+		for _, v := range entry {
+			var keypair = v.(map[string]interface{})
+			newTag := idp.NewTrustAnchor()
+			newTag.SetEntityId(keypair["entity_id"].(string))
+			jwks, _ := mapJWKS(keypair["jwk"].(*schema.Set).List(), diags)
+			newTag.SetJwks(jwks)
+
+			entries = append(entries, *newTag)
+		}
+	}
+	return entries
+}
 
 func mapTrustAnchorFromDTO(pairs []authlete.TrustAnchor) []interface{} {
 
@@ -74,6 +91,24 @@ func mapTrustAnchorFromDTO(pairs []authlete.TrustAnchor) []interface{} {
 }
 
 func mapTrustAnchorFromDTOV3(pairs []authlete3.TrustAnchor) []interface{} {
+
+	if pairs != nil {
+		entries := make([]interface{}, len(pairs), len(pairs))
+
+		for i, v := range pairs {
+			newEntry := make(map[string]interface{})
+			newEntry["entity_id"] = v.EntityId
+			arr := make([]interface{}, 0, 0)
+			jwk, _ := mapJWKFromDTO(arr, *v.Jwks)
+			newEntry["jwk"] = jwk
+			entries[i] = newEntry
+		}
+		return entries
+	}
+	return make([]interface{}, 0)
+}
+
+func mapTrustAnchorFromDTOIDP(pairs []idp.TrustAnchor) []interface{} {
 
 	if pairs != nil {
 		entries := make([]interface{}, len(pairs), len(pairs))

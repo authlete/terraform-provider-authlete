@@ -1,6 +1,7 @@
 package provider
 
 import (
+	idp "github.com/authlete/idp-api"
 	authlete "github.com/authlete/openapi-for-go"
 	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -65,6 +66,22 @@ func mapSupportedScopeToDTOV3(vals *schema.Set) []authlete3.Scope {
 	return mapped
 }
 
+func mapSupportedScopeToDTOIDP(vals *schema.Set) []idp.Scope {
+	mapped := make([]idp.Scope, vals.Len())
+
+	for i, v := range vals.List() {
+		var entry = v.(map[string]interface{})
+		newScope := idp.NewScope()
+		newScope.SetName(entry["name"].(string))
+		newScope.SetDescription(entry["description"].(string))
+		newScope.SetDefaultEntry(entry["default_entry"].(bool))
+		newScope.SetDescriptions(mapTaggedValueIDP(entry["descriptions"].(*schema.Set).List()))
+		newScope.SetAttributes(mapInterfaceListToStructList[idp.Pair](entry["attribute"].(*schema.Set).List()))
+		mapped[i] = *newScope
+	}
+	return mapped
+}
+
 func mapSupportedScopeFromDTO(scopes []authlete.Scope) []interface{} {
 
 	if scopes != nil {
@@ -96,6 +113,25 @@ func mapSupportedScopeFromDTOV3(scopes []authlete3.Scope) []interface{} {
 			newEntry["description"] = v.Description
 			newEntry["descriptions"] = mapTaggedValuesFromDTOV3(v.Descriptions)
 			newEntry["attribute"] = mapAttributesFromDTOV3(v.Attributes)
+			entries[i] = newEntry
+		}
+		return entries
+	}
+	return make([]interface{}, 0)
+}
+
+func mapSupportedScopeFromDTOIDP(scopes []idp.Scope) []interface{} {
+
+	if scopes != nil {
+		entries := make([]interface{}, len(scopes))
+
+		for i, v := range scopes {
+			newEntry := make(map[string]interface{})
+			newEntry["name"] = v.Name
+			newEntry["default_entry"] = v.DefaultEntry
+			newEntry["description"] = v.Description
+			newEntry["descriptions"] = mapTaggedValuesFromDTOIDP(v.Descriptions)
+			newEntry["attribute"] = mapAttributesFromDTOIDP(v.Attributes)
 			entries[i] = newEntry
 		}
 		return entries

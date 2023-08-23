@@ -3,8 +3,8 @@ package provider
 import (
 	"testing"
 
+	idp "github.com/authlete/idp-api"
 	authlete "github.com/authlete/openapi-for-go"
-	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
@@ -67,14 +67,14 @@ func TestClientCreateImport30(t *testing.T) {
 	}
 	openid := "openid"
 	profile := "profile"
-	var testService *authlete3.Service = authlete3.NewService()
+	var testService *idp.Service = idp.NewService()
 
-	testService.SetSupportedGrantTypes([]authlete3.GrantType{
-		authlete3.GRANTTYPE_AUTHORIZATION_CODE,
-		authlete3.GRANTTYPE_REFRESH_TOKEN})
+	testService.SetSupportedGrantTypes([]string{
+		"AUTHORIZATION_CODE",
+		"REFRESH_TOKEN"})
 	testService.SetSupportedResponseTypes(
-		[]authlete3.ResponseType{authlete3.RESPONSETYPE_CODE})
-	testService.SupportedScopes = []authlete3.Scope{
+		[]string{"CODE"})
+	testService.SupportedScopes = []idp.Scope{
 		{
 			Name: &openid,
 		},
@@ -618,13 +618,13 @@ func TestClientAllAttributes30(t *testing.T) {
 
 	openid := "openid"
 	profile := "profile"
-	var testService *authlete3.Service = authlete3.NewService()
-	testService.SetSupportedGrantTypes([]authlete3.GrantType{
-		authlete3.GRANTTYPE_AUTHORIZATION_CODE,
-		authlete3.GRANTTYPE_REFRESH_TOKEN})
+	var testService *idp.Service = idp.NewService()
+	testService.SetSupportedGrantTypes([]string{
+		"AUTHORIZATION_CODE",
+		"REFRESH_TOKEN"})
 	testService.SetSupportedResponseTypes(
-		[]authlete3.ResponseType{authlete3.RESPONSETYPE_CODE})
-	testService.SupportedScopes = []authlete3.Scope{
+		[]string{"CODE"})
+	testService.SupportedScopes = []idp.Scope{
 		{
 			Name: &openid,
 		},
@@ -821,15 +821,15 @@ func TestClientUnsupportedCustomMetadata(t *testing.T) {
 	profile := "profile"
 	var testService IService
 	if v3 {
-		testService = authlete3.NewService()
-		testService.(*authlete3.Service).SetSupportedGrantTypes([]authlete3.GrantType{
-			authlete3.GRANTTYPE_AUTHORIZATION_CODE,
-			authlete3.GRANTTYPE_REFRESH_TOKEN},
+		testService = idp.NewService()
+		testService.(*idp.Service).SetSupportedGrantTypes([]string{
+			"AUTHORIZATION_CODE",
+			"REFRESH_TOKEN"},
 		)
-		testService.(*authlete3.Service).SetSupportedResponseTypes(
-			[]authlete3.ResponseType{authlete3.RESPONSETYPE_CODE},
+		testService.(*idp.Service).SetSupportedResponseTypes(
+			[]string{"CODE"},
 		)
-		testService.(*authlete3.Service).SupportedScopes = []authlete3.Scope{
+		testService.(*idp.Service).SupportedScopes = []idp.Scope{
 			{
 				Name: &openid,
 			},
