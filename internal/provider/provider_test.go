@@ -71,10 +71,11 @@ func testCreateTestService(t *testing.T, service2 IService) {
 		if err != nil {
 			t.Fatal("Error during converting AUTHLETE_ORGANIZATION_ID to integer ", err)
 		}
-		crsr := idp.NewCreateServiceRequest(int64(apiServerId), int64(organizationId))
-		crsr.SetService(*service2.(*idp.Service))
-		orgToken = "Bearer " + auth.Value(idp.ContextAccessToken).(string)
-		newService, _, err = authleteClient.(*idp.ServiceApiApiService).CreateService(context.Background()).CreateServiceRequest(*crsr).Authorization(orgToken).Execute()
+		createSvcReq := idp.NewCreateServiceRequest(int64(apiServerId), int64(organizationId))
+		createSvcReq.SetService(*service2.(*idp.Service))
+		orgToken = convertToBearerToken(auth.Value(idp.ContextAccessToken).(string))
+		newService, _, err = authleteClient.(*idp.ServiceApiApiService).CreateService(context.Background()).
+			CreateServiceRequest(*createSvcReq).Authorization(orgToken).Execute()
 	} else {
 		s, _ := service2.(*authlete.Service)
 		newService, _, err = authleteClient.(authlete.ServiceManagementApi).ServiceCreateApi(auth).Service(*s).Execute()
@@ -86,7 +87,6 @@ func testCreateTestService(t *testing.T, service2 IService) {
 	service2.SetApiKey(newService.GetApiKey())
 	if v3 {
 		service2.SetApiSecret(os.Getenv("AUTHLETE_SO_SECRET"))
-		// newService.SetApiSecret(os.Getenv("AUTHLETE_SO_SECRET"))
 	} else {
 		service2.SetApiSecret(newService.GetApiSecret())
 	}
@@ -162,9 +162,10 @@ func testDestroyTestService(t *testing.T, service2 IService) {
 		if serviceId == 0 {
 			t.Fatal("Error getting service api_key")
 		}
-		dsreq := idp.NewDeleteServiceRequest(int64(apiServerId), int64(organizationId), serviceId)
+		deleteSvcReq := idp.NewDeleteServiceRequest(int64(apiServerId), int64(organizationId), serviceId)
 		orgToken = "Bearer " + auth.Value(idp.ContextAccessToken).(string)
-		_, err = authleteClient.(*idp.ServiceApiApiService).DeleteService(context.Background()).Authorization(orgToken).DeleteServiceRequest(*dsreq).Execute()
+		_, err = authleteClient.(*idp.ServiceApiApiService).DeleteService(context.Background()).Authorization(orgToken).
+			DeleteServiceRequest(*deleteSvcReq).Execute()
 	} else {
 		_, err = authleteClient.(authlete.ServiceManagementApi).ServiceDeleteApi(auth, strconv.FormatInt(service2.GetApiKey(), 10)).Execute()
 	}

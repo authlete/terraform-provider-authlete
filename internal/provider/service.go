@@ -184,10 +184,10 @@ func serviceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 		}
 		newServiceDto, _ := dataToService(d, diags, idp.NewService())
 		nService, _ := (*newServiceDto).(*idp.Service)
-		crsr := idp.NewCreateServiceRequest(int64(apiServerId), int64(organizationId))
-		crsr.SetService(*nService)
-		orgToken := "Bearer " + client.serviceOwnerSecret
-		r, _, err := client.authleteClient.idp.ServiceApiApi.CreateService(ctx).CreateServiceRequest(*crsr).Authorization(orgToken).Execute()
+		createSvcReq := idp.NewCreateServiceRequest(int64(apiServerId), int64(organizationId))
+		createSvcReq.SetService(*nService)
+		orgToken := convertToBearerToken(client.serviceOwnerSecret)
+		r, _, err := client.authleteClient.idp.ServiceApiApi.CreateService(ctx).CreateServiceRequest(*createSvcReq).Authorization(orgToken).Execute()
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -320,7 +320,7 @@ func serviceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}
 		var apiServerId int
 		var organizationId int
 		var serviceId int
-		orgToken := "Bearer " + client.serviceOwnerSecret
+		orgToken := convertToBearerToken(client.serviceOwnerSecret)
 		apiServerId, err = strconv.Atoi(client.apiServerId)
 		if err != nil {
 			return diag.FromErr(err)
@@ -333,9 +333,9 @@ func serviceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		dsreq := idp.NewDeleteServiceRequest(int64(apiServerId), int64(organizationId), int64(serviceId))
+		deleteSvcReq := idp.NewDeleteServiceRequest(int64(apiServerId), int64(organizationId), int64(serviceId))
 
-		_, err = client.authleteClient.idp.ServiceApiApi.DeleteService(ctx).Authorization(orgToken).DeleteServiceRequest(*dsreq).Execute()
+		_, err = client.authleteClient.idp.ServiceApiApi.DeleteService(ctx).Authorization(orgToken).DeleteServiceRequest(*deleteSvcReq).Execute()
 	} else {
 		auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
 			UserName: client.serviceOwnerKey,

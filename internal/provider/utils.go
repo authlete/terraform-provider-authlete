@@ -19,3 +19,7 @@ func NotZeroArray(d *schema.ResourceData, name string) bool {
 func NotZeroNumber(d *schema.ResourceData, name string) bool {
 	return d.Get(name).(int) != 0
 }
+
+func convertToBearerToken(token string) string {
+	return "Bearer " + token
+}
