@@ -453,11 +453,11 @@ func setDataToService(d *schema.ResourceData, diags diag.Diagnostics, srv IServi
 	if d.HasChange("client_id_alias_enabled") {
 		srv.SetClientIdAliasEnabled(d.Get("client_id_alias_enabled").(bool))
 	}
-	if d.HasChange("attributes") {
+	if d.HasChange("attribute") {
 		if v3 {
-			srv.(*authlete3.Service).Attributes = mapInterfaceListToStructList[authlete3.Pair](d.Get("attribute").(*schema.Set).List())
+			srv.(*authlete3.Service).SetAttributes(mapInterfaceListToStructList[authlete3.Pair](d.Get("attribute").(*schema.Set).List()))
 		} else {
-			srv.(*authlete.Service).Attributes = mapInterfaceListToStructList[authlete.Pair](d.Get("attribute").(*schema.Set).List())
+			srv.(*authlete.Service).SetAttributes(mapInterfaceListToStructList[authlete.Pair](d.Get("attribute").(*schema.Set).List()))
 		}
 	}
 	if d.HasChange("supported_custom_client_metadata") {
