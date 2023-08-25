@@ -34,11 +34,11 @@ resource "authlete_service" "complete_described" {
   description = "Attributes support test"
   clients_per_developer = 1
   client_id_alias_enabled = true
-  attribute {
+  attributes {
   	 key = "require_2_fa"
      value = "true"
   }
-  attribute {
+  attributes {
   	 key = "high_risk_scopes"
      value = "scope1 scope2 scope3"
   }
@@ -103,7 +103,7 @@ resource "authlete_service" "complete_described" {
 	name = "email"
     default_entry = true
     description = "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
-    attribute {
+    attributes {
 		key = "key1"
         value = "val1"
 	}
@@ -187,11 +187,11 @@ resource "authlete_service" "complete_described" {
 	description = "Attributes support test"
 	clients_per_developer = 1
 	client_id_alias_enabled = true
-	attribute {
+	attributes {
 		key = "require_2_fa"
 		value = "true"
 	}
-	attribute {
+	attributes {
 		key = "high_risk_scopes"
 		value = "scope1 scope2 scope3"
 	}
@@ -256,7 +256,7 @@ resource "authlete_service" "complete_described" {
 		name = "email"
 		default_entry = true
 		description = "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
-		attribute {
+		attributes {
 			key = "key1"
 			value = "val1"
 		}
@@ -404,11 +404,11 @@ resource "authlete_service" "complete_described" {
   description = "Attributes support test"
   clients_per_developer = 1
   client_id_alias_enabled = true
-  attribute {
+  attributes {
   	 key = "require_2_fa"
      value = "true"
   }
-  attribute {
+  attributes {
   	 key = "high_risk_scopes"
      value = "scope1 scope2 scope3"
   }
@@ -470,7 +470,7 @@ resource "authlete_service" "complete_described" {
 	name = "email"
     default_entry = true
     description = "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
-    attribute {
+    attributes {
 		key = "key1"
         value = "val1"
 	}
@@ -555,11 +555,11 @@ resource "authlete_service" "complete_described" {
   description = "Attributes support test2"
   clients_per_developer = 2
   client_id_alias_enabled = false
-  attribute {
+  attributes {
   	 key = "require_2_fa"
      value = "false"
   }
-  attribute {
+  attributes {
   	 key = "high_risk_scopes"
      value = "scope1 scope2 scope3 scope4"
   }
@@ -624,7 +624,7 @@ resource "authlete_service" "complete_described" {
 	name = "email"
     default_entry = true
     description = "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
-    attribute {
+    attributes {
 		key = "key1"
         value = "val1"
 	}
