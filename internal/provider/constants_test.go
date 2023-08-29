@@ -462,18 +462,37 @@ resource "authlete_service" "complete_described" {
   refresh_token_kept = true
   token_expiration_link = true
   supported_scopes {
-	name = "address"
-    default_entry = false
-    description = "A permission to request an OpenID Provider to include the address claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
+	default_entry = true
+	description   = "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
+	name          = "email"
+
+	attributes {
+		key   = "key1"
+		value = "val1"
+	  }
+
+	descriptions {
+		tag   = "en"
+		value = "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
+	  }
+	descriptions {
+		tag   = "ja"
+		value = "email クレームと email_verified クレームを ID トークンに含めるよう、OpenID プロバイダーに要求するための権限です。詳細は OpenID Connect Core 1.0, 5.4. を参照してください。"
+	  }
   }
   supported_scopes {
-	name = "email"
-    default_entry = true
-    description = "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
-    attributes {
-		key = "key1"
-        value = "val1"
-	}
+	default_entry = false
+	description   = "A permission to request an OpenID Provider to include the address claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
+	name          = "address"
+
+	descriptions {
+		tag   = "en"
+		value = "A permission to request an OpenID Provider to include the address claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
+	  }
+	descriptions {
+		tag   = "ja"
+		value = "address クレームを ID トークンに含めるよう、OpenID プロバイダーに要求するための権限です。詳細は OpenID Connect Core 1.0, 5.4. を参照してください。"
+	  }
   }
   scope_required = true
   openid_dropped_on_refresh_without_offline_access = true
@@ -565,7 +584,7 @@ resource "authlete_service" "complete_described" {
   }
   supported_custom_client_metadata = ["basic_review2", "domain_match"]
   authentication_callback_endpoint = "https://api.mystore.com/authenticate"
-  authentication_callback_api_key = "lkjl3k44235kjlk5j43kjdkfslkdf"
+  authentication_callback_api_key = "lkjl3k44235kjlk5j43kjdkfslkdfa"
   authentication_callback_api_secret = "lknasdljjk42j435kjh34jkkjr"
   supported_acrs = ["loa2", "loa4"]
   developer_authentication_callback_endpoint = "https://api.mystore.com/partner_auth"
@@ -616,18 +635,37 @@ resource "authlete_service" "complete_described" {
   refresh_token_kept = true
   token_expiration_link = true
   supported_scopes {
-	name = "address"
-    default_entry = false
-    description = "A permission to request an OpenID Provider to include the address claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
+	default_entry = true
+	description   = "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
+	name          = "email"
+
+	attributes {
+		key   = "key1"
+		value = "val1"
+	  }
+
+	descriptions {
+		tag   = "en"
+		value = "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
+	  }
+	descriptions {
+		tag   = "ja"
+		value = "email クレームと email_verified クレームを ID トークンに含めるよう、OpenID プロバイダーに要求するための権限です。詳細は OpenID Connect Core 1.0, 5.4. を参照してください。"
+	  }
   }
   supported_scopes {
-	name = "email"
-    default_entry = true
-    description = "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
-    attributes {
-		key = "key1"
-        value = "val1"
-	}
+	default_entry = false
+	description   = "A permission to request an OpenID Provider to include the address claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
+	name          = "address"
+
+	descriptions {
+		tag   = "en"
+		value = "A permission to request an OpenID Provider to include the address claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details."
+	  }
+	descriptions {
+		tag   = "ja"
+		value = "address クレームを ID トークンに含めるよう、OpenID プロバイダーに要求するための権限です。詳細は OpenID Connect Core 1.0, 5.4. を参照してください。"
+	  }
   }
   scope_required = true
   openid_dropped_on_refresh_without_offline_access = true

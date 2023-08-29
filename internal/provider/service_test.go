@@ -229,8 +229,7 @@ func TestAccResourceService_update_extended(t *testing.T) {
 				),
 			},
 			{
-				Config:             testAccResourceServiceUpdateEveryAttribute,
-				ExpectNonEmptyPlan: true,
+				Config: testAccResourceServiceUpdateEveryAttribute,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "service_name", "attributes coverage test2"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "issuer", "https://test2.com"),
@@ -250,7 +249,7 @@ func TestAccResourceService_update_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_custom_client_metadata.0", "basic_review2"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_custom_client_metadata.1", "domain_match"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "authentication_callback_endpoint", "https://api.mystore.com/authenticate"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "authentication_callback_api_key", "lkjl3k44235kjlk5j43kjdkfslkdf"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "authentication_callback_api_key", "lkjl3k44235kjlk5j43kjdkfslkdfa"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "authentication_callback_api_secret", "lknasdljjk42j435kjh34jkkjr"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_acrs.#", "2"),
 					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_acrs.*", "loa2"),
