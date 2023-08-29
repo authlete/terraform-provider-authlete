@@ -592,8 +592,7 @@ func TestAccResourceService_extended_30(t *testing.T) {
 		CheckDestroy:      testServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:             testAccResourceServiceEveryAttribute30,
-				ExpectNonEmptyPlan: true,
+				Config: testAccResourceServiceEveryAttribute30,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "service_name", "attributes coverage test"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "issuer", "https://test.com"),
