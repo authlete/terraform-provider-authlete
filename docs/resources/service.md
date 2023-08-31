@@ -32,7 +32,7 @@ has a name like supported_custom_client_metadata, in the API it is named `suppor
 - `description` (String)
 - `clients_per_developer` (Number)
 - `client_id_alias_enabled` (Boolean)
-- `attributes` (Block Set) (see [below for nested schema](#nestedblock--attribute))
+- `attributes` (Block Set) (see [below for nested schema](#nestedblock--attributes))
 - `supported_custom_client_metadata` (Set of String)
 
 ## User Authentication Attributes
@@ -200,7 +200,7 @@ has a name like supported_custom_client_metadata, in the API it is named `suppor
 - `end_session_endpoint` (String)
 
 
-<a id="nestedblock--attribute"></a>
+<a id="nestedblock--attributes"></a>
 
 ### Nested Schema for `attributes`
 
@@ -261,11 +261,11 @@ Required:
 
 Optional:
 
-- `attributes` (Block Set) (see [below for nested schema](#nestedblock--supported_scopes--attribute))
+- `attributes` (Block Set) (see [below for nested schema](#nestedblock--supported_scopes--attributes))
 - `default_entry` (Boolean)
 - `description` (String)
 
-<a id="nestedblock--supported_scopes--attribute"></a>
+<a id="nestedblock--supported_scopes--attributes"></a>
 
 ### Nested Schema for `supported_scopes.attributes`
 
