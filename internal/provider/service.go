@@ -30,7 +30,7 @@ func service() *schema.Resource {
 			"api_secret":                                       {Type: schema.TypeString, Computed: true},
 			"clients_per_developer":                            {Type: schema.TypeInt, Required: false, Optional: true},
 			"client_id_alias_enabled":                          {Type: schema.TypeBool, Required: false, Optional: true, Default: false},
-			"attribute":                                        createAttributeSchema(),
+			"attributes":                                       createAttributeSchema(),
 			"supported_custom_client_metadata":                 createStringColSchema(),
 			"authentication_callback_endpoint":                 {Type: schema.TypeString, Required: false, Optional: true},
 			"authentication_callback_api_key":                  {Type: schema.TypeString, Required: false, Optional: true},
@@ -280,11 +280,12 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 
 		setDataToService(d, diags, srv)
 
-		_, _, err = client.authleteClient.v3.ServiceManagementApi.ServiceUpdateApi(auth, d.Id()).Service(*srv).Execute()
+		srv, _, err = client.authleteClient.v3.ServiceManagementApi.ServiceUpdateApi(auth, d.Id()).Service(*srv).Execute()
 
 		if err != nil {
 			return diag.FromErr(err)
 		}
+		diags = serviceToResource(srv, d)
 
 		return diags
 	}
@@ -300,11 +301,12 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 
 	setDataToService(d, diags, srv)
 
-	_, _, err = client.authleteClient.v2.ServiceManagementApi.ServiceUpdateApi(auth, d.Id()).Service(*srv).Execute()
+	srv, _, err = client.authleteClient.v2.ServiceManagementApi.ServiceUpdateApi(auth, d.Id()).Service(*srv).Execute()
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	diags = serviceToResource(srv, d)
 
 	return diags
 }

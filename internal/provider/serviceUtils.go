@@ -25,16 +25,16 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics, newService
 		newServiceDto.SetClientsPerDeveloper(int32(data.Get("clients_per_developer").(int)))
 	}
 	newServiceDto.SetClientIdAliasEnabled(data.Get("client_id_alias_enabled").(bool))
-	if NotZeroArray(data, "attribute") {
+	if NotZeroArray(data, "attributes") {
 		if v3 {
 			switch newServiceDto.(type) {
 			case *idp.Service:
-				newServiceDto.(*idp.Service).SetAttributes(mapInterfaceListToStructList[idp.Pair](data.Get("attribute").(*schema.Set).List()))
+				newServiceDto.(*idp.Service).SetAttributes(mapInterfaceListToStructList[idp.Pair](data.Get("attributes").(*schema.Set).List()))
 			case *authlete3.Service:
-				newServiceDto.(*authlete3.Service).SetAttributes(mapInterfaceListToStructList[authlete3.Pair](data.Get("attribute").(*schema.Set).List()))
+				newServiceDto.(*authlete3.Service).SetAttributes(mapInterfaceListToStructList[authlete3.Pair](data.Get("attributes").(*schema.Set).List()))
 			}
 		} else {
-			newServiceDto.(*authlete.Service).SetAttributes(mapInterfaceListToStructList[authlete.Pair](data.Get("attribute").(*schema.Set).List()))
+			newServiceDto.(*authlete.Service).SetAttributes(mapInterfaceListToStructList[authlete.Pair](data.Get("attributes").(*schema.Set).List()))
 		}
 	}
 	if NotZeroArray(data, "supported_custom_client_metadata") {
@@ -564,12 +564,12 @@ func setDataToService(d *schema.ResourceData, diags diag.Diagnostics, srv IServi
 		if v3 {
 			switch srv.(type) {
 			case *idp.Service:
-				srv.(*idp.Service).Attributes = mapInterfaceListToStructList[idp.Pair](d.Get("attribute").(*schema.Set).List())
+				srv.(*idp.Service).Attributes = mapInterfaceListToStructList[idp.Pair](d.Get("attributes").(*schema.Set).List())
 			case *authlete3.Service:
-				srv.(*authlete3.Service).Attributes = mapInterfaceListToStructList[authlete3.Pair](d.Get("attribute").(*schema.Set).List())
+				srv.(*authlete3.Service).Attributes = mapInterfaceListToStructList[authlete3.Pair](d.Get("attributes").(*schema.Set).List())
 			}
 		} else {
-			srv.(*authlete.Service).Attributes = mapInterfaceListToStructList[authlete.Pair](d.Get("attribute").(*schema.Set).List())
+			srv.(*authlete.Service).SetAttributes(mapInterfaceListToStructList[authlete.Pair](d.Get("attributes").(*schema.Set).List()))
 		}
 	}
 	if d.HasChange("supported_custom_client_metadata") {
@@ -960,6 +960,12 @@ func setDataToService(d *schema.ResourceData, diags diag.Diagnostics, srv IServi
 			srv.(*authlete.Service).SetSupportedBackchannelTokenDeliveryModes(mapListToDTO[authlete.DeliveryMode](d.Get("supported_backchannel_token_delivery_modes").(*schema.Set).List()))
 		}
 	}
+	if d.HasChange("tls_client_certificate_bound_access_tokens") {
+		srv.SetTlsClientCertificateBoundAccessTokens(d.Get("tls_client_certificate_bound_access_tokens").(bool))
+	}
+	if d.HasChange("access_token_duration") {
+		srv.SetAccessTokenDuration(int64(d.Get("access_token_duration").(int)))
+	}
 	if d.HasChange("backchannel_auth_req_id_duration") {
 		srv.SetBackchannelAuthReqIdDuration(int32(d.Get("backchannel_auth_req_id_duration").(int)))
 	}
@@ -1157,7 +1163,7 @@ func serviceToResource(dto IService, data *schema.ResourceData) diag.Diagnostics
 		switch dto.(type) {
 		case *idp.Service:
 			_ = data.Set("verified_claims_validation_schema_set", dto.(*idp.Service).GetVerifiedClaimsValidationSchemaSet())
-			_ = data.Set("attribute", mapAttributesFromDTOIDP(dto.(*idp.Service).GetAttributes()))
+			_ = data.Set("attributes", mapAttributesFromDTOIDP(dto.(*idp.Service).GetAttributes()))
 			_ = data.Set("supported_grant_types", mapFromDTO(dto.(*idp.Service).GetSupportedGrantTypes()))
 			_ = data.Set("supported_response_types", mapFromDTO(dto.(*idp.Service).GetSupportedResponseTypes()))
 			_ = data.Set("supported_service_profiles", mapFromDTO(dto.(*idp.Service).GetSupportedServiceProfiles()))
@@ -1176,7 +1182,7 @@ func serviceToResource(dto IService, data *schema.ResourceData) diag.Diagnostics
 			_ = data.Set("trust_anchors", mapTrustAnchorFromDTOIDP(dto.(*idp.Service).GetTrustAnchors()))
 		case *authlete3.Service:
 			_ = data.Set("verified_claims_validation_schema_set", dto.(*authlete3.Service).GetVerifiedClaimsValidationSchemaSet())
-			_ = data.Set("attribute", mapAttributesFromDTOV3(dto.(*authlete3.Service).GetAttributes()))
+			_ = data.Set("attributes", mapAttributesFromDTOV3(dto.(*authlete3.Service).GetAttributes()))
 			_ = data.Set("supported_grant_types", mapFromDTO(dto.(*authlete3.Service).GetSupportedGrantTypes()))
 			_ = data.Set("supported_response_types", mapFromDTO(dto.(*authlete3.Service).GetSupportedResponseTypes()))
 			_ = data.Set("supported_service_profiles", mapFromDTO(dto.(*authlete3.Service).GetSupportedServiceProfiles()))
@@ -1196,7 +1202,7 @@ func serviceToResource(dto IService, data *schema.ResourceData) diag.Diagnostics
 		}
 	} else {
 		_ = data.Set("verified_claims_validation_schema_set", dto.(*authlete.Service).GetVerifiedClaimsValidationSchemaSet())
-		_ = data.Set("attribute", mapAttributesFromDTO(dto.(*authlete.Service).GetAttributes()))
+		_ = data.Set("attributes", mapAttributesFromDTO(dto.(*authlete.Service).GetAttributes()))
 		_ = data.Set("supported_grant_types", mapFromDTO(dto.(*authlete.Service).GetSupportedGrantTypes()))
 		_ = data.Set("supported_response_types", mapFromDTO(dto.(*authlete.Service).GetSupportedResponseTypes()))
 		_ = data.Set("supported_service_profiles", mapFromDTO(dto.(*authlete.Service).GetSupportedServiceProfiles()))

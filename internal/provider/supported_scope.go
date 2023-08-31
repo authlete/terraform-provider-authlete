@@ -28,7 +28,7 @@ func createSupportedScopeSchema() *schema.Schema {
 					Required: false,
 				},
 				"descriptions": createTaggedValuesSchema(),
-				"attribute":    createAttributeSchema(),
+				"attributes":   createAttributeSchema(),
 			},
 		},
 	}
@@ -44,7 +44,7 @@ func mapSupportedScopeToDTO(vals *schema.Set) []authlete.Scope {
 		newScope.SetDescription(entry["description"].(string))
 		newScope.SetDefaultEntry(entry["default_entry"].(bool))
 		newScope.SetDescriptions(mapTaggedValue(entry["descriptions"].(*schema.Set).List()))
-		newScope.SetAttributes(mapInterfaceListToStructList[authlete.Pair](entry["attribute"].(*schema.Set).List()))
+		newScope.SetAttributes(mapInterfaceListToStructList[authlete.Pair](entry["attributes"].(*schema.Set).List()))
 		mapped[i] = *newScope
 	}
 	return mapped
@@ -60,7 +60,7 @@ func mapSupportedScopeToDTOV3(vals *schema.Set) []authlete3.Scope {
 		newScope.SetDescription(entry["description"].(string))
 		newScope.SetDefaultEntry(entry["default_entry"].(bool))
 		newScope.SetDescriptions(mapTaggedValueV3(entry["descriptions"].(*schema.Set).List()))
-		newScope.SetAttributes(mapInterfaceListToStructList[authlete3.Pair](entry["attribute"].(*schema.Set).List()))
+		newScope.SetAttributes(mapInterfaceListToStructList[authlete3.Pair](entry["attributes"].(*schema.Set).List()))
 		mapped[i] = *newScope
 	}
 	return mapped
@@ -93,7 +93,7 @@ func mapSupportedScopeFromDTO(scopes []authlete.Scope) []interface{} {
 			newEntry["default_entry"] = v.DefaultEntry
 			newEntry["description"] = v.Description
 			newEntry["descriptions"] = mapTaggedValuesFromDTO(v.Descriptions)
-			newEntry["attribute"] = mapAttributesFromDTO(v.Attributes)
+			newEntry["attributes"] = mapAttributesFromDTO(v.Attributes)
 			entries[i] = newEntry
 		}
 		return entries
@@ -112,7 +112,7 @@ func mapSupportedScopeFromDTOV3(scopes []authlete3.Scope) []interface{} {
 			newEntry["default_entry"] = v.DefaultEntry
 			newEntry["description"] = v.Description
 			newEntry["descriptions"] = mapTaggedValuesFromDTOV3(v.Descriptions)
-			newEntry["attribute"] = mapAttributesFromDTOV3(v.Attributes)
+			newEntry["attributes"] = mapAttributesFromDTOV3(v.Attributes)
 			entries[i] = newEntry
 		}
 		return entries

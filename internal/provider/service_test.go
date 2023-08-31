@@ -62,12 +62,12 @@ func TestAccResourceService_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "description", "Attributes support test"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "clients_per_developer", "1"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "client_id_alias_enabled", "true"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "attribute.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attribute.*", map[string]string{
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "attributes.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attributes.*", map[string]string{
 						"key":   "high_risk_scopes",
 						"value": "scope1 scope2 scope3",
 					}),
-					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attribute.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attributes.*", map[string]string{
 						"key":   "require_2_fa",
 						"value": "true",
 					}),
@@ -140,11 +140,11 @@ func TestAccResourceService_extended(t *testing.T) {
 						"description":   "A permission to request an OpenID Provider to include the address claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details.",
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "supported_scopes.*", map[string]string{
-						"name":              "email",
-						"default_entry":     "true",
-						"description":       "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details.",
-						"attribute.0.key":   "key1",
-						"attribute.0.value": "val1",
+						"name":               "email",
+						"default_entry":      "true",
+						"description":        "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details.",
+						"attributes.0.key":   "key1",
+						"attributes.0.value": "val1",
 					}),
 
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "scope_required", "true"),
@@ -218,23 +218,30 @@ func TestAccResourceService_update_extended(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "service_name", "attributes coverage test"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "issuer", "https://test.com"),
+					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attributes.*", map[string]string{
+						"key":   "high_risk_scopes",
+						"value": "scope1 scope2 scope3",
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attributes.*", map[string]string{
+						"key":   "require_2_fa",
+						"value": "true",
+					}),
 				),
 			},
 			{
-				Config:             testAccResourceServiceUpdateEveryAttribute,
-				ExpectNonEmptyPlan: true,
+				Config: testAccResourceServiceUpdateEveryAttribute,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "service_name", "attributes coverage test2"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "issuer", "https://test2.com"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "description", "Attributes support test2"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "clients_per_developer", "2"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "client_id_alias_enabled", "false"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "attribute.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attribute.*", map[string]string{
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "attributes.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attributes.*", map[string]string{
 						"key":   "high_risk_scopes",
 						"value": "scope1 scope2 scope3 scope4",
 					}),
-					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attribute.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attributes.*", map[string]string{
 						"key":   "require_2_fa",
 						"value": "false",
 					}),
@@ -242,7 +249,7 @@ func TestAccResourceService_update_extended(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_custom_client_metadata.0", "basic_review2"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_custom_client_metadata.1", "domain_match"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "authentication_callback_endpoint", "https://api.mystore.com/authenticate"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "authentication_callback_api_key", "lkjl3k44235kjlk5j43kjdkfslkdf"),
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "authentication_callback_api_key", "lkjl3k44235kjlk5j43kjdkfslkdfa"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "authentication_callback_api_secret", "lknasdljjk42j435kjh34jkkjr"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "supported_acrs.#", "2"),
 					resource.TestCheckTypeSetElemAttr("authlete_service.complete_described", "supported_acrs.*", "loa2"),
@@ -305,11 +312,11 @@ func TestAccResourceService_update_extended(t *testing.T) {
 						"description":   "A permission to request an OpenID Provider to include the address claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details.",
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "supported_scopes.*", map[string]string{
-						"name":              "email",
-						"default_entry":     "true",
-						"description":       "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details.",
-						"attribute.0.key":   "key1",
-						"attribute.0.value": "val1",
+						"name":               "email",
+						"default_entry":      "true",
+						"description":        "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details.",
+						"attributes.0.key":   "key1",
+						"attributes.0.value": "val1",
 					}),
 
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "scope_required", "true"),
@@ -415,13 +422,13 @@ func TestAccResourceService_extended_23(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "description", "Attributes support test"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "clients_per_developer", "1"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "client_id_alias_enabled", "true"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "attribute.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attribute.*",
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "attributes.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attributes.*",
 						map[string]string{
 							"key":   "high_risk_scopes",
 							"value": "scope1 scope2 scope3",
 						}),
-					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attribute.*",
+					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attributes.*",
 						map[string]string{
 							"key":   "require_2_fa",
 							"value": "true",
@@ -496,11 +503,11 @@ func TestAccResourceService_extended_23(t *testing.T) {
 						"description":   "A permission to request an OpenID Provider to include the address claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details.",
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "supported_scopes.*", map[string]string{
-						"name":              "email",
-						"default_entry":     "true",
-						"description":       "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details.",
-						"attribute.0.key":   "key1",
-						"attribute.0.value": "val1",
+						"name":               "email",
+						"default_entry":      "true",
+						"description":        "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details.",
+						"attributes.0.key":   "key1",
+						"attributes.0.value": "val1",
 					}),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "scope_required", "true"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "id_token_duration", "98"),
@@ -585,19 +592,18 @@ func TestAccResourceService_extended_30(t *testing.T) {
 		CheckDestroy:      testServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:             testAccResourceServiceEveryAttribute30,
-				ExpectNonEmptyPlan: true,
+				Config: testAccResourceServiceEveryAttribute30,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "service_name", "attributes coverage test"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "issuer", "https://test.com"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "description", "Attributes support test"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "clients_per_developer", "1"),
-					resource.TestCheckResourceAttr("authlete_service.complete_described", "attribute.#", "2"),
-					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attribute.*", map[string]string{
+					resource.TestCheckResourceAttr("authlete_service.complete_described", "attributes.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attributes.*", map[string]string{
 						"key":   "high_risk_scopes",
 						"value": "scope1 scope2 scope3",
 					}),
-					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attribute.*", map[string]string{
+					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "attributes.*", map[string]string{
 						"key":   "require_2_fa",
 						"value": "true",
 					}),
@@ -667,11 +673,11 @@ func TestAccResourceService_extended_30(t *testing.T) {
 						"description":   "A permission to request an OpenID Provider to include the address claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details.",
 					}),
 					resource.TestCheckTypeSetElemNestedAttrs("authlete_service.complete_described", "supported_scopes.*", map[string]string{
-						"name":              "email",
-						"default_entry":     "true",
-						"description":       "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details.",
-						"attribute.0.key":   "key1",
-						"attribute.0.value": "val1",
+						"name":               "email",
+						"default_entry":      "true",
+						"description":        "A permission to request an OpenID Provider to include the email claim and the email_verified claim in an ID Token. See OpenID Connect Core 1.0, 5.4. for details.",
+						"attributes.0.key":   "key1",
+						"attributes.0.value": "val1",
 					}),
 
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "scope_required", "true"),
