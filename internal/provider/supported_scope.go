@@ -76,7 +76,7 @@ func mapSupportedScopeToDTOIDP(vals *schema.Set) []idp.Scope {
 		newScope.SetDescription(entry["description"].(string))
 		newScope.SetDefaultEntry(entry["default_entry"].(bool))
 		newScope.SetDescriptions(mapTaggedValueIDP(entry["descriptions"].(*schema.Set).List()))
-		newScope.SetAttributes(mapInterfaceListToStructList[idp.Pair](entry["attribute"].(*schema.Set).List()))
+		newScope.SetAttributes(mapInterfaceListToStructList[idp.Pair](entry["attributes"].(*schema.Set).List()))
 		mapped[i] = *newScope
 	}
 	return mapped
@@ -131,7 +131,7 @@ func mapSupportedScopeFromDTOIDP(scopes []idp.Scope) []interface{} {
 			newEntry["default_entry"] = v.DefaultEntry
 			newEntry["description"] = v.Description
 			newEntry["descriptions"] = mapTaggedValuesFromDTOIDP(v.Descriptions)
-			newEntry["attribute"] = mapAttributesFromDTOIDP(v.Attributes)
+			newEntry["attributes"] = mapAttributesFromDTOIDP(v.Attributes)
 			entries[i] = newEntry
 		}
 		return entries
