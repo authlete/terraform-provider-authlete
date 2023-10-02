@@ -3,9 +3,10 @@ module github.com/authlete/terraform-provider-authlete
 go 1.19
 
 require (
+	github.com/authlete/idp-api v0.0.0-20230821062417-0fad86b89106
 	github.com/authlete/openapi-for-go v1.2.3
 	github.com/authlete/openapi-for-go/v3 v3.0.0-alpha2
-	github.com/hashicorp/terraform-plugin-docs v0.15.0
+	github.com/hashicorp/terraform-plugin-docs v0.16.0
 	github.com/hashicorp/terraform-plugin-log v0.9.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.27.0
 	github.com/lestrrat-go/jwx v1.2.26
@@ -19,7 +20,6 @@ require (
 	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/authlete/idp-api v0.0.0-20230821062417-0fad86b89106 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/cloudflare/circl v1.3.3 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
@@ -41,7 +41,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.17.0 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
 	github.com/hashicorp/terraform-exec v0.18.1 // indirect
-	github.com/hashicorp/terraform-json v0.17.0 // indirect
+	github.com/hashicorp/terraform-json v0.17.1 // indirect
 	github.com/hashicorp/terraform-plugin-go v0.16.0 // indirect
 	github.com/hashicorp/terraform-registry-address v0.2.1 // indirect
 	github.com/hashicorp/terraform-svchost v0.1.1 // indirect
@@ -72,11 +72,12 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/zclconf/go-cty v1.13.2 // indirect
 	golang.org/x/crypto v0.10.0 // indirect
-	golang.org/x/mod v0.10.0 // indirect
+	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df // indirect
+	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/net v0.11.0 // indirect
 	golang.org/x/oauth2 v0.7.0 // indirect
 	golang.org/x/sys v0.9.0 // indirect
-	golang.org/x/text v0.10.0 // indirect
+	golang.org/x/text v0.11.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/grpc v1.56.0 // indirect
