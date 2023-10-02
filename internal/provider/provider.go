@@ -5,7 +5,9 @@ import (
 	"crypto/tls"
 	"net/http"
 	"os"
+	"reflect"
 
+	idp "github.com/authlete/idp-api"
 	authlete "github.com/authlete/openapi-for-go"
 	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -39,6 +41,24 @@ func New(version string) func() *schema.Provider {
 					Required:    false,
 					Optional:    true,
 					DefaultFunc: schema.EnvDefaultFunc("AUTHLETE_API_SERVER", "https://api.authlete.com"),
+				},
+				"idp_server": {
+					Type:        schema.TypeString,
+					Required:    false,
+					Optional:    true,
+					DefaultFunc: schema.EnvDefaultFunc("AUTHLETE_IDP_SERVER", "https://devidp.authlete.net"),
+				},
+				"api_server_id": {
+					Type:        schema.TypeString,
+					Required:    false,
+					Optional:    true,
+					DefaultFunc: schema.EnvDefaultFunc("AUTHLETE_API_SERVER_ID", ""),
+				},
+				"organization_id": {
+					Type:        schema.TypeString,
+					Required:    false,
+					Optional:    true,
+					DefaultFunc: schema.EnvDefaultFunc("AUTHLETE_ORGANIZATION_ID", ""),
 				},
 				"service_owner_key": {
 					Type:        schema.TypeString,
@@ -89,6 +109,9 @@ type apiClient struct {
 	// you would need to setup to communicate with the upstream
 	// API.
 	// serverVersion      int
+	apiServerId        string
+	organizationId     string
+	idpServer          string
 	apiServer          string
 	serviceOwnerKey    string
 	serviceOwnerSecret string
@@ -100,43 +123,49 @@ type apiClient struct {
 func configure(version string, p *schema.Provider) func(context.Context, *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	return func(ctx context.Context, data *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		apiServer := data.Get("api_server").(string)
+		idpServer := data.Get("idp_server").(string)
 		serviceOwnerKey := data.Get("service_owner_key").(string)
 		serviceOwnerSecret := data.Get("service_owner_secret").(string)
 		apiKey := data.Get("api_key").(string)
 		apiSecret := data.Get("api_secret").(string)
 		authVersion := data.Get("authlete_version").(string)
+		apiServerId := data.Get("api_server_id").(string)
+		organizationId := data.Get("organization_id").(string)
 
 		if authVersion == "3.0" {
 			v3 = true
 		}
 
 		if v3 {
-			cnf := authlete3.NewConfiguration()
-			cnf.UserAgent = p.UserAgent("terraform-provider-authlete", version)
+			cnf := configureClient(authlete3.APIClient{}, p, apiServer, version)
+			cnfIdp := configureClient(idp.APIClient{}, p, idpServer, version)
 
-			cnf.Servers[0].URL = apiServer
-
-			tlsInsecure := os.Getenv("AUTHLETE_TLS_INSECURE")
-			if tlsInsecure == "true" {
-				mTLSConfig := &tls.Config{
-					InsecureSkipVerify: true,
-				}
-				tr := &http.Transport{
-					TLSClientConfig: mTLSConfig,
-				}
-				cnf.HTTPClient = &http.Client{Transport: tr}
-			}
-
-			apiClientOpenAPI := ClientWrapper{v3: authlete3.NewAPIClient(cnf)}
+			apiClientOpenAPI := ClientWrapper{v3: authlete3.NewAPIClient(cnf.(*authlete3.Configuration)),
+				idp: idp.NewAPIClient(cnfIdp.(*idp.Configuration))}
 			return &apiClient{apiServer: apiServer, serviceOwnerKey: serviceOwnerKey,
 				serviceOwnerSecret: serviceOwnerSecret, apiKey: apiKey, apiSecret: apiSecret,
-				authleteClient: &apiClientOpenAPI}, nil
+				apiServerId: apiServerId, organizationId: organizationId,
+				idpServer: idpServer, authleteClient: &apiClientOpenAPI}, nil
 		}
 
-		cnf := authlete.NewConfiguration()
+		cnf := configureClient(authlete.APIClient{}, p, apiServer, version)
+		apiClientOpenAPI := ClientWrapper{v2: authlete.NewAPIClient(cnf.(*authlete.Configuration))}
+		return &apiClient{apiServer: apiServer, serviceOwnerKey: serviceOwnerKey,
+			serviceOwnerSecret: serviceOwnerSecret, apiKey: apiKey, apiSecret: apiSecret,
+			authleteClient: &apiClientOpenAPI}, nil
+	}
+}
+
+type apiClientTypes interface {
+	idp.APIClient | authlete.APIClient | authlete3.APIClient
+}
+
+func configureClient[K apiClientTypes](c K, p *schema.Provider, server string, version string) interface{} {
+	if reflect.TypeOf(c) == reflect.TypeOf(authlete3.APIClient{}) {
+		cnf := authlete3.NewConfiguration()
 		cnf.UserAgent = p.UserAgent("terraform-provider-authlete", version)
 
-		cnf.Servers[0].URL = apiServer
+		cnf.Servers[0].URL = server
 
 		tlsInsecure := os.Getenv("AUTHLETE_TLS_INSECURE")
 		if tlsInsecure == "true" {
@@ -148,9 +177,39 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 			}
 			cnf.HTTPClient = &http.Client{Transport: tr}
 		}
-		apiClientOpenAPI := ClientWrapper{v2: authlete.NewAPIClient(cnf)}
-		return &apiClient{apiServer: apiServer, serviceOwnerKey: serviceOwnerKey,
-			serviceOwnerSecret: serviceOwnerSecret, apiKey: apiKey, apiSecret: apiSecret,
-			authleteClient: &apiClientOpenAPI}, nil
+		return cnf
+	} else if reflect.TypeOf(c) == reflect.TypeOf(authlete.APIClient{}) {
+		cnf := authlete.NewConfiguration()
+		cnf.UserAgent = p.UserAgent("terraform-provider-authlete", version)
+
+		cnf.Servers[0].URL = server
+
+		tlsInsecure := os.Getenv("AUTHLETE_TLS_INSECURE")
+		if tlsInsecure == "true" {
+			mTLSConfig := &tls.Config{
+				InsecureSkipVerify: true,
+			}
+			tr := &http.Transport{
+				TLSClientConfig: mTLSConfig,
+			}
+			cnf.HTTPClient = &http.Client{Transport: tr}
+		}
+		return cnf
 	}
+	cnf := idp.NewConfiguration()
+	cnf.UserAgent = p.UserAgent("terraform-provider-authlete", version)
+
+	cnf.Servers[0].URL = server
+
+	tlsInsecure := os.Getenv("AUTHLETE_TLS_INSECURE")
+	if tlsInsecure == "true" {
+		mTLSConfig := &tls.Config{
+			InsecureSkipVerify: true,
+		}
+		tr := &http.Transport{
+			TLSClientConfig: mTLSConfig,
+		}
+		cnf.HTTPClient = &http.Client{Transport: tr}
+	}
+	return cnf
 }

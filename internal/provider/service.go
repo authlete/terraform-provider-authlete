@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 
+	idp "github.com/authlete/idp-api"
 	authlete "github.com/authlete/openapi-for-go"
 	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -173,11 +174,20 @@ func serviceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 	tflog.Trace(ctx, "Creating a new service")
 
 	if v3 {
-		newServiceDto, _ := dataToService(d, diags, authlete3.NewService())
-		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, client.serviceOwnerSecret)
-		n, _ := (*newServiceDto).(*authlete3.Service)
-		r, _, err := client.authleteClient.v3.ServiceManagementApi.ServiceCreateApi(auth).Service(*n).Execute()
-
+		apiServerId, err := strconv.Atoi(client.apiServerId)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		organizationId, err := strconv.Atoi(client.organizationId)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		newServiceDto, _ := dataToService(d, diags, idp.NewService())
+		nService, _ := (*newServiceDto).(*idp.Service)
+		createSvcReq := idp.NewCreateServiceRequest(int64(apiServerId), int64(organizationId))
+		createSvcReq.SetService(*nService)
+		orgToken := convertToBearerToken(client.serviceOwnerSecret)
+		r, _, err := client.authleteClient.idp.ServiceApiApi.CreateService(ctx).CreateServiceRequest(*createSvcReq).Authorization(orgToken).Execute()
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -301,7 +311,7 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 	return diags
 }
 
-func serviceDelete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func serviceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// use the meta value to retrieve your client from the provider configure method
 	// client := meta.(*apiClient)
 
@@ -309,9 +319,25 @@ func serviceDelete(_ context.Context, d *schema.ResourceData, meta interface{}) 
 	var err error = nil
 
 	if v3 {
-		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, client.serviceOwnerSecret)
+		var apiServerId int
+		var organizationId int
+		var serviceId int
+		orgToken := convertToBearerToken(client.serviceOwnerSecret)
+		apiServerId, err = strconv.Atoi(client.apiServerId)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		organizationId, err = strconv.Atoi(client.organizationId)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		serviceId, err = strconv.Atoi(d.Id())
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		deleteSvcReq := idp.NewDeleteServiceRequest(int64(apiServerId), int64(organizationId), int64(serviceId))
 
-		_, err = client.authleteClient.v3.ServiceManagementApi.ServiceDeleteApi(auth, d.Id()).Execute()
+		_, err = client.authleteClient.idp.ServiceApiApi.DeleteService(ctx).Authorization(orgToken).DeleteServiceRequest(*deleteSvcReq).Execute()
 	} else {
 		auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
 			UserName: client.serviceOwnerKey,

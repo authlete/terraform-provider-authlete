@@ -1,6 +1,7 @@
 package provider
 
 import (
+	idp "github.com/authlete/idp-api"
 	authlete "github.com/authlete/openapi-for-go"
 	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -68,6 +69,22 @@ func mapTaggedValuesFromDTO(pairs []authlete.TaggedValue) []interface{} {
 }
 
 func mapTaggedValuesFromDTOV3(pairs []authlete3.TaggedValue) []interface{} {
+
+	if pairs != nil {
+		entries := make([]interface{}, len(pairs), len(pairs))
+
+		for i, v := range pairs {
+			newEntry := make(map[string]interface{})
+			newEntry["tag"] = v.Tag
+			newEntry["value"] = v.Value
+			entries[i] = newEntry
+		}
+		return entries
+	}
+	return make([]interface{}, 0)
+}
+
+func mapTaggedValuesFromDTOIDP(pairs []idp.TaggedValue) []interface{} {
 
 	if pairs != nil {
 		entries := make([]interface{}, len(pairs), len(pairs))

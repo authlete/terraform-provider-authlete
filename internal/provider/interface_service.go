@@ -77,10 +77,10 @@ type IService interface {
 	HasDeveloperAuthenticationCallbackApiSecret() bool
 	SetDeveloperAuthenticationCallbackApiSecret(v string)
 	HasSupportedDeveloperSnses() bool
-	GetDeveloperSnsCredentials() string
-	GetDeveloperSnsCredentialsOk() (*string, bool)
-	HasDeveloperSnsCredentials() bool
-	SetDeveloperSnsCredentials(v string)
+	// GetDeveloperSnsCredentials() string
+	// GetDeveloperSnsCredentialsOk() (*string, bool)
+	// HasDeveloperSnsCredentials() bool
+	// SetDeveloperSnsCredentials(v string)
 	HasSupportedGrantTypes() bool
 	HasSupportedResponseTypes() bool
 	GetSupportedAuthorizationDetailsTypes() []string
@@ -547,10 +547,10 @@ type IService interface {
 	GetRsResponseSignedOk() (*bool, bool)
 	HasRsResponseSigned() bool
 	SetRsResponseSigned(v bool)
-	GetRsSignedRequestKeyId() string
-	GetRsSignedRequestKeyIdOk() (*string, bool)
-	HasRsSignedRequestKeyId() bool
-	SetRsSignedRequestKeyId(v string)
+	// GetRsSignedRequestKeyId() string
+	// GetRsSignedRequestKeyIdOk() (*string, bool)
+	// HasRsSignedRequestKeyId() bool
+	// SetRsSignedRequestKeyId(v string)
 	MarshalJSON() ([]byte, error)
-	ToMap() (map[string]interface{}, error)
+	// ToMap() (map[string]interface{}, error)
 }

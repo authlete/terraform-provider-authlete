@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"log"
 
+	idp "github.com/authlete/idp-api"
 	authlete "github.com/authlete/openapi-for-go"
 	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type ClientWrapper struct {
-	v2 *authlete.APIClient
-	v3 *authlete3.APIClient
+	v2  *authlete.APIClient
+	v3  *authlete3.APIClient
+	idp *idp.APIClient
 }
 
 func NewAPIClient(cfg interface{}) ClientWrapper {
@@ -39,7 +41,7 @@ type stringTypes interface {
 }
 
 type structList interface {
-	authlete.Pair | authlete3.Pair | authlete3.Scope | authlete.Scope
+	authlete.Pair | authlete3.Pair | authlete3.Scope | authlete.Scope | idp.Pair
 }
 
 func mapSetToDTO[K stringTypes](vals *schema.Set) []K {

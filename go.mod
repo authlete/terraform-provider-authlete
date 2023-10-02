@@ -3,6 +3,7 @@ module github.com/authlete/terraform-provider-authlete
 go 1.19
 
 require (
+	github.com/authlete/idp-api v0.0.0-20230821062417-0fad86b89106
 	github.com/authlete/openapi-for-go v1.2.3
 	github.com/authlete/openapi-for-go/v3 v3.0.0-alpha2
 	github.com/hashicorp/terraform-plugin-docs v0.16.0
@@ -74,6 +75,7 @@ require (
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df // indirect
 	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/net v0.11.0 // indirect
+	golang.org/x/oauth2 v0.7.0 // indirect
 	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
@@ -81,5 +83,3 @@ require (
 	google.golang.org/grpc v1.56.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 )
-
-//replace github.com/authlete/openapi-for-go => ../openapi-for-go
