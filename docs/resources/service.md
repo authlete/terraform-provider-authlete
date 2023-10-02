@@ -196,6 +196,7 @@ has a name like supported_custom_client_metadata, in the API it is named `suppor
 - `supported_documents` (Set of String)
 - `supported_verification_methods` (Set of String)
 - `supported_verified_claims` (Set of String)
+- `verified_claims_validation_schema_set` (String)
 
 - `end_session_endpoint` (String)
 
