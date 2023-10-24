@@ -41,7 +41,7 @@ func service() *schema.Resource {
 			"developer_authentication_callback_api_secret":     {Type: schema.TypeString, Required: false, Optional: true},
 			"supported_grant_types":                            createGrantTypeSchema(false),
 			"supported_response_types":                         createResponseTypeSchema(false),
-			"supported_authorization_detail_types":             createStringColSchema(),
+			"supported_authorization_detail_types":             createStringColSchema(), // supportedAuthorizationDetailsTypes field
 			"supported_service_profiles":                       createSupportedFrameworkSchema(),
 			"error_description_omitted":                        {Type: schema.TypeBool, Required: false, Optional: true},
 			"error_uri_omitted":                                {Type: schema.TypeBool, Required: false, Optional: true},
@@ -52,8 +52,8 @@ func service() *schema.Resource {
 			"pkce_required":                                    {Type: schema.TypeBool, Required: false, Optional: true},
 			"pkce_s256_required":                               {Type: schema.TypeBool, Required: false, Optional: true},
 			"authorization_response_duration":                  {Type: schema.TypeInt, Required: false, Optional: true},
-			"iss_response_suppressed":                          {Type: schema.TypeBool, Required: false, Optional: true},
-			"ignore_port_loopback_redirect":                    {Type: schema.TypeBool, Required: false, Optional: true, Computed: true},
+			"iss_response_suppressed":                          {Type: schema.TypeBool, Required: false, Optional: true},                 // issSuppressed field
+			"ignore_port_loopback_redirect":                    {Type: schema.TypeBool, Required: false, Optional: true, Computed: true}, // loopbackRedirectionUriVariable field
 			"token_endpoint":                                   {Type: schema.TypeString, Required: false, Optional: true},
 			"direct_token_endpoint_enabled":                    {Type: schema.TypeBool, Required: false, Optional: true, Computed: true},
 			"supported_token_auth_methods":                     createClientAuthSchema(),
@@ -72,9 +72,9 @@ func service() *schema.Resource {
 			"request_object_required":                          {Type: schema.TypeBool, Required: false, Optional: true},
 			"traditional_request_object_processing_applied":    {Type: schema.TypeBool, Required: false, Optional: true},
 			"nbf_optional":                                     {Type: schema.TypeBool, Required: false, Optional: true},
-			"front_channel_encryption_request_obj_required":    {Type: schema.TypeBool, Required: false, Optional: true},
-			"encryption_alg_req_obj_match":                     {Type: schema.TypeBool, Required: false, Optional: true},
-			"encryption_enc_alg_req_obj_match":                 {Type: schema.TypeBool, Required: false, Optional: true},
+			"front_channel_encryption_request_obj_required":    {Type: schema.TypeBool, Required: false, Optional: true}, // frontChannelRequestObjectEncryptionRequired field
+			"encryption_alg_req_obj_match":                     {Type: schema.TypeBool, Required: false, Optional: true}, // requestObjectEncryptionAlgMatchRequired field
+			"encryption_enc_alg_req_obj_match":                 {Type: schema.TypeBool, Required: false, Optional: true}, // requestObjectEncryptionEncMatchRequired field
 			"access_token_type":                                {Type: schema.TypeString, Required: false, Optional: true, Computed: true},
 			"tls_client_certificate_bound_access_tokens":       {Type: schema.TypeBool, Required: false, Optional: true},
 			"access_token_duration":                            {Type: schema.TypeInt, Required: false, Optional: true},
@@ -85,7 +85,7 @@ func service() *schema.Resource {
 			"refresh_token_duration_kept":                      {Type: schema.TypeBool, Required: false, Optional: true},
 			"refresh_token_duration_reset":                     {Type: schema.TypeBool, Required: false, Optional: true},
 			"refresh_token_kept":                               {Type: schema.TypeBool, Required: false, Optional: true},
-			"token_expiration_link":                            {Type: schema.TypeBool, Required: false, Optional: true},
+			"token_expiration_link":                            {Type: schema.TypeBool, Required: false, Optional: true}, // tokenExpirationLinked field
 			"supported_scopes":                                 createSupportedScopeSchema(),
 			"openid_dropped_on_refresh_without_offline_access": {Type: schema.TypeBool, Required: false, Optional: true},
 			"scope_required":                                   {Type: schema.TypeBool, Required: false, Optional: true},
@@ -95,9 +95,9 @@ func service() *schema.Resource {
 			"supported_claim_locales":                          createStringColSchema(),
 			"supported_claims":                                 createStringColSchema(),
 			"claim_shortcut_restrictive":                       {Type: schema.TypeBool, Required: false, Optional: true},
-			"jwks_endpoint":                                    {Type: schema.TypeString, Required: false, Optional: true},
+			"jwks_endpoint":                                    {Type: schema.TypeString, Required: false, Optional: true}, // jwksUri field
 			"direct_jwks_endpoint_enabled":                     {Type: schema.TypeBool, Required: false, Optional: true, Default: false},
-			"jwk":                                              createJWKSchema(),
+			"jwk":                                              createJWKSchema(), // jwks field
 			"id_token_signature_key_id":                        {Type: schema.TypeString, Required: false, Optional: true},
 			"user_info_signature_key_id":                       {Type: schema.TypeString, Required: false, Optional: true},
 			"authorization_signature_key_id":                   {Type: schema.TypeString, Required: false, Optional: true},
@@ -137,7 +137,7 @@ func service() *schema.Resource {
 			"access_token_for_external_attachment_embedded":    {Type: schema.TypeBool, Required: false, Optional: true},
 			"authority_hints":                                  createStringColSchema(),
 			"federation_enabled":                               {Type: schema.TypeBool, Required: false, Optional: true},
-			"federation_jwk":                                   createJWKSchema(),
+			"federation_jwk":                                   createJWKSchema(), // federationJwks field
 			"federation_signature_key_id":                      {Type: schema.TypeString, Required: false, Optional: true},
 			"federation_configuration_duration":                {Type: schema.TypeInt, Required: false, Optional: true},
 			"federation_registration_endpoint":                 {Type: schema.TypeString, Required: false, Optional: true},
