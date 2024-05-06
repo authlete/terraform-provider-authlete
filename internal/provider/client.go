@@ -123,6 +123,7 @@ func client() *schema.Resource {
 			"digest_algorithm":                                 {Type: schema.TypeString, Required: false, Optional: true},
 			"single_access_token_per_subject":                  {Type: schema.TypeBool, Required: false, Optional: true, Computed: true},
 			"client_identifier":                                {Type: schema.TypeString, Required: false, Optional: false, Computed: true},
+			"dpop_required":                                    {Type: schema.TypeBool, Required: false, Optional: true, Computed: true},
 		},
 	}
 }
@@ -450,6 +451,7 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) IClient {
 		newClient.(*authlete3.Client).SetAttributes(mapInterfaceListToStructList[authlete3.Pair](d.Get("attributes").(*schema.Set).List()))
 
 		newClient.(*authlete3.Client).SetClientUris(mapTaggedValuesToDTOV3(d.Get("client_uris").(*schema.Set).List()))
+		newClient.(*authlete3.Client).SetDpopRequired(d.Get("dpop_required").(bool))
 	} else {
 		newClient.(*authlete.Client).SetResponseTypes(mapListToDTO[authlete.ResponseType](d.Get("response_types").(*schema.Set).List()))
 		newClient.(*authlete.Client).SetGrantTypes(mapSetToDTO[authlete.GrantType](d.Get("grant_types").(*schema.Set)))
@@ -518,6 +520,7 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) IClient {
 		}
 		newClient.(*authlete.Client).SetAttributes(mapInterfaceListToStructList[authlete.Pair](d.Get("attributes").(*schema.Set).List()))
 		newClient.(*authlete.Client).SetClientUris(mapTaggedValuesToDTO(d.Get("client_uris").(*schema.Set).List()))
+		newClient.(*authlete.Client).SetDpopRequired(d.Get("dpop_required").(bool))
 	}
 
 	newClient.SetContacts(mapSetToString(d.Get("contacts").(*schema.Set).List()))
@@ -1302,6 +1305,10 @@ func setDataToClient(d *schema.ResourceData, diags diag.Diagnostics, client ICli
 	if d.HasChange("pkce_s256_required") {
 		client.SetPkceS256Required(d.Get("pkce_s256_required").(bool))
 	}
+
+	if d.HasChange("dpop_required") {
+		client.SetDpopRequired(d.Get("dpop_required").(bool))
+	}
 }
 
 func updateResourceFromClient(d *schema.ResourceData, client IClient) {
@@ -1379,6 +1386,7 @@ func updateResourceFromClient(d *schema.ResourceData, client IClient) {
 		_ = d.Set("requestable_scopes", clientExtension.GetRequestableScopes())
 		_ = d.Set("access_token_duration", clientExtension.GetAccessTokenDuration())
 		_ = d.Set("refresh_token_duration", clientExtension.GetRefreshTokenDuration())
+
 	}
 	_ = d.Set("redirect_uris", client.GetRedirectUris())
 	_ = d.Set("contacts", client.GetContacts())
@@ -1428,6 +1436,7 @@ func updateResourceFromClient(d *schema.ResourceData, client IClient) {
 	_ = d.Set("request_object_encryption_enc_match_required", client.GetRequestObjectEncryptionAlgMatchRequired())
 	_ = d.Set("digest_algorithm", client.GetDigestAlgorithm())
 	_ = d.Set("single_access_token_per_subject", client.GetSingleAccessTokenPerSubject())
+	_ = d.Set("dpop_required", c.GetDpopRequired())
 }
 
 func getClientIdentifierForV3(d *schema.ResourceData) string {
