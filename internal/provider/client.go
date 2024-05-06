@@ -1386,7 +1386,6 @@ func updateResourceFromClient(d *schema.ResourceData, client IClient) {
 		_ = d.Set("requestable_scopes", clientExtension.GetRequestableScopes())
 		_ = d.Set("access_token_duration", clientExtension.GetAccessTokenDuration())
 		_ = d.Set("refresh_token_duration", clientExtension.GetRefreshTokenDuration())
-
 	}
 	_ = d.Set("redirect_uris", client.GetRedirectUris())
 	_ = d.Set("contacts", client.GetContacts())
@@ -1436,7 +1435,7 @@ func updateResourceFromClient(d *schema.ResourceData, client IClient) {
 	_ = d.Set("request_object_encryption_enc_match_required", client.GetRequestObjectEncryptionAlgMatchRequired())
 	_ = d.Set("digest_algorithm", client.GetDigestAlgorithm())
 	_ = d.Set("single_access_token_per_subject", client.GetSingleAccessTokenPerSubject())
-	_ = d.Set("dpop_required", c.GetDpopRequired())
+	_ = d.Set("dpop_required", client.GetDpopRequired())
 }
 
 func getClientIdentifierForV3(d *schema.ResourceData) string {
