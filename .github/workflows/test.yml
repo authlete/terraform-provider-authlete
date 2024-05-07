@@ -113,6 +113,7 @@ jobs:
         AUTHLETE_SO_KEY: ${{ secrets.AUTHLETE_NEXTDEV_SO_KEY }}
         AUTHLETE_SO_SECRET: ${{ secrets.IDP_ORG_TOKEN }}
         TC_ACC_AUTHLETE_VERSION: "3.0"
+        AUTHLETE_API_VERSION: "3.0"
         AUTHLETE_API_SERVER_ID: ${{ secrets.AUTHLETE_API_SERVER_ID }}
         AUTHLETE_ORGANIZATION_ID: ${{ secrets.AUTHLETE_ORGANIZATION_ID }}
       run: |
