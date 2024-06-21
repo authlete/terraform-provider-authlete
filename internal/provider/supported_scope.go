@@ -84,57 +84,62 @@ func mapSupportedScopeToDTOIDP(vals *schema.Set) []idp.Scope {
 
 func mapSupportedScopeFromDTO(scopes []authlete.Scope) []interface{} {
 
-	if scopes != nil {
-		entries := make([]interface{}, len(scopes))
-
-		for i, v := range scopes {
-			newEntry := make(map[string]interface{})
-			newEntry["name"] = v.Name
-			newEntry["default_entry"] = v.DefaultEntry
-			newEntry["description"] = v.Description
-			newEntry["descriptions"] = mapTaggedValuesFromDTO(v.Descriptions)
-			newEntry["attributes"] = mapAttributesFromDTO(v.Attributes)
-			entries[i] = newEntry
+	var entries []interface{}
+	for _, v := range scopes {
+		if isStandardScope(v.GetName()) {
+			continue
 		}
-		return entries
+		newEntry := make(map[string]interface{})
+		newEntry["name"] = v.Name
+		newEntry["default_entry"] = v.DefaultEntry
+		newEntry["description"] = v.Description
+		newEntry["descriptions"] = mapTaggedValuesFromDTO(v.Descriptions)
+		newEntry["attributes"] = mapAttributesFromDTO(v.Attributes)
+		entries = append(entries, newEntry)
 	}
-	return make([]interface{}, 0)
+	return entries
 }
 
 func mapSupportedScopeFromDTOV3(scopes []authlete3.Scope) []interface{} {
-
-	if scopes != nil {
-		entries := make([]interface{}, len(scopes))
-
-		for i, v := range scopes {
-			newEntry := make(map[string]interface{})
-			newEntry["name"] = v.Name
-			newEntry["default_entry"] = v.DefaultEntry
-			newEntry["description"] = v.Description
-			newEntry["descriptions"] = mapTaggedValuesFromDTOV3(v.Descriptions)
-			newEntry["attributes"] = mapAttributesFromDTOV3(v.Attributes)
-			entries[i] = newEntry
+	var entries []interface{}
+	for _, v := range scopes {
+		if isStandardScope(v.GetName()) {
+			continue
 		}
-		return entries
+		newEntry := make(map[string]interface{})
+		newEntry["name"] = v.Name
+		newEntry["default_entry"] = v.DefaultEntry
+		newEntry["description"] = v.Description
+		newEntry["descriptions"] = mapTaggedValuesFromDTOV3(v.Descriptions)
+		newEntry["attributes"] = mapAttributesFromDTOV3(v.Attributes)
+		entries = append(entries, newEntry)
 	}
-	return make([]interface{}, 0)
+	return entries
 }
 
 func mapSupportedScopeFromDTOIDP(scopes []idp.Scope) []interface{} {
-
-	if scopes != nil {
-		entries := make([]interface{}, len(scopes))
-
-		for i, v := range scopes {
-			newEntry := make(map[string]interface{})
-			newEntry["name"] = v.Name
-			newEntry["default_entry"] = v.DefaultEntry
-			newEntry["description"] = v.Description
-			newEntry["descriptions"] = mapTaggedValuesFromDTOIDP(v.Descriptions)
-			newEntry["attributes"] = mapAttributesFromDTOIDP(v.Attributes)
-			entries[i] = newEntry
+	var entries []interface{}
+	for _, v := range scopes {
+		if isStandardScope(v.GetName()) {
+			continue
 		}
-		return entries
+		newEntry := make(map[string]interface{})
+		newEntry["name"] = v.Name
+		newEntry["default_entry"] = v.DefaultEntry
+		newEntry["description"] = v.Description
+		newEntry["descriptions"] = mapTaggedValuesFromDTOIDP(v.Descriptions)
+		newEntry["attributes"] = mapAttributesFromDTOIDP(v.Attributes)
+		entries = append(entries, newEntry)
 	}
-	return make([]interface{}, 0)
+	return entries
+}
+
+func isStandardScope(scopeName string) bool {
+	standardScopes := []string{"address", "email", "openid", "offline_access", "phone", "profile"}
+	for _, v := range standardScopes {
+		if v == scopeName {
+			return true
+		}
+	}
+	return false
 }

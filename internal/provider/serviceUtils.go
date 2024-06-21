@@ -1172,7 +1172,6 @@ func serviceToResource(dto IService, data *schema.ResourceData) diag.Diagnostics
 			_ = data.Set("supported_revocation_auth_methods", mapFromDTO(dto.(*idp.Service).GetSupportedRevocationAuthMethods()))
 			_ = data.Set("supported_introspection_auth_methods", mapFromDTO(dto.(*idp.Service).GetSupportedIntrospectionAuthMethods()))
 			_ = data.Set("access_token_sign_alg", dto.(*idp.Service).GetAccessTokenSignAlg())
-			_ = data.Set("supported_scopes", mapSupportedScopeFromDTOIDP(dto.(*idp.Service).GetSupportedScopes()))
 			_ = data.Set("supported_claim_types", mapFromDTO(dto.(*idp.Service).GetSupportedClaimTypes()))
 			_ = data.Set("mtls_endpoint_aliases", mapMtlsEndpointFromDTOIDP(dto.(*idp.Service).GetMtlsEndpointAliases()))
 			_ = data.Set("supported_backchannel_token_delivery_modes", mapFromDTO(dto.(*idp.Service).GetSupportedBackchannelTokenDeliveryModes()))
@@ -1191,7 +1190,6 @@ func serviceToResource(dto IService, data *schema.ResourceData) diag.Diagnostics
 			_ = data.Set("supported_revocation_auth_methods", mapFromDTO(dto.(*authlete3.Service).GetSupportedRevocationAuthMethods()))
 			_ = data.Set("supported_introspection_auth_methods", mapFromDTO(dto.(*authlete3.Service).GetSupportedIntrospectionAuthMethods()))
 			_ = data.Set("access_token_sign_alg", dto.(*authlete3.Service).GetAccessTokenSignAlg())
-			_ = data.Set("supported_scopes", mapSupportedScopeFromDTOV3(dto.(*authlete3.Service).GetSupportedScopes()))
 			_ = data.Set("supported_claim_types", mapFromDTO(dto.(*authlete3.Service).GetSupportedClaimTypes()))
 			_ = data.Set("mtls_endpoint_aliases", mapMtlsEndpointFromDTOV3(dto.(*authlete3.Service).GetMtlsEndpointAliases()))
 			_ = data.Set("supported_backchannel_token_delivery_modes", mapFromDTO(dto.(*authlete3.Service).GetSupportedBackchannelTokenDeliveryModes()))
@@ -1211,7 +1209,6 @@ func serviceToResource(dto IService, data *schema.ResourceData) diag.Diagnostics
 		_ = data.Set("supported_revocation_auth_methods", mapFromDTO(dto.(*authlete.Service).GetSupportedRevocationAuthMethods()))
 		_ = data.Set("supported_introspection_auth_methods", mapFromDTO(dto.(*authlete.Service).GetSupportedIntrospectionAuthMethods()))
 		_ = data.Set("access_token_sign_alg", dto.(*authlete.Service).GetAccessTokenSignAlg())
-		_ = data.Set("supported_scopes", mapSupportedScopeFromDTO(dto.(*authlete.Service).GetSupportedScopes()))
 		_ = data.Set("supported_claim_types", mapFromDTO(dto.(*authlete.Service).GetSupportedClaimTypes()))
 		_ = data.Set("mtls_endpoint_aliases", mapMtlsEndpointFromDTO(dto.(*authlete.Service).GetMtlsEndpointAliases()))
 		_ = data.Set("supported_backchannel_token_delivery_modes", mapFromDTO(dto.(*authlete.Service).GetSupportedBackchannelTokenDeliveryModes()))
@@ -1220,6 +1217,7 @@ func serviceToResource(dto IService, data *schema.ResourceData) diag.Diagnostics
 		_ = data.Set("supported_client_registration_types", mapFromDTO(dto.(*authlete.Service).GetSupportedClientRegistrationTypes()))
 		_ = data.Set("trust_anchors", mapTrustAnchorFromDTO(dto.(*authlete.Service).GetTrustAnchors()))
 	}
+	_ = setSupportedScopes(data, dto)
 	_ = data.Set("supported_custom_client_metadata", mapSchemaFromString(dto.GetSupportedCustomClientMetadata()))
 	_ = data.Set("authentication_callback_endpoint", dto.GetAuthenticationCallbackEndpoint())
 	_ = data.Set("authentication_callback_api_key", dto.GetAuthenticationCallbackApiKey())
@@ -1343,5 +1341,26 @@ func serviceToResource(dto IService, data *schema.ResourceData) diag.Diagnostics
 	_ = data.Set("jwt_grant_encrypted_jwt_rejected", dto.GetJwtGrantEncryptedJwtRejected())
 	_ = data.Set("jwt_grant_unsigned_jwt_rejected", dto.GetJwtGrantUnsignedJwtRejected())
 
+	return nil
+}
+
+func setSupportedScopes(data *schema.ResourceData, dto IService) error {
+	switch dto := dto.(type) {
+	case *authlete.Service:
+		scopes := mapSupportedScopeFromDTO(dto.GetSupportedScopes())
+		if len(scopes) > 0 {
+			return data.Set("supported_scopes", mapSupportedScopeFromDTO(dto.GetSupportedScopes()))
+		}
+	case *authlete3.Service:
+		scopes := mapSupportedScopeFromDTOV3(dto.GetSupportedScopes())
+		if len(scopes) > 0 {
+			return data.Set("supported_scopes", mapSupportedScopeFromDTOV3(dto.GetSupportedScopes()))
+		}
+	case *idp.Service:
+		scopes := mapSupportedScopeFromDTOIDP(dto.GetSupportedScopes())
+		if len(scopes) > 0 {
+			return data.Set("supported_scopes", mapSupportedScopeFromDTOIDP(dto.GetSupportedScopes()))
+		}
+	}
 	return nil
 }

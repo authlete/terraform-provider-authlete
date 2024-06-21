@@ -4,7 +4,7 @@ HOSTNAME=registry.terraform.io
 NAMESPACE=authlete
 NAME=authlete
 BINARY=terraform-provider-${NAME}
-VERSION=1.3.8
+VERSION=1.3.14
 OS_ARCH=darwin_arm64
 OS_ARCH_AMD64=linux_amd64
 
