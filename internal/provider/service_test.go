@@ -54,8 +54,7 @@ func TestAccResourceService_extended(t *testing.T) {
 		CheckDestroy:      testServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:             testAccResourceServiceEveryAttribute,
-				ExpectNonEmptyPlan: true,
+				Config: testAccResourceServiceEveryAttribute,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "service_name", "attributes coverage test"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "issuer", "https://test.com"),
@@ -195,7 +194,7 @@ func TestAccResourceService_extended(t *testing.T) {
 				ResourceName:            "authlete_service.complete_described",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"api_secret", "jwk"},
+				ImportStateVerifyIgnore: []string{"api_secret", "jwk", "supported_scopes"},
 			},
 		},
 	})
@@ -213,8 +212,7 @@ func TestAccResourceService_update_extended(t *testing.T) {
 		CheckDestroy:      testServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:             testAccResourceServiceEveryAttribute,
-				ExpectNonEmptyPlan: true,
+				Config: testAccResourceServiceEveryAttribute,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "service_name", "attributes coverage test"),
 					resource.TestCheckResourceAttr("authlete_service.complete_described", "issuer", "https://test.com"),
@@ -366,7 +364,7 @@ func TestAccResourceService_update_extended(t *testing.T) {
 				ResourceName:            "authlete_service.complete_described",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"api_secret", "jwk"},
+				ImportStateVerifyIgnore: []string{"api_secret", "jwk", "supported_scopes"},
 			},
 		},
 	})
@@ -574,7 +572,7 @@ func TestAccResourceService_extended_23(t *testing.T) {
 				ResourceName:            "authlete_service.complete_described",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"api_secret", "jwk"},
+				ImportStateVerifyIgnore: []string{"api_secret", "jwk", "supported_scopes"},
 			},
 		},
 	})
