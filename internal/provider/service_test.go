@@ -30,6 +30,8 @@ func TestAccResourceService_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("authlete_service.prod", "direct_user_info_endpoint_enabled", "false"),
 					resource.TestCheckResourceAttr("authlete_service.prod", "direct_introspection_endpoint_enabled", "false"),
 					resource.TestCheckResourceAttr("authlete_service.prod", "single_access_token_per_subject", "false"),
+					resource.TestCheckResourceAttr("authlete_service.prod", "supported_scopes.#", "1"),
+					resource.TestCheckResourceAttr("authlete_service.prod", "scope_required", "true"),
 				),
 			},
 			{

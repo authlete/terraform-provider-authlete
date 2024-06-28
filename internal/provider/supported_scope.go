@@ -25,6 +25,7 @@ func createSupportedScopeSchema() *schema.Schema {
 				"description": {
 					Type:     schema.TypeString,
 					Optional: true,
+					Computed: true,
 					Required: false,
 				},
 				"descriptions": createTaggedValuesSchema(),
@@ -82,64 +83,126 @@ func mapSupportedScopeToDTOIDP(vals *schema.Set) []idp.Scope {
 	return mapped
 }
 
-func mapSupportedScopeFromDTO(scopes []authlete.Scope) []interface{} {
+func mapSupportedScopeFromDTO(data []interface{}, scopes []authlete.Scope) []interface{} {
 
-	var entries []interface{}
-	for _, v := range scopes {
-		if isStandardScope(v.GetName()) {
-			continue
+	for _, remoteScope := range scopes {
+		found := false
+		for _, localScope := range data {
+			localScopeObj := localScope.(map[string]interface{})
+			localScopeName, ok := localScopeObj["name"].(string)
+			if !ok {
+				localScopeName = *localScopeObj["name"].(*string)
+			}
+			if *remoteScope.Name == localScopeName {
+				found = true
+				localScopeObj["default_entry"] = remoteScope.DefaultEntry
+				localScopeObj["description"] = remoteScope.Description
+				localScopeObj["descriptions"] = mapTaggedValuesFromDTO(remoteScope.Descriptions)
+				localScopeObj["attributes"] = mapAttributesFromDTO(remoteScope.Attributes)
+			}
 		}
-		newEntry := make(map[string]interface{})
-		newEntry["name"] = v.Name
-		newEntry["default_entry"] = v.DefaultEntry
-		newEntry["description"] = v.Description
-		newEntry["descriptions"] = mapTaggedValuesFromDTO(v.Descriptions)
-		newEntry["attributes"] = mapAttributesFromDTO(v.Attributes)
-		entries = append(entries, newEntry)
+		if !found {
+			newEntry := make(map[string]interface{})
+			newEntry["name"] = remoteScope.Name
+			newEntry["default_entry"] = remoteScope.DefaultEntry
+			newEntry["description"] = remoteScope.Description
+			newEntry["descriptions"] = mapTaggedValuesFromDTO(remoteScope.Descriptions)
+			newEntry["attributes"] = mapAttributesFromDTO(remoteScope.Attributes)
+			data = append(data, newEntry)
+		}
 	}
-	return entries
+	for i, localScope := range data {
+		found := false
+		localScopeObj := localScope.(map[string]interface{})
+		localScopeName, ok := localScopeObj["name"].(string)
+		if !ok {
+			localScopeName = *localScopeObj["name"].(*string)
+		}
+		for _, remoteScope := range scopes {
+			if *(remoteScope.Name) == localScopeName {
+				found = true
+			}
+		}
+		if !found {
+			data = append(data[:i], data[i+1:]...)
+		}
+	}
+	return data
 }
 
-func mapSupportedScopeFromDTOV3(scopes []authlete3.Scope) []interface{} {
-	var entries []interface{}
-	for _, v := range scopes {
-		if isStandardScope(v.GetName()) {
-			continue
+func mapSupportedScopeFromDTOV3(data []interface{}, scopes []authlete3.Scope) []interface{} {
+	for _, remoteScope := range scopes {
+		found := false
+		for _, localScope := range data {
+			localScopeObj := localScope.(map[string]interface{})
+			if *(remoteScope.Name) == localScopeObj["name"].(string) {
+				found = true
+				localScopeObj["default_entry"] = remoteScope.DefaultEntry
+				localScopeObj["description"] = remoteScope.Description
+				localScopeObj["descriptions"] = mapTaggedValuesFromDTOV3(remoteScope.Descriptions)
+				localScopeObj["attributes"] = mapAttributesFromDTOV3(remoteScope.Attributes)
+			}
 		}
-		newEntry := make(map[string]interface{})
-		newEntry["name"] = v.Name
-		newEntry["default_entry"] = v.DefaultEntry
-		newEntry["description"] = v.Description
-		newEntry["descriptions"] = mapTaggedValuesFromDTOV3(v.Descriptions)
-		newEntry["attributes"] = mapAttributesFromDTOV3(v.Attributes)
-		entries = append(entries, newEntry)
+		if !found {
+			newEntry := make(map[string]interface{})
+			newEntry["name"] = remoteScope.Name
+			newEntry["default_entry"] = remoteScope.DefaultEntry
+			newEntry["description"] = remoteScope.Description
+			newEntry["descriptions"] = mapTaggedValuesFromDTOV3(remoteScope.Descriptions)
+			newEntry["attributes"] = mapAttributesFromDTOV3(remoteScope.Attributes)
+			data = append(data, newEntry)
+		}
 	}
-	return entries
+	for i, localScope := range data {
+		found := false
+		localScopeObj := localScope.(map[string]interface{})
+		for _, remoteScope := range scopes {
+			if *(remoteScope.Name) == localScopeObj["name"].(string) {
+				found = true
+			}
+		}
+		if !found {
+			data = append(data[:i], data[i+1:]...)
+		}
+	}
+	return data
 }
 
-func mapSupportedScopeFromDTOIDP(scopes []idp.Scope) []interface{} {
-	var entries []interface{}
-	for _, v := range scopes {
-		if isStandardScope(v.GetName()) {
-			continue
+func mapSupportedScopeFromDTOIDP(data []interface{}, scopes []idp.Scope) []interface{} {
+	for _, remoteScope := range scopes {
+		found := false
+		for _, localScope := range data {
+			localScopeObj := localScope.(map[string]interface{})
+			if *(remoteScope.Name) == localScopeObj["name"].(string) {
+				found = true
+				localScopeObj["default_entry"] = remoteScope.DefaultEntry
+				localScopeObj["description"] = remoteScope.Description
+				localScopeObj["descriptions"] = mapTaggedValuesFromDTOIDP(remoteScope.Descriptions)
+				localScopeObj["attributes"] = mapAttributesFromDTOIDP(remoteScope.Attributes)
+			}
 		}
-		newEntry := make(map[string]interface{})
-		newEntry["name"] = v.Name
-		newEntry["default_entry"] = v.DefaultEntry
-		newEntry["description"] = v.Description
-		newEntry["descriptions"] = mapTaggedValuesFromDTOIDP(v.Descriptions)
-		newEntry["attributes"] = mapAttributesFromDTOIDP(v.Attributes)
-		entries = append(entries, newEntry)
+		if !found {
+			newEntry := make(map[string]interface{})
+			newEntry["name"] = remoteScope.Name
+			newEntry["default_entry"] = remoteScope.DefaultEntry
+			newEntry["description"] = remoteScope.Description
+			newEntry["descriptions"] = mapTaggedValuesFromDTOIDP(remoteScope.Descriptions)
+			newEntry["attributes"] = mapAttributesFromDTOIDP(remoteScope.Attributes)
+			data = append(data, newEntry)
+		}
 	}
-	return entries
-}
+	for i, localScope := range data {
+		found := false
+		localScopeObj := localScope.(map[string]interface{})
+		for _, remoteScope := range scopes {
+			if *(remoteScope.Name) == localScopeObj["name"].(string) {
+				found = true
+			}
+		}
+		if !found {
+			data = append(data[:i], data[i+1:]...)
+		}
+	}
+	return data
 
-func isStandardScope(scopeName string) bool {
-	standardScopes := []string{"address", "email", "openid", "offline_access", "phone", "profile"}
-	for _, v := range standardScopes {
-		if v == scopeName {
-			return true
-		}
-	}
-	return false
 }
