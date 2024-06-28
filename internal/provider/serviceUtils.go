@@ -1217,7 +1217,7 @@ func serviceToResource(dto IService, data *schema.ResourceData) diag.Diagnostics
 		_ = data.Set("supported_client_registration_types", mapFromDTO(dto.(*authlete.Service).GetSupportedClientRegistrationTypes()))
 		_ = data.Set("trust_anchors", mapTrustAnchorFromDTO(dto.(*authlete.Service).GetTrustAnchors()))
 	}
-	_ = setSupportedScopes(data, dto)
+	setSupportedScopes(data, dto)
 	_ = data.Set("supported_custom_client_metadata", mapSchemaFromString(dto.GetSupportedCustomClientMetadata()))
 	_ = data.Set("authentication_callback_endpoint", dto.GetAuthenticationCallbackEndpoint())
 	_ = data.Set("authentication_callback_api_key", dto.GetAuthenticationCallbackApiKey())
@@ -1344,23 +1344,19 @@ func serviceToResource(dto IService, data *schema.ResourceData) diag.Diagnostics
 	return nil
 }
 
-func setSupportedScopes(data *schema.ResourceData, dto IService) error {
+func setSupportedScopes(data *schema.ResourceData, dto IService) {
+	originalScopeArray := data.Get("supported_scopes").(*schema.Set).List()
+	var scopes []interface{}
 	switch dto := dto.(type) {
 	case *authlete.Service:
-		scopes := mapSupportedScopeFromDTO(dto.GetSupportedScopes())
-		if len(scopes) > 0 {
-			return data.Set("supported_scopes", mapSupportedScopeFromDTO(dto.GetSupportedScopes()))
-		}
+		scopes = mapSupportedScopeFromDTO(originalScopeArray, dto.GetSupportedScopes())
+
 	case *authlete3.Service:
-		scopes := mapSupportedScopeFromDTOV3(dto.GetSupportedScopes())
-		if len(scopes) > 0 {
-			return data.Set("supported_scopes", mapSupportedScopeFromDTOV3(dto.GetSupportedScopes()))
-		}
+		scopes = mapSupportedScopeFromDTOV3(originalScopeArray, dto.GetSupportedScopes())
+
 	case *idp.Service:
-		scopes := mapSupportedScopeFromDTOIDP(dto.GetSupportedScopes())
-		if len(scopes) > 0 {
-			return data.Set("supported_scopes", mapSupportedScopeFromDTOIDP(dto.GetSupportedScopes()))
-		}
+		scopes = mapSupportedScopeFromDTOIDP(originalScopeArray, dto.GetSupportedScopes())
+
 	}
-	return nil
+	data.Set("supported_scopes", scopes)
 }

@@ -12,6 +12,20 @@ resource "authlete_service" "prod" {
   supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   supported_response_types = ["CODE"]
   client_id_alias_enabled = true
+  supported_scopes {
+    name          = "openid"
+    default_entry = false
+
+    descriptions {
+      tag   = "en"
+      value = "A permission to request an OpenID Provider to issue an ID Token. See OpenID Connect Core 1.0, 3.1.2.1. for details."
+    }
+    descriptions {
+      tag   = "ja"
+      value = "OpenID プロバイダーに ID トークンの発行を要求するための権限です。詳細は OpenID Connect Core 1.0, 3.1.2.1. を参照してください。"
+    }
+  }
+  scope_required = true
 }
 
 output "api_key" {  

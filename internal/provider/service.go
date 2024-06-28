@@ -23,6 +23,24 @@ func service() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		CustomizeDiff: func(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
+			if diff.HasChange("supported_scopes") {
+				_, new := diff.GetChange("supported_scopes")
+				newScopes := new.(*schema.Set)
+
+				for _, n := range newScopes.List() {
+					newMap := n.(map[string]interface{})
+					//check if the
+					if v, ok := newMap["name"]; ok {
+						//TODO: change to a list
+						if v.(string) == "openid" {
+							// check if the change is in descriptions and ignore that.
+						}
+					}
+				}
+			}
+			return nil
+		},
 		Schema: map[string]*schema.Schema{
 			"service_name":                                     {Type: schema.TypeString, Required: true},
 			"issuer":                                           {Type: schema.TypeString, Required: true},
