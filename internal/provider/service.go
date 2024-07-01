@@ -27,27 +27,25 @@ func service() *schema.Resource {
 			if diff.HasChange("supported_scopes") {
 				old, new := diff.GetChange("supported_scopes")
 				newScopes := new.(*schema.Set)
-				replacingScopes := new.(*schema.Set)
+				scopes := new.(*schema.Set)
 
 				for _, n := range newScopes.List() {
 					var newMap = n.(map[string]interface{})
-					//check if the
 					if v, ok := newMap["name"]; ok {
-						//TODO: change to a list
 						if isStandardScope(v.(string)) {
 							for _, o := range old.(*schema.Set).List() {
 								var oldMap = o.(map[string]interface{})
 								if vOld, ok := oldMap["name"]; ok {
 									if vOld.(string) == v.(string) {
-										replacingScopes.Remove(newMap)
-										replacingScopes.Add(oldMap)
+										scopes.Remove(newMap)
+										scopes.Add(oldMap)
 									}
 								}
 							}
 						}
 					}
 				}
-				diff.SetNew("supported_scopes", replacingScopes)
+				diff.SetNew("supported_scopes", scopes)
 			}
 			return nil
 		},
