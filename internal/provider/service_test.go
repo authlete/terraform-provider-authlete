@@ -196,7 +196,7 @@ func TestAccResourceService_extended(t *testing.T) {
 				ResourceName:            "authlete_service.complete_described",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"api_secret", "jwk", "supported_scopes"},
+				ImportStateVerifyIgnore: []string{"api_secret", "jwk"},
 			},
 		},
 	})
@@ -366,7 +366,7 @@ func TestAccResourceService_update_extended(t *testing.T) {
 				ResourceName:            "authlete_service.complete_described",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"api_secret", "jwk", "supported_scopes"},
+				ImportStateVerifyIgnore: []string{"api_secret", "jwk"},
 			},
 		},
 	})
@@ -574,7 +574,7 @@ func TestAccResourceService_extended_23(t *testing.T) {
 				ResourceName:            "authlete_service.complete_described",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"api_secret", "jwk", "supported_scopes"},
+				ImportStateVerifyIgnore: []string{"api_secret", "jwk"},
 			},
 		},
 	})
