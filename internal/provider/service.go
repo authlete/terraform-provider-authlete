@@ -25,19 +25,29 @@ func service() *schema.Resource {
 		},
 		CustomizeDiff: func(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
 			if diff.HasChange("supported_scopes") {
-				_, new := diff.GetChange("supported_scopes")
+				old, new := diff.GetChange("supported_scopes")
 				newScopes := new.(*schema.Set)
+				replacingScopes := new.(*schema.Set)
 
 				for _, n := range newScopes.List() {
-					newMap := n.(map[string]interface{})
+					var newMap = n.(map[string]interface{})
 					//check if the
 					if v, ok := newMap["name"]; ok {
 						//TODO: change to a list
-						if v.(string) == "openid" {
-							// check if the change is in descriptions and ignore that.
+						if isStandardScope(v.(string)) {
+							for _, o := range old.(*schema.Set).List() {
+								var oldMap = o.(map[string]interface{})
+								if vOld, ok := oldMap["name"]; ok {
+									if vOld.(string) == v.(string) {
+										replacingScopes.Remove(newMap)
+										replacingScopes.Add(oldMap)
+									}
+								}
+							}
 						}
 					}
 				}
+				diff.SetNew("supported_scopes", replacingScopes)
 			}
 			return nil
 		},
@@ -403,4 +413,14 @@ func createStringColSchema() *schema.Schema {
 			Type: schema.TypeString,
 		},
 	}
+}
+
+func isStandardScope(scopeName string) bool {
+	standardScopes := []string{"address", "email", "openid", "offline_access", "phone", "profile"}
+	for _, v := range standardScopes {
+		if v == scopeName {
+			return true
+		}
+	}
+	return false
 }

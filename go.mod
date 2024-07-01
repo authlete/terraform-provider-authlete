@@ -2,7 +2,7 @@ module github.com/authlete/terraform-provider-authlete
 
 go 1.21
 
-toolchain go1.22.0
+toolchain go1.22.4
 
 require (
 	github.com/authlete/idp-api v0.0.0-20230821062417-0fad86b89106
