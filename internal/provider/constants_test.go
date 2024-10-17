@@ -32,6 +32,7 @@ output "api_key" {
   value = authlete_service.prod.id
 }
 output "api_secret" {  
+  sensitive = true
   value = authlete_service.prod.api_secret
 }
 `
@@ -185,6 +186,7 @@ output "api_key" {
   value = authlete_service.complete_described.id
 }
 output "api_secret" {  
+  sensitive = true
   value = authlete_service.complete_described.api_secret
 }
 `
@@ -402,6 +404,7 @@ output "api_key" {
   value = authlete_service.complete_described.id
 }
 output "api_secret" {  
+  sensitive = true
   value = authlete_service.complete_described.api_secret
 }
 `
@@ -572,6 +575,7 @@ output "api_key" {
   value = authlete_service.complete_described.id
 }
 output "api_secret" {  
+  sensitive = true
   value = authlete_service.complete_described.api_secret
 }
 `
@@ -749,6 +753,7 @@ output "api_key" {
   value = authlete_service.complete_described.id
 }
 output "api_secret" {  
+  sensitive = true
   value = authlete_service.complete_described.api_secret
 }
 `
@@ -776,6 +781,7 @@ output "api_key" {
   value = authlete_service.prod.id
 }
 output "api_secret" {  
+  sensitive = true
   value = authlete_service.prod.api_secret
 }
 `
