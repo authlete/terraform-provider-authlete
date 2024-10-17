@@ -53,7 +53,7 @@ func service() *schema.Resource {
 			"service_name":                                     {Type: schema.TypeString, Required: true},
 			"issuer":                                           {Type: schema.TypeString, Required: true},
 			"description":                                      {Type: schema.TypeString, Required: false, Optional: true},
-			"api_secret":                                       {Type: schema.TypeString, Computed: true},
+			"api_secret":                                       {Type: schema.TypeString, Computed: true, Sensitive: true},
 			"clients_per_developer":                            {Type: schema.TypeInt, Required: false, Optional: true},
 			"client_id_alias_enabled":                          {Type: schema.TypeBool, Required: false, Optional: true, Default: false},
 			"attributes":                                       createAttributeSchema(),
