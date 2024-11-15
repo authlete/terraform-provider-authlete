@@ -6,7 +6,7 @@ This is a Terraform provider for managing configuration of your [Authlete](https
 
 ## Requirements
 
-- [Authlete account](https://login.authlete.com/signup)
+- [Authlete account](https://console.authlete.com/register)
 - [Terraform](https://www.terraform.io/downloads.html) >= 0.13.x
 - [Go](https://golang.org/doc/install) >= 1.17
 
