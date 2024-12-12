@@ -60,8 +60,8 @@ github.com/authlete/idp-api v0.0.0-20230821062417-0fad86b89106 h1:rnxGAtcqcNnsSW
 github.com/authlete/idp-api v0.0.0-20230821062417-0fad86b89106/go.mod h1:8c01iEmsyiT3i01apKpZoqwOzZol+ubTBaQqOexRGFE=
 github.com/authlete/openapi-for-go v1.2.3 h1:W3fj3RNk8i4RxE8cnOQ7OQ5ai3QLBX5g7E7SkAjE8SI=
 github.com/authlete/openapi-for-go v1.2.3/go.mod h1:aef7AzA/qvP2FgWZ9uevzwpjqxzRHU/0nRskl7iF3e0=
-github.com/authlete/openapi-for-go/v3 v3.0.0-alpha2 h1:Bzf0cVfrLuhXWjXplvMiSatjOoGkRszrkjrmnTqyk+Q=
-github.com/authlete/openapi-for-go/v3 v3.0.0-alpha2/go.mod h1:CS29tEKLP18ROVmBw2qYnz9Bb8aFM3Suu1o3HMdA3A8=
+github.com/authlete/openapi-for-go/v3 v3.0.0-alpha5 h1:gBUuECrCAj96tlq0fyPMAC06vGiS+e0C2yIxCSm5ueU=
+github.com/authlete/openapi-for-go/v3 v3.0.0-alpha5/go.mod h1:0tanW7EWw90B4yMvNwfZybnpHlzGOHxp+NZ45/oTfgo=
 github.com/bgentry/speakeasy v0.1.0 h1:ByYyxL9InA1OWqxJqqp2A5pYHUrCiAL6K3J+LKSsQkY=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bmatcuk/doublestar/v4 v4.6.1 h1:FH9SifrbvJhnlQpztAx++wlkk70QBf0iBWDwNy7PA4I=
@@ -309,7 +309,6 @@ github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.2/go.mod h1:R6va5+xMeoiuVRoj+gSkQ7d3FALtqAAGI1FQKckRals=
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
-github.com/stretchr/testify v1.8.2/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
