@@ -99,7 +99,7 @@ jobs:
         go test -v -cover ./internal/provider/
 
 
-    - name: TF acceptance tests - nextdev
+    - name: TF acceptance tests - authlete3
       timeout-minutes: 10
       env:
         TF_ACC: "1"
