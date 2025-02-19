@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"testing"
 
-	authlete "github.com/authlete/openapi-for-go"
 	authlete3 "github.com/authlete/openapi-for-go/v3"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -273,9 +272,7 @@ func TestAccPEM_rsa(t *testing.T) {
 }
 
 func findJWKStructure(s *terraform.State, kid string) (JWKStruct, error) {
-	var response IService
-	var err error
-
+	
 	client := testAccProvider.Meta().(*apiClient)
 
 	for _, rs := range s.RootModule().Resources {
@@ -283,23 +280,16 @@ func findJWKStructure(s *terraform.State, kid string) (JWKStruct, error) {
 			continue
 		}
 
-		if v3 {
-			auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, client.serviceOwnerSecret)
+		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, client.serviceOwnerSecret)
 
-			response, _, err = client.authleteClient.v3.ServiceManagementApi.ServiceGetApi(auth, rs.Primary.ID).Execute()
-		} else {
-			auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-				UserName: client.serviceOwnerKey,
-				Password: client.serviceOwnerSecret,
-			})
-			response, _, err = client.authleteClient.v2.ServiceManagementApi.ServiceGetApi(auth, rs.Primary.ID).Execute()
-		}
+		response, _, err := client.authleteClient.v3.ServiceManagementAPI.ServiceGetApi(auth, rs.Primary.ID).Execute()
+
 		if err != nil {
 			return JWKStruct{}, err
 		}
 
 		var keysMap map[string][]JWKStruct
-		_ = json.Unmarshal([]byte(response.GetJwks()), &keysMap)
+		_ = json.Unmarshal([]byte(response.Service.GetJwks()), &keysMap)
 
 		var keys = keysMap["keys"]
 

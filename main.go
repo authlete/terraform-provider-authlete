@@ -5,7 +5,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/authlete/terraform-provider-authlete/internal/provider"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/provider"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 )
 

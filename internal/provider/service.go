@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	idp "github.com/authlete/idp-api"
-	authlete "github.com/authlete/openapi-for-go"
 	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -53,8 +52,6 @@ func service() *schema.Resource {
 			"service_name":                                     {Type: schema.TypeString, Required: true},
 			"issuer":                                           {Type: schema.TypeString, Required: true},
 			"description":                                      {Type: schema.TypeString, Required: false, Optional: true},
-			"api_secret":                                       {Type: schema.TypeString, Computed: true, Sensitive: true},
-			"clients_per_developer":                            {Type: schema.TypeInt, Required: false, Optional: true},
 			"client_id_alias_enabled":                          {Type: schema.TypeBool, Required: false, Optional: true, Default: false},
 			"attributes":                                       createAttributeSchema(),
 			"supported_custom_client_metadata":                 createStringColSchema(),
@@ -62,9 +59,6 @@ func service() *schema.Resource {
 			"authentication_callback_api_key":                  {Type: schema.TypeString, Required: false, Optional: true},
 			"authentication_callback_api_secret":               {Type: schema.TypeString, Required: false, Optional: true},
 			"supported_acrs":                                   createStringColSchema(),
-			"developer_authentication_callback_endpoint":       {Type: schema.TypeString, Required: false, Optional: true},
-			"developer_authentication_callback_api_key":        {Type: schema.TypeString, Required: false, Optional: true},
-			"developer_authentication_callback_api_secret":     {Type: schema.TypeString, Required: false, Optional: true},
 			"supported_grant_types":                            createGrantTypeSchema(false),
 			"supported_response_types":                         createResponseTypeSchema(false),
 			"supported_authorization_detail_types":             createStringColSchema(), // supportedAuthorizationDetailsTypes field
@@ -199,57 +193,30 @@ func serviceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}
 
 	tflog.Trace(ctx, "Creating a new service")
 
-	if v3 {
-		apiServerId, err := strconv.Atoi(client.apiServerId)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		organizationId, err := strconv.Atoi(client.organizationId)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		newServiceDto, _ := dataToService(d, diags, idp.NewService())
-		nService, _ := (*newServiceDto).(*idp.Service)
-		createSvcReq := idp.NewCreateServiceRequest(int64(apiServerId), int64(organizationId))
-		createSvcReq.SetService(*nService)
-		orgToken := convertToBearerToken(client.serviceOwnerSecret)
-		r, _, err := client.authleteClient.idp.ServiceApiApi.CreateService(ctx).CreateServiceRequest(*createSvcReq).Authorization(orgToken).Execute()
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		tflog.Trace(ctx, "Service created")
-
-		apiKey := r.ApiKey
-		apiSecret := &client.serviceOwnerSecret
-
-		diags = serviceToResource(r, d)
-
-		d.SetId(strconv.FormatInt(*apiKey, 10))
-		_ = d.Set("api_secret", apiSecret)
-
-		return diags
+	apiServerId, err := strconv.Atoi(client.apiServerId)
+	if err != nil {
+		return diag.FromErr(err)
 	}
-
-	newServiceDto, _ := dataToService(d, diags, authlete.NewService())
-	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-		UserName: client.serviceOwnerKey,
-		Password: client.serviceOwnerSecret,
-	})
-	n, _ := (*newServiceDto).(*authlete.Service)
-	r, _, err := client.authleteClient.v2.ServiceManagementApi.ServiceCreateApi(auth).Service(*n).Execute()
-
+	organizationId, err := strconv.Atoi(client.organizationId)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	newServiceDto, _ := dataToService(d, diags, idp.NewService())
+	nService := (*newServiceDto)
+	createSvcReq := idp.NewCreateServiceRequest(int64(apiServerId), int64(organizationId))
+	createSvcReq.SetService(nService)
+	orgToken := convertToBearerToken(client.serviceOwnerSecret)
+	r, _, err := client.authleteClient.idp.ServiceApiAPI.CreateService(ctx).CreateServiceRequest(*createSvcReq).Authorization(orgToken).Execute()
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	tflog.Trace(ctx, "Service created")
 
 	apiKey := r.ApiKey
-	apiSecret := r.ApiSecret
-
-	diags = serviceToResource(r, d)
+	
+	diags = serviceIdpToResource(r, d)
 
 	d.SetId(strconv.FormatInt(*apiKey, 10))
-	_ = d.Set("api_secret", apiSecret)
 
 	return diags
 
@@ -264,30 +231,15 @@ func serviceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) 
 func serviceReadInternal(_ context.Context, d *schema.ResourceData, meta interface{}, diags diag.Diagnostics) diag.Diagnostics {
 	client := meta.(*apiClient)
 
-	if v3 {
-		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, client.serviceOwnerSecret)
-		dto, _, err := client.authleteClient.v3.ServiceManagementApi.ServiceGetApi(auth, d.Id()).Execute()
-
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		diags = serviceToResource(dto, d)
-		return diags
-	}
-
-	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-		UserName: client.serviceOwnerKey,
-		Password: client.serviceOwnerSecret,
-	})
-	dto, _, err := client.authleteClient.v2.ServiceManagementApi.ServiceGetApi(auth, d.Id()).Execute()
+	auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, client.serviceOwnerSecret)
+	dto, _, err := client.authleteClient.v3.ServiceManagementAPI.ServiceGetApi(auth, d.Id()).Execute()
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
-	diags = serviceToResource(dto, d)
-
+	diags = serviceToResource(*dto.Service, d)
 	return diags
+
 }
 
 func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -296,45 +248,24 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 
 	client := meta.(*apiClient)
 
-	if v3 {
-		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, client.serviceOwnerSecret)
+	auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, client.serviceOwnerSecret)
 
-		srv, _, err := client.authleteClient.v3.ServiceManagementApi.ServiceGetApi(auth, d.Id()).Execute()
-		if err != nil {
-			return diag.FromErr(err)
-		}
-
-		setDataToService(d, diags, srv)
-
-		srv, _, err = client.authleteClient.v3.ServiceManagementApi.ServiceUpdateApi(auth, d.Id()).Service(*srv).Execute()
-
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		diags = serviceToResource(srv, d)
-
-		return diags
-	}
-	auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-		UserName: client.serviceOwnerKey,
-		Password: client.serviceOwnerSecret,
-	})
-
-	srv, _, err := client.authleteClient.v2.ServiceManagementApi.ServiceGetApi(auth, d.Id()).Execute()
+	srv, _, err := client.authleteClient.v3.ServiceManagementAPI.ServiceGetApi(auth, d.Id()).Execute()
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	setDataToService(d, diags, srv)
+	setDataToService(d, diags, *srv.Service)
 
-	srv, _, err = client.authleteClient.v2.ServiceManagementApi.ServiceUpdateApi(auth, d.Id()).Service(*srv).Execute()
+	aSrv, _, err := client.authleteClient.v3.ServiceManagementAPI.ServiceUpdateApi(auth, d.Id()).Service(*srv.Service).Execute()
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	diags = serviceToResource(srv, d)
+	diags = serviceToResource(*aSrv, d)
 
 	return diags
+
 }
 
 func serviceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -344,34 +275,25 @@ func serviceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}
 	client := meta.(*apiClient)
 	var err error = nil
 
-	if v3 {
-		var apiServerId int
-		var organizationId int
-		var serviceId int
-		orgToken := convertToBearerToken(client.serviceOwnerSecret)
-		apiServerId, err = strconv.Atoi(client.apiServerId)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		organizationId, err = strconv.Atoi(client.organizationId)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		serviceId, err = strconv.Atoi(d.Id())
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		deleteSvcReq := idp.NewDeleteServiceRequest(int64(apiServerId), int64(organizationId), int64(serviceId))
-
-		_, err = client.authleteClient.idp.ServiceApiApi.DeleteService(ctx).Authorization(orgToken).DeleteServiceRequest(*deleteSvcReq).Execute()
-	} else {
-		auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
-			UserName: client.serviceOwnerKey,
-			Password: client.serviceOwnerSecret,
-		})
-
-		_, err = client.authleteClient.v2.ServiceManagementApi.ServiceDeleteApi(auth, d.Id()).Execute()
+	var apiServerId int
+	var organizationId int
+	var serviceId int
+	orgToken := convertToBearerToken(client.serviceOwnerSecret)
+	apiServerId, err = strconv.Atoi(client.apiServerId)
+	if err != nil {
+		return diag.FromErr(err)
 	}
+	organizationId, err = strconv.Atoi(client.organizationId)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	serviceId, err = strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	deleteSvcReq := idp.NewDeleteServiceRequest(int64(apiServerId), int64(organizationId), int64(serviceId))
+
+	_, err = client.authleteClient.idp.ServiceApiAPI.DeleteService(ctx).Authorization(orgToken).DeleteServiceRequest(*deleteSvcReq).Execute()
 
 	if err != nil {
 		return diag.FromErr(err)

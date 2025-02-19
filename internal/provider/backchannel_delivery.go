@@ -1,7 +1,7 @@
 package provider
 
 import (
-	authlete "github.com/authlete/openapi-for-go"
+	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -13,9 +13,9 @@ func createBackchannelDeliverySchema() *schema.Schema {
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(authlete.DELIVERYMODE_POLL),
-				string(authlete.DELIVERYMODE_PING),
-				string(authlete.DELIVERYMODE_PUSH),
+				string(authlete3.DELIVERYMODE_POLL),
+				string(authlete3.DELIVERYMODE_PING),
+				string(authlete3.DELIVERYMODE_PUSH),
 			}, false),
 		},
 	}
@@ -28,9 +28,9 @@ func createDeliveryModeSchema() *schema.Schema {
 		Required: false,
 		Computed: true,
 		ValidateFunc: validation.StringInSlice([]string{
-			string(authlete.DELIVERYMODE_POLL),
-			string(authlete.DELIVERYMODE_PING),
-			string(authlete.DELIVERYMODE_PUSH),
+			string(authlete3.DELIVERYMODE_POLL),
+			string(authlete3.DELIVERYMODE_PING),
+			string(authlete3.DELIVERYMODE_PUSH),
 		}, false),
 	}
 }

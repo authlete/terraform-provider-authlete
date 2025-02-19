@@ -1,7 +1,7 @@
 package provider
 
 import (
-	authlete "github.com/authlete/openapi-for-go"
+	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -12,9 +12,8 @@ func createVerifiedClaimsType() *schema.Schema {
 		Optional: true,
 		Required: false,
 		ValidateFunc: validation.StringInSlice([]string{
-			string(authlete.VERIFIEDCLAIMSVALIDATIONSCHEMA_STANDARD),
-			string(authlete.VERIFIEDCLAIMSVALIDATIONSCHEMA_STANDARDID_DOCUMENT),
-			string(authlete.VERIFIEDCLAIMSVALIDATIONSCHEMA_NULL),
+			string(authlete3.VERIFIEDCLAIMSVALIDATIONSCHEMA_STANDARD),
+			string(authlete3.VERIFIEDCLAIMSVALIDATIONSCHEMA_STANDARDID_DOCUMENT),
 		}, false),
 	}
 }

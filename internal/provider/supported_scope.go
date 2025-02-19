@@ -2,7 +2,6 @@ package provider
 
 import (
 	idp "github.com/authlete/idp-api"
-	authlete "github.com/authlete/openapi-for-go"
 	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -35,22 +34,6 @@ func createSupportedScopeSchema() *schema.Schema {
 	}
 }
 
-func mapSupportedScopeToDTO(vals *schema.Set) []authlete.Scope {
-	mapped := make([]authlete.Scope, vals.Len())
-
-	for i, v := range vals.List() {
-		var entry = v.(map[string]interface{})
-		newScope := authlete.NewScope()
-		newScope.SetName(entry["name"].(string))
-		newScope.SetDescription(entry["description"].(string))
-		newScope.SetDefaultEntry(entry["default_entry"].(bool))
-		newScope.SetDescriptions(mapTaggedValue(entry["descriptions"].(*schema.Set).List()))
-		newScope.SetAttributes(mapInterfaceListToStructList[authlete.Pair](entry["attributes"].(*schema.Set).List()))
-		mapped[i] = *newScope
-	}
-	return mapped
-}
-
 func mapSupportedScopeToDTOV3(vals *schema.Set) []authlete3.Scope {
 	mapped := make([]authlete3.Scope, vals.Len())
 
@@ -81,25 +64,6 @@ func mapSupportedScopeToDTOIDP(vals *schema.Set) []idp.Scope {
 		mapped[i] = *newScope
 	}
 	return mapped
-}
-
-func mapSupportedScopeFromDTO(scopes []authlete.Scope) []interface{} {
-
-	if scopes != nil {
-		entries := make([]interface{}, len(scopes))
-
-		for i, v := range scopes {
-			newEntry := make(map[string]interface{})
-			newEntry["name"] = v.Name
-			newEntry["default_entry"] = v.DefaultEntry
-			newEntry["description"] = v.Description
-			newEntry["descriptions"] = mapTaggedValuesFromDTO(v.Descriptions)
-			newEntry["attributes"] = mapAttributesFromDTO(v.Attributes)
-			entries[i] = newEntry
-		}
-		return entries
-	}
-	return make([]interface{}, 0)
 }
 
 func mapSupportedScopeFromDTOV3(scopes []authlete3.Scope) []interface{} {

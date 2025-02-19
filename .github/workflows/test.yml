@@ -87,18 +87,6 @@ jobs:
       run: |
         go mod download
 
-    - name: TF acceptance tests - shared cloud
-      timeout-minutes: 10
-      env:
-        TF_ACC: "1"
-        AUTHLETE_API_SERVER: ${{ secrets.AUTHLETE_API_SERVER }}
-        AUTHLETE_SO_KEY: ${{ secrets.AUTHLETE_SO_KEY }}
-        AUTHLETE_SO_SECRET: ${{ secrets.AUTHLETE_SO_SECRET }}
-        TC_ACC_AUTHLETE_VERSION: "2.3"
-      run: |
-        go test -v -cover ./internal/provider/
-
-
     - name: TF acceptance tests - authlete3
       timeout-minutes: 10
       env:

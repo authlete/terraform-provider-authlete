@@ -1,7 +1,7 @@
 package provider
 
 import (
-	authlete "github.com/authlete/openapi-for-go"
+	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -13,8 +13,8 @@ func createClientTypeSchema() *schema.Schema {
 		Required: false,
 		Computed: true,
 		ValidateFunc: validation.StringInSlice([]string{
-			string(authlete.CLIENTTYPE_PUBLIC),
-			string(authlete.CLIENTTYPE_CONFIDENTIAL),
+			string(authlete3.CLIENTTYPE_PUBLIC),
+			string(authlete3.CLIENTTYPE_CONFIDENTIAL),
 		}, false),
 	}
 }
@@ -39,8 +39,8 @@ func createApplicationTypeSchema() *schema.Schema {
 		Required: false,
 		Computed: true,
 		ValidateFunc: validation.StringInSlice([]string{
-			string(authlete.APPLICATIONTYPE_WEB),
-			string(authlete.APPLICATIONTYPE_NATIVE),
+			string(authlete3.APPLICATIONTYPE_WEB),
+			string(authlete3.APPLICATIONTYPE_NATIVE),
 		}, false),
 	}
 }

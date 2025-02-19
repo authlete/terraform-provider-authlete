@@ -3,18 +3,16 @@ package provider
 import (
 	"context"
 	"crypto/tls"
+	authlete "github.com/authlete/openapi-for-go"
 	"net/http"
 	"os"
 	"reflect"
 
 	idp "github.com/authlete/idp-api"
-	authlete "github.com/authlete/openapi-for-go"
 	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
-
-var v3 bool = false
 
 func init() {
 	// Set descriptions to support markdown syntax, this will be used in document generation
@@ -128,31 +126,19 @@ func configure(version string, p *schema.Provider) func(context.Context, *schema
 		serviceOwnerSecret := data.Get("service_owner_secret").(string)
 		apiKey := data.Get("api_key").(string)
 		apiSecret := data.Get("api_secret").(string)
-		authVersion := data.Get("authlete_version").(string)
 		apiServerId := data.Get("api_server_id").(string)
 		organizationId := data.Get("organization_id").(string)
 
-		if authVersion == "3.0" {
-			v3 = true
-		}
+		cnf := configureClient(authlete3.APIClient{}, p, apiServer, version)
+		cnfIdp := configureClient(idp.APIClient{}, p, idpServer, version)
 
-		if v3 {
-			cnf := configureClient(authlete3.APIClient{}, p, apiServer, version)
-			cnfIdp := configureClient(idp.APIClient{}, p, idpServer, version)
-
-			apiClientOpenAPI := ClientWrapper{v3: authlete3.NewAPIClient(cnf.(*authlete3.Configuration)),
-				idp: idp.NewAPIClient(cnfIdp.(*idp.Configuration))}
-			return &apiClient{apiServer: apiServer, serviceOwnerKey: serviceOwnerKey,
-				serviceOwnerSecret: serviceOwnerSecret, apiKey: apiKey, apiSecret: apiSecret,
-				apiServerId: apiServerId, organizationId: organizationId,
-				idpServer: idpServer, authleteClient: &apiClientOpenAPI}, nil
-		}
-
-		cnf := configureClient(authlete.APIClient{}, p, apiServer, version)
-		apiClientOpenAPI := ClientWrapper{v2: authlete.NewAPIClient(cnf.(*authlete.Configuration))}
+		apiClientOpenAPI := ClientWrapper{v3: authlete3.NewAPIClient(cnf.(*authlete3.Configuration)),
+			idp: idp.NewAPIClient(cnfIdp.(*idp.Configuration))}
 		return &apiClient{apiServer: apiServer, serviceOwnerKey: serviceOwnerKey,
 			serviceOwnerSecret: serviceOwnerSecret, apiKey: apiKey, apiSecret: apiSecret,
-			authleteClient: &apiClientOpenAPI}, nil
+			apiServerId: apiServerId, organizationId: organizationId,
+			idpServer: idpServer, authleteClient: &apiClientOpenAPI}, nil
+
 	}
 }
 

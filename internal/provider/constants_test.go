@@ -31,10 +31,7 @@ resource "authlete_service" "prod" {
 output "api_key" {  
   value = authlete_service.prod.id
 }
-output "api_secret" {  
-  sensitive = true
-  value = authlete_service.prod.api_secret
-}
+
 `
 
 const testAccResourceServiceEveryAttribute = `
@@ -47,8 +44,7 @@ resource "authlete_service" "complete_described" {
   service_name = "attributes coverage test"
   issuer = "https://test.com"
   description = "Attributes support test"
-  clients_per_developer = 1
-  client_id_alias_enabled = true
+    client_id_alias_enabled = true
   attributes {
   	 key = "require_2_fa"
      value = "true"
@@ -62,9 +58,6 @@ resource "authlete_service" "complete_described" {
   authentication_callback_api_key = "lkjl3k44235kjlk5j43kjdkfslkdf"
   authentication_callback_api_secret = "lknasdljjk42j435kjh34jkkjr"
   supported_acrs = ["loa2", "loa3"]
-  developer_authentication_callback_endpoint = "https://api.mystore.com/partner_auth"
-  developer_authentication_callback_api_key = "lkjl3k44235kjlk5j43kjdkfslkdf"
-  developer_authentication_callback_api_secret = "lknasdljjk42j435kjh34jkkjr"
   supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   supported_response_types = ["CODE"]
   supported_authorization_detail_types = ["payment_initiation",]
@@ -185,10 +178,7 @@ resource "authlete_service" "complete_described" {
 output "api_key" {  
   value = authlete_service.complete_described.id
 }
-output "api_secret" {  
-  sensitive = true
-  value = authlete_service.complete_described.api_secret
-}
+
 `
 
 const testAccResourceServiceEveryAttribute23 = `
@@ -201,7 +191,6 @@ resource "authlete_service" "complete_described" {
 	service_name = "attributes coverage test"
 	issuer = "https://test.com"
 	description = "Attributes support test"
-	clients_per_developer = 1
 	client_id_alias_enabled = true
 	attributes {
 		key = "require_2_fa"
@@ -216,9 +205,6 @@ resource "authlete_service" "complete_described" {
 	authentication_callback_api_key = "lkjl3k44235kjlk5j43kjdkfslkdf"
 	authentication_callback_api_secret = "lknasdljjk42j435kjh34jkkjr"
 	supported_acrs = ["loa2", "loa3"]
-	developer_authentication_callback_endpoint = "https://api.mystore.com/partner_auth"
-	developer_authentication_callback_api_key = "lkjl3k44235kjlk5j43kjdkfslkdf"
-	developer_authentication_callback_api_secret = "lknasdljjk42j435kjh34jkkjr"
 	supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
 	supported_response_types = ["CODE"]
 	supported_authorization_detail_types = ["payment_initiation",]
@@ -403,10 +389,7 @@ resource "authlete_service" "complete_described" {
 output "api_key" {  
   value = authlete_service.complete_described.id
 }
-output "api_secret" {  
-  sensitive = true
-  value = authlete_service.complete_described.api_secret
-}
+
 `
 
 const testAccResourceServiceEveryAttribute30 = `
@@ -419,7 +402,6 @@ resource "authlete_service" "complete_described" {
   service_name = "attributes coverage test"
   issuer = "https://test.com"
   description = "Attributes support test"
-  clients_per_developer = 1
   client_id_alias_enabled = true
   attributes {
   	 key = "require_2_fa"
@@ -574,10 +556,7 @@ resource "authlete_service" "complete_described" {
 output "api_key" {  
   value = authlete_service.complete_described.id
 }
-output "api_secret" {  
-  sensitive = true
-  value = authlete_service.complete_described.api_secret
-}
+
 `
 
 const testAccResourceServiceUpdateEveryAttribute = `
@@ -590,7 +569,6 @@ resource "authlete_service" "complete_described" {
   service_name = "attributes coverage test2"
   issuer = "https://test2.com"
   description = "Attributes support test2"
-  clients_per_developer = 2
   client_id_alias_enabled = false
   attributes {
   	 key = "require_2_fa"
@@ -605,9 +583,6 @@ resource "authlete_service" "complete_described" {
   authentication_callback_api_key = "lkjl3k44235kjlk5j43kjdkfslkdfa"
   authentication_callback_api_secret = "lknasdljjk42j435kjh34jkkjr"
   supported_acrs = ["loa2", "loa4"]
-  developer_authentication_callback_endpoint = "https://api.mystore.com/partner_auth"
-  developer_authentication_callback_api_key = "lkjl3k44235kjlk5j43kjdkfslkdf"
-  developer_authentication_callback_api_secret = "lknasdljjk42j435kjh34jkkjr"
   supported_grant_types = ["AUTHORIZATION_CODE", "REFRESH_TOKEN", "IMPLICIT"]
   supported_response_types = ["CODE", "CODE_ID_TOKEN"]
   supported_authorization_detail_types = ["payment_initiation","test_detail"]
@@ -752,10 +727,7 @@ resource "authlete_service" "complete_described" {
 output "api_key" {  
   value = authlete_service.complete_described.id
 }
-output "api_secret" {  
-  sensitive = true
-  value = authlete_service.complete_described.api_secret
-}
+
 `
 
 const testAccResourceServiceUnordered = `
@@ -780,10 +752,7 @@ resource "authlete_service" "prod" {
 output "api_key" {  
   value = authlete_service.prod.id
 }
-output "api_secret" {  
-  sensitive = true
-  value = authlete_service.prod.api_secret
-}
+
 `
 
 // Scenarios for crypto tests
@@ -1260,7 +1229,6 @@ resource "authlete_service" "prod" {
 
 resource "authlete_client" "client1" {
 	service_api_key = authlete_service.prod.id
-	service_api_secret = authlete_service.prod.api_secret
 	developer = "test"
 	client_id_alias = "terraform_client"
     client_id_alias_enabled = false
@@ -1302,7 +1270,6 @@ resource "authlete_service" "prod" {
 
 resource "authlete_client" "client1" {
 	service_api_key = authlete_service.prod.id
-	service_api_secret = authlete_service.prod.api_secret
 	developer = "test"
 	client_id_alias = "terraform_client"
     client_id_alias_enabled = false
@@ -1349,7 +1316,6 @@ resource "authlete_service" "prod" {
 
 resource "authlete_client" "client1" {
 	service_api_key = authlete_service.prod.id
-	service_api_secret = authlete_service.prod.api_secret
 	developer = "test"
 	client_id_alias = "terraform_client"
     client_id_alias_enabled = false
@@ -2075,7 +2041,6 @@ resource "authlete_service" "prod" {
 
 resource "authlete_client" "client1" {
 	service_api_key = authlete_service.prod.id
-	service_api_secret = authlete_service.prod.api_secret
 	developer = "test"
 	client_id_alias = "terraform_client"
     client_id_alias_enabled = false

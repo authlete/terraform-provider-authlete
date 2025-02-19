@@ -1,7 +1,7 @@
 package provider
 
 import (
-	authlete "github.com/authlete/openapi-for-go"
+	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -14,9 +14,9 @@ func createSupportedClaimTypesSchema() *schema.Schema {
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(authlete.CLAIMTYPE_NORMAL),
-				string(authlete.CLAIMTYPE_AGGREGATED),
-				string(authlete.CLAIMTYPE_DISTRIBUTED),
+				string(authlete3.CLAIMTYPE_NORMAL),
+				string(authlete3.CLAIMTYPE_AGGREGATED),
+				string(authlete3.CLAIMTYPE_DISTRIBUTED),
 			}, false),
 		},
 	}

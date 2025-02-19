@@ -1,7 +1,7 @@
 package provider
 
 import (
-	authlete "github.com/authlete/openapi-for-go"
+	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -13,8 +13,8 @@ func createClientRegistrationSchema() *schema.Schema {
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(authlete.CLIENTREGISTRATIONTYPE_AUTOMATIC),
-				string(authlete.CLIENTREGISTRATIONTYPE_EXPLICIT),
+				string(authlete3.CLIENTREGISTRATIONTYPE_AUTOMATIC),
+				string(authlete3.CLIENTREGISTRATIONTYPE_EXPLICIT),
 			}, false),
 		},
 	}

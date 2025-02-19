@@ -1,7 +1,7 @@
 package provider
 
 import (
-	authlete "github.com/authlete/openapi-for-go"
+	authlete3 "github.com/authlete/openapi-for-go/v3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -14,10 +14,10 @@ func createSupportedDisplaySchema() *schema.Schema {
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(authlete.DISPLAY_PAGE),
-				string(authlete.DISPLAY_POPUP),
-				string(authlete.DISPLAY_TOUCH),
-				string(authlete.DISPLAY_WAP),
+				string(authlete3.DISPLAY_PAGE),
+				string(authlete3.DISPLAY_POPUP),
+				string(authlete3.DISPLAY_TOUCH),
+				string(authlete3.DISPLAY_WAP),
 			}, false),
 		},
 	}
