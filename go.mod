@@ -10,7 +10,7 @@ require (
 	github.com/authlete/openapi-for-go/v3 v3.0.0
 	github.com/hashicorp/terraform-plugin-docs v0.20.1
 	github.com/hashicorp/terraform-plugin-log v0.9.0
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.36.0
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.36.1
 	github.com/lestrrat-go/jwx v1.2.30
 )
 
@@ -96,5 +96,3 @@ require (
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-//replace github.com/authlete/idp-api v0.2.0 => github.com/authlete/idp-api v0.3.0
