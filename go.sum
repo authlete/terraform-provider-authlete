@@ -60,8 +60,8 @@ github.com/authlete/idp-api v0.0.0-20230821062417-0fad86b89106 h1:rnxGAtcqcNnsSW
 github.com/authlete/idp-api v0.0.0-20230821062417-0fad86b89106/go.mod h1:8c01iEmsyiT3i01apKpZoqwOzZol+ubTBaQqOexRGFE=
 github.com/authlete/openapi-for-go v1.2.3 h1:W3fj3RNk8i4RxE8cnOQ7OQ5ai3QLBX5g7E7SkAjE8SI=
 github.com/authlete/openapi-for-go v1.2.3/go.mod h1:aef7AzA/qvP2FgWZ9uevzwpjqxzRHU/0nRskl7iF3e0=
-github.com/authlete/openapi-for-go/v3 v3.0.0-alpha2 h1:Bzf0cVfrLuhXWjXplvMiSatjOoGkRszrkjrmnTqyk+Q=
-github.com/authlete/openapi-for-go/v3 v3.0.0-alpha2/go.mod h1:CS29tEKLP18ROVmBw2qYnz9Bb8aFM3Suu1o3HMdA3A8=
+github.com/authlete/openapi-for-go/v3 v3.0.1 h1:gbLLPBUS54BZFWN3qkIx/t1gsiM5XTRNAX4X+1dKU5Q=
+github.com/authlete/openapi-for-go/v3 v3.0.1/go.mod h1:5bMIO3yjMPyTzuBSnGbdKpuxZg+axOlvAZJknNVcPFA=
 github.com/bgentry/speakeasy v0.1.0 h1:ByYyxL9InA1OWqxJqqp2A5pYHUrCiAL6K3J+LKSsQkY=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bmatcuk/doublestar/v4 v4.6.1 h1:FH9SifrbvJhnlQpztAx++wlkk70QBf0iBWDwNy7PA4I=
@@ -298,16 +298,12 @@ github.com/spf13/cast v1.3.1/go.mod h1:Qx5cxh0v+4UWYiBimWS+eyWzqEqokIECu5etghLkU
 github.com/spf13/cast v1.5.0 h1:rj3WzYc11XZaIZMPKmwP96zkFEnnAmV8s6XbB2aY32w=
 github.com/spf13/cast v1.5.0/go.mod h1:SpXXQ5YoyJw6s3/6cMTQuxvgRl3PCJiyaX9p6b155UU=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
-github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
-github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.2/go.mod h1:R6va5+xMeoiuVRoj+gSkQ7d3FALtqAAGI1FQKckRals=
-github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
-github.com/stretchr/testify v1.8.2/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/vmihailenco/msgpack v3.3.3+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
