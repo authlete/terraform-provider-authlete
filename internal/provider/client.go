@@ -794,12 +794,23 @@ func setDataToClient(d *schema.ResourceData, diags diag.Diagnostics, client ICli
 		}
 	}
 	if d.HasChanges("jwks", "jwk") {
-		if NotZeroString(d, "jwks") {
+		isJwksStringProvided := NotZeroString(d, "jwks")
+		configuredJwkBlocks := d.Get("jwk").(*schema.Set).List()
+
+		if isJwksStringProvided {
+			// jwks takes importance over jwk
 			client.SetJwks(d.Get("jwks").(string))
-		} else if NotZeroArray(d, "jwk") {
+		} else if len(configuredJwkBlocks) > 0 {
 			var jwk string
-			jwk, _ = updateJWKS(d.Get("jwk").(*schema.Set).List(), client.GetJwks(), diags)
+			jwk, _ = updateJWKS(configuredJwkBlocks, client.GetJwks(), diags)
 			client.SetJwks(jwk)
+		} else {
+			// neither jwks string or jwk blocks provided. Remove jwk.
+			if v3 {
+				client.(*authlete3.Client).Jwks = nil
+			} else {
+				client.(*authlete.Client).Jwks = nil
+			}
 		}
 	}
 	if d.HasChange("derived_sector_identifier") {
