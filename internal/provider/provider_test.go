@@ -86,13 +86,17 @@ func testCreateTestService(t *testing.T, service2 IService) {
 	}
 	service2.SetApiKey(newService.GetApiKey())
 	if v3 {
-		service2.SetApiSecret(os.Getenv("AUTHLETE_SO_SECRET"))
+		service2.(*idp.Service).SetApiSecret(os.Getenv("AUTHLETE_SO_SECRET"))
 	} else {
-		service2.SetApiSecret(newService.GetApiSecret())
+		service2.(*authlete.Service).SetApiSecret(newService.(*authlete.Service).GetApiSecret())
 	}
 
 	_ = os.Setenv("AUTHLETE_API_KEY", strconv.FormatInt(service2.GetApiKey(), 10))
-	_ = os.Setenv("AUTHLETE_API_SECRET", service2.GetApiSecret())
+	if v3 {
+		_ = os.Setenv("AUTHLETE_API_SECRET", service2.(*idp.Service).GetApiSecret())
+	} else {
+		_ = os.Setenv("AUTHLETE_API_SECRET", service2.(*authlete.Service).GetApiSecret())
+	}
 
 	testAccProvider = New("dev")()
 
@@ -188,7 +192,7 @@ func pullServiceFromServer(s *terraform.State) (IService, error) {
 
 		if v3 {
 			auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, client.serviceOwnerSecret)
-			response, _, err = client.authleteClient.v3.ServiceManagementApi.ServiceGetApi(auth, rs.Primary.ID).Execute()
+			response, _, err = client.authleteClient.v3.ServiceManagementAPI.ServiceGetApi(auth, rs.Primary.ID).Execute()
 		} else {
 			auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
 				UserName: client.serviceOwnerKey,

@@ -286,7 +286,7 @@ func findJWKStructure(s *terraform.State, kid string) (JWKStruct, error) {
 		if v3 {
 			auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, client.serviceOwnerSecret)
 
-			response, _, err = client.authleteClient.v3.ServiceManagementApi.ServiceGetApi(auth, rs.Primary.ID).Execute()
+			response, _, err = client.authleteClient.v3.ServiceManagementAPI.ServiceGetApi(auth, rs.Primary.ID).Execute()
 		} else {
 			auth := context.WithValue(context.Background(), authlete.ContextBasicAuth, authlete.BasicAuth{
 				UserName: client.serviceOwnerKey,

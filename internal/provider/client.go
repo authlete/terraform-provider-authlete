@@ -147,7 +147,7 @@ func clientCreate(ctx context.Context, d *schema.ResourceData, meta interface{})
 
 		newClientDto := dataToClient(d, diags)
 		n := newClientDto.(*authlete3.Client)
-		newOauthClient, _, err := client.authleteClient.v3.ClientManagementApi.ClientCreateApi(auth, apiKey).Client(*n).Execute()
+		newOauthClient, _, err := client.authleteClient.v3.ClientManagementAPI.ClientCreateApi(auth, apiKey).Client(*n).Execute()
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -155,8 +155,8 @@ func clientCreate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		if d.Get("client_secret").(string) != "" {
 			cliSecretUpdateRequest := authlete3.ClientSecretUpdateRequest{ClientSecret: d.Get("client_secret").(string)}
 			identifier := strconv.FormatInt(newOauthClient.GetClientId(), 10)
-			updateSecretRequest := client.authleteClient.v3.ClientManagementApi.ClientSecretUpdateApi(auth,
-				identifier, apiKey)
+			updateSecretRequest := client.authleteClient.v3.ClientManagementAPI.ClientSecretUpdateApi(auth,
+				apiKey, identifier)
 
 			_, _, err := updateSecretRequest.ClientSecretUpdateRequest(cliSecretUpdateRequest).Execute()
 			if err != nil {
@@ -216,7 +216,7 @@ func clientRead(_ context.Context, d *schema.ResourceData, meta interface{}) dia
 		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, apiSecret)
 
 		identifier := getClientIdentifierForV3(d)
-		clientDto, _, err := client.authleteClient.v3.ClientManagementApi.ClientGetApi(auth, identifier, apiKey).Execute()
+		clientDto, _, err := client.authleteClient.v3.ClientManagementAPI.ClientGetApi(auth, apiKey, identifier).Execute()
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -256,13 +256,13 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, apiSecret)
 
 		identifier := getClientIdentifierForV3(d)
-		existingClient, _, getErr := client.authleteClient.v3.ClientManagementApi.ClientGetApi(auth, identifier, apiKey).Execute()
+		existingClient, _, getErr := client.authleteClient.v3.ClientManagementAPI.ClientGetApi(auth, apiKey, identifier).Execute()
 
 		if getErr != nil {
 			return diag.FromErr(getErr)
 		}
 		setDataToClient(d, diags, existingClient)
-		_, _, err := client.authleteClient.v3.ClientManagementApi.ClientUpdateApi(auth, identifier, apiKey).Client(*existingClient).Execute()
+		_, _, err := client.authleteClient.v3.ClientManagementAPI.ClientUpdateApi(auth, apiKey, identifier).Client(*existingClient).Execute()
 
 		if err != nil {
 			return diag.FromErr(err)
@@ -272,7 +272,7 @@ func clientUpdate(ctx context.Context, d *schema.ResourceData, meta interface{})
 		if d.HasChange("client_secret") {
 			if d.Get("client_secret").(string) != "" {
 				cliSecretUpdateRequest := authlete3.ClientSecretUpdateRequest{ClientSecret: d.Get("client_secret").(string)}
-				updateSecretRequest := client.authleteClient.v3.ClientManagementApi.ClientSecretUpdateApi(auth, identifier, apiKey)
+				updateSecretRequest := client.authleteClient.v3.ClientManagementAPI.ClientSecretUpdateApi(auth, apiKey, identifier)
 
 				_, _, err := updateSecretRequest.ClientSecretUpdateRequest(cliSecretUpdateRequest).Execute()
 
@@ -338,7 +338,7 @@ func clientDelete(_ context.Context, d *schema.ResourceData, meta interface{}) d
 		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, apiSecret)
 
 		identifier := getClientIdentifierForV3(d)
-		_, err := client.authleteClient.v3.ClientManagementApi.ClientDeleteApi(auth, identifier, apiKey).Execute()
+		_, err := client.authleteClient.v3.ClientManagementAPI.ClientDeleteApi(auth, apiKey, identifier).Execute()
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -366,7 +366,9 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) IClient {
 		newClient = authlete.NewClient()
 	}
 
-	newClient.SetDeveloper(d.Get("developer").(string))
+	if !v3 {
+		newClient.(*authlete.Client).SetDeveloper(d.Get("developer").(string))
+	}
 
 	newClient.SetClientId(int64(d.Get("client_id").(int)))
 
@@ -424,7 +426,7 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) IClient {
 			newClient.(*authlete3.Client).SetRequestEncryptionEnc(mapInterfaceToType[authlete3.JweEnc](d.Get("request_encryption_enc")))
 		}
 		if NotZeroString(d, "token_auth_method") {
-			newClient.(*authlete3.Client).SetTokenAuthMethod(mapInterfaceToType[authlete3.ClientAuthenticationMethod](d.Get("token_auth_method")))
+			newClient.(*authlete3.Client).SetTokenAuthMethod(mapInterfaceToType[authlete3.ClientAuthMethod](d.Get("token_auth_method")))
 		}
 		if NotZeroString(d, "token_auth_sign_alg") {
 			newClient.(*authlete3.Client).SetTokenAuthSignAlg(mapInterfaceToType[authlete3.JwsAlg](d.Get("token_auth_sign_alg")))
@@ -625,8 +627,8 @@ func dataToClient(d *schema.ResourceData, diags diag.Diagnostics) IClient {
 }
 
 func setDataToClient(d *schema.ResourceData, diags diag.Diagnostics, client IClient) {
-	if d.HasChange("developer") {
-		client.SetDeveloper(d.Get("developer").(string))
+	if !v3 && d.HasChange("developer") {
+		client.(*authlete.Client).SetDeveloper(d.Get("developer").(string))
 	}
 	if d.HasChange("client_id_alias") {
 		if v3 {
@@ -686,7 +688,11 @@ func setDataToClient(d *schema.ResourceData, diags diag.Diagnostics, client ICli
 				client.(*authlete.Client).SetApplicationType(mapInterfaceToType[authlete.ApplicationType](d.Get("application_type")))
 			}
 		} else {
-			client.SetApplicationTypeNil()
+			if v3 {
+				client.(*authlete3.Client).ApplicationType = nil
+			} else {
+				client.(*authlete.Client).SetApplicationTypeNil()
+			}
 		}
 	}
 	if d.HasChange("contacts") {
@@ -988,7 +994,7 @@ func setDataToClient(d *schema.ResourceData, diags diag.Diagnostics, client ICli
 	if d.HasChange("token_auth_method") {
 		if v3 {
 			if NotZeroString(d, "token_auth_method") {
-				client.(*authlete3.Client).SetTokenAuthMethod(mapInterfaceToType[authlete3.ClientAuthenticationMethod](d.Get("token_auth_method")))
+				client.(*authlete3.Client).SetTokenAuthMethod(mapInterfaceToType[authlete3.ClientAuthMethod](d.Get("token_auth_method")))
 			} else {
 				client.(*authlete3.Client).TokenAuthMethod = nil
 			}
@@ -1362,7 +1368,7 @@ func updateResourceFromClient(d *schema.ResourceData, client IClient) {
 		_ = d.Set("access_token_duration", clientExtension.GetAccessTokenDuration())
 		_ = d.Set("refresh_token_duration", clientExtension.GetRefreshTokenDuration())
 	} else {
-		_ = d.Set("developer", client.GetDeveloper())
+		_ = d.Set("developer", client.(*authlete.Client).GetDeveloper())
 		_ = d.Set("client_id_alias_enabled", client.GetClientIdAliasEnabled())
 		c := client.(*authlete.Client)
 		_ = d.Set("client_type", c.GetClientType())

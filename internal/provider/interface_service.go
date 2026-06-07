@@ -5,10 +5,6 @@ type IService interface {
 	GetNumberOk() (*int32, bool)
 	HasNumber() bool
 	SetNumber(v int32)
-	GetServiceOwnerNumber() int32
-	GetServiceOwnerNumberOk() (*int32, bool)
-	HasServiceOwnerNumber() bool
-	SetServiceOwnerNumber(v int32)
 	GetServiceName() string
 	GetServiceNameOk() (*string, bool)
 	HasServiceName() bool
@@ -25,14 +21,6 @@ type IService interface {
 	GetApiKeyOk() (*int64, bool)
 	HasApiKey() bool
 	SetApiKey(v int64)
-	GetApiSecret() string
-	GetApiSecretOk() (*string, bool)
-	HasApiSecret() bool
-	SetApiSecret(v string)
-	GetClientsPerDeveloper() int32
-	GetClientsPerDeveloperOk() (*int32, bool)
-	HasClientsPerDeveloper() bool
-	SetClientsPerDeveloper(v int32)
 	GetClientIdAliasEnabled() bool
 	GetClientIdAliasEnabledOk() (*bool, bool)
 	HasClientIdAliasEnabled() bool
@@ -58,25 +46,10 @@ type IService interface {
 	GetAuthenticationCallbackApiSecretOk() (*string, bool)
 	HasAuthenticationCallbackApiSecret() bool
 	SetAuthenticationCallbackApiSecret(v string)
-	HasSupportedSnses() bool
-	HasSnsCredentials() bool
 	GetSupportedAcrs() []string
 	GetSupportedAcrsOk() ([]string, bool)
 	HasSupportedAcrs() bool
 	SetSupportedAcrs(v []string)
-	GetDeveloperAuthenticationCallbackEndpoint() string
-	GetDeveloperAuthenticationCallbackEndpointOk() (*string, bool)
-	HasDeveloperAuthenticationCallbackEndpoint() bool
-	SetDeveloperAuthenticationCallbackEndpoint(v string)
-	GetDeveloperAuthenticationCallbackApiKey() string
-	GetDeveloperAuthenticationCallbackApiKeyOk() (*string, bool)
-	HasDeveloperAuthenticationCallbackApiKey() bool
-	SetDeveloperAuthenticationCallbackApiKey(v string)
-	GetDeveloperAuthenticationCallbackApiSecret() string
-	GetDeveloperAuthenticationCallbackApiSecretOk() (*string, bool)
-	HasDeveloperAuthenticationCallbackApiSecret() bool
-	SetDeveloperAuthenticationCallbackApiSecret(v string)
-	HasSupportedDeveloperSnses() bool
 	// GetDeveloperSnsCredentials() string
 	// GetDeveloperSnsCredentialsOk() (*string, bool)
 	// HasDeveloperSnsCredentials() bool

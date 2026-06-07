@@ -62,6 +62,8 @@ github.com/authlete/openapi-for-go v1.2.3 h1:W3fj3RNk8i4RxE8cnOQ7OQ5ai3QLBX5g7E7
 github.com/authlete/openapi-for-go v1.2.3/go.mod h1:aef7AzA/qvP2FgWZ9uevzwpjqxzRHU/0nRskl7iF3e0=
 github.com/authlete/openapi-for-go/v3 v3.0.0-alpha2 h1:Bzf0cVfrLuhXWjXplvMiSatjOoGkRszrkjrmnTqyk+Q=
 github.com/authlete/openapi-for-go/v3 v3.0.0-alpha2/go.mod h1:CS29tEKLP18ROVmBw2qYnz9Bb8aFM3Suu1o3HMdA3A8=
+github.com/authlete/openapi-for-go/v3 v3.0.3 h1:fyEI0+e95XWpzeXdYuHSlcF8hvQQ4VzH/MV7nvBbkQQ=
+github.com/authlete/openapi-for-go/v3 v3.0.3/go.mod h1:5bMIO3yjMPyTzuBSnGbdKpuxZg+axOlvAZJknNVcPFA=
 github.com/bgentry/speakeasy v0.1.0 h1:ByYyxL9InA1OWqxJqqp2A5pYHUrCiAL6K3J+LKSsQkY=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bmatcuk/doublestar/v4 v4.6.1 h1:FH9SifrbvJhnlQpztAx++wlkk70QBf0iBWDwNy7PA4I=

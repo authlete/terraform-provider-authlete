@@ -266,7 +266,7 @@ func serviceReadInternal(_ context.Context, d *schema.ResourceData, meta interfa
 
 	if v3 {
 		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, client.serviceOwnerSecret)
-		dto, _, err := client.authleteClient.v3.ServiceManagementApi.ServiceGetApi(auth, d.Id()).Execute()
+		dto, _, err := client.authleteClient.v3.ServiceManagementAPI.ServiceGetApi(auth, d.Id()).Execute()
 
 		if err != nil {
 			return diag.FromErr(err)
@@ -299,14 +299,14 @@ func serviceUpdate(_ context.Context, d *schema.ResourceData, meta interface{}) 
 	if v3 {
 		auth := context.WithValue(context.Background(), authlete3.ContextAccessToken, client.serviceOwnerSecret)
 
-		srv, _, err := client.authleteClient.v3.ServiceManagementApi.ServiceGetApi(auth, d.Id()).Execute()
+		srv, _, err := client.authleteClient.v3.ServiceManagementAPI.ServiceGetApi(auth, d.Id()).Execute()
 		if err != nil {
 			return diag.FromErr(err)
 		}
 
 		setDataToService(d, diags, srv)
 
-		srv, _, err = client.authleteClient.v3.ServiceManagementApi.ServiceUpdateApi(auth, d.Id()).Service(*srv).Execute()
+		srv, _, err = client.authleteClient.v3.ServiceManagementAPI.ServiceUpdateApi(auth, d.Id()).Service(*srv).Execute()
 
 		if err != nil {
 			return diag.FromErr(err)

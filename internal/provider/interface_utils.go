@@ -32,7 +32,7 @@ func NewAPIClient(cfg interface{}) ClientWrapper {
 type stringTypes interface {
 	authlete.GrantType | authlete3.GrantType | authlete3.ResponseType | authlete.ResponseType |
 		authlete3.ServiceProfile | authlete.ServiceProfile | authlete3.ClaimType | authlete.ClaimType |
-		authlete3.Display | authlete.Display | authlete3.ClientAuthenticationMethod | authlete.ClientAuthenticationMethod |
+		authlete3.Display | authlete.Display | authlete3.ClientAuthMethod | authlete.ClientAuthenticationMethod |
 		authlete3.DeliveryMode | authlete.DeliveryMode | authlete3.AttachmentType | authlete.AttachmentType |
 		authlete3.ClientRegistrationType | authlete.ClientRegistrationType | string | authlete3.JwsAlg | authlete.JwsAlg |
 		authlete.JweAlg | authlete3.JweAlg | authlete3.ApplicationType | authlete.ApplicationType |

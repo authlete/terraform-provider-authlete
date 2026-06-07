@@ -21,8 +21,8 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics, newService
 	if NotZeroString(data, "description") {
 		newServiceDto.SetDescription(data.Get("description").(string))
 	}
-	if NotZeroNumber(data, "clients_per_developer") {
-		newServiceDto.SetClientsPerDeveloper(int32(data.Get("clients_per_developer").(int)))
+	if !v3 && NotZeroNumber(data, "clients_per_developer") {
+		newServiceDto.(*authlete.Service).SetClientsPerDeveloper(int32(data.Get("clients_per_developer").(int)))
 	}
 	newServiceDto.SetClientIdAliasEnabled(data.Get("client_id_alias_enabled").(bool))
 	if NotZeroArray(data, "attributes") {
@@ -52,14 +52,14 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics, newService
 	if NotZeroArray(data, "supported_acrs") {
 		newServiceDto.SetSupportedAcrs(mapSetToString(data.Get("supported_acrs").(*schema.Set).List()))
 	}
-	if NotZeroString(data, "developer_authentication_callback_endpoint") {
-		newServiceDto.SetDeveloperAuthenticationCallbackEndpoint(data.Get("developer_authentication_callback_endpoint").(string))
+	if !v3 && NotZeroString(data, "developer_authentication_callback_endpoint") {
+		newServiceDto.(*authlete.Service).SetDeveloperAuthenticationCallbackEndpoint(data.Get("developer_authentication_callback_endpoint").(string))
 	}
-	if NotZeroString(data, "developer_authentication_callback_api_key") {
-		newServiceDto.SetDeveloperAuthenticationCallbackApiKey(data.Get("developer_authentication_callback_api_key").(string))
+	if !v3 && NotZeroString(data, "developer_authentication_callback_api_key") {
+		newServiceDto.(*authlete.Service).SetDeveloperAuthenticationCallbackApiKey(data.Get("developer_authentication_callback_api_key").(string))
 	}
-	if NotZeroString(data, "developer_authentication_callback_api_secret") {
-		newServiceDto.SetDeveloperAuthenticationCallbackApiSecret(data.Get("developer_authentication_callback_api_secret").(string))
+	if !v3 && NotZeroString(data, "developer_authentication_callback_api_secret") {
+		newServiceDto.(*authlete.Service).SetDeveloperAuthenticationCallbackApiSecret(data.Get("developer_authentication_callback_api_secret").(string))
 	}
 	if NotZeroArray(data, "supported_grant_types") {
 		if v3 {
@@ -149,7 +149,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics, newService
 					mapListToDTO[string](data.Get("supported_token_auth_methods").(*schema.Set).List()))
 			case *authlete3.Service:
 				newServiceDto.(*authlete3.Service).SetSupportedTokenAuthMethods(
-					mapListToDTO[authlete3.ClientAuthenticationMethod](data.Get("supported_token_auth_methods").(*schema.Set).List()))
+					mapListToDTO[authlete3.ClientAuthMethod](data.Get("supported_token_auth_methods").(*schema.Set).List()))
 			}
 
 		} else {
@@ -174,7 +174,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics, newService
 					mapListToDTO[string](data.Get("supported_revocation_auth_methods").(*schema.Set).List()))
 			case *authlete3.Service:
 				newServiceDto.(*authlete3.Service).SetSupportedRevocationAuthMethods(
-					mapListToDTO[authlete3.ClientAuthenticationMethod](data.Get("supported_revocation_auth_methods").(*schema.Set).List()))
+					mapListToDTO[authlete3.ClientAuthMethod](data.Get("supported_revocation_auth_methods").(*schema.Set).List()))
 			}
 		} else {
 			newServiceDto.(*authlete.Service).SetSupportedRevocationAuthMethods(
@@ -194,7 +194,7 @@ func dataToService(data *schema.ResourceData, diags diag.Diagnostics, newService
 					mapListToDTO[string](data.Get("supported_introspection_auth_methods").(*schema.Set).List()))
 			case *authlete3.Service:
 				newServiceDto.(*authlete3.Service).SetSupportedIntrospectionAuthMethods(
-					mapListToDTO[authlete3.ClientAuthenticationMethod](data.Get("supported_introspection_auth_methods").(*schema.Set).List()))
+					mapListToDTO[authlete3.ClientAuthMethod](data.Get("supported_introspection_auth_methods").(*schema.Set).List()))
 			}
 		} else {
 			newServiceDto.(*authlete.Service).SetSupportedIntrospectionAuthMethods(
@@ -554,8 +554,8 @@ func setDataToService(d *schema.ResourceData, diags diag.Diagnostics, srv IServi
 	if d.HasChange("description") {
 		srv.SetDescription(d.Get("description").(string))
 	}
-	if d.HasChange("clients_per_developer") {
-		srv.SetClientsPerDeveloper(int32(d.Get("clients_per_developer").(int)))
+	if !v3 && d.HasChange("clients_per_developer") {
+		srv.(*authlete.Service).SetClientsPerDeveloper(int32(d.Get("clients_per_developer").(int)))
 	}
 	if d.HasChange("client_id_alias_enabled") {
 		srv.SetClientIdAliasEnabled(d.Get("client_id_alias_enabled").(bool))
@@ -587,14 +587,14 @@ func setDataToService(d *schema.ResourceData, diags diag.Diagnostics, srv IServi
 	if d.HasChange("supported_acrs") {
 		srv.SetSupportedAcrs(mapSetToString(d.Get("supported_acrs").(*schema.Set).List()))
 	}
-	if d.HasChange("developer_authentication_callback_endpoint") {
-		srv.SetDeveloperAuthenticationCallbackEndpoint(d.Get("developer_authentication_callback_endpoint").(string))
+	if !v3 && d.HasChange("developer_authentication_callback_endpoint") {
+		srv.(*authlete.Service).SetDeveloperAuthenticationCallbackEndpoint(d.Get("developer_authentication_callback_endpoint").(string))
 	}
-	if d.HasChange("developer_authentication_callback_api_key") {
-		srv.SetDeveloperAuthenticationCallbackApiKey(d.Get("developer_authentication_callback_api_key").(string))
+	if !v3 && d.HasChange("developer_authentication_callback_api_key") {
+		srv.(*authlete.Service).SetDeveloperAuthenticationCallbackApiKey(d.Get("developer_authentication_callback_api_key").(string))
 	}
-	if d.HasChange("developer_authentication_callback_api_secret") {
-		srv.SetDeveloperAuthenticationCallbackApiSecret(d.Get("developer_authentication_callback_api_secret").(string))
+	if !v3 && d.HasChange("developer_authentication_callback_api_secret") {
+		srv.(*authlete.Service).SetDeveloperAuthenticationCallbackApiSecret(d.Get("developer_authentication_callback_api_secret").(string))
 	}
 	if d.HasChange("verified_claims_validation_schema_set") {
 		if v3 {
@@ -708,7 +708,7 @@ func setDataToService(d *schema.ResourceData, diags diag.Diagnostics, srv IServi
 			case *idp.Service:
 				srv.(*idp.Service).SetSupportedTokenAuthMethods(mapListToDTO[string](d.Get("supported_token_auth_methods").(*schema.Set).List()))
 			case *authlete3.Service:
-				srv.(*authlete3.Service).SetSupportedTokenAuthMethods(mapListToDTO[authlete3.ClientAuthenticationMethod](d.Get("supported_token_auth_methods").(*schema.Set).List()))
+				srv.(*authlete3.Service).SetSupportedTokenAuthMethods(mapListToDTO[authlete3.ClientAuthMethod](d.Get("supported_token_auth_methods").(*schema.Set).List()))
 			}
 
 		} else {
@@ -736,7 +736,7 @@ func setDataToService(d *schema.ResourceData, diags diag.Diagnostics, srv IServi
 			case *idp.Service:
 				srv.(*idp.Service).SetSupportedRevocationAuthMethods(mapListToDTO[string](d.Get("supported_revocation_auth_methods").(*schema.Set).List()))
 			case *authlete3.Service:
-				srv.(*authlete3.Service).SetSupportedRevocationAuthMethods(mapListToDTO[authlete3.ClientAuthenticationMethod](d.Get("supported_revocation_auth_methods").(*schema.Set).List()))
+				srv.(*authlete3.Service).SetSupportedRevocationAuthMethods(mapListToDTO[authlete3.ClientAuthMethod](d.Get("supported_revocation_auth_methods").(*schema.Set).List()))
 			}
 		} else {
 			srv.(*authlete.Service).SetSupportedRevocationAuthMethods(mapListToDTO[authlete.ClientAuthenticationMethod](d.Get("supported_revocation_auth_methods").(*schema.Set).List()))
@@ -754,7 +754,7 @@ func setDataToService(d *schema.ResourceData, diags diag.Diagnostics, srv IServi
 			case *idp.Service:
 				srv.(*idp.Service).SetSupportedIntrospectionAuthMethods(mapListToDTO[string](d.Get("supported_introspection_auth_methods").(*schema.Set).List()))
 			case *authlete3.Service:
-				srv.(*authlete3.Service).SetSupportedIntrospectionAuthMethods(mapListToDTO[authlete3.ClientAuthenticationMethod](d.Get("supported_introspection_auth_methods").(*schema.Set).List()))
+				srv.(*authlete3.Service).SetSupportedIntrospectionAuthMethods(mapListToDTO[authlete3.ClientAuthMethod](d.Get("supported_introspection_auth_methods").(*schema.Set).List()))
 			}
 		} else {
 			srv.(*authlete.Service).SetSupportedIntrospectionAuthMethods(mapListToDTO[authlete.ClientAuthenticationMethod](d.Get("supported_introspection_auth_methods").(*schema.Set).List()))
@@ -1152,12 +1152,14 @@ func serviceToResource(dto IService, data *schema.ResourceData) diag.Diagnostics
 
 	data.SetId(strconv.FormatInt(dto.GetApiKey(), 10))
 	if !v3 {
-		_ = data.Set("api_secret", dto.GetApiSecret())
+		_ = data.Set("api_secret", dto.(*authlete.Service).GetApiSecret())
 	}
 	_ = data.Set("service_name", dto.GetServiceName())
 	_ = data.Set("issuer", dto.GetIssuer())
 	_ = data.Set("description", dto.GetDescription())
-	_ = data.Set("clients_per_developer", dto.GetClientsPerDeveloper())
+	if !v3 {
+		_ = data.Set("clients_per_developer", dto.(*authlete.Service).GetClientsPerDeveloper())
+	}
 	_ = data.Set("client_id_alias_enabled", dto.GetClientIdAliasEnabled())
 	if v3 {
 		switch dto.(type) {
@@ -1225,9 +1227,11 @@ func serviceToResource(dto IService, data *schema.ResourceData) diag.Diagnostics
 	_ = data.Set("authentication_callback_api_key", dto.GetAuthenticationCallbackApiKey())
 	_ = data.Set("authentication_callback_api_secret", dto.GetAuthenticationCallbackApiSecret())
 	_ = data.Set("supported_acrs", mapSchemaFromString(dto.GetSupportedAcrs()))
-	_ = data.Set("developer_authentication_callback_endpoint", dto.GetDeveloperAuthenticationCallbackEndpoint())
-	_ = data.Set("developer_authentication_callback_api_key", dto.GetDeveloperAuthenticationCallbackApiKey())
-	_ = data.Set("developer_authentication_callback_api_secret", dto.GetDeveloperAuthenticationCallbackApiSecret())
+	if !v3 {
+		_ = data.Set("developer_authentication_callback_endpoint", dto.(*authlete.Service).GetDeveloperAuthenticationCallbackEndpoint())
+		_ = data.Set("developer_authentication_callback_api_key", dto.(*authlete.Service).GetDeveloperAuthenticationCallbackApiKey())
+		_ = data.Set("developer_authentication_callback_api_secret", dto.(*authlete.Service).GetDeveloperAuthenticationCallbackApiSecret())
+	}
 
 	_ = data.Set("supported_authorization_detail_types", mapSchemaFromString(dto.GetSupportedAuthorizationDetailsTypes()))
 	_ = data.Set("error_description_omitted", dto.GetErrorDescriptionOmitted())

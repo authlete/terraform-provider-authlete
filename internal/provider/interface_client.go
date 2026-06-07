@@ -9,10 +9,6 @@ type IClient interface {
 	GetServiceNumberOk() (*int32, bool)
 	HasServiceNumber() bool
 	SetServiceNumber(v int32)
-	GetDeveloper() string
-	GetDeveloperOk() (*string, bool)
-	HasDeveloper() bool
-	SetDeveloper(v string)
 	GetClientName() string
 	GetClientNameOk() (*string, bool)
 	HasClientName() bool
@@ -41,8 +37,6 @@ type IClient interface {
 	SetClientIdAliasEnabled(v bool)
 	HasClientType() bool
 	HasApplicationType() bool
-	SetApplicationTypeNil()
-	UnsetApplicationType()
 	GetLogoUri() string
 	GetLogoUriOk() (*string, bool)
 	HasLogoUri() bool
@@ -247,10 +241,6 @@ type IClient interface {
 	GetExplicitlyRegisteredOk() (*bool, bool)
 	HasExplicitlyRegistered() bool
 	SetExplicitlyRegistered(v bool)
-	GetRsResponseSigned() bool
-	GetRsResponseSignedOk() (*bool, bool)
-	HasRsResponseSigned() bool
-	SetRsResponseSigned(v bool)
 	GetRsSignedRequestKeyId() string
 	GetRsSignedRequestKeyIdOk() (*string, bool)
 	HasRsSignedRequestKeyId() bool
