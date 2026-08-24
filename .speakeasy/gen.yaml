@@ -1,0 +1,67 @@
+configVersion: 2.0.0
+generation:
+  sdkClassName: Authlete
+  maintainOpenAPIOrder: true
+  usageSnippets:
+    optionalPropertyRendering: withExample
+    sdkInitStyle: constructor
+  useClassNamesForArrayFields: true
+  fixes:
+    nameResolutionDec2023: true
+    nameResolutionFeb2025: true
+    parameterOrderingFeb2024: true
+    requestResponseComponentNamesFeb2024: true
+    securityFeb2025: true
+    sharedErrorComponentsApr2025: true
+    sharedNestedComponentsJan2026: true
+    nameOverrideFeb2026: true
+  auth:
+    oAuth2ClientCredentialsEnabled: false
+    oAuth2PasswordEnabled: false
+    hoistGlobalSecurity: true
+  inferSSEOverload: true
+  sdkHooksConfigAccess: true
+  schemas:
+    allOfMergeStrategy: shallowMerge
+  requestBodyFieldName: body
+  versioningStrategy: automatic
+  persistentEdits: {}
+  tests:
+    generateTests: false
+    generateNewTests: true
+    skipResponseBodyAssertions: false
+terraform:
+  version: 0.0.1
+  additionalActions: []
+  additionalDataSources: []
+  additionalDependencies: {}
+  additionalEphemeralResources: []
+  additionalFunctions: []
+  additionalListResources: []
+  additionalProviderAttributes:
+    httpHeaders: http_headers
+    tlsSkipVerify: tls_skip_verify
+  additionalResources: []
+  author: speakeasy
+  baseErrorName: AuthleteError
+  debugLogging: {}
+  defaultErrorName: APIError
+  enableCustomCodeRegions: false
+  enableOperationSecurity: false
+  enableOperationServers: true
+  enableTypeDeduplication: false
+  environmentVariables:
+    - env: AUTHLETE_TOKEN
+      providerAttribute: bearer
+    - env: AUTHLETE_SERVER_URL
+      providerAttribute: server_url
+  excludeEmptyObjectSchemas: true
+  forwardCompatibleEnumsByDefault: false
+  includeEmptyObjects: true
+  inferUnionDiscriminators: true
+  packageName: authlete
+  preApplyUnionDiscriminators: true
+  providerTypeNameOverride: ""
+  respectRequiredFields: false
+  respectTitlesForPrimitiveUnionMembers: true
+  unionStrategy: populated-fields

@@ -1,0 +1,159 @@
+overlay: 1.0.0
+info:
+  title: Authlete Terraform entity annotations
+  version: 0.0.1
+actions:
+  # ---------- Entity: Service ----------
+  - target: $.components.schemas.service
+    description: Mark the service schema as a Terraform-managed entity
+    update:
+      x-speakeasy-entity: Service
+
+  # Services are created and deleted through the IdP (login.authlete.com), NOT
+  # through the regional cluster's /api/service/create. The cluster endpoint
+  # returns 200 with a real apiKey, but the service it makes is attached to no
+  # organization: the IdP cannot find it under any apiServerId, it never reaches
+  # the audit log, and every service-scoped call afterwards fails A457101 with
+  # insufficient rights. It also cannot be deleted again. Only the IdP endpoint
+  # registers a service against an organization.
+
+  # KNOWN LIMITATION -- on-premise and dedicated cloud cannot create or delete
+  # services. The IdP host is fixed at https://login.authlete.com and the
+  # generator bakes it in as a constant. Declaring it as an OpenAPI server
+  # variable was tried and does NOT help: Speakeasy surfaces server variables as
+  # configurable provider attributes only for root-level servers, and resolves
+  # per-operation ones to their default at generation time. Fixing this needs
+  # either an SDK hook that rewrites the host, or Speakeasy support for
+  # operation-level server variables. Do not re-attempt via the overlay.
+
+  - target: $.paths['/api/service'].post
+    description: Service create (IdP)
+    update:
+      x-speakeasy-entity-operation: Service#create
+
+  - target: $.paths['/api/service/remove'].post
+    description: Service delete (IdP), the counterpart of the IdP create
+    update:
+      x-speakeasy-entity-operation: Service#delete
+
+  # The IdP delete takes the service ID in the body rather than the path, so it
+  # needs the same correlation the cluster path params get.
+  - target: $.components.schemas.service_remove_idp_request.properties.serviceId
+    description: Correlate the IdP delete body's serviceId to service.apiKey
+    update:
+      x-speakeasy-match: apiKey
+
+  - target: $.paths['/api/{serviceId}/service/get'].get
+    description: Service read
+    update:
+      x-speakeasy-entity-operation: Service#read
+
+  - target: $.paths['/api/{serviceId}/service/update'].post
+    description: Service update
+    update:
+      x-speakeasy-entity-operation: Service#update
+
+  - target: $.paths['/api/{serviceId}/service/update'].post.requestBody
+    description: Update body is mandatory for Terraform
+    update:
+      required: true
+
+  # The cluster's /api/{serviceId}/service/delete is deliberately left
+  # unannotated: it requires DELETE_SERVICE on the service itself, which an
+  # organization token does not carry. Deletion goes through the IdP above.
+
+  # Create returns the service but takes no serviceId, so read and update must be
+  # told which state attribute supplies the path segment. service.apiKey is the
+  # identifier Authlete resolves in the path (confirmed against the live API); it
+  # is an int64, so the param is retyped to match.
+  - target: $.paths['/api/{serviceId}/service/get'].get.parameters[?(@.name=='serviceId')].schema
+    description: Correlate serviceId to service.apiKey
+    update:
+      type: integer
+      format: int64
+      x-speakeasy-match: apiKey
+
+  - target: $.paths['/api/{serviceId}/service/update'].post.parameters[?(@.name=='serviceId')].schema
+    description: Correlate serviceId to service.apiKey
+    update:
+      type: integer
+      format: int64
+      x-speakeasy-match: apiKey
+
+
+  # ---------- Entity: Client ----------
+  - target: $.components.schemas.client
+    description: |
+      Mark the client schema as a Terraform-managed entity. additionalProperties is
+      closed because an open object cannot be given a stable generated type, which
+      breaks type reconciliation on read/update/delete responses.
+    update:
+      x-speakeasy-entity: Client
+      additionalProperties: false
+
+  - target: $.paths['/api/{serviceId}/client/create'].post
+    description: Client create
+    update:
+      x-speakeasy-entity-operation: Client#create
+
+  - target: $.paths['/api/{serviceId}/client/create'].post.requestBody
+    description: Create body is mandatory for Terraform
+    update:
+      required: true
+
+  - target: $.paths['/api/{serviceId}/client/get/{clientId}'].get
+    description: Client read
+    update:
+      x-speakeasy-entity-operation: Client#read
+
+  - target: $.paths['/api/{serviceId}/client/update/{clientId}'].post
+    description: Client update
+    update:
+      x-speakeasy-entity-operation: Client#update
+
+  - target: $.paths['/api/{serviceId}/client/update/{clientId}'].post.requestBody
+    description: Update body is mandatory for Terraform
+    update:
+      required: true
+
+  - target: $.paths['/api/{serviceId}/client/delete/{clientId}'].delete
+    description: Client delete
+    update:
+      x-speakeasy-entity-operation: Client#delete
+
+  # The clientId path parameter is typed as string, but client.clientId is an
+  # int64. Speakeasy correlates the two by name and cannot reconcile a string
+  # against an integer, so align the parameter with the field it refers to.
+  - target: $.paths['/api/{serviceId}/client/get/{clientId}'].get.parameters[?(@.name=='clientId')].schema
+    description: Align clientId path param with client.clientId
+    update:
+      type: integer
+      format: int64
+
+  - target: $.paths['/api/{serviceId}/client/update/{clientId}'].post.parameters[?(@.name=='clientId')].schema
+    description: Align clientId path param with client.clientId
+    update:
+      type: integer
+      format: int64
+
+  - target: $.paths['/api/{serviceId}/client/delete/{clientId}'].delete.parameters[?(@.name=='clientId')].schema
+    description: Align clientId path param with client.clientId
+    update:
+      type: integer
+      format: int64
+
+  # ---------- Secret handling ----------
+  # Conceal server-assigned secrets from plan and apply console output. This is
+  # console masking only: the values are still written to the state file, because
+  # Terraform's write-only mechanism applies to arguments a practitioner supplies,
+  # not to computed values read back from the API. Keeping these out of state
+  # entirely needs an ephemeral resource, which is hand-written.
+  - target: $.components.schemas.client.properties.clientSecret
+    description: Conceal the client secret from console output
+    update:
+      x-speakeasy-param-sensitive: true
+
+  - target: $.components.schemas.service.properties.apiSecret
+    description: Conceal the service API secret from console output
+    update:
+      x-speakeasy-param-sensitive: true

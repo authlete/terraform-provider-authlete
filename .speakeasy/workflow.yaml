@@ -1,0 +1,15 @@
+workflowVersion: 1.0.0
+speakeasyVersion: latest
+sources:
+    Authlete-OAS:
+        inputs:
+            - location: registry.speakeasyapi.dev/authlete/sdk-workspace/authlete-oas:main
+        overlays:
+            - location: .speakeasy/terraform_overlay.yaml
+        output: .speakeasy/out.openapi.yaml
+        registry:
+            location: registry.speakeasyapi.dev/authlete/sdk-workspace/authlete-oas
+targets:
+    authlete:
+        target: terraform
+        source: Authlete-OAS

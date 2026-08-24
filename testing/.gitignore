@@ -1,0 +1,8 @@
+.provider-bin/
+.terraformrc.dev
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfplan
+.env.local
