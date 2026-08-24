@@ -41,5 +41,6 @@ Set the token value in the `Authorization: Bearer <token>` header.
 Both token types are issued by the Authlete console or provisioning APIs.
 . Configurable via environment variable `AUTHLETE_TOKEN`.
 - `http_headers` (Map of String) HTTP headers to include in all requests
+- `idp_host` (String) Host of the Authlete IdP, which handles service creation and deletion. Defaults to Authlete's shared cloud. Dedicated Cloud and On-Premise deployments run their own and must set this. Configurable via environment variable `AUTHLETE_IDP_HOST`.
 - `server_url` (String) Server URL (defaults to https://us.authlete.com)
 - `tls_skip_verify` (Boolean) Disable TLS verification in HTTP client

@@ -21,6 +21,9 @@
 package provider
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -75,20 +78,34 @@ type idpRoutingTransport struct {
 	// idpHost is the replacement IdP host, optionally including a scheme and
 	// port. Empty means no rewriting is performed.
 	idpHost string
-	next    http.RoundTripper
+	// apiServerID is injected into IdP request bodies that omit it. Zero means
+	// no injection, which is correct for a self-managed deployment whose ID we
+	// cannot derive.
+	apiServerID int64
+	next        http.RoundTripper
 }
 
 // NewIdpRoutingTransport wraps next so that requests to Authlete's default IdP
-// origin are redirected to idpHost. Passing an empty idpHost returns next
-// unchanged, so the shared-cloud path keeps exactly its generated behaviour.
-func NewIdpRoutingTransport(idpHost string, next http.RoundTripper) http.RoundTripper {
-	if strings.TrimSpace(idpHost) == "" {
+// origin are redirected to idpHost, and so that IdP request bodies omitting
+// apiServerId have apiServerID filled in.
+//
+// When neither applies the inner transport is returned unchanged, so the
+// shared-cloud path keeps exactly its generated behaviour.
+func NewIdpRoutingTransport(idpHost string, apiServerID int64, next http.RoundTripper) http.RoundTripper {
+	idpHost = strings.TrimSpace(idpHost)
+	if idpHost == "" && apiServerID == 0 {
 		return next
 	}
 	if next == nil {
 		next = http.DefaultTransport
 	}
-	return &idpRoutingTransport{idpHost: strings.TrimSpace(idpHost), next: next}
+	return &idpRoutingTransport{idpHost: idpHost, apiServerID: apiServerID, next: next}
+}
+
+// idpBodyPaths are the IdP operations whose request body carries apiServerId.
+var idpBodyPaths = map[string]bool{
+	"/api/service":        true,
+	"/api/service/remove": true,
 }
 
 func (t *idpRoutingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -101,22 +118,83 @@ func (t *idpRoutingTransport) RoundTrip(req *http.Request) (*http.Response, erro
 		return t.next.RoundTrip(req)
 	}
 
-	target := t.idpHost
-	if !strings.Contains(target, "://") {
-		target = "https://" + target
-	}
-	u, err := url.Parse(target)
-	if err != nil || u.Host == "" {
-		// A malformed override should not silently send IdP traffic to
-		// Authlete's shared cloud, so fail loudly rather than passing through.
-		return nil, &url.Error{Op: "parse", URL: t.idpHost, Err: err}
-	}
-
 	// RoundTrip must not modify the request it is given.
 	cloned := req.Clone(req.Context())
-	cloned.URL.Scheme = u.Scheme
-	cloned.URL.Host = u.Host
-	cloned.Host = u.Host
+
+	if t.idpHost != "" {
+		target := t.idpHost
+		if !strings.Contains(target, "://") {
+			target = "https://" + target
+		}
+		u, err := url.Parse(target)
+		if err != nil || u.Host == "" {
+			// A malformed override should not silently send IdP traffic to
+			// Authlete's shared cloud, so fail loudly rather than passing through.
+			return nil, &url.Error{Op: "parse", URL: t.idpHost, Err: err}
+		}
+		cloned.URL.Scheme = u.Scheme
+		cloned.URL.Host = u.Host
+		cloned.Host = u.Host
+	}
+
+	if t.apiServerID != 0 && idpBodyPaths[req.URL.Path] {
+		if err := injectAPIServerID(cloned, t.apiServerID); err != nil {
+			return nil, err
+		}
+	}
 
 	return t.next.RoundTrip(cloned)
+}
+
+// injectAPIServerID adds apiServerId to a JSON request body that does not
+// already carry a usable one. A value the caller set explicitly is never
+// overwritten. A body that is absent or not an object is left alone, so a
+// malformed request fails at the API with its own error rather than here.
+func injectAPIServerID(req *http.Request, id int64) error {
+	if req.Body == nil {
+		return nil
+	}
+
+	raw, err := io.ReadAll(req.Body)
+	_ = req.Body.Close()
+	if err != nil {
+		return err
+	}
+
+	restore := func(b []byte) {
+		req.Body = io.NopCloser(bytes.NewReader(b))
+		req.ContentLength = int64(len(b))
+		req.GetBody = func() (io.ReadCloser, error) {
+			return io.NopCloser(bytes.NewReader(b)), nil
+		}
+	}
+
+	var body map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &body); err != nil {
+		restore(raw)
+		return nil
+	}
+
+	if existing, ok := body["apiServerId"]; ok {
+		var n json.Number
+		if err := json.Unmarshal(existing, &n); err == nil && n.String() != "0" && n.String() != "" {
+			restore(raw)
+			return nil
+		}
+	}
+
+	body["apiServerId"], err = json.Marshal(id)
+	if err != nil {
+		restore(raw)
+		return nil
+	}
+
+	updated, err := json.Marshal(body)
+	if err != nil {
+		restore(raw)
+		return nil
+	}
+
+	restore(updated)
+	return nil
 }

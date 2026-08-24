@@ -65,21 +65,9 @@ export AUTHLETE_TOKEN AUTHLETE_SERVER_URL
 [[ -n "${AUTHLETE_NAME_PREFIX:-}" ]] && export TF_VAR_name_prefix="$AUTHLETE_NAME_PREFIX"
 [[ -n "${AUTHLETE_ORGANIZATION_ID:-}" ]] && export TF_VAR_organization_id="$AUTHLETE_ORGANIZATION_ID"
 
-# api_server_id identifies the cluster to the IdP. The generated provider has no
-# cluster->id table (only the hand-written official SDKs inject it), so derive it
-# from the server URL here. Override with AUTHLETE_API_SERVER_ID for self-managed.
-if [[ -n "${AUTHLETE_API_SERVER_ID:-}" ]]; then
-  export TF_VAR_api_server_id="$AUTHLETE_API_SERVER_ID"
-else
-  case "${AUTHLETE_SERVER_URL:-https://us.authlete.com}" in
-    *us.authlete.com) export TF_VAR_api_server_id=76281 ;;
-    *jp.authlete.com) export TF_VAR_api_server_id=53285 ;;
-    *eu.authlete.com) export TF_VAR_api_server_id=63294 ;;
-    *br.authlete.com) export TF_VAR_api_server_id=47363 ;;
-    *) die "cannot derive api_server_id from '${AUTHLETE_SERVER_URL}'.
-  Set AUTHLETE_API_SERVER_ID explicitly." ;;
-  esac
-fi
+# api_server_id is no longer plumbed here: the provider derives it from the
+# cluster URL and injects it. Set it on the resource for self-managed clusters.
+[[ -n "${AUTHLETE_API_SERVER_ID:-}" ]] && warn "AUTHLETE_API_SERVER_ID is ignored; set api_server_id on the resource instead."
 
 if [[ -z "${AUTHLETE_ORGANIZATION_ID:-}" ]]; then
   export TF_VAR_organization_id=0

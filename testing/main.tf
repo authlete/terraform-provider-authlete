@@ -17,17 +17,6 @@ variable "organization_id" {
   type        = number
 }
 
-variable "api_server_id" {
-  description = <<-EOT
-    Numeric ID of the target API server. The spec notes that official SDKs inject
-    this for known clusters, but this provider is generated without that logic,
-    so it has to be passed explicitly.
-
-    us 76281 | jp 53285 | eu 63294 | br 47363
-  EOT
-  type        = number
-}
-
 # Deliberately empty. The provider reads AUTHLETE_TOKEN and AUTHLETE_SERVER_URL
 # from the environment, so no credential appears in configuration at all.
 #
@@ -46,11 +35,11 @@ provider "authlete" {}
 # at Authlete's defaults. See docs/resources/service.md for the full surface.
 # ---------------------------------------------------------------------------
 resource "authlete_service" "test" {
-  # Create and delete go through the IdP (login.authlete.com), which is why these
-  # two are needed; read and update still go to the regional cluster in
-  # provider.server_url. Changing organization_id forces replacement.
+  # Create and delete go through the IdP; read and update go to the regional
+  # cluster in AUTHLETE_SERVER_URL. api_server_id is deliberately omitted --
+  # the provider derives it from the cluster and injects it. Self-managed
+  # deployments that the provider cannot map should set it explicitly here.
   organization_id = var.organization_id
-  api_server_id   = var.api_server_id
 
   service_name = "${var.name_prefix}-service"
   issuer       = "https://${var.name_prefix}.example.com"

@@ -2,8 +2,11 @@
 package provider
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -38,17 +41,17 @@ func TestDefaultIdpOriginTracksGeneratedSpec(t *testing.T) {
 
 func TestUnsetIdpHostIsAPassthrough(t *testing.T) {
 	inner := &capture{}
-	rt := NewIdpRoutingTransport("", inner)
+	rt := NewIdpRoutingTransport("", 0, inner)
 
 	if rt != http.RoundTripper(inner) {
-		t.Fatal("an empty idp_host must return the inner transport unchanged, so the " +
-			"shared-cloud path keeps exactly its generated behaviour")
+		t.Fatal("no idp_host and no apiServerId must return the inner transport unchanged, " +
+			"so the shared-cloud path keeps exactly its generated behaviour")
 	}
 }
 
 func TestIdpBoundRequestIsRerouted(t *testing.T) {
 	inner := &capture{}
-	rt := NewIdpRoutingTransport("authlete-login.example.com", inner)
+	rt := NewIdpRoutingTransport("authlete-login.example.com", 0, inner)
 
 	send(t, rt, defaultIdpOrigin()+"/api/service")
 
@@ -60,7 +63,7 @@ func TestIdpBoundRequestIsRerouted(t *testing.T) {
 
 func TestClusterTrafficIsUntouched(t *testing.T) {
 	inner := &capture{}
-	rt := NewIdpRoutingTransport("authlete-login.example.com", inner)
+	rt := NewIdpRoutingTransport("authlete-login.example.com", 0, inner)
 
 	// A service read goes to the regional cluster, not the IdP. Rerouting it
 	// would send API traffic to the IdP and break every read.
@@ -80,7 +83,7 @@ func TestSchemeAndPortAreHonoured(t *testing.T) {
 		{"  idp.internal  ", "https://idp.internal/api/service"},
 	} {
 		inner := &capture{}
-		rt := NewIdpRoutingTransport(tc.idpHost, inner)
+		rt := NewIdpRoutingTransport(tc.idpHost, 0, inner)
 		send(t, rt, defaultIdpOrigin()+"/api/service")
 		if len(inner.got) != 1 || inner.got[0] != tc.want {
 			t.Errorf("idp_host %q: got %v, want [%s]", tc.idpHost, inner.got, tc.want)
@@ -90,7 +93,7 @@ func TestSchemeAndPortAreHonoured(t *testing.T) {
 
 func TestOriginalRequestIsNotMutated(t *testing.T) {
 	inner := &capture{}
-	rt := NewIdpRoutingTransport("idp.internal", inner)
+	rt := NewIdpRoutingTransport("idp.internal", 0, inner)
 
 	req := httptest.NewRequest(http.MethodPost, defaultIdpOrigin()+"/api/service", nil)
 	req.RequestURI = ""
@@ -123,5 +126,97 @@ func TestAPIServerIDForServerURL(t *testing.T) {
 		if got != tc.want || ok != tc.ok {
 			t.Errorf("APIServerIDForServerURL(%q) = (%d, %v), want (%d, %v)", tc.url, got, ok, tc.want, tc.ok)
 		}
+	}
+}
+
+// --- apiServerId injection ---------------------------------------------------
+
+// bodyCapture records the request body actually sent.
+type bodyCapture struct{ body string }
+
+func (c *bodyCapture) RoundTrip(req *http.Request) (*http.Response, error) {
+	if req.Body != nil {
+		b, _ := io.ReadAll(req.Body)
+		c.body = string(b)
+	}
+	return &http.Response{StatusCode: http.StatusOK, Body: http.NoBody, Request: req, Header: make(http.Header)}, nil
+}
+
+func postJSON(t *testing.T, rt http.RoundTripper, rawURL, body string) {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodPost, rawURL, strings.NewReader(body))
+	req.RequestURI = ""
+	if _, err := rt.RoundTrip(req); err != nil {
+		t.Fatalf("RoundTrip: %v", err)
+	}
+}
+
+func decode(t *testing.T, s string) map[string]any {
+	t.Helper()
+	var m map[string]any
+	if err := json.Unmarshal([]byte(s), &m); err != nil {
+		t.Fatalf("body is not JSON: %q", s)
+	}
+	return m
+}
+
+func TestAPIServerIDIsInjectedWhenAbsent(t *testing.T) {
+	inner := &bodyCapture{}
+	rt := NewIdpRoutingTransport("", 53285, inner)
+
+	postJSON(t, rt, defaultIdpOrigin()+"/api/service", `{"organizationId":417639873643986,"service":{"serviceName":"x"}}`)
+
+	got := decode(t, inner.body)
+	if got["apiServerId"] != float64(53285) {
+		t.Fatalf("apiServerId = %v, want 53285 (body: %s)", got["apiServerId"], inner.body)
+	}
+	if got["organizationId"] != float64(417639873643986) {
+		t.Fatalf("injection clobbered organizationId: %s", inner.body)
+	}
+}
+
+func TestExplicitAPIServerIDIsNeverOverwritten(t *testing.T) {
+	inner := &bodyCapture{}
+	rt := NewIdpRoutingTransport("", 53285, inner)
+
+	postJSON(t, rt, defaultIdpOrigin()+"/api/service", `{"apiServerId":99999,"organizationId":1}`)
+
+	if got := decode(t, inner.body); got["apiServerId"] != float64(99999) {
+		t.Fatalf("apiServerId = %v, want the caller's 99999", got["apiServerId"])
+	}
+}
+
+func TestAPIServerIDInjectedOnRemoveToo(t *testing.T) {
+	inner := &bodyCapture{}
+	rt := NewIdpRoutingTransport("", 76281, inner)
+
+	postJSON(t, rt, defaultIdpOrigin()+"/api/service/remove", `{"organizationId":1,"serviceId":2}`)
+
+	if got := decode(t, inner.body); got["apiServerId"] != float64(76281) {
+		t.Fatalf("apiServerId = %v, want 76281", got["apiServerId"])
+	}
+}
+
+func TestClusterBodiesAreNotTouched(t *testing.T) {
+	inner := &bodyCapture{}
+	rt := NewIdpRoutingTransport("", 53285, inner)
+
+	const body = `{"serviceName":"x"}`
+	postJSON(t, rt, "https://jp.authlete.com/api/12345/service/update", body)
+
+	if inner.body != body {
+		t.Fatalf("cluster body was rewritten: %s", inner.body)
+	}
+}
+
+func TestNonJSONBodyIsLeftAlone(t *testing.T) {
+	inner := &bodyCapture{}
+	rt := NewIdpRoutingTransport("", 53285, inner)
+
+	const body = `not json at all`
+	postJSON(t, rt, defaultIdpOrigin()+"/api/service", body)
+
+	if inner.body != body {
+		t.Fatalf("non-JSON body was altered: %s", inner.body)
 	}
 }
