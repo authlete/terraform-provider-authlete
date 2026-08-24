@@ -128,42 +128,41 @@ genuine capability regression, and the one place hand-written code is unavoidabl
 Comparing attribute lists only covers what each resource exposes. Provider-level configuration
 is invisible to that diff, and two regressions live there.
 
-### On-premise and dedicated cloud cannot be targeted at all
+### On-premise and dedicated cloud could not be targeted — FIXED
 
-The published provider exposes `idp_server` (env `AUTHLETE_IDP_SERVER`), so a customer running
-their own deployment can point it at their own IdP host.
+The IdP host was fixed at `https://login.authlete.com`, baked in by the generator with no
+override path. Because service create and delete both go through the IdP, any customer not on
+Authlete's shared cloud could neither create nor delete a service.
 
-In the generated provider the IdP host is a **compile-time constant**:
+**Not fixable through the overlay.** Declaring the IdP server as an OpenAPI server variable was
+tried and does not work: Speakeasy surfaces server variables as configurable provider attributes
+only for root-level servers, and resolves per-operation ones to their default at generation time.
 
-```go
-var ServiceCreateIdpAPIServerList = map[string]string{
-    ServiceCreateIdpAPIServerIdp: "https://login.authlete.com",
+**Fixed instead at the HTTP layer**, mirroring `authlete/authlete-typescript-sdk#36`, which solves
+the same problem for the TypeScript SDK. `internal/provider/idp_routing.go` is a hand-written
+`http.RoundTripper` that reroutes requests whose origin matches the IdP origin, read back from the
+generated `operations.ServiceCreateIdpAPIServerList` so the match follows the spec rather than
+duplicating a hostname. Three small edits in `provider.go` add the `idp_host` attribute and wrap
+the transport; `persistentEdits` carries them across regenerations by three-way merge.
+
+```hcl
+provider "authlete" {
+  server_url = "https://authlete.example.com"       # your cluster
+  idp_host   = "authlete-login.example.com"         # your IdP
 }
 ```
 
-`SupportedOptionServerURL` is not among the supported options for these operations, so it cannot
-be overridden even programmatically. The provider exposes only `bearer` and `server_url`, and
-`server_url` affects cluster calls only.
+`AUTHLETE_IDP_HOST` works too. Leaving it unset returns the inner transport untouched, so the
+shared-cloud path keeps exactly its generated behaviour.
 
-Since service create and delete both go through the IdP, **any customer not on Authlete's shared
-cloud cannot create or delete a service.** Authlete's own documentation states the Terraform
-provider supports Shared Cloud, Dedicated Cloud, and On-Premise. Two of those three are broken.
+The same transport also injects `apiServerId` into IdP request bodies that omit it, derived from
+the cluster URL — so customers no longer look up and type a magic number. A value set explicitly
+is never overwritten, and self-managed clusters that cannot be mapped still set `api_server_id` on
+the resource.
 
-**Attempted and does not work.** Declaring the IdP server as an OpenAPI server variable was
-tried on 24 August 2026. Speakeasy surfaces server variables as configurable provider attributes
-only for **root-level** `servers`; per-operation server variables are resolved to their default
-at generation time and baked into the call:
-
-```go
-baseURL := utils.ReplaceParameters(operations.ServiceCreateIdpAPIServerList[...], map[string]string{
-    "idpHost": "login.authlete.com",   // no override path
-})
-```
-
-The change was reverted rather than left in as dead configuration, and the overlay carries a note
-so nobody re-attempts it. Remaining options, both outside config-only scope: an SDK hook that
-rewrites the host (`sdkHooksConfigAccess` is already enabled), or Speakeasy adding support for
-operation-level server variables.
+Twelve unit tests in `idp_routing_test.go` cover this without a network, including that cluster
+traffic and non-IdP bodies are left untouched. Verified to survive two full regenerations with no
+conflict markers.
 
 ### No way to trust a private certificate authority
 

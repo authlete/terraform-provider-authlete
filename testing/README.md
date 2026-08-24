@@ -31,7 +31,7 @@ to run without a token.
 | `AUTHLETE_TOKEN` | Read directly by the provider. Required for `apply`/`destroy`. Must be an **Organization Token** — a Service Access Token is scoped to one existing service and cannot create one. |
 | `AUTHLETE_ORGANIZATION_ID` | Required for `apply`/`destroy`. The IdP create endpoint will not accept a service without it. |
 | `AUTHLETE_SERVER_URL` | Read directly by the provider. Defaults to `https://us.authlete.com`; set `https://jp.authlete.com` for the JP cluster. |
-| `AUTHLETE_API_SERVER_ID` | Normally unnecessary — `run.sh` derives it from the server URL (us 76281, jp 53285, eu 63294, br 47363). Set it for self-managed deployments. |
+| `AUTHLETE_IDP_HOST` | Only for Dedicated Cloud and On-Premise, which run their own IdP. Unset means Authlete's shared cloud. |
 | `AUTHLETE_NAME_PREFIX` | Defaults to `tftest`. Prefixes created object names so test artifacts are identifiable. |
 
 Values can go in a gitignored `.env.local` beside this file, which `run.sh`
@@ -45,7 +45,10 @@ export AUTHLETE_TOKEN='...' AUTHLETE_ORGANIZATION_ID='...'
 
 `AUTHLETE_TOKEN` and `AUTHLETE_SERVER_URL` are consumed by the provider itself, so `main.tf`
 declares `provider "authlete" {}` with no credential in configuration at all. The provider block
-also accepts `tls_skip_verify` and `http_headers`.
+also accepts `idp_host`, `tls_skip_verify` and `http_headers`.
+
+`api_server_id` no longer needs setting: the provider derives it from the cluster URL and injects
+it into IdP requests. Self-managed clusters it cannot map should still set it on the resource.
 
 ### Service quota
 

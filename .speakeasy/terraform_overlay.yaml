@@ -24,7 +24,8 @@ actions:
   # configurable provider attributes only for root-level servers, and resolves
   # per-operation ones to their default at generation time. Fixing this needs
   # either an SDK hook that rewrites the host, or Speakeasy support for
-  # operation-level server variables. Do not re-attempt via the overlay.
+  # operation-level server variables. Do not re-attempt via the overlay --
+  # this is now solved at the HTTP layer in internal/provider/idp_routing.go.
 
   - target: $.paths['/api/service'].post
     description: Service create (IdP)
