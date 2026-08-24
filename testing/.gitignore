@@ -6,3 +6,5 @@ terraform.tfstate
 terraform.tfstate.backup
 *.tfplan
 .env.local
+jwks_*.json
+*.pem
