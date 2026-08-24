@@ -3,7 +3,19 @@ terraform {
     authlete = {
       source = "speakeasy/authlete"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
+    }
   }
+}
+
+# Key generation stays with hashicorp/tls, which already handles generating once
+# and holding it in state. The provider supplies only the PEM -> JWK conversion,
+# which is deterministic and therefore safe as a Terraform function.
+resource "tls_private_key" "signing" {
+  algorithm = "RSA"
+  rsa_bits  = 2048
 }
 
 variable "name_prefix" {
@@ -60,7 +72,10 @@ resource "authlete_service" "test" {
   # provider cannot offer the structured `jwk` block the hand-written provider
   # has. The open question is whether the string round-trips: if Authlete stores
   # it back in any different form, every plan reports a change forever.
-  jwks = file("${path.module}/jwks_service.json")
+  jwks = jsonencode({
+    keys = [jsondecode(provider::authlete::jwk_from_pem(
+      tls_private_key.signing.private_key_pem, "tftest-service-key", "RS256", "sig"))]
+  })
 }
 
 # ---------------------------------------------------------------------------
@@ -80,7 +95,11 @@ resource "authlete_client" "test" {
   grant_types    = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   response_types = ["CODE"]
 
-  jwks = file("${path.module}/jwks_client.json")
+  # A client publishes public keys only, so it gets the public PEM.
+  jwks = jsonencode({
+    keys = [jsondecode(provider::authlete::jwk_from_pem(
+      tls_private_key.signing.public_key_pem, "tftest-client-key", "RS256", "sig"))]
+  })
 }
 
 # ---------------------------------------------------------------------------

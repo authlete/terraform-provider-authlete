@@ -99,10 +99,41 @@ byte-different — and that single difference cascaded into **214 attributes** r
 the overlay to `client.jwks`, `service.jwks` and `service.federationJwks`. Verified end to end —
 create with a pretty-printed JWK Set, then two consecutive plans, both `No changes`.
 
-**What is still missing is key generation, and only that.** Customers must produce their own JWK
-Set and paste it in; the published provider builds the key material for them from a declarative
-`jwk` block with `generate = true`. That part cannot come from a spec that models the field as a
-string, and remains the one genuine capability regression.
+**Key generation — closed, by a different route.**
+
+The published provider generates key material inside the resource (`generate = true`). That shape
+cannot be reproduced as a Terraform function: functions must be deterministic, because Terraform
+calls them during plan *and* apply, so one returning fresh random bytes would never let a plan
+match its apply.
+
+The split that does work leaves generation to `hashicorp/tls`, which already handles generating
+once and holding the key in state, and adds only the deterministic transformation Authlete needs:
+
+```terraform
+resource "tls_private_key" "signing" {
+  algorithm = "RSA"
+  rsa_bits  = 2048
+}
+
+resource "authlete_service" "main" {
+  jwks = jsonencode({
+    keys = [jsondecode(provider::authlete::jwk_from_pem(
+      tls_private_key.signing.private_key_pem, "signing-key-1", "RS256", "sig"))]
+  })
+}
+```
+
+`internal/provider/functions/jwk_from_pem.go`, registered through `additionalFunctions` in
+`gen.yaml`. Handles RSA, ECDSA (P-256/384/521) and Ed25519, in PKCS#8, PKCS#1, SEC1 and PKIX
+public form. Pass a private PEM for a service's signing keys or a public PEM for a client's
+published keys — the output contains exactly what the input holds.
+
+Verified against the live API: create, two consecutive clean plans, and Authlete's
+`/service/jwks/get` serving the public half back, which it could only do having parsed the
+supplied private key.
+
+Not carried over: the `x5c` certificate-chain field, and validation of `alg` against Authlete's
+accepted list. Neither blocks use.
 
 ### Full lists
 

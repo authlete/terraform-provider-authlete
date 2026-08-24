@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	authletefunctions "github.com/speakeasy/terraform-provider-authlete/internal/provider/functions"
 	"github.com/speakeasy/terraform-provider-authlete/internal/sdk"
 	"github.com/speakeasy/terraform-provider-authlete/internal/sdk/models/shared"
 	"net/http"
@@ -160,7 +161,9 @@ func (p *AuthleteProvider) Configure(ctx context.Context, req provider.Configure
 }
 
 func (p *AuthleteProvider) Functions(_ context.Context) []func() function.Function {
-	return []func() function.Function{}
+	return []func() function.Function{
+		authletefunctions.NewJWKFromPEMFunction,
+	}
 }
 
 func (p *AuthleteProvider) Actions(_ context.Context) []func() action.Action {

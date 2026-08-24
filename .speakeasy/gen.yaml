@@ -37,7 +37,10 @@ terraform:
   additionalDataSources: []
   additionalDependencies: {}
   additionalEphemeralResources: []
-  additionalFunctions: []
+  additionalFunctions:
+    - function: authletefunctions.NewJWKFromPEMFunction
+      importAlias: authletefunctions
+      importLocation: github.com/speakeasy/terraform-provider-authlete/internal/provider/functions
   additionalListResources: []
   additionalProviderAttributes:
     httpHeaders: http_headers
