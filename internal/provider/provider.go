@@ -38,6 +38,8 @@ type AuthleteProviderModel struct {
 	HTTPHeaders   types.Map    `tfsdk:"http_headers"`
 	ServerURL     types.String `tfsdk:"server_url"`
 	TLSSkipVerify types.Bool   `tfsdk:"tls_skip_verify"`
+	// idp_host: hand-added, see idp_routing.go
+	IdpHost types.String `tfsdk:"idp_host"`
 }
 
 func (p *AuthleteProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -72,6 +74,11 @@ func (p *AuthleteProvider) Schema(ctx context.Context, req provider.SchemaReques
 			},
 			"tls_skip_verify": schema.BoolAttribute{
 				Description: `Disable TLS verification in HTTP client`,
+				Optional:    true,
+			},
+			// idp_host: hand-added, see idp_routing.go
+			"idp_host": schema.StringAttribute{
+				Description: `Host of the Authlete IdP, which handles service creation and deletion. Defaults to Authlete's shared cloud. Dedicated Cloud and On-Premise deployments run their own and must set this. Configurable via environment variable ` + "`AUTHLETE_IDP_HOST`" + `.`,
 				Optional:    true,
 			},
 		},
@@ -125,6 +132,14 @@ func (p *AuthleteProvider) Configure(ctx context.Context, req provider.Configure
 
 	httpClient := http.DefaultClient
 	httpClient.Transport = NewProviderHTTPTransport(providerHTTPTransportOpts)
+
+	// idp_host: hand-added, see idp_routing.go. Routes IdP-bound requests to a
+	// customer's own IdP; a no-op when unset, which is the shared-cloud case.
+	idpHost := data.IdpHost.ValueString()
+	if idpHost == "" {
+		idpHost = os.Getenv("AUTHLETE_IDP_HOST")
+	}
+	httpClient.Transport = NewIdpRoutingTransport(idpHost, httpClient.Transport)
 
 	opts := []sdk.SDKOption{
 		sdk.WithServerURL(serverUrl),
