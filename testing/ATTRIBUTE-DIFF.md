@@ -86,8 +86,23 @@ Service: 27. Client: 25. Nearly all are the structured JWK block —
 `kid`, `alg`, `use`, `crv`, `generate`, `key_size`, `pem_certificate`, `pem_private_key`, and
 the raw JWK components `n`, `e`, `d`, `p`, `q`, `dp`, `dq`, `qi`, `x`, `y`, `k`, `x5c`.
 
-The generated provider collapses all of that into a single `jwks` string. This is the one
-genuine capability regression, and the one place hand-written code is unavoidable.
+The generated provider collapses all of that into a single `jwks` string.
+
+**Measured against the live API on 24 August 2026.** Supplying a normally-formatted JWK Set
+produced a phantom diff on every subsequent plan. Authlete returns the document with whitespace
+stripped and member keys reordered (`e` ahead of `use`, `n` moved last) — semantically identical,
+byte-different — and that single difference cascaded into **214 attributes** reporting as
+"known after apply". Terraform's own annotation was `~ jwks = jsonencode( # whitespace changes`.
+
+**Fixed** with a custom type comparing JWK Sets by JSON meaning rather than bytes:
+`internal/provider/customtypes/jwks.go`, applied through `x-speakeasy-terraform-custom-type` in
+the overlay to `client.jwks`, `service.jwks` and `service.federationJwks`. Verified end to end —
+create with a pretty-printed JWK Set, then two consecutive plans, both `No changes`.
+
+**What is still missing is key generation, and only that.** Customers must produce their own JWK
+Set and paste it in; the published provider builds the key material for them from a declarative
+`jwk` block with `generate = true`. That part cannot come from a spec that models the field as a
+string, and remains the one genuine capability regression.
 
 ### Full lists
 

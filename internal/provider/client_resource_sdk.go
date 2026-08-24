@@ -7,6 +7,7 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
 	"github.com/speakeasy/terraform-provider-authlete/internal/provider/typeconvert"
 	tfTypes "github.com/speakeasy/terraform-provider-authlete/internal/provider/types"
 	"github.com/speakeasy/terraform-provider-authlete/internal/sdk/models/operations"
@@ -174,7 +175,9 @@ func (r *ClientResourceModel) RefreshFromSharedClient(ctx context.Context, resp 
 			r.IDTokenSignAlg = types.StringNull()
 		}
 		r.InScopeForTokenMigration = types.BoolPointerValue(resp.InScopeForTokenMigration)
-		r.Jwks = types.StringPointerValue(resp.Jwks)
+		jwksValuable, jwksDiags := customtypes.JWKSType{}.ValueFromString(ctx, types.StringPointerValue(resp.Jwks))
+		diags.Append(jwksDiags...)
+		r.Jwks = jwksValuable.(customtypes.JWKS)
 		r.JwksURI = types.StringPointerValue(resp.JwksURI)
 		r.Locked = types.BoolPointerValue(resp.Locked)
 		r.LoginURI = types.StringPointerValue(resp.LoginURI)

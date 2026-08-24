@@ -55,6 +55,12 @@ resource "authlete_service" "test" {
 
   access_token_duration  = 3600
   refresh_token_duration = 86400
+
+  # JWK experiment. The spec models this as one opaque string, so the generated
+  # provider cannot offer the structured `jwk` block the hand-written provider
+  # has. The open question is whether the string round-trips: if Authlete stores
+  # it back in any different form, every plan reports a change forever.
+  jwks = file("${path.module}/jwks_service.json")
 }
 
 # ---------------------------------------------------------------------------
@@ -73,6 +79,8 @@ resource "authlete_client" "test" {
   redirect_uris  = ["https://${var.name_prefix}.example.com/callback"]
   grant_types    = ["AUTHORIZATION_CODE", "REFRESH_TOKEN"]
   response_types = ["CODE"]
+
+  jwks = file("${path.module}/jwks_client.json")
 }
 
 # ---------------------------------------------------------------------------

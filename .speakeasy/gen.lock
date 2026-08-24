@@ -1,16 +1,16 @@
 lockVersion: 2.0.0
 id: 7e867910-e09d-4298-9f10-26fd4e4fca44
 management:
-  docChecksum: 75a1f624307130c83aafc3105cfef670
+  docChecksum: 9a1530fc63359fafb4b6da3290527aa5
   docVersion: 3.0.16
   speakeasyVersion: 1.795.1
   generationVersion: 2.932.9
   releaseVersion: 0.0.1
   configChecksum: 6dfcf6694b953e6821b5ae51ccfa436c
 persistentEdits:
-  generation_id: ead1def0-6e04-4982-8726-98baeb8cf147
-  pristine_commit_hash: df758938c3d8ee6e307cfe9320b81dbd640db94a
-  pristine_tree_hash: 9b9a3b41fc00d93c91508ebe9f9b5c34d39299db
+  generation_id: 8d9c6bff-6dba-4fad-846e-6c4d1fc7a42f
+  pristine_commit_hash: fd268b41a30bf19090f8ad2bb2c118165212917d
+  pristine_tree_hash: b6b77a0abb5389ce4a89a303aef7975b99dfcbc9
 features:
   terraform:
     additionalDependencies: 0.1.0
@@ -218,23 +218,23 @@ trackedFiles:
     pristine_git_object: cd0dbf813362d30f2c7b2f489f99a65ea2d528e0
   internal/provider/client_data_source.go:
     id: c790cbda3c1d
-    last_write_checksum: sha1:fa7783dfca4239c55de94bdbf32769a106be724b
-    pristine_git_object: c30d55a0e2dacd36a6c32c0a66ecf497bc4834ff
+    last_write_checksum: sha1:2abe43120827297732f6a20a86e110f3b6cd513d
+    pristine_git_object: fb3ab2039bea3f5b099fb18da7b2921240fd5f0a
   internal/provider/client_data_source_sdk.go:
     id: c4266febcd1a
-    last_write_checksum: sha1:f49a02e7cd843d47a574f5175ce1ffeb0cb51e78
-    pristine_git_object: f1434923a6d793b719ce368542e746393041c76d
+    last_write_checksum: sha1:72cf4326c8dbfc08342ac98ba69fee982dbc28d1
+    pristine_git_object: d870d19d41d531dc915f8e9863319e2227737afc
   internal/provider/client_resource.go:
     id: 3860e6dd0586
-    last_write_checksum: sha1:8e57ce5faadb415047aac845a90ec0ae7c227b8c
-    pristine_git_object: 265989141cf9d1c38736e501060bb8357f370ed8
+    last_write_checksum: sha1:e01c1027dcecd1f5f7811919fb83aa0c00976b6a
+    pristine_git_object: 8f3b4f65a57f52780f56c747280596ebf16a714f
   internal/provider/client_resource_sdk.go:
     id: 4e9ceaded2eb
-    last_write_checksum: sha1:800e712c2147bba31e220bf4823d21f98b38231c
-    pristine_git_object: 3ea2f7867fcdedc4c92f7a435c8604399fb2b943
+    last_write_checksum: sha1:0714b812c9804a8e27556631e8a1e9828c9ab62c
+    pristine_git_object: db632b335d39a056e625ce439e66b076ea764bfb
   internal/provider/provider.go:
     id: 1e7e86841cf3
-    last_write_checksum: sha1:02e1843797c78c8bf2aa6dff08415bff526dbf85
+    last_write_checksum: sha1:e5588152b40727c3f5de3372db01ee4b81557a22
     pristine_git_object: 914ec1f064c2544f7a7b8f3b800f4c5408ae07e8
   internal/provider/reflect/diags.go:
     id: 35b6b44972e2
@@ -294,20 +294,20 @@ trackedFiles:
     pristine_git_object: 2e7d63a4864472f1837e48f18da0524ea87f3c3b
   internal/provider/service_data_source.go:
     id: ab1f452a03fc
-    last_write_checksum: sha1:daf7422a30e6ebccc0fe3b767c61096ffb96260b
-    pristine_git_object: 07ba600cba5090e0dce865ba4cb1501298a02ed8
+    last_write_checksum: sha1:b1ae8bd2cacebe3967ff00c6e93799e576bf003e
+    pristine_git_object: 16815046c575352e5684ca5b81032fb9473a4614
   internal/provider/service_data_source_sdk.go:
     id: 1e912e1489eb
-    last_write_checksum: sha1:48f6fcb8848f93101005a0bfffbf4ee544481331
-    pristine_git_object: a5e86b652327374079a8ada66080aa0a1d89feb2
+    last_write_checksum: sha1:01f64d142e2281b6d825c80cb3166c5e69abf85f
+    pristine_git_object: dab58ae9457eace868c7396ef829dcc0e28bd6bf
   internal/provider/service_resource.go:
     id: 48455625b204
-    last_write_checksum: sha1:8856132606ab2630226710fc4a81573350cc160f
-    pristine_git_object: 1c9ca0dc9bdf674c6ccd0f306ff34e892492ce0b
+    last_write_checksum: sha1:b0da94e45ef6d1f503a2fc18e2e6d4fbcfe977e4
+    pristine_git_object: 86f0ad6e0e59d9665f49c31f6d2485954e3c040e
   internal/provider/service_resource_sdk.go:
     id: 09d622ad7c17
-    last_write_checksum: sha1:52ed5fb86008c61143ae8dd0f1f3a4689a6a8e08
-    pristine_git_object: 685cd114489cd8d45a39988a269545e55f177608
+    last_write_checksum: sha1:11e9c6ffae48243f10ac55a7a481b22182a5b2d0
+    pristine_git_object: 85ecd32748cbddcf20689f22809a60f91fceb154
   internal/provider/typeconvert/date.go:
     id: dfe2bc95ad1b
     last_write_checksum: sha1:46276c5efc58c9ebfad3a1ff123135986a4cea17

@@ -158,3 +158,36 @@ actions:
     description: Conceal the service API secret from console output
     update:
       x-speakeasy-param-sensitive: true
+
+  # ---------- JWK Set round-tripping ----------
+  # Authlete returns a JWK Set with whitespace stripped and member keys
+  # reordered, so a byte comparison reports a change on every plan after the
+  # first apply. Measured against the live API: one such difference cascaded
+  # into 214 attributes showing as "known after apply". Comparing by JSON
+  # meaning instead removes the phantom diff entirely.
+  - target: $.components.schemas.client.properties.jwks
+    description: Compare the client JWK Set by meaning, not bytes
+    update:
+      x-speakeasy-terraform-custom-type:
+        imports:
+          - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+        schemaType: customtypes.JWKSType{}
+        valueType: customtypes.JWKS
+
+  - target: $.components.schemas.service.properties.jwks
+    description: Compare the service JWK Set by meaning, not bytes
+    update:
+      x-speakeasy-terraform-custom-type:
+        imports:
+          - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+        schemaType: customtypes.JWKSType{}
+        valueType: customtypes.JWKS
+
+  - target: $.components.schemas.service.properties.federationJwks
+    description: Compare the federation JWK Set by meaning, not bytes
+    update:
+      x-speakeasy-terraform-custom-type:
+        imports:
+          - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+        schemaType: customtypes.JWKSType{}
+        valueType: customtypes.JWKS

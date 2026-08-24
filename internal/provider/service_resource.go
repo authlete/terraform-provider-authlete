@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
 	tfTypes "github.com/speakeasy/terraform-provider-authlete/internal/provider/types"
 	"github.com/speakeasy/terraform-provider-authlete/internal/sdk"
 	"github.com/speakeasy/terraform-provider-authlete/internal/sdk/models/operations"
@@ -113,7 +114,7 @@ type ServiceResourceModel struct {
 	FapiModes                                   []types.String                    `tfsdk:"fapi_modes"`
 	FederationConfigurationDuration             types.Int64                       `tfsdk:"federation_configuration_duration"`
 	FederationEnabled                           types.Bool                        `tfsdk:"federation_enabled"`
-	FederationJwks                              types.String                      `tfsdk:"federation_jwks"`
+	FederationJwks                              customtypes.JWKS                  `tfsdk:"federation_jwks"`
 	FederationRegistrationEndpoint              types.String                      `tfsdk:"federation_registration_endpoint"`
 	FederationSignatureKeyID                    types.String                      `tfsdk:"federation_signature_key_id"`
 	FrontChannelRequestObjectEncryptionRequired types.Bool                        `tfsdk:"front_channel_request_object_encryption_required"`
@@ -130,7 +131,7 @@ type ServiceResourceModel struct {
 	IntrospectionSignatureKeyID                 types.String                      `tfsdk:"introspection_signature_key_id"`
 	IssSuppressed                               types.Bool                        `tfsdk:"iss_suppressed"`
 	Issuer                                      types.String                      `tfsdk:"issuer"`
-	Jwks                                        types.String                      `tfsdk:"jwks"`
+	Jwks                                        customtypes.JWKS                  `tfsdk:"jwks"`
 	JwksURI                                     types.String                      `tfsdk:"jwks_uri"`
 	JwtGrantByIdentifiableClientsOnly           types.Bool                        `tfsdk:"jwt_grant_by_identifiable_clients_only"`
 	JwtGrantEncryptedJwtRejected                types.Bool                        `tfsdk:"jwt_grant_encrypted_jwt_rejected"`
@@ -873,8 +874,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `flag indicating whether this service supports OpenID Connect Federation 1`,
 			},
 			"federation_jwks": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
+				CustomType: customtypes.JWKSType{},
+				Computed:   true,
+				Optional:   true,
 				MarkdownDescription: `JWK Set document containing keys that are used to sign (1) self-signed` + "\n" +
 					`entity statement of this service and (2) the response from` + "\n" +
 					`` + "`" + `signed_jwks_uri` + "`" + `.`,
@@ -1032,8 +1034,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`and ` + "`" + `issuer` + "`" + ` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"jwks": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
+				CustomType: customtypes.JWKSType{},
+				Computed:   true,
+				Optional:   true,
 				MarkdownDescription: `The content of the service's [JSON Web Key Set](https://tools.ietf.org/html/rfc7517) document.` + "\n" +
 					`` + "\n" +
 					`If this property is not ` + "`" + `null` + "`" + ` in a ` + "`" + `/service/create` + "`" + ` request or a ` + "`" + `/service/update` + "`" + ` request,` + "\n" +

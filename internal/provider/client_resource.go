@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
 	tfTypes "github.com/speakeasy/terraform-provider-authlete/internal/provider/types"
 	"github.com/speakeasy/terraform-provider-authlete/internal/sdk"
 	speakeasy_objectvalidators "github.com/speakeasy/terraform-provider-authlete/internal/validators/objectvalidators"
@@ -86,7 +87,7 @@ type ClientResourceModel struct {
 	IDTokenEncryptionEnc                        types.String             `tfsdk:"id_token_encryption_enc"`
 	IDTokenSignAlg                              types.String             `tfsdk:"id_token_sign_alg"`
 	InScopeForTokenMigration                    types.Bool               `tfsdk:"in_scope_for_token_migration"`
-	Jwks                                        types.String             `tfsdk:"jwks"`
+	Jwks                                        customtypes.JWKS         `tfsdk:"jwks"`
 	JwksURI                                     types.String             `tfsdk:"jwks_uri"`
 	Locked                                      types.Bool               `tfsdk:"locked"`
 	LoginURI                                    types.String             `tfsdk:"login_uri"`
@@ -782,8 +783,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					`operations.`,
 			},
 			"jwks": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
+				CustomType: customtypes.JWKSType{},
+				Computed:   true,
+				Optional:   true,
 				MarkdownDescription: `The content of the JWK Set of the client application.` + "\n" +
 					`The format is described in` + "\n" +
 					`[JSON Web Key (JWK), 5. JWK Set Format](https://datatracker.ietf.org/doc/html/rfc7517#section-5).` + "\n" +

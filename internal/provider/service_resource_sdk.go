@@ -7,6 +7,7 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
 	"github.com/speakeasy/terraform-provider-authlete/internal/provider/typeconvert"
 	tfTypes "github.com/speakeasy/terraform-provider-authlete/internal/provider/types"
 	"github.com/speakeasy/terraform-provider-authlete/internal/sdk/models/operations"
@@ -144,7 +145,9 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		}
 		r.FederationConfigurationDuration = types.Int64PointerValue(resp.FederationConfigurationDuration)
 		r.FederationEnabled = types.BoolPointerValue(resp.FederationEnabled)
-		r.FederationJwks = types.StringPointerValue(resp.FederationJwks)
+		federationJwksValuable, federationJwksDiags := customtypes.JWKSType{}.ValueFromString(ctx, types.StringPointerValue(resp.FederationJwks))
+		diags.Append(federationJwksDiags...)
+		r.FederationJwks = federationJwksValuable.(customtypes.JWKS)
 		r.FederationRegistrationEndpoint = types.StringPointerValue(resp.FederationRegistrationEndpoint)
 		r.FederationSignatureKeyID = types.StringPointerValue(resp.FederationSignatureKeyID)
 		r.FrontChannelRequestObjectEncryptionRequired = types.BoolPointerValue(resp.FrontChannelRequestObjectEncryptionRequired)
@@ -175,7 +178,9 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		r.IntrospectionSignatureKeyID = types.StringPointerValue(resp.IntrospectionSignatureKeyID)
 		r.IssSuppressed = types.BoolPointerValue(resp.IssSuppressed)
 		r.Issuer = types.StringPointerValue(resp.Issuer)
-		r.Jwks = types.StringPointerValue(resp.Jwks)
+		jwksValuable, jwksDiags := customtypes.JWKSType{}.ValueFromString(ctx, types.StringPointerValue(resp.Jwks))
+		diags.Append(jwksDiags...)
+		r.Jwks = jwksValuable.(customtypes.JWKS)
 		r.JwksURI = types.StringPointerValue(resp.JwksURI)
 		r.JwtGrantByIdentifiableClientsOnly = types.BoolPointerValue(resp.JwtGrantByIdentifiableClientsOnly)
 		r.JwtGrantEncryptedJwtRejected = types.BoolPointerValue(resp.JwtGrantEncryptedJwtRejected)

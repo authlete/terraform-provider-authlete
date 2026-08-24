@@ -11002,6 +11002,11 @@ components:
               This property corresponds to `jwks_uri` in [OpenID Connect Dynamic Client Registration 1.0, 2.
               Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
               </Accordion>
+          x-speakeasy-terraform-custom-type:
+            imports:
+              - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+            schemaType: customtypes.JWKSType{}
+            valueType: customtypes.JWKS
         userInfoSignAlg:
           nullable: true
           $ref: '#/components/schemas/jws_alg'
@@ -12290,6 +12295,11 @@ components:
             pairs of public/private keys if the service wants to support asymmetric signatures for ID tokens
             and asymmetric encryption for request objects. See [OpenID Connect Core 1.0, 10. Signatures and
             Encryption](https://openid.net/specs/openid-connect-core-1_0.html#SigEnc) for details.
+          x-speakeasy-terraform-custom-type:
+            imports:
+              - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+            schemaType: customtypes.JWKSType{}
+            valueType: customtypes.JWKS
         idTokenSignatureKeyId:
           type: string
           description: |
@@ -12943,6 +12953,11 @@ components:
             JWK Set document containing keys that are used to sign (1) self-signed
             entity statement of this service and (2) the response from
             `signed_jwks_uri`.
+          x-speakeasy-terraform-custom-type:
+            imports:
+              - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+            schemaType: customtypes.JWKSType{}
+            valueType: customtypes.JWKS
         federationSignatureKeyId:
           type: string
           description: |
