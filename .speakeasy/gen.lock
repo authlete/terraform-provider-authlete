@@ -74,7 +74,7 @@ trackedFiles:
     pristine_git_object: e734e7f31e2788a33b6efccab8c9396f7566c369
   go.mod:
     id: c47645c391ad
-    last_write_checksum: sha1:9172982673b8304f0683f93611faa4c2a7456bcd
+    last_write_checksum: sha1:5fa426c8fbfbf041dfd9088e5f1bb1dfc1dd783d
     pristine_git_object: e3ec93e281d0402021ba3cabd8fe4d0d9eb736ed
   internal/planmodifiers/boolplanmodifier/suppress_diff.go:
     id: 3cf85b98963e
