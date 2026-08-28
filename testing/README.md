@@ -5,10 +5,11 @@ the Terraform registry. `run.sh` builds `../` into `.provider-bin/`, writes a
 `dev_overrides` block to a throwaway CLI config in this directory, and points
 Terraform at it via `TF_CLI_CONFIG_FILE`. Your `~/.terraformrc` is left alone.
 
-Because `dev_overrides` bypasses the registry, **there is no `terraform init`
-step** — with an override in place, init would fail looking for an unpublished
-provider. Terraform prints a "development overrides are in effect" warning on
-every command; that is expected.
+`dev_overrides` bypasses the registry for the Authlete provider, but `main.tf`
+also uses `hashicorp/tls` to generate a signing key, and that one is a real
+registry provider. So the first run in a fresh checkout does a `terraform init`
+automatically; later runs skip it. Terraform prints a "development overrides are
+in effect" warning on every command; that is expected.
 
 ## Usage
 

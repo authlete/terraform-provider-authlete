@@ -8,8 +8,9 @@
 #   ./run.sh destroy     # deletes what apply created
 #   ./run.sh show        # print current state
 #
-# Terraform finds the provider through a dev_overrides block written to a
-# throwaway CLI config in this directory. Your ~/.terraformrc is never touched.
+# Terraform finds the Authlete provider through a dev_overrides block written to
+# a throwaway CLI config in this directory. Your ~/.terraformrc is never touched.
+# hashicorp/tls still comes from the registry, so the first run does an init.
 #
 set -euo pipefail
 
@@ -97,6 +98,16 @@ EOF
 export TF_CLI_CONFIG_FILE="$TFRC"
 
 say "Provider: $BIN_DIR/terraform-provider-authlete"
+
+# dev_overrides covers the Authlete provider, but main.tf also uses
+# hashicorp/tls to generate a signing key, and that one does come from the
+# registry. So init is needed after all -- on a fresh clone there is no
+# .terraform directory and every command fails with "Missing required
+# provider". Terraform warns about the override during init; that is expected.
+if [[ ! -d .terraform ]]; then
+  say "terraform init (first run in this checkout)"
+  terraform init -input=false >/dev/null || die "terraform init failed"
+fi
 
 # ---------------------------------------------------------------------------
 # Run
