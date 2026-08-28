@@ -28,7 +28,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/speakeasy/terraform-provider-authlete/internal/sdk/models/operations"
+	"github.com/authlete/terraform-provider-authlete/internal/sdk/models/operations"
 )
 
 // apiServerIDByHost maps an Authlete cluster to the numeric API server ID the

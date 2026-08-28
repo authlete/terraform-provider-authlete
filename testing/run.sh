@@ -89,7 +89,7 @@ mkdir -p "$BIN_DIR"
 cat > "$TFRC" <<EOF
 provider_installation {
   dev_overrides {
-    "speakeasy/authlete" = "$BIN_DIR"
+    "authlete/authlete" = "$BIN_DIR"
   }
   direct {}
 }

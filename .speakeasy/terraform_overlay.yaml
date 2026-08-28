@@ -170,7 +170,7 @@ actions:
     update:
       x-speakeasy-terraform-custom-type:
         imports:
-          - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+          - "github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
         schemaType: customtypes.JWKSType{}
         valueType: customtypes.JWKS
 
@@ -179,7 +179,7 @@ actions:
     update:
       x-speakeasy-terraform-custom-type:
         imports:
-          - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+          - "github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
         schemaType: customtypes.JWKSType{}
         valueType: customtypes.JWKS
 
@@ -188,6 +188,6 @@ actions:
     update:
       x-speakeasy-terraform-custom-type:
         imports:
-          - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+          - "github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
         schemaType: customtypes.JWKSType{}
         valueType: customtypes.JWKS

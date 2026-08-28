@@ -11004,7 +11004,7 @@ components:
               </Accordion>
           x-speakeasy-terraform-custom-type:
             imports:
-              - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+              - "github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
             schemaType: customtypes.JWKSType{}
             valueType: customtypes.JWKS
         userInfoSignAlg:
@@ -12297,7 +12297,7 @@ components:
             Encryption](https://openid.net/specs/openid-connect-core-1_0.html#SigEnc) for details.
           x-speakeasy-terraform-custom-type:
             imports:
-              - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+              - "github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
             schemaType: customtypes.JWKSType{}
             valueType: customtypes.JWKS
         idTokenSignatureKeyId:
@@ -12955,7 +12955,7 @@ components:
             `signed_jwks_uri`.
           x-speakeasy-terraform-custom-type:
             imports:
-              - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+              - "github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
             schemaType: customtypes.JWKSType{}
             valueType: customtypes.JWKS
         federationSignatureKeyId:

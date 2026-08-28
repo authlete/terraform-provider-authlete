@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     authlete = {
-      source = "speakeasy/authlete"
+      source = "authlete/authlete"
     }
     tls = {
       source  = "hashicorp/tls"
