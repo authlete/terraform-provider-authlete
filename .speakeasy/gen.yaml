@@ -46,7 +46,7 @@ terraform:
     httpHeaders: http_headers
     tlsSkipVerify: tls_skip_verify
   additionalResources: []
-  author: speakeasy
+  author: authlete
   baseErrorName: AuthleteError
   debugLogging: {}
   defaultErrorName: APIError
