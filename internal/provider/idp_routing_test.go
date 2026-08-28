@@ -164,13 +164,13 @@ func TestAPIServerIDIsInjectedWhenAbsent(t *testing.T) {
 	inner := &bodyCapture{}
 	rt := NewIdpRoutingTransport("", 53285, inner)
 
-	postJSON(t, rt, defaultIdpOrigin()+"/api/service", `{"organizationId":417639873643986,"service":{"serviceName":"x"}}`)
+	postJSON(t, rt, defaultIdpOrigin()+"/api/service", `{"organizationId":123456789012345,"service":{"serviceName":"x"}}`)
 
 	got := decode(t, inner.body)
 	if got["apiServerId"] != float64(53285) {
 		t.Fatalf("apiServerId = %v, want 53285 (body: %s)", got["apiServerId"], inner.body)
 	}
-	if got["organizationId"] != float64(417639873643986) {
+	if got["organizationId"] != float64(123456789012345) {
 		t.Fatalf("injection clobbered organizationId: %s", inner.body)
 	}
 }
