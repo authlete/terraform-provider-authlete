@@ -498,15 +498,6 @@ func (r *ServiceResourceModel) ToOperationsServiceUpdateAPIRequest(ctx context.C
 func (r *ServiceResourceModel) ToSharedServiceCreateIdpRequest(ctx context.Context) (*shared.ServiceCreateIdpRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	apiServerID := new(int64)
-	if !r.APIServerID.IsUnknown() && !r.APIServerID.IsNull() {
-		*apiServerID = r.APIServerID.ValueInt64()
-	} else {
-		apiServerID = nil
-	}
-	var organizationID int64
-	organizationID = r.OrganizationID.ValueInt64()
-
 	service, serviceDiags := r.ToSharedServiceInput(ctx)
 	diags.Append(serviceDiags...)
 
@@ -515,9 +506,7 @@ func (r *ServiceResourceModel) ToSharedServiceCreateIdpRequest(ctx context.Conte
 	}
 
 	out := shared.ServiceCreateIdpRequest{
-		APIServerID:    apiServerID,
-		OrganizationID: organizationID,
-		Service:        service,
+		Service: service,
 	}
 
 	return &out, diags
@@ -1938,22 +1927,11 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 func (r *ServiceResourceModel) ToSharedServiceRemoveIdpRequest(ctx context.Context) (*shared.ServiceRemoveIdpRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	apiServerID := new(int64)
-	if !r.APIServerID.IsUnknown() && !r.APIServerID.IsNull() {
-		*apiServerID = r.APIServerID.ValueInt64()
-	} else {
-		apiServerID = nil
-	}
-	var organizationID int64
-	organizationID = r.OrganizationID.ValueInt64()
-
 	var serviceID int64
 	serviceID = r.APIKey.ValueInt64()
 
 	out := shared.ServiceRemoveIdpRequest{
-		APIServerID:    apiServerID,
-		OrganizationID: organizationID,
-		ServiceID:      serviceID,
+		ServiceID: serviceID,
 	}
 
 	return &out, diags

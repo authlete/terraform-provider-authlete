@@ -5,7 +5,6 @@ resource "authlete_service" "my_service" {
   access_token_signature_key_id                 = "...my_access_token_signature_key_id..."
   access_token_type                             = "...my_access_token_type..."
   allowable_clock_skew                          = 0
-  api_server_id                                 = 10
   attestation_challenge_time_window             = 4
   attributes = [
     {
@@ -151,7 +150,6 @@ resource "authlete_service" "my_service" {
   nbf_optional                                     = false
   oid4vci_version                                  = "...my_oid4vci_version..."
   openid_dropped_on_refresh_without_offline_access = false
-  organization_id                                  = 9
   organization_name                                = "...my_organization_name..."
   par_required                                     = false
   pkce_required                                    = true
