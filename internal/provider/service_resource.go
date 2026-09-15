@@ -1206,7 +1206,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`is used.`,
 			},
 			"organization_id": schema.Int64Attribute{
-				Required: true,
+				Optional: true,
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.RequiresReplaceIfConfigured(),
 				},
