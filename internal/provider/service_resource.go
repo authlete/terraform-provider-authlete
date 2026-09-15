@@ -6,6 +6,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	custom_int64planmodifier "github.com/authlete/terraform-provider-authlete/internal/planmodifiers/int64planmodifier"
 	"github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
 	tfTypes "github.com/authlete/terraform-provider-authlete/internal/provider/types"
 	"github.com/authlete/terraform-provider-authlete/internal/sdk"
@@ -332,6 +333,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"api_server_id": schema.Int64Attribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.Int64{
+					custom_int64planmodifier.ImportSafeRequiresReplace(),
 					int64planmodifier.RequiresReplaceIfConfigured(),
 				},
 				MarkdownDescription: `The numeric ID of the API server to create the service on. Official SDKs inject` + "\n" +
@@ -1206,8 +1208,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`is used.`,
 			},
 			"organization_id": schema.Int64Attribute{
-				Required: true,
+				Optional: true,
 				PlanModifiers: []planmodifier.Int64{
+					custom_int64planmodifier.ImportSafeRequiresReplace(),
 					int64planmodifier.RequiresReplaceIfConfigured(),
 				},
 				Description: `The numeric ID of the organization the service belongs to. Requires replacement if changed.`,
