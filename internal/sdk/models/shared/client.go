@@ -1426,8 +1426,6 @@ type ClientInput struct {
 	// default, this is a string version of the `clientId` property.
 	//
 	ClientIDAlias *string `json:"clientIdAlias,omitzero" form:"name=clientIdAlias"`
-	// Deprecated. Always set to `true`.
-	ClientIDAliasEnabled *bool `json:"clientIdAliasEnabled,omitzero" form:"name=clientIdAliasEnabled"`
 	// The client type, either `CONFIDENTIAL` or `PUBLIC`. See [RFC 6749, 2.1. Client Types](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1)
 	// for details.
 	//
@@ -1462,18 +1460,12 @@ type ClientInput struct {
 	// of [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
 	//
 	SoftwareID *string `json:"softwareId,omitzero" form:"name=softwareId"`
-	// The unique identifier of the developer who created this client application.
-	//
-	Developer *string `json:"developer,omitzero" form:"name=developer"`
 	// The version identifier string for the client software identified by the software ID.
 	//
 	// This property corresponds to the software_version metadata defined in [2. Client Metadata](https://datatracker.ietf.org/doc/html/rfc7591#section-2)
 	// of [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
 	//
 	SoftwareVersion *string `json:"softwareVersion,omitzero" form:"name=softwareVersion"`
-	// The hash of the registration access token for this client.
-	//
-	RegistrationAccessTokenHash *string `json:"registrationAccessTokenHash,omitzero" form:"name=registrationAccessTokenHash"`
 	// A string array of grant types which the client application declares that it will restrict itself to using.
 	// This property corresponds to `grant_types` in [OpenID Connect Dynamic Client Registration 1.0,
 	// 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
@@ -1842,52 +1834,16 @@ type ClientInput struct {
 	// If the DPoP is required for this client
 	//
 	DpopRequired *bool `json:"dpopRequired,omitzero" form:"name=dpopRequired"`
-	// The flag indicating whether this client was registered by the
-	// "automatic" client registration of OIDC Federation.
-	//
-	AutomaticallyRegistered *bool `json:"automaticallyRegistered,omitzero" form:"name=automaticallyRegistered"`
-	// The flag indicating whether this client was registered by the
-	// "explicit" client registration of OIDC Federation.
-	//
-	ExplicitlyRegistered *bool `json:"explicitlyRegistered,omitzero" form:"name=explicitlyRegistered"`
 	// The flag indicating whether this service signs responses from the resource server.
 	//
 	RsRequestSigned *bool `json:"rsRequestSigned,omitzero" form:"name=rsRequestSigned"`
 	// The key ID of a JWK containing the public key used by this client to sign requests to the resource server.
 	//
 	RsSignedRequestKeyID *string `json:"rsSignedRequestKeyId,omitzero" form:"name=rsSignedRequestKeyId"`
-	// The client registration types that the client has declared it may use.
-	//
-	ClientRegistrationTypes []ClientRegistrationType `json:"clientRegistrationTypes,omitzero" form:"name=clientRegistrationTypes"`
-	// The human-readable name representing the organization that manages this client. This property corresponds
-	// to the organization_name client metadata that is defined in OpenID Connect Federation 1.0.
-	//
-	OrganizationName *string `json:"organizationName,omitzero" form:"name=organizationName"`
-	// The URI of the endpoint that returns this client's JWK Set document in the JWT format. This property
-	// corresponds to the `signed_jwks_uri` client metadata defined in OpenID Connect Federation 1.0.
-	//
-	SignedJwksURI *string `json:"signedJwksUri,omitzero" form:"name=signedJwksUri"`
-	// the entity ID of this client.
-	//
-	EntityID *string `json:"entityId,omitzero" form:"name=entityId"`
-	// The entity ID of the trust anchor of the trust chain that was used when this client was registered or updated by
-	// the mechanism defined in OpenID Connect Federation 1.0
-	//
-	TrustAnchorID *string `json:"trustAnchorId,omitzero" form:"name=trustAnchorId"`
 	// The trust chain that was used when this client was registered or updated by the mechanism defined in
 	// OpenID Connect Federation 1.0
 	//
 	TrustChain []string `json:"trustChain,omitzero" form:"name=trustChain"`
-	// the expiration time of the trust chain that was used when this client was registered or updated by the mechanism
-	// defined in OpenID Connect Federation 1.0. The value is represented as milliseconds elapsed since the Unix epoch (1970-01-01).
-	//
-	TrustChainExpiresAt *int64 `json:"trustChainExpiresAt,omitzero" form:"name=trustChainExpiresAt"`
-	// the time at which the trust chain was updated by the mechanism defined in OpenID Connect Federation 1.0
-	//
-	TrustChainUpdatedAt *int64 `json:"trustChainUpdatedAt,omitzero" form:"name=trustChainUpdatedAt"`
-	// The flag which indicates whether this client is locked.
-	//
-	Locked *bool `json:"locked,omitzero" form:"name=locked"`
 	// The URL of the credential offer endpoint at which this client
 	// (wallet) receives a credential offer from the credential issuer.
 	//
@@ -1909,21 +1865,6 @@ type ClientInput struct {
 	// operations.
 	//
 	InScopeForTokenMigration *bool `json:"inScopeForTokenMigration,omitzero" form:"name=inScopeForTokenMigration"`
-	// Location of the Client ID Metadata Document that was used for this client.
-	//
-	MetadataDocumentLocation *string `json:"metadataDocumentLocation,omitzero" form:"name=metadataDocumentLocation"`
-	// Expiration time of the metadata document (UNIX time in milliseconds).
-	//
-	MetadataDocumentExpiresAt *int64 `json:"metadataDocumentExpiresAt,omitzero" form:"name=metadataDocumentExpiresAt"`
-	// Last-updated time of the metadata document (UNIX time in milliseconds).
-	//
-	MetadataDocumentUpdatedAt *int64 `json:"metadataDocumentUpdatedAt,omitzero" form:"name=metadataDocumentUpdatedAt"`
-	// Indicates whether this client was discovered via a Client ID Metadata Document.
-	//
-	DiscoveredByMetadataDocument *bool `json:"discoveredByMetadataDocument,omitzero" form:"name=discoveredByMetadataDocument"`
-	// Source of this client record.
-	//
-	ClientSource *ClientClientSource `json:"clientSource,omitzero" form:"name=clientSource"`
 	// The SPIFFE ID of the client. Used for SPIFFE-based client authentication
 	// (`SPIFFE_JWT`). Corresponds to the `spiffe_id` client metadata parameter.
 	//
@@ -1981,13 +1922,6 @@ func (c *ClientInput) GetClientIDAlias() *string {
 	return c.ClientIDAlias
 }
 
-func (c *ClientInput) GetClientIDAliasEnabled() *bool {
-	if c == nil {
-		return nil
-	}
-	return c.ClientIDAliasEnabled
-}
-
 func (c *ClientInput) GetClientType() *ClientType {
 	if c == nil {
 		return nil
@@ -2037,25 +1971,11 @@ func (c *ClientInput) GetSoftwareID() *string {
 	return c.SoftwareID
 }
 
-func (c *ClientInput) GetDeveloper() *string {
-	if c == nil {
-		return nil
-	}
-	return c.Developer
-}
-
 func (c *ClientInput) GetSoftwareVersion() *string {
 	if c == nil {
 		return nil
 	}
 	return c.SoftwareVersion
-}
-
-func (c *ClientInput) GetRegistrationAccessTokenHash() *string {
-	if c == nil {
-		return nil
-	}
-	return c.RegistrationAccessTokenHash
 }
 
 func (c *ClientInput) GetGrantTypes() []GrantType {
@@ -2464,20 +2384,6 @@ func (c *ClientInput) GetDpopRequired() *bool {
 	return c.DpopRequired
 }
 
-func (c *ClientInput) GetAutomaticallyRegistered() *bool {
-	if c == nil {
-		return nil
-	}
-	return c.AutomaticallyRegistered
-}
-
-func (c *ClientInput) GetExplicitlyRegistered() *bool {
-	if c == nil {
-		return nil
-	}
-	return c.ExplicitlyRegistered
-}
-
 func (c *ClientInput) GetRsRequestSigned() *bool {
 	if c == nil {
 		return nil
@@ -2492,67 +2398,11 @@ func (c *ClientInput) GetRsSignedRequestKeyID() *string {
 	return c.RsSignedRequestKeyID
 }
 
-func (c *ClientInput) GetClientRegistrationTypes() []ClientRegistrationType {
-	if c == nil {
-		return nil
-	}
-	return c.ClientRegistrationTypes
-}
-
-func (c *ClientInput) GetOrganizationName() *string {
-	if c == nil {
-		return nil
-	}
-	return c.OrganizationName
-}
-
-func (c *ClientInput) GetSignedJwksURI() *string {
-	if c == nil {
-		return nil
-	}
-	return c.SignedJwksURI
-}
-
-func (c *ClientInput) GetEntityID() *string {
-	if c == nil {
-		return nil
-	}
-	return c.EntityID
-}
-
-func (c *ClientInput) GetTrustAnchorID() *string {
-	if c == nil {
-		return nil
-	}
-	return c.TrustAnchorID
-}
-
 func (c *ClientInput) GetTrustChain() []string {
 	if c == nil {
 		return nil
 	}
 	return c.TrustChain
-}
-
-func (c *ClientInput) GetTrustChainExpiresAt() *int64 {
-	if c == nil {
-		return nil
-	}
-	return c.TrustChainExpiresAt
-}
-
-func (c *ClientInput) GetTrustChainUpdatedAt() *int64 {
-	if c == nil {
-		return nil
-	}
-	return c.TrustChainUpdatedAt
-}
-
-func (c *ClientInput) GetLocked() *bool {
-	if c == nil {
-		return nil
-	}
-	return c.Locked
 }
 
 func (c *ClientInput) GetCredentialOfferEndpoint() *string {
@@ -2595,41 +2445,6 @@ func (c *ClientInput) GetInScopeForTokenMigration() *bool {
 		return nil
 	}
 	return c.InScopeForTokenMigration
-}
-
-func (c *ClientInput) GetMetadataDocumentLocation() *string {
-	if c == nil {
-		return nil
-	}
-	return c.MetadataDocumentLocation
-}
-
-func (c *ClientInput) GetMetadataDocumentExpiresAt() *int64 {
-	if c == nil {
-		return nil
-	}
-	return c.MetadataDocumentExpiresAt
-}
-
-func (c *ClientInput) GetMetadataDocumentUpdatedAt() *int64 {
-	if c == nil {
-		return nil
-	}
-	return c.MetadataDocumentUpdatedAt
-}
-
-func (c *ClientInput) GetDiscoveredByMetadataDocument() *bool {
-	if c == nil {
-		return nil
-	}
-	return c.DiscoveredByMetadataDocument
-}
-
-func (c *ClientInput) GetClientSource() *ClientClientSource {
-	if c == nil {
-		return nil
-	}
-	return c.ClientSource
 }
 
 func (c *ClientInput) GetSpiffeID() *string {

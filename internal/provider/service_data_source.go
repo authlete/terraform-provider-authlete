@@ -658,31 +658,37 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 					`authorization endpoint.`,
 			},
 			"direct_authorization_endpoint_enabled": schema.BoolAttribute{
-				Computed: true,
+				Computed:           true,
+				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
 				MarkdownDescription: `The flag to indicate whether the direct authorization endpoint is enabled or not.` + "\n" +
 					`` + "\n" +
 					`The path of the endpoint is ` + "`" + `/api/auth/authorization/direct/service-api-key` + "`" + `.`,
 			},
 			"direct_introspection_endpoint_enabled": schema.BoolAttribute{
-				Computed:    true,
-				Description: `The flag to indicate whether the direct userinfo endpoint is enabled or not. The path of the endpoint is ` + "`" + `/api/auth/userinfo/direct/{serviceApiKey}` + "`" + `.`,
+				Computed:           true,
+				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
+				Description:        `The flag to indicate whether the direct userinfo endpoint is enabled or not. The path of the endpoint is ` + "`" + `/api/auth/userinfo/direct/{serviceApiKey}` + "`" + `.`,
 			},
 			"direct_jwks_endpoint_enabled": schema.BoolAttribute{
-				Computed: true,
+				Computed:           true,
+				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
 				MarkdownDescription: `'The flag to indicate whether the direct jwks endpoint is enabled or not. The path of the endpoint` + "\n" +
 					`is ` + "`" + `/api/service/jwks/get/direct/service-api-key` + "`" + `. '`,
 			},
 			"direct_revocation_endpoint_enabled": schema.BoolAttribute{
-				Computed:    true,
-				Description: `The flag to indicate whether the direct revocation endpoint is enabled or not. The URL of the endpoint is ` + "`" + `/api/auth/revocation/direct/service-api-key` + "`" + `.`,
+				Computed:           true,
+				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
+				Description:        `The flag to indicate whether the direct revocation endpoint is enabled or not. The URL of the endpoint is ` + "`" + `/api/auth/revocation/direct/service-api-key` + "`" + `.`,
 			},
 			"direct_token_endpoint_enabled": schema.BoolAttribute{
-				Computed: true,
+				Computed:           true,
+				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
 				MarkdownDescription: `The flag to indicate whether the direct token endpoint is enabled or not. The path of the endpoint` + "\n" +
 					`is ` + "`" + `/api/auth/token/direct/service-api-key` + "`" + `.`,
 			},
 			"direct_user_info_endpoint_enabled": schema.BoolAttribute{
-				Computed: true,
+				Computed:           true,
+				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
 				MarkdownDescription: `The flag to indicate whether the direct userinfo endpoint is enabled or not. The path` + "\n" +
 					`of the endpoint is ` + "`" + `/api/auth/userinfo/direct/service-api-key` + "`" + `.`,
 			},

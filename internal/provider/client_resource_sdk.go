@@ -457,12 +457,6 @@ func (r *ClientResourceModel) ToSharedClientInput(ctx context.Context) (*shared.
 	} else {
 		clientIDAlias = nil
 	}
-	clientIDAliasEnabled := new(bool)
-	if !r.ClientIDAliasEnabled.IsUnknown() && !r.ClientIDAliasEnabled.IsNull() {
-		*clientIDAliasEnabled = r.ClientIDAliasEnabled.ValueBool()
-	} else {
-		clientIDAliasEnabled = nil
-	}
 	clientType := new(shared.ClientType)
 	if !r.ClientType.IsUnknown() && !r.ClientType.IsNull() {
 		*clientType = shared.ClientType(r.ClientType.ValueString())
@@ -516,23 +510,11 @@ func (r *ClientResourceModel) ToSharedClientInput(ctx context.Context) (*shared.
 	} else {
 		softwareID = nil
 	}
-	developer := new(string)
-	if !r.Developer.IsUnknown() && !r.Developer.IsNull() {
-		*developer = r.Developer.ValueString()
-	} else {
-		developer = nil
-	}
 	softwareVersion := new(string)
 	if !r.SoftwareVersion.IsUnknown() && !r.SoftwareVersion.IsNull() {
 		*softwareVersion = r.SoftwareVersion.ValueString()
 	} else {
 		softwareVersion = nil
-	}
-	registrationAccessTokenHash := new(string)
-	if !r.RegistrationAccessTokenHash.IsUnknown() && !r.RegistrationAccessTokenHash.IsNull() {
-		*registrationAccessTokenHash = r.RegistrationAccessTokenHash.ValueString()
-	} else {
-		registrationAccessTokenHash = nil
 	}
 	grantTypes := make([]shared.GrantType, 0, len(r.GrantTypes))
 	for _, grantTypesItem := range r.GrantTypes {
@@ -961,18 +943,6 @@ func (r *ClientResourceModel) ToSharedClientInput(ctx context.Context) (*shared.
 	} else {
 		dpopRequired = nil
 	}
-	automaticallyRegistered := new(bool)
-	if !r.AutomaticallyRegistered.IsUnknown() && !r.AutomaticallyRegistered.IsNull() {
-		*automaticallyRegistered = r.AutomaticallyRegistered.ValueBool()
-	} else {
-		automaticallyRegistered = nil
-	}
-	explicitlyRegistered := new(bool)
-	if !r.ExplicitlyRegistered.IsUnknown() && !r.ExplicitlyRegistered.IsNull() {
-		*explicitlyRegistered = r.ExplicitlyRegistered.ValueBool()
-	} else {
-		explicitlyRegistered = nil
-	}
 	rsRequestSigned := new(bool)
 	if !r.RsRequestSigned.IsUnknown() && !r.RsRequestSigned.IsNull() {
 		*rsRequestSigned = r.RsRequestSigned.ValueBool()
@@ -985,55 +955,9 @@ func (r *ClientResourceModel) ToSharedClientInput(ctx context.Context) (*shared.
 	} else {
 		rsSignedRequestKeyID = nil
 	}
-	clientRegistrationTypes := make([]shared.ClientRegistrationType, 0, len(r.ClientRegistrationTypes))
-	for _, clientRegistrationTypesItem := range r.ClientRegistrationTypes {
-		clientRegistrationTypes = append(clientRegistrationTypes, shared.ClientRegistrationType(clientRegistrationTypesItem.ValueString()))
-	}
-	organizationName := new(string)
-	if !r.OrganizationName.IsUnknown() && !r.OrganizationName.IsNull() {
-		*organizationName = r.OrganizationName.ValueString()
-	} else {
-		organizationName = nil
-	}
-	signedJwksURI := new(string)
-	if !r.SignedJwksURI.IsUnknown() && !r.SignedJwksURI.IsNull() {
-		*signedJwksURI = r.SignedJwksURI.ValueString()
-	} else {
-		signedJwksURI = nil
-	}
-	entityID := new(string)
-	if !r.EntityID.IsUnknown() && !r.EntityID.IsNull() {
-		*entityID = r.EntityID.ValueString()
-	} else {
-		entityID = nil
-	}
-	trustAnchorID := new(string)
-	if !r.TrustAnchorID.IsUnknown() && !r.TrustAnchorID.IsNull() {
-		*trustAnchorID = r.TrustAnchorID.ValueString()
-	} else {
-		trustAnchorID = nil
-	}
 	trustChain := make([]string, 0, len(r.TrustChain))
 	for trustChainIndex := range r.TrustChain {
 		trustChain = append(trustChain, r.TrustChain[trustChainIndex].ValueString())
-	}
-	trustChainExpiresAt := new(int64)
-	if !r.TrustChainExpiresAt.IsUnknown() && !r.TrustChainExpiresAt.IsNull() {
-		*trustChainExpiresAt = r.TrustChainExpiresAt.ValueInt64()
-	} else {
-		trustChainExpiresAt = nil
-	}
-	trustChainUpdatedAt := new(int64)
-	if !r.TrustChainUpdatedAt.IsUnknown() && !r.TrustChainUpdatedAt.IsNull() {
-		*trustChainUpdatedAt = r.TrustChainUpdatedAt.ValueInt64()
-	} else {
-		trustChainUpdatedAt = nil
-	}
-	locked := new(bool)
-	if !r.Locked.IsUnknown() && !r.Locked.IsNull() {
-		*locked = r.Locked.ValueBool()
-	} else {
-		locked = nil
 	}
 	credentialOfferEndpoint := new(string)
 	if !r.CredentialOfferEndpoint.IsUnknown() && !r.CredentialOfferEndpoint.IsNull() {
@@ -1067,36 +991,6 @@ func (r *ClientResourceModel) ToSharedClientInput(ctx context.Context) (*shared.
 	} else {
 		inScopeForTokenMigration = nil
 	}
-	metadataDocumentLocation := new(string)
-	if !r.MetadataDocumentLocation.IsUnknown() && !r.MetadataDocumentLocation.IsNull() {
-		*metadataDocumentLocation = r.MetadataDocumentLocation.ValueString()
-	} else {
-		metadataDocumentLocation = nil
-	}
-	metadataDocumentExpiresAt := new(int64)
-	if !r.MetadataDocumentExpiresAt.IsUnknown() && !r.MetadataDocumentExpiresAt.IsNull() {
-		*metadataDocumentExpiresAt = r.MetadataDocumentExpiresAt.ValueInt64()
-	} else {
-		metadataDocumentExpiresAt = nil
-	}
-	metadataDocumentUpdatedAt := new(int64)
-	if !r.MetadataDocumentUpdatedAt.IsUnknown() && !r.MetadataDocumentUpdatedAt.IsNull() {
-		*metadataDocumentUpdatedAt = r.MetadataDocumentUpdatedAt.ValueInt64()
-	} else {
-		metadataDocumentUpdatedAt = nil
-	}
-	discoveredByMetadataDocument := new(bool)
-	if !r.DiscoveredByMetadataDocument.IsUnknown() && !r.DiscoveredByMetadataDocument.IsNull() {
-		*discoveredByMetadataDocument = r.DiscoveredByMetadataDocument.ValueBool()
-	} else {
-		discoveredByMetadataDocument = nil
-	}
-	clientSource := new(shared.ClientClientSource)
-	if !r.ClientSource.IsUnknown() && !r.ClientSource.IsNull() {
-		*clientSource = shared.ClientClientSource(r.ClientSource.ValueString())
-	} else {
-		clientSource = nil
-	}
 	spiffeID := new(string)
 	if !r.SpiffeID.IsUnknown() && !r.SpiffeID.IsNull() {
 		*spiffeID = r.SpiffeID.ValueString()
@@ -1115,7 +1009,6 @@ func (r *ClientResourceModel) ToSharedClientInput(ctx context.Context) (*shared.
 		Description:                           description,
 		Descriptions:                          descriptions,
 		ClientIDAlias:                         clientIDAlias,
-		ClientIDAliasEnabled:                  clientIDAliasEnabled,
 		ClientType:                            clientType,
 		ApplicationType:                       applicationType,
 		LogoURI:                               logoURI,
@@ -1123,9 +1016,7 @@ func (r *ClientResourceModel) ToSharedClientInput(ctx context.Context) (*shared.
 		Contacts:                              contacts,
 		TLSClientCertificateBoundAccessTokens: tlsClientCertificateBoundAccessTokens,
 		SoftwareID:                            softwareID,
-		Developer:                             developer,
 		SoftwareVersion:                       softwareVersion,
-		RegistrationAccessTokenHash:           registrationAccessTokenHash,
 		GrantTypes:                            grantTypes,
 		ResponseTypes:                         responseTypes,
 		RedirectUris:                          redirectUris,
@@ -1184,30 +1075,15 @@ func (r *ClientResourceModel) ToSharedClientInput(ctx context.Context) (*shared.
 		PkceRequired:                                pkceRequired,
 		PkceS256Required:                            pkceS256Required,
 		DpopRequired:                                dpopRequired,
-		AutomaticallyRegistered:                     automaticallyRegistered,
-		ExplicitlyRegistered:                        explicitlyRegistered,
 		RsRequestSigned:                             rsRequestSigned,
 		RsSignedRequestKeyID:                        rsSignedRequestKeyID,
-		ClientRegistrationTypes:                     clientRegistrationTypes,
-		OrganizationName:                            organizationName,
-		SignedJwksURI:                               signedJwksURI,
-		EntityID:                                    entityID,
-		TrustAnchorID:                               trustAnchorID,
 		TrustChain:                                  trustChain,
-		TrustChainExpiresAt:                         trustChainExpiresAt,
-		TrustChainUpdatedAt:                         trustChainUpdatedAt,
-		Locked:                                      locked,
 		CredentialOfferEndpoint:                     credentialOfferEndpoint,
 		FapiModes:                                   fapiModes,
 		ResponseModes:                               responseModes,
 		CredentialResponseEncryptionRequired:        credentialResponseEncryptionRequired,
 		MtlsEndpointAliasesUsed:                     mtlsEndpointAliasesUsed,
 		InScopeForTokenMigration:                    inScopeForTokenMigration,
-		MetadataDocumentLocation:                    metadataDocumentLocation,
-		MetadataDocumentExpiresAt:                   metadataDocumentExpiresAt,
-		MetadataDocumentUpdatedAt:                   metadataDocumentUpdatedAt,
-		DiscoveredByMetadataDocument:                discoveredByMetadataDocument,
-		ClientSource:                                clientSource,
 		SpiffeID:                                    spiffeID,
 		SpiffeBundleEndpoint:                        spiffeBundleEndpoint,
 	}

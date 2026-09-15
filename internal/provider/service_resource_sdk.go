@@ -544,12 +544,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		description = nil
 	}
-	tokenBatchNotificationEndpoint := new(string)
-	if !r.TokenBatchNotificationEndpoint.IsUnknown() && !r.TokenBatchNotificationEndpoint.IsNull() {
-		*tokenBatchNotificationEndpoint = r.TokenBatchNotificationEndpoint.ValueString()
-	} else {
-		tokenBatchNotificationEndpoint = nil
-	}
 	clientAssertionAudRestrictedToIssuer := new(bool)
 	if !r.ClientAssertionAudRestrictedToIssuer.IsUnknown() && !r.ClientAssertionAudRestrictedToIssuer.IsNull() {
 		*clientAssertionAudRestrictedToIssuer = r.ClientAssertionAudRestrictedToIssuer.ValueBool()
@@ -561,28 +555,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		*clientsPerDeveloper = int(r.ClientsPerDeveloper.ValueInt32())
 	} else {
 		clientsPerDeveloper = nil
-	}
-	developerAuthenticationCallbackEndpoint := new(string)
-	if !r.DeveloperAuthenticationCallbackEndpoint.IsUnknown() && !r.DeveloperAuthenticationCallbackEndpoint.IsNull() {
-		*developerAuthenticationCallbackEndpoint = r.DeveloperAuthenticationCallbackEndpoint.ValueString()
-	} else {
-		developerAuthenticationCallbackEndpoint = nil
-	}
-	developerAuthenticationCallbackAPIKey := new(string)
-	if !r.DeveloperAuthenticationCallbackAPIKey.IsUnknown() && !r.DeveloperAuthenticationCallbackAPIKey.IsNull() {
-		*developerAuthenticationCallbackAPIKey = r.DeveloperAuthenticationCallbackAPIKey.ValueString()
-	} else {
-		developerAuthenticationCallbackAPIKey = nil
-	}
-	developerAuthenticationCallbackAPISecret := new(string)
-	if !r.DeveloperAuthenticationCallbackAPISecret.IsUnknown() && !r.DeveloperAuthenticationCallbackAPISecret.IsNull() {
-		*developerAuthenticationCallbackAPISecret = r.DeveloperAuthenticationCallbackAPISecret.ValueString()
-	} else {
-		developerAuthenticationCallbackAPISecret = nil
-	}
-	supportedSnses := make([]shared.SupportedSnse, 0, len(r.SupportedSnses))
-	for _, supportedSnsesItem := range r.SupportedSnses {
-		supportedSnses = append(supportedSnses, shared.SupportedSnse(supportedSnsesItem.ValueString()))
 	}
 	snsCredentials := make([]shared.SnsCredentials, 0, len(r.SnsCredentials))
 	for snsCredentialsIndex := range r.SnsCredentials {
@@ -609,12 +581,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 			APIKey:    apiKey,
 			APISecret: apiSecret,
 		})
-	}
-	clientIDAliasEnabled := new(bool)
-	if !r.ClientIDAliasEnabled.IsUnknown() && !r.ClientIDAliasEnabled.IsNull() {
-		*clientIDAliasEnabled = r.ClientIDAliasEnabled.ValueBool()
-	} else {
-		clientIDAliasEnabled = nil
 	}
 	metadata := make([]shared.Pair, 0, len(r.Metadata))
 	for metadataIndex := range r.Metadata {
@@ -687,12 +653,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		authorizationEndpoint = nil
 	}
-	directAuthorizationEndpointEnabled := new(bool)
-	if !r.DirectAuthorizationEndpointEnabled.IsUnknown() && !r.DirectAuthorizationEndpointEnabled.IsNull() {
-		*directAuthorizationEndpointEnabled = r.DirectAuthorizationEndpointEnabled.ValueBool()
-	} else {
-		directAuthorizationEndpointEnabled = nil
-	}
 	supportedUILocales := make([]string, 0, len(r.SupportedUILocales))
 	for supportedUILocalesIndex := range r.SupportedUILocales {
 		supportedUILocales = append(supportedUILocales, r.SupportedUILocales[supportedUILocalesIndex].ValueString())
@@ -731,12 +691,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		tokenEndpoint = nil
 	}
-	directTokenEndpointEnabled := new(bool)
-	if !r.DirectTokenEndpointEnabled.IsUnknown() && !r.DirectTokenEndpointEnabled.IsNull() {
-		*directTokenEndpointEnabled = r.DirectTokenEndpointEnabled.ValueBool()
-	} else {
-		directTokenEndpointEnabled = nil
-	}
 	supportedTokenAuthMethods := make([]shared.ClientAuthMethod, 0, len(r.SupportedTokenAuthMethods))
 	for _, supportedTokenAuthMethodsItem := range r.SupportedTokenAuthMethods {
 		supportedTokenAuthMethods = append(supportedTokenAuthMethods, shared.ClientAuthMethod(supportedTokenAuthMethodsItem.ValueString()))
@@ -753,12 +707,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		revocationEndpoint = nil
 	}
-	directRevocationEndpointEnabled := new(bool)
-	if !r.DirectRevocationEndpointEnabled.IsUnknown() && !r.DirectRevocationEndpointEnabled.IsNull() {
-		*directRevocationEndpointEnabled = r.DirectRevocationEndpointEnabled.ValueBool()
-	} else {
-		directRevocationEndpointEnabled = nil
-	}
 	supportedRevocationAuthMethods := make([]shared.ClientAuthMethod, 0, len(r.SupportedRevocationAuthMethods))
 	for _, supportedRevocationAuthMethodsItem := range r.SupportedRevocationAuthMethods {
 		supportedRevocationAuthMethods = append(supportedRevocationAuthMethods, shared.ClientAuthMethod(supportedRevocationAuthMethodsItem.ValueString()))
@@ -768,12 +716,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		*introspectionEndpoint = r.IntrospectionEndpoint.ValueString()
 	} else {
 		introspectionEndpoint = nil
-	}
-	directIntrospectionEndpointEnabled := new(bool)
-	if !r.DirectIntrospectionEndpointEnabled.IsUnknown() && !r.DirectIntrospectionEndpointEnabled.IsNull() {
-		*directIntrospectionEndpointEnabled = r.DirectIntrospectionEndpointEnabled.ValueBool()
-	} else {
-		directIntrospectionEndpointEnabled = nil
 	}
 	supportedIntrospectionAuthMethods := make([]shared.ClientAuthMethod, 0, len(r.SupportedIntrospectionAuthMethods))
 	for _, supportedIntrospectionAuthMethodsItem := range r.SupportedIntrospectionAuthMethods {
@@ -1006,12 +948,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		jwksURI = nil
 	}
-	directJwksEndpointEnabled := new(bool)
-	if !r.DirectJwksEndpointEnabled.IsUnknown() && !r.DirectJwksEndpointEnabled.IsNull() {
-		*directJwksEndpointEnabled = r.DirectJwksEndpointEnabled.ValueBool()
-	} else {
-		directJwksEndpointEnabled = nil
-	}
 	jwks := new(string)
 	if !r.Jwks.IsUnknown() && !r.Jwks.IsNull() {
 		*jwks = r.Jwks.ValueString()
@@ -1041,12 +977,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		*userInfoEndpoint = r.UserInfoEndpoint.ValueString()
 	} else {
 		userInfoEndpoint = nil
-	}
-	directUserInfoEndpointEnabled := new(bool)
-	if !r.DirectUserInfoEndpointEnabled.IsUnknown() && !r.DirectUserInfoEndpointEnabled.IsNull() {
-		*directUserInfoEndpointEnabled = r.DirectUserInfoEndpointEnabled.ValueBool()
-	} else {
-		directUserInfoEndpointEnabled = nil
 	}
 	dynamicRegistrationSupported := new(bool)
 	if !r.DynamicRegistrationSupported.IsUnknown() && !r.DynamicRegistrationSupported.IsNull() {
@@ -1829,15 +1759,9 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		ServiceName:                                 serviceName,
 		Issuer:                                      issuer,
 		Description:                                 description,
-		TokenBatchNotificationEndpoint:              tokenBatchNotificationEndpoint,
 		ClientAssertionAudRestrictedToIssuer:        clientAssertionAudRestrictedToIssuer,
 		ClientsPerDeveloper:                         clientsPerDeveloper,
-		DeveloperAuthenticationCallbackEndpoint:     developerAuthenticationCallbackEndpoint,
-		DeveloperAuthenticationCallbackAPIKey:       developerAuthenticationCallbackAPIKey,
-		DeveloperAuthenticationCallbackAPISecret:    developerAuthenticationCallbackAPISecret,
-		SupportedSnses:                              supportedSnses,
 		SnsCredentials:                              snsCredentials,
-		ClientIDAliasEnabled:                        clientIDAliasEnabled,
 		Metadata:                                    metadata,
 		AuthenticationCallbackEndpoint:              authenticationCallbackEndpoint,
 		AuthenticationCallbackAPIKey:                authenticationCallbackAPIKey,
@@ -1849,7 +1773,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		ErrorDescriptionOmitted:                     errorDescriptionOmitted,
 		ErrorURIOmitted:                             errorURIOmitted,
 		AuthorizationEndpoint:                       authorizationEndpoint,
-		DirectAuthorizationEndpointEnabled:          directAuthorizationEndpointEnabled,
 		SupportedUILocales:                          supportedUILocales,
 		SupportedDisplays:                           supportedDisplays,
 		PkceRequired:                                pkceRequired,
@@ -1857,14 +1780,11 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		AuthorizationResponseDuration:               authorizationResponseDuration,
 		AuthorizationCodeDuration:                   authorizationCodeDuration,
 		TokenEndpoint:                               tokenEndpoint,
-		DirectTokenEndpointEnabled:                  directTokenEndpointEnabled,
 		SupportedTokenAuthMethods:                   supportedTokenAuthMethods,
 		MissingClientIDAllowed:                      missingClientIDAllowed,
 		RevocationEndpoint:                          revocationEndpoint,
-		DirectRevocationEndpointEnabled:             directRevocationEndpointEnabled,
 		SupportedRevocationAuthMethods:              supportedRevocationAuthMethods,
 		IntrospectionEndpoint:                       introspectionEndpoint,
-		DirectIntrospectionEndpointEnabled:          directIntrospectionEndpointEnabled,
 		SupportedIntrospectionAuthMethods:           supportedIntrospectionAuthMethods,
 		PushedAuthReqEndpoint:                       pushedAuthReqEndpoint,
 		PushedAuthReqDuration:                       pushedAuthReqDuration,
@@ -1893,13 +1813,11 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		SupportedClaims:                             supportedClaims,
 		ClaimShortcutRestrictive:                    claimShortcutRestrictive,
 		JwksURI:                                     jwksURI,
-		DirectJwksEndpointEnabled:                   directJwksEndpointEnabled,
 		Jwks:                                        jwks,
 		IDTokenSignatureKeyID:                       idTokenSignatureKeyID,
 		UserInfoSignatureKeyID:                      userInfoSignatureKeyID,
 		AuthorizationSignatureKeyID:                 authorizationSignatureKeyID,
 		UserInfoEndpoint:                            userInfoEndpoint,
-		DirectUserInfoEndpointEnabled:               directUserInfoEndpointEnabled,
 		DynamicRegistrationSupported:                dynamicRegistrationSupported,
 		RegistrationEndpoint:                        registrationEndpoint,
 		RegistrationManagementEndpoint:              registrationManagementEndpoint,

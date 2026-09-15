@@ -298,7 +298,6 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"automatically_registered": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
 				MarkdownDescription: `The flag indicating whether this client was registered by the` + "\n" +
 					`"automatic" client registration of OIDC Federation.`,
 			},
@@ -384,7 +383,6 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"client_id_alias_enabled": schema.BoolAttribute{
 				Computed:    true,
-				Optional:    true,
 				Description: `Deprecated. Always set to ` + "`" + `true` + "`" + `.`,
 			},
 			"client_name": schema.StringAttribute{
@@ -418,7 +416,6 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"client_registration_types": schema.ListAttribute{
 				Computed:    true,
-				Optional:    true,
 				ElementType: types.StringType,
 				Description: `The client registration types that the client has declared it may use.`,
 			},
@@ -430,17 +427,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"client_source": schema.StringAttribute{
 				Computed:    true,
-				Optional:    true,
-				Description: `Source of this client record. must be one of ["DYNAMIC_REGISTRATION", "AUTOMATIC_REGISTRATION", "EXPLICIT_REGISTRATION", "METADATA_DOCUMENT", "STATIC_REGISTRATION"]`,
-				Validators: []validator.String{
-					stringvalidator.OneOf(
-						"DYNAMIC_REGISTRATION",
-						"AUTOMATIC_REGISTRATION",
-						"EXPLICIT_REGISTRATION",
-						"METADATA_DOCUMENT",
-						"STATIC_REGISTRATION",
-					),
-				},
+				Description: `Source of this client record.`,
 			},
 			"client_type": schema.StringAttribute{
 				Computed: true,
@@ -568,7 +555,6 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"developer": schema.StringAttribute{
 				Computed:    true,
-				Optional:    true,
 				Description: `The unique identifier of the developer who created this client application.`,
 			},
 			"digest_algorithm": schema.StringAttribute{
@@ -586,7 +572,6 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"discovered_by_metadata_document": schema.BoolAttribute{
 				Computed:    true,
-				Optional:    true,
 				Description: `Indicates whether this client was discovered via a Client ID Metadata Document.`,
 			},
 			"dpop_required": schema.BoolAttribute{
@@ -601,12 +586,10 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"entity_id": schema.StringAttribute{
 				Computed:    true,
-				Optional:    true,
 				Description: `the entity ID of this client.`,
 			},
 			"explicitly_registered": schema.BoolAttribute{
 				Computed: true,
-				Optional: true,
 				MarkdownDescription: `The flag indicating whether this client was registered by the` + "\n" +
 					`"explicit" client registration of OIDC Federation.`,
 			},
@@ -801,7 +784,6 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"locked": schema.BoolAttribute{
 				Computed:    true,
-				Optional:    true,
 				Description: `The flag which indicates whether this client is locked.`,
 			},
 			"login_uri": schema.StringAttribute{
@@ -845,17 +827,14 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"metadata_document_expires_at": schema.Int64Attribute{
 				Computed:    true,
-				Optional:    true,
 				Description: `Expiration time of the metadata document (UNIX time in milliseconds).`,
 			},
 			"metadata_document_location": schema.StringAttribute{
 				Computed:    true,
-				Optional:    true,
 				Description: `Location of the Client ID Metadata Document that was used for this client.`,
 			},
 			"metadata_document_updated_at": schema.Int64Attribute{
 				Computed:    true,
-				Optional:    true,
 				Description: `Last-updated time of the metadata document (UNIX time in milliseconds).`,
 			},
 			"modified_at": schema.Int64Attribute{
@@ -876,7 +855,6 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"organization_name": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 				MarkdownDescription: `The human-readable name representing the organization that manages this client. This property corresponds` + "\n" +
 					`to the organization_name client metadata that is defined in OpenID Connect Federation 1.0.`,
 			},
@@ -945,7 +923,6 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"registration_access_token_hash": schema.StringAttribute{
 				Computed:    true,
-				Optional:    true,
 				Description: `The hash of the registration access token for this client.`,
 			},
 			"request_encryption_alg": schema.StringAttribute{
@@ -1111,7 +1088,6 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"signed_jwks_uri": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 				MarkdownDescription: `The URI of the endpoint that returns this client's JWK Set document in the JWT format. This property` + "\n" +
 					`corresponds to the ` + "`" + `signed_jwks_uri` + "`" + ` client metadata defined in OpenID Connect Federation 1.0.`,
 			},
@@ -1307,7 +1283,6 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"trust_anchor_id": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 				MarkdownDescription: `The entity ID of the trust anchor of the trust chain that was used when this client was registered or updated by` + "\n" +
 					`the mechanism defined in OpenID Connect Federation 1.0`,
 			},
@@ -1320,13 +1295,11 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"trust_chain_expires_at": schema.Int64Attribute{
 				Computed: true,
-				Optional: true,
 				MarkdownDescription: `the expiration time of the trust chain that was used when this client was registered or updated by the mechanism` + "\n" +
 					`defined in OpenID Connect Federation 1.0. The value is represented as milliseconds elapsed since the Unix epoch (1970-01-01).`,
 			},
 			"trust_chain_updated_at": schema.Int64Attribute{
 				Computed:    true,
-				Optional:    true,
 				Description: `the time at which the trust chain was updated by the mechanism defined in OpenID Connect Federation 1.0`,
 			},
 			"user_info_encryption_alg": schema.StringAttribute{

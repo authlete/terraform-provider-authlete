@@ -46,7 +46,6 @@ resource "authlete_service" "my_service" {
   ]
   client_attester_roots_enabled         = false
   client_attester_roots_only            = false
-  client_id_alias_enabled               = true
   client_id_metadata_document_supported = true
   clients_per_developer                 = 9
   cnonce_duration                       = 10
@@ -73,33 +72,24 @@ resource "authlete_service" "my_service" {
     require_credential_request_encryption  = true
     require_credential_response_encryption = true
   }
-  credential_jwks                              = "...my_credential_jwks..."
-  credential_jwks_uri                          = "...my_credential_jwks_uri..."
-  credential_offer_duration                    = 5
-  credential_transaction_duration              = 1
-  dcr_duplicate_software_id_blocked            = false
-  dcr_scope_used_as_requestable                = true
-  description                                  = "...my_description..."
-  developer_authentication_callback_api_key    = "...my_developer_authentication_callback_api_key..."
-  developer_authentication_callback_api_secret = "...my_developer_authentication_callback_api_secret..."
-  developer_authentication_callback_endpoint   = "https://male-colonialism.com/"
-  device_authorization_endpoint                = "https://nimble-secrecy.name/"
-  device_flow_code_duration                    = 8
-  device_flow_polling_interval                 = 3
-  device_verification_uri                      = "https://brilliant-cannon.biz/"
-  device_verification_uri_complete             = "https://agile-handover.name"
-  direct_authorization_endpoint_enabled        = false
-  direct_introspection_endpoint_enabled        = true
-  direct_jwks_endpoint_enabled                 = false
-  direct_revocation_endpoint_enabled           = true
-  direct_token_endpoint_enabled                = true
-  direct_user_info_endpoint_enabled            = false
-  dpop_nonce_duration                          = 4
-  dpop_nonce_required                          = false
-  dynamic_registration_supported               = false
-  end_session_endpoint                         = "https://defensive-casket.net/"
-  error_description_omitted                    = false
-  error_uri_omitted                            = true
+  credential_jwks                   = "...my_credential_jwks..."
+  credential_jwks_uri               = "...my_credential_jwks_uri..."
+  credential_offer_duration         = 5
+  credential_transaction_duration   = 1
+  dcr_duplicate_software_id_blocked = false
+  dcr_scope_used_as_requestable     = true
+  description                       = "...my_description..."
+  device_authorization_endpoint     = "https://nimble-secrecy.name/"
+  device_flow_code_duration         = 8
+  device_flow_polling_interval      = 3
+  device_verification_uri           = "https://brilliant-cannon.biz/"
+  device_verification_uri_complete  = "https://agile-handover.name"
+  dpop_nonce_duration               = 4
+  dpop_nonce_required               = false
+  dynamic_registration_supported    = false
+  end_session_endpoint              = "https://defensive-casket.net/"
+  error_description_omitted         = false
+  error_uri_omitted                 = true
   fapi_modes = [
     "FAPI2_MESSAGE_SIGNING_AUTH_RES"
   ]
@@ -289,9 +279,6 @@ resource "authlete_service" "my_service" {
   supported_service_profiles = [
     "OPEN_BANKING"
   ]
-  supported_snses = [
-    "FACEBOOK"
-  ]
   supported_token_auth_methods = [
     "TLS_CLIENT_AUTH"
   ]
@@ -308,7 +295,6 @@ resource "authlete_service" "my_service" {
     "..."
   ]
   tls_client_certificate_bound_access_tokens    = false
-  token_batch_notification_endpoint             = "https://narrow-yak.biz"
   token_endpoint                                = "https://breakable-decongestant.net/"
   token_exchange_by_confidential_clients_only   = true
   token_exchange_by_identifiable_clients_only   = true

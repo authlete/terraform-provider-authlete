@@ -554,7 +554,6 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"client_id_alias_enabled": schema.BoolAttribute{
 				Computed:    true,
-				Optional:    true,
 				Description: `Deprecated. Always ` + "`" + `true` + "`" + `.`,
 			},
 			"client_id_metadata_document_supported": schema.BoolAttribute{
@@ -717,19 +716,16 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"developer_authentication_callback_api_key": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 				MarkdownDescription: `The API key for basic authentication at the developer authentication ` + "\n" +
 					`callback endpoint.`,
 			},
 			"developer_authentication_callback_api_secret": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 				MarkdownDescription: `The API secret for basic authentication at the developer authentication ` + "\n" +
 					`callback endpoint.`,
 			},
 			"developer_authentication_callback_endpoint": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 				MarkdownDescription: `The endpoint for developer authentication callbacks. This is used when ` + "\n" +
 					`developers log into the developer portal.`,
 			},
@@ -768,37 +764,37 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`authorization endpoint.`,
 			},
 			"direct_authorization_endpoint_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
+				Computed:           true,
+				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
 				MarkdownDescription: `The flag to indicate whether the direct authorization endpoint is enabled or not.` + "\n" +
 					`` + "\n" +
 					`The path of the endpoint is ` + "`" + `/api/auth/authorization/direct/service-api-key` + "`" + `.`,
 			},
 			"direct_introspection_endpoint_enabled": schema.BoolAttribute{
-				Computed:    true,
-				Optional:    true,
-				Description: `The flag to indicate whether the direct userinfo endpoint is enabled or not. The path of the endpoint is ` + "`" + `/api/auth/userinfo/direct/{serviceApiKey}` + "`" + `.`,
+				Computed:           true,
+				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
+				Description:        `The flag to indicate whether the direct userinfo endpoint is enabled or not. The path of the endpoint is ` + "`" + `/api/auth/userinfo/direct/{serviceApiKey}` + "`" + `.`,
 			},
 			"direct_jwks_endpoint_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
+				Computed:           true,
+				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
 				MarkdownDescription: `'The flag to indicate whether the direct jwks endpoint is enabled or not. The path of the endpoint` + "\n" +
 					`is ` + "`" + `/api/service/jwks/get/direct/service-api-key` + "`" + `. '`,
 			},
 			"direct_revocation_endpoint_enabled": schema.BoolAttribute{
-				Computed:    true,
-				Optional:    true,
-				Description: `The flag to indicate whether the direct revocation endpoint is enabled or not. The URL of the endpoint is ` + "`" + `/api/auth/revocation/direct/service-api-key` + "`" + `.`,
+				Computed:           true,
+				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
+				Description:        `The flag to indicate whether the direct revocation endpoint is enabled or not. The URL of the endpoint is ` + "`" + `/api/auth/revocation/direct/service-api-key` + "`" + `.`,
 			},
 			"direct_token_endpoint_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
+				Computed:           true,
+				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
 				MarkdownDescription: `The flag to indicate whether the direct token endpoint is enabled or not. The path of the endpoint` + "\n" +
 					`is ` + "`" + `/api/auth/token/direct/service-api-key` + "`" + `.`,
 			},
 			"direct_user_info_endpoint_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
+				Computed:           true,
+				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
 				MarkdownDescription: `The flag to indicate whether the direct userinfo endpoint is enabled or not. The path` + "\n" +
 					`of the endpoint is ` + "`" + `/api/auth/userinfo/direct/service-api-key` + "`" + `.`,
 			},
@@ -1731,7 +1727,6 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"supported_snses": schema.ListAttribute{
 				Computed:    true,
-				Optional:    true,
 				ElementType: types.StringType,
 				MarkdownDescription: `Social login services (SNS) that this service supports for end-user ` + "\n" +
 					`authentication.`,
@@ -1783,7 +1778,6 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"token_batch_notification_endpoint": schema.StringAttribute{
 				Computed: true,
-				Optional: true,
 				MarkdownDescription: `The endpoint for batch token notifications. This endpoint is called when ` + "\n" +
 					`multiple tokens are issued or revoked in a batch operation.`,
 			},
