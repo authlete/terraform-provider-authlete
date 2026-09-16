@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/config"
+	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/globals"
 	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/hooks"
 	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/utils"
 	"github.com/authlete/terraform-provider-authlete/internal/sdk/models/shared"
@@ -144,6 +145,13 @@ func WithSecuritySource(security func(context.Context) (shared.Security, error))
 	}
 }
 
+// WithOrganizationID allows setting the OrganizationID parameter for all supported operations
+func WithOrganizationID(organizationID int64) SDKOption {
+	return func(sdk *Authlete) {
+		sdk.sdkConfiguration.Globals.OrganizationID = &organizationID
+	}
+}
+
 func WithRetryConfig(retryConfig retry.Config) SDKOption {
 	return func(sdk *Authlete) {
 		sdk.sdkConfiguration.RetryConfig = &retryConfig
@@ -163,6 +171,7 @@ func New(opts ...SDKOption) *Authlete {
 		SDKVersion: "0.0.1",
 		sdkConfiguration: config.SDKConfiguration{
 			UserAgent:  "speakeasy-sdk/terraform 0.0.1 2.932.9 3.0.16 github.com/authlete/terraform-provider-authlete/internal/sdk",
+			Globals:    globals.Globals{},
 			ServerList: ServerList,
 		},
 		hooks: hooks.New(),

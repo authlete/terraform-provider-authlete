@@ -34,12 +34,19 @@ type AuthleteProvider struct {
 	version string
 }
 
+// AuthleteProviderConfigureData describes provider configuration data passed to resources.
+type AuthleteProviderConfigureData struct {
+	OrganizationID types.Int64 `tfsdk:"organization_id"`
+	SDKClient      *sdk.Authlete
+}
+
 // AuthleteProviderModel describes the provider data model.
 type AuthleteProviderModel struct {
-	Bearer        types.String `tfsdk:"bearer"`
-	HTTPHeaders   types.Map    `tfsdk:"http_headers"`
-	ServerURL     types.String `tfsdk:"server_url"`
-	TLSSkipVerify types.Bool   `tfsdk:"tls_skip_verify"`
+	Bearer         types.String `tfsdk:"bearer"`
+	HTTPHeaders    types.Map    `tfsdk:"http_headers"`
+	OrganizationID types.Int64  `tfsdk:"organization_id"`
+	ServerURL      types.String `tfsdk:"server_url"`
+	TLSSkipVerify  types.Bool   `tfsdk:"tls_skip_verify"`
 }
 
 func (p *AuthleteProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -67,6 +74,9 @@ func (p *AuthleteProvider) Schema(ctx context.Context, req provider.SchemaReques
 				Description: `HTTP headers to include in all requests`,
 				ElementType: types.StringType,
 				Optional:    true,
+			},
+			"organization_id": schema.Int64Attribute{
+				Optional: true,
 			},
 			"server_url": schema.StringAttribute{
 				Description: `Server URL (defaults to https://us.authlete.com)`,
@@ -134,12 +144,21 @@ func (p *AuthleteProvider) Configure(ctx context.Context, req provider.Configure
 		sdk.WithClient(httpClient),
 	}
 
+	if !data.OrganizationID.IsUnknown() && !data.OrganizationID.IsNull() {
+		opts = append(opts, sdk.WithOrganizationID(data.OrganizationID.ValueInt64()))
+	}
+
 	client := sdk.New(opts...)
-	resp.ActionData = client
-	resp.DataSourceData = client
-	resp.EphemeralResourceData = client
-	resp.ListResourceData = client
-	resp.ResourceData = client
+	configureData := &AuthleteProviderConfigureData{
+		OrganizationID: data.OrganizationID,
+		SDKClient:      client,
+	}
+
+	resp.ActionData = configureData
+	resp.DataSourceData = configureData
+	resp.EphemeralResourceData = configureData
+	resp.ListResourceData = configureData
+	resp.ResourceData = configureData
 }
 
 func (p *AuthleteProvider) Functions(_ context.Context) []func() function.Function {
