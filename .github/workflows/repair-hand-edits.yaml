@@ -1,0 +1,97 @@
+# Repairs the hand edit in provider.go after a regeneration.
+#
+# Speakeasy's Generate workflow can drop our one hand edit -- the line that wraps
+# the HTTP transport so idp_host and organization_id actually take effect. The
+# file still compiles without it, so nothing obvious breaks.
+#
+# This workflow runs after Generate finishes, checks the edit, and if it is
+# missing opens a pull request that puts it back.
+#
+# It uses workflow_run rather than pull_request deliberately: Generate
+# authenticates with GITHUB_TOKEN, and GitHub does not trigger pull_request
+# workflows from events created by that token. workflow_run fires regardless.
+name: Repair hand edits
+
+on:
+  workflow_run:
+    workflows: ["Generate"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch to check
+        type: string
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Work out which branch to check
+        id: target
+        run: |
+          branch="${{ inputs.branch || github.event.workflow_run.head_branch }}"
+          if [ -z "$branch" ]; then
+            echo "No branch to check; nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.target.outputs.skip != 'true'
+        with:
+          ref: ${{ steps.target.outputs.branch }}
+          fetch-depth: 0
+
+      - name: Is the hand edit still there?
+        if: steps.target.outputs.skip != 'true'
+        id: check
+        run: |
+          if ./scripts/patch-provider.sh --check; then
+            echo "needs_repair=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "needs_repair=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Re-apply it and open a pull request
+        if: steps.check.outputs.needs_repair == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE: ${{ steps.target.outputs.branch }}
+        run: |
+          set -euo pipefail
+          ./scripts/patch-provider.sh
+
+          fix_branch="repair/provider-patch-${GITHUB_RUN_ID}"
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$fix_branch"
+          git add internal/provider/provider.go
+          git commit -m "Re-apply the provider.go transport patch
+
+          The last regeneration dropped the hand edit that wraps the HTTP
+          transport. Without it the provider still builds, but idp_host and
+          organization_id are accepted and silently ignored, so service create
+          and delete go to Authlete's shared cloud regardless of configuration.
+
+          Re-applied with scripts/patch-provider.sh."
+          git push origin "$fix_branch"
+
+          gh pr create \
+            --base "$BASE" \
+            --head "$fix_branch" \
+            --title "Re-apply the provider.go transport patch" \
+            --body "The last regeneration dropped the hand edit in \`internal/provider/provider.go\`.
+
+          Without it \`idp_host\` and \`organization_id\` are accepted and silently ignored, so service create and delete go to Authlete's shared cloud regardless of configuration. The file still compiles, which is why this is caught here rather than by the build.
+
+          Re-applied automatically with \`scripts/patch-provider.sh\`. Merge this into \`$BASE\` before merging that branch."
+
+      - name: Nothing to do
+        if: steps.check.outputs.needs_repair == 'false'
+        run: echo "The hand edit is present on ${{ steps.target.outputs.branch }}."

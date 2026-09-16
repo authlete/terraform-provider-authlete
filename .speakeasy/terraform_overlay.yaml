@@ -170,7 +170,7 @@ actions:
     update:
       x-speakeasy-terraform-custom-type:
         imports:
-          - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+          - "github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
         schemaType: customtypes.JWKSType{}
         valueType: customtypes.JWKS
 
@@ -179,7 +179,7 @@ actions:
     update:
       x-speakeasy-terraform-custom-type:
         imports:
-          - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+          - "github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
         schemaType: customtypes.JWKSType{}
         valueType: customtypes.JWKS
 
@@ -188,6 +188,202 @@ actions:
     update:
       x-speakeasy-terraform-custom-type:
         imports:
-          - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+          - "github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
         schemaType: customtypes.JWKSType{}
         valueType: customtypes.JWKS
+
+  # ---------- Fields the server does not accept ----------
+  # These are described as writable in the spec but never read from the request
+  # by the server, so Terraform proposes a change, the server ignores it, the
+  # value comes back unchanged, and the plan never converges. Verified field by
+  # field against the live API and cross-checked against authlete/server at 3.0
+  # HEAD (749e2b4cb).
+  #
+  # Marking them readOnly here mirrors the pending spec fix exactly, so each
+  # action below can simply be deleted once the spec carries readOnly: true.
+
+
+  # Dead since the /direct endpoints were removed from the server in May 2026
+  # (a58158fcf, ENG-5636). The API still returns the keys, always false.
+  - target: $.components.schemas.service.properties.directAuthorizationEndpointEnabled
+    description: Dead field, server no longer reads it
+    update:
+      readOnly: true
+      deprecated: true
+  - target: $.components.schemas.service.properties.directTokenEndpointEnabled
+    description: Dead field, server no longer reads it
+    update:
+      readOnly: true
+      deprecated: true
+  - target: $.components.schemas.service.properties.directIntrospectionEndpointEnabled
+    description: Dead field, server no longer reads it
+    update:
+      readOnly: true
+      deprecated: true
+  - target: $.components.schemas.service.properties.directRevocationEndpointEnabled
+    description: Dead field, server no longer reads it
+    update:
+      readOnly: true
+      deprecated: true
+  - target: $.components.schemas.service.properties.directUserInfoEndpointEnabled
+    description: Dead field, server no longer reads it
+    update:
+      readOnly: true
+      deprecated: true
+  - target: $.components.schemas.service.properties.directJwksEndpointEnabled
+    description: Dead field, server no longer reads it
+    update:
+      readOnly: true
+      deprecated: true
+
+  # Never read from the request by ServiceUpdateTask.
+  - target: $.components.schemas.service.properties.clientIdAliasEnabled
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.service.properties.developerAuthenticationCallbackEndpoint
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.service.properties.developerAuthenticationCallbackApiKey
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.service.properties.developerAuthenticationCallbackApiSecret
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.service.properties.supportedSnses
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.service.properties.tokenBatchNotificationEndpoint
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+
+  # Never read from the request by ClientUpdateTask, or settable only through
+  # the federation / metadata-document flows, which use their own schemas.
+  - target: $.components.schemas.client.properties.clientIdAliasEnabled
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.client.properties.clientSource
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.client.properties.developer
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.client.properties.locked
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.client.properties.registrationAccessTokenHash
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.client.properties.trustChainUpdatedAt
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.client.properties.metadataDocumentUpdatedAt
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.client.properties.entityId
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.client.properties.trustAnchorId
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.client.properties.trustChainExpiresAt
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.client.properties.organizationName
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.client.properties.signedJwksUri
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.client.properties.clientRegistrationTypes
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.client.properties.automaticallyRegistered
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.client.properties.explicitlyRegistered
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.client.properties.metadataDocumentLocation
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.client.properties.metadataDocumentExpiresAt
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+  - target: $.components.schemas.client.properties.discoveredByMetadataDocument
+    description: Server-assigned, not accepted from the request
+    update:
+      readOnly: true
+
+  # ---------- Import safety ----------
+  # organizationId and apiServerId are removed from the Terraform surface
+  # entirely. Both are needed by the IdP to create and delete a service, but the
+  # cluster read (GET /api/{serviceId}/service/get, which returns a bare
+  # `service`) can never return them. Modelled as attributes they are null in
+  # state after `terraform import`, and the generator marks them
+  # RequiresReplaceIfConfigured -- so the first plan after any import proposed
+  # destroying the authorization server and every client under it.
+  #
+  # Nothing declarative suppresses that: no extension disables force-new, a
+  # custom plan modifier is appended *before* the generated one and so cannot
+  # override it, and OpenAPI writeOnly is ignored here (it also cancels
+  # x-speakeasy-param-optional). Removing the attributes instead is both the
+  # smaller change and the better model -- these are account-level facts, not
+  # per-service ones -- and idp_routing.go injects them into the IdP request
+  # bodies the same way it already injects apiServerId.
+  - target: $.components.schemas.service_create_idp_request.properties.organizationId
+    description: Supplied by the provider, not modelled as a resource attribute
+    update:
+      x-speakeasy-terraform-ignore: true
+  - target: $.components.schemas.service_create_idp_request.properties.apiServerId
+    description: Supplied by the provider, not modelled as a resource attribute
+    update:
+      x-speakeasy-terraform-ignore: true
+
+  # ---------- Provider-level configuration ----------
+  # Declaring these as globals makes Speakeasy generate both the provider
+  # attribute and the model struct field, which removes two of the three hand
+  # edits this file previously needed in provider.go. Only the line that wraps
+  # the transport remains hand-written.
+  #
+  # `in: path` is deliberate. Neither is actually a path parameter -- globals
+  # only produce a provider attribute for parameters, not for request-body
+  # fields, which was tried first and produced nothing. No operation declares a
+  # parameter by either name, so nothing is injected into any URL; they exist
+  # purely as provider configuration that idp_routing.go consumes.
+  - target: $
+    description: Expose idp_host and organization_id as provider attributes
+    update:
+      x-speakeasy-globals:
+        parameters:
+          - name: organizationId
+            in: path
+            schema:
+              type: integer
+              format: int64
+          - name: idpHost
+            in: path
+            schema:
+              type: string

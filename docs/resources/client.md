@@ -28,7 +28,6 @@ resource "authlete_client" "my_client" {
   authorization_encryption_alg        = "RSA1_5"
   authorization_encryption_enc        = "A256CBC_HS512"
   authorization_sign_alg              = "EdDSA"
-  automatically_registered            = true
   backchannel_logout_session_required = true
   backchannel_logout_uri              = "...my_backchannel_logout_uri..."
   bc_delivery_mode                    = "...my_bc_delivery_mode..."
@@ -36,7 +35,6 @@ resource "authlete_client" "my_client" {
   bc_request_sign_alg                 = "RS384"
   bc_user_code_required               = false
   client_id_alias                     = "...my_client_id_alias..."
-  client_id_alias_enabled             = false
   client_name                         = "...my_client_name..."
   client_names = [
     {
@@ -44,12 +42,8 @@ resource "authlete_client" "my_client" {
       value = "...my_value..."
     }
   ]
-  client_registration_types = [
-    "AUTOMATIC"
-  ]
-  client_source = "DYNAMIC_REGISTRATION"
-  client_type   = "PUBLIC"
-  client_uri    = "...my_client_uri..."
+  client_type = "PUBLIC"
+  client_uri  = "...my_client_uri..."
   client_uris = [
     {
       tag   = "...my_tag..."
@@ -73,12 +67,8 @@ resource "authlete_client" "my_client" {
       value = "...my_value..."
     }
   ]
-  developer                       = "...my_developer..."
-  digest_algorithm                = "...my_digest_algorithm..."
-  discovered_by_metadata_document = true
-  dpop_required                   = true
-  entity_id                       = "...my_entity_id..."
-  explicitly_registered           = false
+  digest_algorithm = "...my_digest_algorithm..."
+  dpop_required    = true
   extension = {
     access_token_duration  = 9
     id_token_duration      = 9
@@ -102,7 +92,6 @@ resource "authlete_client" "my_client" {
   in_scope_for_token_migration = true
   jwks                         = "...my_jwks..."
   jwks_uri                     = "...my_jwks_uri..."
-  locked                       = true
   login_uri                    = "...my_login_uri..."
   logo_uri                     = "...my_logo_uri..."
   logo_uris = [
@@ -111,15 +100,11 @@ resource "authlete_client" "my_client" {
       value = "...my_value..."
     }
   ]
-  metadata_document_expires_at = 4
-  metadata_document_location   = "https://free-detective.info/"
-  metadata_document_updated_at = 1
-  mtls_endpoint_aliases_used   = true
-  organization_name            = "...my_organization_name..."
-  par_required                 = false
-  pkce_required                = false
-  pkce_s256_required           = true
-  policy_uri                   = "...my_policy_uri..."
+  mtls_endpoint_aliases_used = true
+  par_required               = false
+  pkce_required              = false
+  pkce_s256_required         = true
+  policy_uri                 = "...my_policy_uri..."
   policy_uris = [
     {
       tag   = "...my_tag..."
@@ -129,7 +114,6 @@ resource "authlete_client" "my_client" {
   redirect_uris = [
     "..."
   ]
-  registration_access_token_hash               = "...my_registration_access_token_hash..."
   request_encryption_alg                       = "RSA_OAEP"
   request_encryption_enc                       = "A192GCM"
   request_object_encryption_alg_match_required = false
@@ -150,7 +134,6 @@ resource "authlete_client" "my_client" {
   sector_identifier_uri                      = "...my_sector_identifier_uri..."
   self_signed_certificate_key_id             = "...my_self_signed_certificate_key_id..."
   service_id                                 = "...my_service_id..."
-  signed_jwks_uri                            = "...my_signed_jwks_uri..."
   single_access_token_per_subject            = true
   software_id                                = "...my_software_id..."
   software_version                           = "...my_software_version..."
@@ -172,12 +155,9 @@ resource "authlete_client" "my_client" {
       value = "...my_value..."
     }
   ]
-  trust_anchor_id = "...my_trust_anchor_id..."
   trust_chain = [
     "..."
   ]
-  trust_chain_expires_at   = 5
-  trust_chain_updated_at   = 0
   user_info_encryption_alg = "A192KW"
   user_info_encryption_enc = "A192GCM"
   user_info_sign_alg       = "NONE"
@@ -231,8 +211,6 @@ it's semantics depends upon where is this defined, for instance:
   - as client authorizationSignAlg value, it represents the signature algorithm used when [creating a JARM response](https://kb.authlete.com/en/s/oauth-and-openid-connect/a/enabling-jarm).
   - or as client requestSignAlg value, it specifies which is the expected signature used by [client on a Request Object](https://kb.authlete.com/en/s/oauth-and-openid-connect/a/request-objects).
 must be one of ["NONE", "HS256", "HS384", "HS512", "RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "PS256", "PS384", "PS512", "ES256K", "EdDSA"]
-- `automatically_registered` (Boolean) The flag indicating whether this client was registered by the
-"automatic" client registration of OIDC Federation.
 - `backchannel_logout_session_required` (Boolean) The flag indicating whether the client requires that a `sid` (session ID)
 claim be included in the logout token sent to `backchannelLogoutUri`.
 - `backchannel_logout_uri` (String) The backchannel logout URI for this client. Used by the service to
@@ -262,13 +240,10 @@ authentication request.
 This property corresponds to the `backchannel_user_code_parameter` metadata.
 - `client_id_alias` (String) The value of the client's `client_id` property used in OAuth and OpenID Connect calls. By
 default, this is a string version of the `clientId` property.
-- `client_id_alias_enabled` (Boolean) Deprecated. Always set to `true`.
 - `client_name` (String) The name of the client application. This property corresponds to `client_name` in
 [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
 - `client_names` (Attributes List) Client names with language tags. If the client application has different names for different
 languages, this property can be used to register the names. (see [below for nested schema](#nestedatt--client_names))
-- `client_registration_types` (List of String) The client registration types that the client has declared it may use.
-- `client_source` (String) Source of this client record. must be one of ["DYNAMIC_REGISTRATION", "AUTOMATIC_REGISTRATION", "EXPLICIT_REGISTRATION", "METADATA_DOCUMENT", "STATIC_REGISTRATION"]
 - `client_type` (String) The client type, either `CONFIDENTIAL` or `PUBLIC`. See [RFC 6749, 2.1. Client Types](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1)
 for details.
 must be one of ["PUBLIC", "CONFIDENTIAL"]
@@ -297,7 +272,6 @@ This property corresponds to `default_max_age` in
 - `description` (String) The description about the client application.
 - `descriptions` (Attributes List) Descriptions about the client application with language tags. If the client application has different
 descriptions for different languages, this property can be used to register the descriptions. (see [below for nested schema](#nestedatt--descriptions))
-- `developer` (String) The unique identifier of the developer who created this client application.
 - `digest_algorithm` (String) The digest algorithm that this client requests the server to use
 when it computes digest values of [external attachments](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#name-external-attachments), which may be referenced from within ID tokens
 or userinfo responses (or any place that can have the `verified_claims` claim).
@@ -307,11 +281,7 @@ this property is omitted, `sha-256` is used as the default algorithm.
 This property corresponds to the `digest_algorithm` client metadata
 which was defined by the third implementer's draft of
 [OpenID Connect for Identity Assurance 1.0](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html).
-- `discovered_by_metadata_document` (Boolean) Indicates whether this client was discovered via a Client ID Metadata Document.
 - `dpop_required` (Boolean) If the DPoP is required for this client
-- `entity_id` (String) the entity ID of this client.
-- `explicitly_registered` (Boolean) The flag indicating whether this client was registered by the
-"explicit" client registration of OIDC Federation.
 - `extension` (Attributes) (see [below for nested schema](#nestedatt--extension))
 - `fapi_modes` (List of String) The FAPI modes for this client.
 - `front_channel_request_object_encryption_required` (Boolean) The flag indicating whether encryption of request object is required when the request object
@@ -351,7 +321,6 @@ The JWK Set must not include private keys of the client application.
 The content pointed to by the URL is JSON which complies with the format described in
 [JSON Web Key (JWK), 5. JWK Set Format](https://datatracker.ietf.org/doc/html/rfc7517#section-5).
 The JWK Set must not include private keys of the client application.
-- `locked` (Boolean) The flag which indicates whether this client is locked.
 - `login_uri` (String) The URL which a third party can use to initiate a login by the client application.
 
 This property corresponds to `initiate_login_uri` in
@@ -362,15 +331,10 @@ This property corresponds to `logo_uri` in [OpenID Connect Dynamic Client Regist
 Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
 - `logo_uris` (Attributes List) Logo image URLs with language tags. If the client application has different logo images for
 different languages, this property can be used to register URLs of the images. (see [below for nested schema](#nestedatt--logo_uris))
-- `metadata_document_expires_at` (Number) Expiration time of the metadata document (UNIX time in milliseconds).
-- `metadata_document_location` (String) Location of the Client ID Metadata Document that was used for this client.
-- `metadata_document_updated_at` (Number) Last-updated time of the metadata document (UNIX time in milliseconds).
 - `mtls_endpoint_aliases_used` (Boolean) The flag indicating whether the client intends to prefer mutual TLS endpoints over non-MTLS endpoints.
 
 This property corresponds to the `use_mtls_endpoint_aliases` client metadata that is defined in
 [FAPI 2.0 Security Profile, 8.1.1. use_mtls_endpoint_aliases](https://openid.bitbucket.io/fapi/fapi-2_0-security-profile.html#section-8.1.1).
-- `organization_name` (String) The human-readable name representing the organization that manages this client. This property corresponds
-to the organization_name client metadata that is defined in OpenID Connect Federation 1.0.
 - `par_required` (Boolean) The flag to indicate whether this client is required to use the pushed authorization request endpoint.
 This property corresponds to the `require_pushed_authorization_requests` client metadata defined
 in "OAuth 2.0 Pushed Authorization Requests".
@@ -392,7 +356,6 @@ This property corresponds to `policy_uri` in
 If the client application has different policy pages for different languages, this property can be used to register the URLs. (see [below for nested schema](#nestedatt--policy_uris))
 - `redirect_uris` (List of String) Redirect URIs that the client application uses to receive a response from the authorization endpoint.
 Requirements for a redirect URI are as follows.
-- `registration_access_token_hash` (String) The hash of the registration access token for this client.
 - `request_encryption_alg` (String) this is the 'alg' header value for encrypted JWT tokens.
 Depending upon the context, this refers to key transport scheme to be used by the client and by the server. For instance:
 - as `authorizationEncryptionAlg` value, it refers to the encoding algorithm used by server for transporting they keys on JARM objects
@@ -440,8 +403,6 @@ This property corresponds to `response_types` in [OpenID Connect Dynamic Client 
 This represents the `sector_identifier_uri` client metadata which is defined in
 [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata)
 - `self_signed_certificate_key_id` (String) The key ID of a JWK containing a self-signed certificate of this client.
-- `signed_jwks_uri` (String) The URI of the endpoint that returns this client's JWK Set document in the JWT format. This property
-corresponds to the `signed_jwks_uri` client metadata defined in OpenID Connect Federation 1.0.
 - `single_access_token_per_subject` (Boolean) If `Enabled` is selected, an attempt to issue a new access token invalidates existing access tokens that are associated with the same combination of subject and client.
 
 Note that, however, attempts by Client Credentials Flow do not invalidate existing access tokens because access tokens issued by Client Credentials Flow are not associated with any end-user's subject.
@@ -513,13 +474,8 @@ This property corresponds to `tos_uri` in
 
 If the client application has different "Terms Of Service" pages for different languages,
 this property can be used to register the URLs. (see [below for nested schema](#nestedatt--tos_uris))
-- `trust_anchor_id` (String) The entity ID of the trust anchor of the trust chain that was used when this client was registered or updated by
-the mechanism defined in OpenID Connect Federation 1.0
 - `trust_chain` (List of String) The trust chain that was used when this client was registered or updated by the mechanism defined in
 OpenID Connect Federation 1.0
-- `trust_chain_expires_at` (Number) the expiration time of the trust chain that was used when this client was registered or updated by the mechanism
-defined in OpenID Connect Federation 1.0. The value is represented as milliseconds elapsed since the Unix epoch (1970-01-01).
-- `trust_chain_updated_at` (Number) the time at which the trust chain was updated by the mechanism defined in OpenID Connect Federation 1.0
 - `user_info_encryption_alg` (String) this is the 'alg' header value for encrypted JWT tokens.
 Depending upon the context, this refers to key transport scheme to be used by the client and by the server. For instance:
 - as `authorizationEncryptionAlg` value, it refers to the encoding algorithm used by server for transporting they keys on JARM objects
@@ -545,19 +501,43 @@ must be one of ["NONE", "HS256", "HS384", "HS512", "RS256", "RS384", "RS512", "E
 
 ### Read-Only
 
+- `automatically_registered` (Boolean) The flag indicating whether this client was registered by the
+"automatic" client registration of OIDC Federation.
 - `client_id` (Number) A client ID.
+- `client_id_alias_enabled` (Boolean) Deprecated. Always set to `true`.
+- `client_registration_types` (List of String) The client registration types that the client has declared it may use.
 - `client_secret` (String, Sensitive) The client secret. A random 512-bit value encoded by base64url (86 letters). The value of this
 property is assigned by Authlete.
+- `client_source` (String) Source of this client record.
 - `created_at` (Number) The time at which this client was created. The value is represented as milliseconds since the UNIX epoch (1970-01-01).
 - `derived_sector_identifier` (String) The sector identifier host component as derived from either the `sector_identifier_uri` or the
 registered redirect URI. If no `sector_identifier_uri` is registered and multiple redirect URIs
 are also registered, the value of this property is `null`.
+- `developer` (String) The unique identifier of the developer who created this client application.
+- `discovered_by_metadata_document` (Boolean) Indicates whether this client was discovered via a Client ID Metadata Document.
 - `dynamically_registered` (Boolean) The flag to indicate whether this client has been registered dynamically.
 For more details, see [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
+- `entity_id` (String) the entity ID of this client.
+- `explicitly_registered` (Boolean) The flag indicating whether this client was registered by the
+"explicit" client registration of OIDC Federation.
+- `locked` (Boolean) The flag which indicates whether this client is locked.
+- `metadata_document_expires_at` (Number) Expiration time of the metadata document (UNIX time in milliseconds).
+- `metadata_document_location` (String) Location of the Client ID Metadata Document that was used for this client.
+- `metadata_document_updated_at` (Number) Last-updated time of the metadata document (UNIX time in milliseconds).
 - `modified_at` (Number) The time at which this client was last modified. The value is represented as milliseconds since the UNIX epoch (1970-01-01).
 - `number` (Number) The sequential number of the client. The value of this property is assigned by Authlete.
+- `organization_name` (String) The human-readable name representing the organization that manages this client. This property corresponds
+to the organization_name client metadata that is defined in OpenID Connect Federation 1.0.
+- `registration_access_token_hash` (String) The hash of the registration access token for this client.
 - `service_number` (Number) The sequential number of the service of the client application. The value of this property is
 assigned by Authlete.
+- `signed_jwks_uri` (String) The URI of the endpoint that returns this client's JWK Set document in the JWT format. This property
+corresponds to the `signed_jwks_uri` client metadata defined in OpenID Connect Federation 1.0.
+- `trust_anchor_id` (String) The entity ID of the trust anchor of the trust chain that was used when this client was registered or updated by
+the mechanism defined in OpenID Connect Federation 1.0
+- `trust_chain_expires_at` (Number) the expiration time of the trust chain that was used when this client was registered or updated by the mechanism
+defined in OpenID Connect Federation 1.0. The value is represented as milliseconds elapsed since the Unix epoch (1970-01-01).
+- `trust_chain_updated_at` (Number) the time at which the trust chain was updated by the mechanism defined in OpenID Connect Federation 1.0
 
 <a id="nestedatt--attributes"></a>
 ### Nested Schema for `attributes`

@@ -6,10 +6,12 @@
 #   ./run.sh plan        # default; shows what would be created (no API calls for new resources)
 #   ./run.sh apply       # CREATES A REAL SERVICE AND CLIENT in your Authlete org
 #   ./run.sh destroy     # deletes what apply created
+#   ./run.sh import      # create a service, import it, and assert the plan is clean
 #   ./run.sh show        # print current state
 #
-# Terraform finds the provider through a dev_overrides block written to a
-# throwaway CLI config in this directory. Your ~/.terraformrc is never touched.
+# Terraform finds the Authlete provider through a dev_overrides block written to
+# a throwaway CLI config in this directory. Your ~/.terraformrc is never touched.
+# hashicorp/tls still comes from the registry, so the first run does an init.
 #
 set -euo pipefail
 
@@ -42,14 +44,14 @@ command -v terraform >/dev/null 2>&1 || die \
 command -v go >/dev/null 2>&1 || die "go not found on PATH."
 
 case "$MODE" in
-  validate|plan|apply|destroy|show) ;;
+  validate|plan|apply|destroy|show|import) ;;
   *) die "unknown mode '$MODE'. Use one of: validate, plan, apply, destroy, show" ;;
 esac
 
 # validate and plan for not-yet-created resources need no live credentials, so a
 # placeholder keeps the provider's Configure step happy without implying access.
 if [[ -z "${AUTHLETE_TOKEN:-}" ]]; then
-  if [[ "$MODE" == "apply" || "$MODE" == "destroy" ]]; then
+  if [[ "$MODE" == "apply" || "$MODE" == "destroy" || "$MODE" == "import" ]]; then
     die "AUTHLETE_TOKEN is not set, and '$MODE' talks to the live API.
   Export an Organization Token first:
     export AUTHLETE_TOKEN='...'
@@ -64,6 +66,15 @@ export AUTHLETE_TOKEN AUTHLETE_SERVER_URL
 
 [[ -n "${AUTHLETE_NAME_PREFIX:-}" ]] && export TF_VAR_name_prefix="$AUTHLETE_NAME_PREFIX"
 [[ -n "${AUTHLETE_ORGANIZATION_ID:-}" ]] && export TF_VAR_organization_id="$AUTHLETE_ORGANIZATION_ID"
+
+# api_server_id for the import probe, which talks to the IdP directly.
+case "${AUTHLETE_SERVER_URL:-https://us.authlete.com}" in
+  *us.authlete.com) export TF_VAR_api_server_id_probe=76281 ;;
+  *jp.authlete.com) export TF_VAR_api_server_id_probe=53285 ;;
+  *eu.authlete.com) export TF_VAR_api_server_id_probe=63294 ;;
+  *br.authlete.com) export TF_VAR_api_server_id_probe=47363 ;;
+  *) export TF_VAR_api_server_id_probe="${AUTHLETE_API_SERVER_ID:-0}" ;;
+esac
 
 # api_server_id is no longer plumbed here: the provider derives it from the
 # cluster URL and injects it. Set it on the resource for self-managed clusters.
@@ -89,7 +100,7 @@ mkdir -p "$BIN_DIR"
 cat > "$TFRC" <<EOF
 provider_installation {
   dev_overrides {
-    "speakeasy/authlete" = "$BIN_DIR"
+    "authlete/authlete" = "$BIN_DIR"
   }
   direct {}
 }
@@ -97,6 +108,16 @@ EOF
 export TF_CLI_CONFIG_FILE="$TFRC"
 
 say "Provider: $BIN_DIR/terraform-provider-authlete"
+
+# dev_overrides covers the Authlete provider, but main.tf also uses
+# hashicorp/tls to generate a signing key, and that one does come from the
+# registry. So init is needed after all -- on a fresh clone there is no
+# .terraform directory and every command fails with "Missing required
+# provider". Terraform warns about the override during init; that is expected.
+if [[ ! -d .terraform ]]; then
+  say "terraform init (first run in this checkout)"
+  terraform init -input=false >/dev/null || die "terraform init failed"
+fi
 
 # ---------------------------------------------------------------------------
 # Run
@@ -139,6 +160,50 @@ EOF
       terraform destroy -auto-approve
     else
       terraform destroy
+    fi
+    ;;
+  import)
+    # Regression guard for the destructive-import bug. organization_id and
+    # api_server_id are needed by the IdP but never returned by the cluster, so
+    # when they were resource attributes the first plan after any import
+    # proposed destroying the service and everything under it.
+    #
+    # The offline guard is internal/provider/import_safety_test.go; this is the
+    # end-to-end version, because only a real import proves the whole path.
+    say "Creating a throwaway service to import"
+    SID=$(curl -fsS -X POST "${AUTHLETE_IDP_URL:-https://login.authlete.com}/api/service" \
+      -H "Authorization: Bearer $AUTHLETE_TOKEN" -H "Content-Type: application/json" \
+      -d "{\"apiServerId\":$TF_VAR_api_server_id_probe,\"organizationId\":$AUTHLETE_ORGANIZATION_ID,\"service\":{\"serviceName\":\"import-guard\",\"issuer\":\"https://import-guard.example.com\"}}" \
+      | python3 -c 'import json,sys; print(json.load(sys.stdin)["apiKey"])') || die "could not create the probe service"
+    say "Created service $SID"
+
+    workdir=$(mktemp -d)
+    trap 'curl -fsS -o /dev/null -X POST "${AUTHLETE_IDP_URL:-https://login.authlete.com}/api/service/remove" -H "Authorization: Bearer $AUTHLETE_TOKEN" -H "Content-Type: application/json" -d "{\"apiServerId\":$TF_VAR_api_server_id_probe,\"organizationId\":$AUTHLETE_ORGANIZATION_ID,\"serviceId\":$SID}" 2>/dev/null; rm -rf "$workdir"' EXIT
+
+    cat > "$workdir/main.tf" <<TF
+terraform {
+  required_providers { authlete = { source = "authlete/authlete" } }
+}
+provider "authlete" {
+  organization_id = $AUTHLETE_ORGANIZATION_ID
+}
+resource "authlete_service" "imported" {
+  service_name = "import-guard"
+  issuer       = "https://import-guard.example.com"
+}
+TF
+    ( cd "$workdir" && terraform import authlete_service.imported "$SID" >/dev/null ) \
+      || die "terraform import failed"
+    say "Imported. Checking the plan is clean..."
+
+    if ( cd "$workdir" && terraform plan -detailed-exitcode -no-color >/dev/null 2>&1 ); then
+      say "PASS: the plan after import is clean."
+    else
+      ( cd "$workdir" && terraform plan -no-color 2>&1 | grep -E "must be replaced|forces replacement|^Plan:" | head -5 )
+      die "FAIL: importing a service produced a non-empty plan.
+  If it proposes replacement, the destructive-import bug is back -- check that
+  x-speakeasy-terraform-ignore is still set on organizationId and apiServerId
+  in .speakeasy/terraform_overlay.yaml."
     fi
     ;;
   show)

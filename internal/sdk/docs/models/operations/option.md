@@ -55,6 +55,22 @@ WithSecuritySource configures the SDK to invoke the provided function on each me
 sdk.WithSecuritySource(/* ... */)
 ```
 
+### WithOrganizationID
+
+WithOrganizationID allows setting the OrganizationID parameter for all supported operations.
+
+```go
+sdk.WithOrganizationID(/* ... */)
+```
+
+### WithIdpHost
+
+WithIdpHost allows setting the IdpHost parameter for all supported operations.
+
+```go
+sdk.WithIdpHost(/* ... */)
+```
+
 ### WithRetryConfig
 
 WithRetryConfig allows setting the default retry configuration used by the SDK for all supported operations.

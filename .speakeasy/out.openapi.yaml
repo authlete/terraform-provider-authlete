@@ -10692,6 +10692,7 @@ components:
         clientIdAliasEnabled:
           type: boolean
           description: Deprecated. Always set to `true`.
+          readOnly: true
         clientType:
           $ref: '#/components/schemas/client_type'
         applicationType:
@@ -10741,6 +10742,7 @@ components:
           type: string
           description: |
             The unique identifier of the developer who created this client application.
+          readOnly: true
         softwareVersion:
           type: string
           description: |
@@ -10752,6 +10754,7 @@ components:
           type: string
           description: |
             The hash of the registration access token for this client.
+          readOnly: true
         createdAt:
           type: integer
           format: int64
@@ -11004,7 +11007,7 @@ components:
               </Accordion>
           x-speakeasy-terraform-custom-type:
             imports:
-              - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+              - "github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
             schemaType: customtypes.JWKSType{}
             valueType: customtypes.JWKS
         userInfoSignAlg:
@@ -11280,11 +11283,13 @@ components:
           description: |
             The flag indicating whether this client was registered by the
             "automatic" client registration of OIDC Federation.
+          readOnly: true
         explicitlyRegistered:
           type: boolean
           description: |
             The flag indicating whether this client was registered by the
             "explicit" client registration of OIDC Federation.
+          readOnly: true
         rsRequestSigned:
           type: boolean
           description: |
@@ -11299,25 +11304,30 @@ components:
             $ref: '#/components/schemas/client_registration_type'
           description: |
             The client registration types that the client has declared it may use.
+          readOnly: true
         organizationName:
           type: string
           description: |
             The human-readable name representing the organization that manages this client. This property corresponds
             to the organization_name client metadata that is defined in OpenID Connect Federation 1.0.
+          readOnly: true
         signedJwksUri:
           type: string
           description: |
             The URI of the endpoint that returns this client's JWK Set document in the JWT format. This property
             corresponds to the `signed_jwks_uri` client metadata defined in OpenID Connect Federation 1.0.
+          readOnly: true
         entityId:
           type: string
           description: |
             the entity ID of this client.
+          readOnly: true
         trustAnchorId:
           type: string
           description: |
             The entity ID of the trust anchor of the trust chain that was used when this client was registered or updated by
             the mechanism defined in OpenID Connect Federation 1.0
+          readOnly: true
         trustChain:
           type: array
           items:
@@ -11331,15 +11341,18 @@ components:
           description: |
             the expiration time of the trust chain that was used when this client was registered or updated by the mechanism
             defined in OpenID Connect Federation 1.0. The value is represented as milliseconds elapsed since the Unix epoch (1970-01-01).
+          readOnly: true
         trustChainUpdatedAt:
           type: integer
           format: int64
           description: |
             the time at which the trust chain was updated by the mechanism defined in OpenID Connect Federation 1.0
+          readOnly: true
         locked:
           type: boolean
           description: |
             The flag which indicates whether this client is locked.
+          readOnly: true
         credentialOfferEndpoint:
           type: string
           description: |
@@ -11396,20 +11409,24 @@ components:
           format: uri
           description: |
             Location of the Client ID Metadata Document that was used for this client.
+          readOnly: true
         metadataDocumentExpiresAt:
           type: integer
           format: int64
           description: |
             Expiration time of the metadata document (UNIX time in milliseconds).
+          readOnly: true
         metadataDocumentUpdatedAt:
           type: integer
           format: int64
           description: |
             Last-updated time of the metadata document (UNIX time in milliseconds).
+          readOnly: true
         discoveredByMetadataDocument:
           type: boolean
           description: |
             Indicates whether this client was discovered via a Client ID Metadata Document.
+          readOnly: true
         clientSource:
           type: string
           description: |
@@ -11420,6 +11437,7 @@ components:
             - EXPLICIT_REGISTRATION
             - METADATA_DOCUMENT
             - STATIC_REGISTRATION
+          readOnly: true
         spiffeId:
           type: string
           description: |
@@ -11684,6 +11702,7 @@ components:
           type: string
           format: uri
           description: "The endpoint for batch token notifications. This endpoint is called when \nmultiple tokens are issued or revoked in a batch operation.\n"
+          readOnly: true
         clientAssertionAudRestrictedToIssuer:
           type: boolean
           description: "The flag indicating whether the audience of client assertion JWTs must \nmatch the issuer identifier of this service.\n"
@@ -11701,12 +11720,15 @@ components:
           type: string
           format: uri
           description: "The endpoint for developer authentication callbacks. This is used when \ndevelopers log into the developer portal.\n"
+          readOnly: true
         developerAuthenticationCallbackApiKey:
           type: string
           description: "The API key for basic authentication at the developer authentication \ncallback endpoint.\n"
+          readOnly: true
         developerAuthenticationCallbackApiSecret:
           type: string
           description: "The API secret for basic authentication at the developer authentication \ncallback endpoint.\n"
+          readOnly: true
         supportedSnses:
           type: array
           items:
@@ -11714,6 +11736,7 @@ components:
             enum:
               - FACEBOOK
           description: "Social login services (SNS) that this service supports for end-user \nauthentication.\n"
+          readOnly: true
         snsCredentials:
           type: array
           items:
@@ -11722,6 +11745,7 @@ components:
         clientIdAliasEnabled:
           type: boolean
           description: Deprecated. Always `true`.
+          readOnly: true
         metadata:
           type: array
           items:
@@ -11846,6 +11870,8 @@ components:
             The flag to indicate whether the direct authorization endpoint is enabled or not.
 
             The path of the endpoint is `/api/auth/authorization/direct/service-api-key`.
+          readOnly: true
+          deprecated: true
         supportedUiLocales:
           type: array
           items:
@@ -11911,6 +11937,8 @@ components:
           description: |
             The flag to indicate whether the direct token endpoint is enabled or not. The path of the endpoint
             is `/api/auth/token/direct/service-api-key`.
+          readOnly: true
+          deprecated: true
         supportedTokenAuthMethods:
           type: array
           items:
@@ -11936,6 +11964,8 @@ components:
         directRevocationEndpointEnabled:
           type: boolean
           description: 'The flag to indicate whether the direct revocation endpoint is enabled or not. The URL of the endpoint is `/api/auth/revocation/direct/service-api-key`. '
+          readOnly: true
+          deprecated: true
         supportedRevocationAuthMethods:
           type: array
           items:
@@ -11949,6 +11979,8 @@ components:
         directIntrospectionEndpointEnabled:
           type: boolean
           description: 'The flag to indicate whether the direct userinfo endpoint is enabled or not. The path of the endpoint is `/api/auth/userinfo/direct/{serviceApiKey}`. '
+          readOnly: true
+          deprecated: true
         supportedIntrospectionAuthMethods:
           type: array
           description: |
@@ -12285,6 +12317,8 @@ components:
           description: |
             'The flag to indicate whether the direct jwks endpoint is enabled or not. The path of the endpoint
             is `/api/service/jwks/get/direct/service-api-key`. '
+          readOnly: true
+          deprecated: true
         jwks:
           type: string
           description: |
@@ -12297,7 +12331,7 @@ components:
             Encryption](https://openid.net/specs/openid-connect-core-1_0.html#SigEnc) for details.
           x-speakeasy-terraform-custom-type:
             imports:
-              - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+              - "github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
             schemaType: customtypes.JWKSType{}
             valueType: customtypes.JWKS
         idTokenSignatureKeyId:
@@ -12378,6 +12412,8 @@ components:
           description: |
             The flag to indicate whether the direct userinfo endpoint is enabled or not. The path
             of the endpoint is `/api/auth/userinfo/direct/service-api-key`.
+          readOnly: true
+          deprecated: true
         dynamicRegistrationSupported:
           type: boolean
           description: |
@@ -12955,7 +12991,7 @@ components:
             `signed_jwks_uri`.
           x-speakeasy-terraform-custom-type:
             imports:
-              - "github.com/speakeasy/terraform-provider-authlete/internal/provider/customtypes"
+              - "github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
             schemaType: customtypes.JWKSType{}
             valueType: customtypes.JWKS
         federationSignatureKeyId:
@@ -13809,10 +13845,12 @@ components:
             The numeric ID of the API server to create the service on. Official SDKs inject
             this automatically for known Authlete clusters, so it can be omitted there;
             all other callers must provide it.
+          x-speakeasy-terraform-ignore: true
         organizationId:
           type: integer
           format: int64
           description: The numeric ID of the organization the service belongs to.
+          x-speakeasy-terraform-ignore: true
         service:
           $ref: '#/components/schemas/service'
     service_remove_idp_request:
@@ -20436,3 +20474,14 @@ x-speakeasy-retries:
     - 429
   retryConnectionErrors: true
 x-speakeasy-timeout: 5000
+x-speakeasy-globals:
+  parameters:
+    - name: organizationId
+      in: path
+      schema:
+        type: integer
+        format: int64
+    - name: idpHost
+      in: path
+      schema:
+        type: string

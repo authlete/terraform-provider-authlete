@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     authlete = {
-      source = "speakeasy/authlete"
+      source = "authlete/authlete"
     }
     tls = {
       source  = "hashicorp/tls"
@@ -18,15 +18,15 @@ resource "tls_private_key" "signing" {
   rsa_bits  = 2048
 }
 
+variable "organization_id" {
+  description = "Authlete organization services are created under."
+  type        = number
+}
+
 variable "name_prefix" {
   description = "Prefix for created object names, so test artifacts are identifiable."
   type        = string
   default     = "tftest"
-}
-
-variable "organization_id" {
-  description = "Authlete organization the service is created under. Required by the IdP create endpoint."
-  type        = number
 }
 
 # Deliberately empty. The provider reads AUTHLETE_TOKEN and AUTHLETE_SERVER_URL
@@ -37,7 +37,11 @@ variable "organization_id" {
 #
 # tls_skip_verify and http_headers are also available here for on-premise
 # deployments behind a private CA or a proxy.
-provider "authlete" {}
+provider "authlete" {
+  # organization_id can also come from AUTHLETE_ORGANIZATION_ID. Declared here so
+  # a configuration managing several organizations can use provider aliases.
+  organization_id = var.organization_id
+}
 
 # ---------------------------------------------------------------------------
 # A service. Every other Authlete object lives underneath one.
@@ -47,11 +51,8 @@ provider "authlete" {}
 # at Authlete's defaults. See docs/resources/service.md for the full surface.
 # ---------------------------------------------------------------------------
 resource "authlete_service" "test" {
-  # Create and delete go through the IdP; read and update go to the regional
-  # cluster in AUTHLETE_SERVER_URL. api_server_id is deliberately omitted --
-  # the provider derives it from the cluster and injects it. Self-managed
-  # deployments that the provider cannot map should set it explicitly here.
-  organization_id = var.organization_id
+  # organization_id and api_server_id are not resource attributes: the IdP needs
+  # them, the cluster never returns them, so the provider supplies both.
 
   service_name = "${var.name_prefix}-service"
   issuer       = "https://${var.name_prefix}.example.com"

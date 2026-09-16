@@ -26,9 +26,11 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"strconv"
 	"strings"
 
-	"github.com/speakeasy/terraform-provider-authlete/internal/sdk/models/operations"
+	"github.com/authlete/terraform-provider-authlete/internal/sdk/models/operations"
 )
 
 // apiServerIDByHost maps an Authlete cluster to the numeric API server ID the
@@ -82,7 +84,24 @@ type idpRoutingTransport struct {
 	// no injection, which is correct for a self-managed deployment whose ID we
 	// cannot derive.
 	apiServerID int64
-	next        http.RoundTripper
+	// organizationID is injected the same way. It is a provider attribute rather
+	// than a resource one: the IdP needs it to create and delete a service, but
+	// the cluster never returns it, so modelling it per-resource makes every
+	// imported service look changed and -- because it cannot be updated --
+	// propose a destroy. Provider-level also lets one configuration manage
+	// several organizations through provider aliases.
+	organizationID int64
+	next           http.RoundTripper
+}
+
+// OrganizationIDFromEnv reads the organization from the environment, used as a
+// fallback when the provider block does not set organization_id.
+func OrganizationIDFromEnv() int64 {
+	v, err := strconv.ParseInt(strings.TrimSpace(os.Getenv("AUTHLETE_ORGANIZATION_ID")), 10, 64)
+	if err != nil {
+		return 0
+	}
+	return v
 }
 
 // NewIdpRoutingTransport wraps next so that requests to Authlete's default IdP
@@ -91,15 +110,15 @@ type idpRoutingTransport struct {
 //
 // When neither applies the inner transport is returned unchanged, so the
 // shared-cloud path keeps exactly its generated behaviour.
-func NewIdpRoutingTransport(idpHost string, apiServerID int64, next http.RoundTripper) http.RoundTripper {
+func NewIdpRoutingTransport(idpHost string, apiServerID, organizationID int64, next http.RoundTripper) http.RoundTripper {
 	idpHost = strings.TrimSpace(idpHost)
-	if idpHost == "" && apiServerID == 0 {
+	if idpHost == "" && apiServerID == 0 && organizationID == 0 {
 		return next
 	}
 	if next == nil {
 		next = http.DefaultTransport
 	}
-	return &idpRoutingTransport{idpHost: idpHost, apiServerID: apiServerID, next: next}
+	return &idpRoutingTransport{idpHost: idpHost, apiServerID: apiServerID, organizationID: organizationID, next: next}
 }
 
 // idpBodyPaths are the IdP operations whose request body carries apiServerId.
@@ -137,20 +156,29 @@ func (t *idpRoutingTransport) RoundTrip(req *http.Request) (*http.Response, erro
 		cloned.Host = u.Host
 	}
 
-	if t.apiServerID != 0 && idpBodyPaths[req.URL.Path] {
-		if err := injectAPIServerID(cloned, t.apiServerID); err != nil {
-			return nil, err
+	if idpBodyPaths[req.URL.Path] {
+		fields := map[string]int64{}
+		if t.apiServerID != 0 {
+			fields["apiServerId"] = t.apiServerID
+		}
+		if t.organizationID != 0 {
+			fields["organizationId"] = t.organizationID
+		}
+		if len(fields) > 0 {
+			if err := injectInt64Fields(cloned, fields); err != nil {
+				return nil, err
+			}
 		}
 	}
 
 	return t.next.RoundTrip(cloned)
 }
 
-// injectAPIServerID adds apiServerId to a JSON request body that does not
-// already carry a usable one. A value the caller set explicitly is never
-// overwritten. A body that is absent or not an object is left alone, so a
-// malformed request fails at the API with its own error rather than here.
-func injectAPIServerID(req *http.Request, id int64) error {
+// injectInt64Fields fills in JSON body fields that are absent or zero. A value
+// the caller set explicitly is never overwritten. A body that is absent or not
+// an object is left alone, so a malformed request fails at the API with its own
+// error rather than here.
+func injectInt64Fields(req *http.Request, fields map[string]int64) error {
 	if req.Body == nil {
 		return nil
 	}
@@ -175,16 +203,22 @@ func injectAPIServerID(req *http.Request, id int64) error {
 		return nil
 	}
 
-	if existing, ok := body["apiServerId"]; ok {
-		var n json.Number
-		if err := json.Unmarshal(existing, &n); err == nil && n.String() != "0" && n.String() != "" {
-			restore(raw)
-			return nil
+	changed := false
+	for name, id := range fields {
+		if existing, ok := body[name]; ok {
+			var n json.Number
+			if err := json.Unmarshal(existing, &n); err == nil && n.String() != "0" && n.String() != "" {
+				continue
+			}
 		}
+		enc, err := json.Marshal(id)
+		if err != nil {
+			continue
+		}
+		body[name] = enc
+		changed = true
 	}
-
-	body["apiServerId"], err = json.Marshal(id)
-	if err != nil {
+	if !changed {
 		restore(raw)
 		return nil
 	}

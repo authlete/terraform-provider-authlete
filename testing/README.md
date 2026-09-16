@@ -5,10 +5,11 @@ the Terraform registry. `run.sh` builds `../` into `.provider-bin/`, writes a
 `dev_overrides` block to a throwaway CLI config in this directory, and points
 Terraform at it via `TF_CLI_CONFIG_FILE`. Your `~/.terraformrc` is left alone.
 
-Because `dev_overrides` bypasses the registry, **there is no `terraform init`
-step** — with an override in place, init would fail looking for an unpublished
-provider. Terraform prints a "development overrides are in effect" warning on
-every command; that is expected.
+`dev_overrides` bypasses the registry for the Authlete provider, but `main.tf`
+also uses `hashicorp/tls` to generate a signing key, and that one is a real
+registry provider. So the first run in a fresh checkout does a `terraform init`
+automatically; later runs skip it. Terraform prints a "development overrides are
+in effect" warning on every command; that is expected.
 
 ## Usage
 
@@ -17,6 +18,7 @@ every command; that is expected.
 ./run.sh plan        # default; no API calls, because nothing exists in state yet
 ./run.sh apply       # creates a real service + client; prompts first
 ./run.sh destroy     # removes what apply created
+./run.sh import      # create a service, import it, assert the plan is clean
 ./run.sh show        # dump current state
 ```
 
@@ -123,6 +125,22 @@ This split is why the service resource needs `organization_id` and
 `api_server_id`, and why `gen.yaml` sets `enableOperationServers: true`. The
 generated SDK hardcodes `https://login.authlete.com` for the two IdP operations,
 so the provider's `server_url` correctly affects only the cluster calls.
+
+## After regenerating
+
+`speakeasy run` regenerates `internal/provider/provider.go`, which carries one
+hand edit: the line wrapping the HTTP transport so `idp_host` and
+`organization_id` actually take effect. Speakeasy's three-way merge usually
+preserves it, but can drop it silently -- the file still compiles without it.
+
+Re-apply it with:
+
+```bash
+./scripts/patch-provider.sh
+```
+
+The script is idempotent, and CI runs `--check` so a dropped patch fails a
+build rather than shipping a provider that ignores both settings.
 
 ## Caveat
 

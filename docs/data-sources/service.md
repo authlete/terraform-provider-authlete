@@ -184,16 +184,16 @@ parameter in responses from the device authorization endpoint.
 - `device_verification_uri_complete` (String) The verification URI for the device flow with a placeholder for a user code. This URI is used
 to build the value of the `verification_uri_complete` parameter in responses from the device
 authorization endpoint.
-- `direct_authorization_endpoint_enabled` (Boolean) The flag to indicate whether the direct authorization endpoint is enabled or not.
+- `direct_authorization_endpoint_enabled` (Boolean, Deprecated) The flag to indicate whether the direct authorization endpoint is enabled or not.
 
 The path of the endpoint is `/api/auth/authorization/direct/service-api-key`.
-- `direct_introspection_endpoint_enabled` (Boolean) The flag to indicate whether the direct userinfo endpoint is enabled or not. The path of the endpoint is `/api/auth/userinfo/direct/{serviceApiKey}`.
-- `direct_jwks_endpoint_enabled` (Boolean) 'The flag to indicate whether the direct jwks endpoint is enabled or not. The path of the endpoint
+- `direct_introspection_endpoint_enabled` (Boolean, Deprecated) The flag to indicate whether the direct userinfo endpoint is enabled or not. The path of the endpoint is `/api/auth/userinfo/direct/{serviceApiKey}`.
+- `direct_jwks_endpoint_enabled` (Boolean, Deprecated) 'The flag to indicate whether the direct jwks endpoint is enabled or not. The path of the endpoint
 is `/api/service/jwks/get/direct/service-api-key`. '
-- `direct_revocation_endpoint_enabled` (Boolean) The flag to indicate whether the direct revocation endpoint is enabled or not. The URL of the endpoint is `/api/auth/revocation/direct/service-api-key`.
-- `direct_token_endpoint_enabled` (Boolean) The flag to indicate whether the direct token endpoint is enabled or not. The path of the endpoint
+- `direct_revocation_endpoint_enabled` (Boolean, Deprecated) The flag to indicate whether the direct revocation endpoint is enabled or not. The URL of the endpoint is `/api/auth/revocation/direct/service-api-key`.
+- `direct_token_endpoint_enabled` (Boolean, Deprecated) The flag to indicate whether the direct token endpoint is enabled or not. The path of the endpoint
 is `/api/auth/token/direct/service-api-key`.
-- `direct_user_info_endpoint_enabled` (Boolean) The flag to indicate whether the direct userinfo endpoint is enabled or not. The path
+- `direct_user_info_endpoint_enabled` (Boolean, Deprecated) The flag to indicate whether the direct userinfo endpoint is enabled or not. The path
 of the endpoint is `/api/auth/userinfo/direct/service-api-key`.
 - `dpop_nonce_duration` (Number) The duration of nonce values for DPoP proof JWTs in seconds.
 - `dpop_nonce_required` (Boolean) Whether to require DPoP proof JWTs to include the `nonce` claim

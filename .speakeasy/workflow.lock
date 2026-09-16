@@ -2,8 +2,8 @@ speakeasyVersion: 1.795.1
 sources:
     Authlete-OAS:
         sourceNamespace: authlete-oas
-        sourceRevisionDigest: sha256:8cd39b146e421e85faf6c65c16af506095229e9ec2f894684a808f89e1e50cfd
-        sourceBlobDigest: sha256:65585751776c265aff9170885b8d19afce5964b4fd78f84c6dfa32fdfa1d3a82
+        sourceRevisionDigest: sha256:63f19b520a04422475ccc6810f12de508c4e2c527ae87db483dcf196e089e8b7
+        sourceBlobDigest: sha256:ba99fcf74d748aa796b9db08f6fd0e8da5ea392583df6d2ab56596ec6420322f
         tags:
             - latest
             - 3.0.16
@@ -11,11 +11,11 @@ targets:
     authlete:
         source: Authlete-OAS
         sourceNamespace: authlete-oas
-        sourceRevisionDigest: sha256:8cd39b146e421e85faf6c65c16af506095229e9ec2f894684a808f89e1e50cfd
-        sourceBlobDigest: sha256:65585751776c265aff9170885b8d19afce5964b4fd78f84c6dfa32fdfa1d3a82
+        sourceRevisionDigest: sha256:63f19b520a04422475ccc6810f12de508c4e2c527ae87db483dcf196e089e8b7
+        sourceBlobDigest: sha256:ba99fcf74d748aa796b9db08f6fd0e8da5ea392583df6d2ab56596ec6420322f
 workflow:
     workflowVersion: 1.0.0
-    speakeasyVersion: latest
+    speakeasyVersion: 1.795.1
     sources:
         Authlete-OAS:
             inputs:

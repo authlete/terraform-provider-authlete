@@ -1,0 +1,76 @@
+# Runs the test suite on every push and pull request.
+#
+# This exists because nothing else runs our tests. The Speakeasy generation
+# workflow compiles them with `go test -run=XXX_SHOULD_NEVER_MATCH_XXX`, a
+# deliberately non-matching pattern, so a regeneration can produce a provider
+# that builds, lints, and passes generation while silently having dropped a
+# hand edit.
+#
+# The generation workflow opens a pull request rather than pushing, so these
+# checks run on that PR and a dropped edit shows up as a failing check before
+# anyone merges it.
+name: Test
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+  # Every branch, not just main and v*. Speakeasy's generation workflow pushes a
+  # branch and opens a PR using GITHUB_TOKEN, and GitHub does not trigger
+  # workflows from events created by that token -- so a narrow trigger would
+  # leave generation PRs, the ones these checks exist for, with no CI at all.
+  #
+  # The real fix is to give the generation workflow a PAT or GitHub App token
+  # instead of GITHUB_TOKEN, in .github/workflows/sdk_generation.yaml. Until
+  # then, run this manually against the generation branch with the Run workflow
+  # button, or via: gh workflow run test.yaml --ref <branch>
+  push:
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      # The one hand edit in provider.go survives regeneration through Speakeasy's
+      # three-way merge, which can drop it silently -- the file still compiles
+      # without it. This fails the build instead, and names the command to fix it.
+      - name: Check the provider.go patch is present
+        run: ./scripts/patch-provider.sh --check
+
+      - name: Build
+        run: go build ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      # The contract tests in internal/provider/provider_contract_test.go are the
+      # important ones here: they assert that the hand edits carried by
+      # persistentEdits are still present. Losing them does not break the build,
+      # so this is the only thing standing between a bad merge and production.
+      - name: Test
+        run: go test -count=1 ./...
+
+      - name: Check formatting
+        run: |
+          unformatted=$(gofmt -l . | grep -v '^internal/sdk/' || true)
+          if [ -n "$unformatted" ]; then
+            echo "These files need gofmt:"
+            echo "$unformatted"
+            exit 1
+          fi

@@ -41,7 +41,7 @@ func TestDefaultIdpOriginTracksGeneratedSpec(t *testing.T) {
 
 func TestUnsetIdpHostIsAPassthrough(t *testing.T) {
 	inner := &capture{}
-	rt := NewIdpRoutingTransport("", 0, inner)
+	rt := NewIdpRoutingTransport("", 0, 0, inner)
 
 	if rt != http.RoundTripper(inner) {
 		t.Fatal("no idp_host and no apiServerId must return the inner transport unchanged, " +
@@ -51,7 +51,7 @@ func TestUnsetIdpHostIsAPassthrough(t *testing.T) {
 
 func TestIdpBoundRequestIsRerouted(t *testing.T) {
 	inner := &capture{}
-	rt := NewIdpRoutingTransport("authlete-login.example.com", 0, inner)
+	rt := NewIdpRoutingTransport("authlete-login.example.com", 0, 0, inner)
 
 	send(t, rt, defaultIdpOrigin()+"/api/service")
 
@@ -63,7 +63,7 @@ func TestIdpBoundRequestIsRerouted(t *testing.T) {
 
 func TestClusterTrafficIsUntouched(t *testing.T) {
 	inner := &capture{}
-	rt := NewIdpRoutingTransport("authlete-login.example.com", 0, inner)
+	rt := NewIdpRoutingTransport("authlete-login.example.com", 0, 0, inner)
 
 	// A service read goes to the regional cluster, not the IdP. Rerouting it
 	// would send API traffic to the IdP and break every read.
@@ -83,7 +83,7 @@ func TestSchemeAndPortAreHonoured(t *testing.T) {
 		{"  idp.internal  ", "https://idp.internal/api/service"},
 	} {
 		inner := &capture{}
-		rt := NewIdpRoutingTransport(tc.idpHost, 0, inner)
+		rt := NewIdpRoutingTransport(tc.idpHost, 0, 0, inner)
 		send(t, rt, defaultIdpOrigin()+"/api/service")
 		if len(inner.got) != 1 || inner.got[0] != tc.want {
 			t.Errorf("idp_host %q: got %v, want [%s]", tc.idpHost, inner.got, tc.want)
@@ -93,7 +93,7 @@ func TestSchemeAndPortAreHonoured(t *testing.T) {
 
 func TestOriginalRequestIsNotMutated(t *testing.T) {
 	inner := &capture{}
-	rt := NewIdpRoutingTransport("idp.internal", 0, inner)
+	rt := NewIdpRoutingTransport("idp.internal", 0, 0, inner)
 
 	req := httptest.NewRequest(http.MethodPost, defaultIdpOrigin()+"/api/service", nil)
 	req.RequestURI = ""
@@ -162,22 +162,22 @@ func decode(t *testing.T, s string) map[string]any {
 
 func TestAPIServerIDIsInjectedWhenAbsent(t *testing.T) {
 	inner := &bodyCapture{}
-	rt := NewIdpRoutingTransport("", 53285, inner)
+	rt := NewIdpRoutingTransport("", 53285, 0, inner)
 
-	postJSON(t, rt, defaultIdpOrigin()+"/api/service", `{"organizationId":417639873643986,"service":{"serviceName":"x"}}`)
+	postJSON(t, rt, defaultIdpOrigin()+"/api/service", `{"organizationId":123456789012345,"service":{"serviceName":"x"}}`)
 
 	got := decode(t, inner.body)
 	if got["apiServerId"] != float64(53285) {
 		t.Fatalf("apiServerId = %v, want 53285 (body: %s)", got["apiServerId"], inner.body)
 	}
-	if got["organizationId"] != float64(417639873643986) {
+	if got["organizationId"] != float64(123456789012345) {
 		t.Fatalf("injection clobbered organizationId: %s", inner.body)
 	}
 }
 
 func TestExplicitAPIServerIDIsNeverOverwritten(t *testing.T) {
 	inner := &bodyCapture{}
-	rt := NewIdpRoutingTransport("", 53285, inner)
+	rt := NewIdpRoutingTransport("", 53285, 0, inner)
 
 	postJSON(t, rt, defaultIdpOrigin()+"/api/service", `{"apiServerId":99999,"organizationId":1}`)
 
@@ -188,7 +188,7 @@ func TestExplicitAPIServerIDIsNeverOverwritten(t *testing.T) {
 
 func TestAPIServerIDInjectedOnRemoveToo(t *testing.T) {
 	inner := &bodyCapture{}
-	rt := NewIdpRoutingTransport("", 76281, inner)
+	rt := NewIdpRoutingTransport("", 76281, 0, inner)
 
 	postJSON(t, rt, defaultIdpOrigin()+"/api/service/remove", `{"organizationId":1,"serviceId":2}`)
 
@@ -199,7 +199,7 @@ func TestAPIServerIDInjectedOnRemoveToo(t *testing.T) {
 
 func TestClusterBodiesAreNotTouched(t *testing.T) {
 	inner := &bodyCapture{}
-	rt := NewIdpRoutingTransport("", 53285, inner)
+	rt := NewIdpRoutingTransport("", 53285, 0, inner)
 
 	const body = `{"serviceName":"x"}`
 	postJSON(t, rt, "https://jp.authlete.com/api/12345/service/update", body)
@@ -211,7 +211,7 @@ func TestClusterBodiesAreNotTouched(t *testing.T) {
 
 func TestNonJSONBodyIsLeftAlone(t *testing.T) {
 	inner := &bodyCapture{}
-	rt := NewIdpRoutingTransport("", 53285, inner)
+	rt := NewIdpRoutingTransport("", 53285, 0, inner)
 
 	const body = `not json at all`
 	postJSON(t, rt, defaultIdpOrigin()+"/api/service", body)

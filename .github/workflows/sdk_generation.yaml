@@ -29,5 +29,11 @@ jobs:
       mode: pr
       set_version: ${{ github.event.inputs.set_version }}
     secrets:
+      # NOTE: with GITHUB_TOKEN, the pull request this workflow opens will not
+      # trigger any other workflow -- GitHub suppresses that to prevent loops.
+      # The result is that generation PRs arrive with no CI, including the
+      # checks that exist to catch a regeneration dropping the provider.go
+      # patch. Replacing this with a PAT or GitHub App token makes those checks
+      # run automatically; see .github/workflows/test.yaml.
       github_access_token: ${{ secrets.GITHUB_TOKEN }}
       speakeasy_api_key: ${{ secrets.SPEAKEASY_API_KEY }}
