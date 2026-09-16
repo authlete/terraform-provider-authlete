@@ -36,7 +36,8 @@ type AuthleteProvider struct {
 
 // AuthleteProviderConfigureData describes provider configuration data passed to resources.
 type AuthleteProviderConfigureData struct {
-	OrganizationID types.Int64 `tfsdk:"organization_id"`
+	IdpHost        types.String `tfsdk:"idp_host"`
+	OrganizationID types.Int64  `tfsdk:"organization_id"`
 	SDKClient      *sdk.Authlete
 }
 
@@ -44,6 +45,7 @@ type AuthleteProviderConfigureData struct {
 type AuthleteProviderModel struct {
 	Bearer         types.String `tfsdk:"bearer"`
 	HTTPHeaders    types.Map    `tfsdk:"http_headers"`
+	IdpHost        types.String `tfsdk:"idp_host"`
 	OrganizationID types.Int64  `tfsdk:"organization_id"`
 	ServerURL      types.String `tfsdk:"server_url"`
 	TLSSkipVerify  types.Bool   `tfsdk:"tls_skip_verify"`
@@ -74,6 +76,9 @@ func (p *AuthleteProvider) Schema(ctx context.Context, req provider.SchemaReques
 				Description: `HTTP headers to include in all requests`,
 				ElementType: types.StringType,
 				Optional:    true,
+			},
+			"idp_host": schema.StringAttribute{
+				Optional: true,
 			},
 			"organization_id": schema.Int64Attribute{
 				Optional: true,
@@ -148,8 +153,13 @@ func (p *AuthleteProvider) Configure(ctx context.Context, req provider.Configure
 		opts = append(opts, sdk.WithOrganizationID(data.OrganizationID.ValueInt64()))
 	}
 
+	if !data.IdpHost.IsUnknown() && !data.IdpHost.IsNull() {
+		opts = append(opts, sdk.WithIdpHost(data.IdpHost.ValueString()))
+	}
+
 	client := sdk.New(opts...)
 	configureData := &AuthleteProviderConfigureData{
+		IdpHost:        data.IdpHost,
 		OrganizationID: data.OrganizationID,
 		SDKClient:      client,
 	}

@@ -152,6 +152,13 @@ func WithOrganizationID(organizationID int64) SDKOption {
 	}
 }
 
+// WithIdpHost allows setting the IdpHost parameter for all supported operations
+func WithIdpHost(idpHost string) SDKOption {
+	return func(sdk *Authlete) {
+		sdk.sdkConfiguration.Globals.IdpHost = &idpHost
+	}
+}
+
 func WithRetryConfig(retryConfig retry.Config) SDKOption {
 	return func(sdk *Authlete) {
 		sdk.sdkConfiguration.RetryConfig = &retryConfig
