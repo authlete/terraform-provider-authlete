@@ -15,6 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -45,6 +47,7 @@ type ServiceResourceModel struct {
 	AllowableClockSkew                          types.Int32                       `tfsdk:"allowable_clock_skew"`
 	APIKey                                      types.Int64                       `tfsdk:"api_key"`
 	APISecret                                   types.String                      `tfsdk:"api_secret"`
+	APIServerID                                 types.Int64                       `tfsdk:"api_server_id"`
 	AttestationChallengeTimeWindow              types.Int64                       `tfsdk:"attestation_challenge_time_window"`
 	Attributes                                  []tfTypes.Pair                    `tfsdk:"attributes"`
 	AuthenticationCallbackAPIKey                types.String                      `tfsdk:"authentication_callback_api_key"`
@@ -147,6 +150,7 @@ type ServiceResourceModel struct {
 	Number                                      types.Int32                       `tfsdk:"number"`
 	Oid4vciVersion                              types.String                      `tfsdk:"oid4vci_version"`
 	OpenidDroppedOnRefreshWithoutOfflineAccess  types.Bool                        `tfsdk:"openid_dropped_on_refresh_without_offline_access"`
+	OrganizationID                              types.Int64                       `tfsdk:"organization_id"`
 	OrganizationName                            types.String                      `tfsdk:"organization_name"`
 	ParRequired                                 types.Bool                        `tfsdk:"par_required"`
 	PkceRequired                                types.Bool                        `tfsdk:"pkce_required"`
@@ -324,6 +328,16 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Sensitive: true,
 				MarkdownDescription: `The API secret of this service. This value is assigned by Authlete and ` + "\n" +
 					`is used for service authentication in API calls.`,
+			},
+			"api_server_id": schema.Int64Attribute{
+				Optional: true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.RequiresReplaceIfConfigured(),
+				},
+				MarkdownDescription: `The numeric ID of the API server to create the service on. Official SDKs inject` + "\n" +
+					`this automatically for known Authlete clusters, so it can be omitted there;` + "\n" +
+					`all other callers must provide it.` + "\n" +
+					`Requires replacement if changed.`,
 			},
 			"attestation_challenge_time_window": schema.Int64Attribute{
 				Computed: true,
@@ -1190,6 +1204,13 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: `The flag indicating whether the openid scope should be dropped from` + "\n" +
 					`scopes list assigned to access token issued when a refresh token grant` + "\n" +
 					`is used.`,
+			},
+			"organization_id": schema.Int64Attribute{
+				Required: true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.RequiresReplaceIfConfigured(),
+				},
+				Description: `The numeric ID of the organization the service belongs to. Requires replacement if changed.`,
 			},
 			"organization_name": schema.StringAttribute{
 				Computed: true,
