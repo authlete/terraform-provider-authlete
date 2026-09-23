@@ -82,7 +82,17 @@ patch = '''
 	if organizationID == 0 {
 		organizationID = OrganizationIDFromEnv()
 	}
-	apiServerID, _ := APIServerIDForServerURL(serverUrl)
+	// api_server_id: explicit configuration first, then the environment, and
+	// only then the built-in cluster map. Deployments not on a public cluster --
+	// Dedicated Cloud, On-Premise, pre-production -- are not in the map and must
+	// supply it, or the IdP rejects create and delete with an apiServerId error.
+	apiServerID := data.APIServerID.ValueInt64()
+	if apiServerID == 0 {
+		apiServerID = APIServerIDFromEnv()
+	}
+	if apiServerID == 0 {
+		apiServerID, _ = APIServerIDForServerURL(serverUrl)
+	}
 	httpClient.Transport = NewIdpRoutingTransport(idpHost, apiServerID, organizationID, httpClient.Transport)
 '''
 src = open(path).read()

@@ -20485,3 +20485,8 @@ x-speakeasy-globals:
       in: path
       schema:
         type: string
+    - name: apiServerId
+      in: path
+      schema:
+        type: integer
+        format: int64

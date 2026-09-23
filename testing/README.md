@@ -33,6 +33,7 @@ to run without a token.
 | `AUTHLETE_TOKEN` | Read directly by the provider. Required for `apply`/`destroy`. Must be an **Organization Token** — a Service Access Token is scoped to one existing service and cannot create one. |
 | `AUTHLETE_ORGANIZATION_ID` | Required for `apply`/`destroy`. The IdP create endpoint will not accept a service without it. |
 | `AUTHLETE_SERVER_URL` | Read directly by the provider. Defaults to `https://us.authlete.com`; set `https://jp.authlete.com` for the JP cluster. |
+| `AUTHLETE_API_SERVER_ID` | Required for anything other than the four public clusters (us/jp/eu/br), whose ids the provider knows. Dedicated Cloud, On-Premise and pre-production hosts must set this, or `api_server_id` on the provider. |
 | `AUTHLETE_IDP_HOST` | Only for Dedicated Cloud and On-Premise, which run their own IdP. Unset means Authlete's shared cloud. |
 | `AUTHLETE_NAME_PREFIX` | Defaults to `tftest`. Prefixes created object names so test artifacts are identifiable. |
 

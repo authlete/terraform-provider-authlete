@@ -35,6 +35,7 @@ type AuthleteProvider struct {
 
 // AuthleteProviderConfigureData describes provider configuration data passed to resources.
 type AuthleteProviderConfigureData struct {
+	APIServerID    types.Int64  `tfsdk:"api_server_id"`
 	IdpHost        types.String `tfsdk:"idp_host"`
 	OrganizationID types.Int64  `tfsdk:"organization_id"`
 	SDKClient      *sdk.Authlete
@@ -42,6 +43,7 @@ type AuthleteProviderConfigureData struct {
 
 // AuthleteProviderModel describes the provider data model.
 type AuthleteProviderModel struct {
+	APIServerID    types.Int64  `tfsdk:"api_server_id"`
 	Bearer         types.String `tfsdk:"bearer"`
 	HTTPHeaders    types.Map    `tfsdk:"http_headers"`
 	IdpHost        types.String `tfsdk:"idp_host"`
@@ -58,6 +60,9 @@ func (p *AuthleteProvider) Metadata(ctx context.Context, req provider.MetadataRe
 func (p *AuthleteProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
+			"api_server_id": schema.Int64Attribute{
+				Optional: true,
+			},
 			"bearer": schema.StringAttribute{
 				MarkdownDescription: `Authenticate every request with a **Service Access Token** or **Organization Token**.` + "\n" +
 					`Set the token value in the ` + "`" + `Authorization: Bearer <token>` + "`" + ` header.` + "\n" +
@@ -156,7 +161,17 @@ func (p *AuthleteProvider) Configure(ctx context.Context, req provider.Configure
 	if organizationID == 0 {
 		organizationID = OrganizationIDFromEnv()
 	}
-	apiServerID, _ := APIServerIDForServerURL(serverUrl)
+	// api_server_id: explicit configuration first, then the environment, and
+	// only then the built-in cluster map. Deployments not on a public cluster --
+	// Dedicated Cloud, On-Premise, pre-production -- are not in the map and must
+	// supply it, or the IdP rejects create and delete with an apiServerId error.
+	apiServerID := data.APIServerID.ValueInt64()
+	if apiServerID == 0 {
+		apiServerID = APIServerIDFromEnv()
+	}
+	if apiServerID == 0 {
+		apiServerID, _ = APIServerIDForServerURL(serverUrl)
+	}
 	httpClient.Transport = NewIdpRoutingTransport(idpHost, apiServerID, organizationID, httpClient.Transport)
 
 	opts := []sdk.SDKOption{
@@ -173,8 +188,13 @@ func (p *AuthleteProvider) Configure(ctx context.Context, req provider.Configure
 		opts = append(opts, sdk.WithIdpHost(data.IdpHost.ValueString()))
 	}
 
+	if !data.APIServerID.IsUnknown() && !data.APIServerID.IsNull() {
+		opts = append(opts, sdk.WithAPIServerID(data.APIServerID.ValueInt64()))
+	}
+
 	client := sdk.New(opts...)
 	configureData := &AuthleteProviderConfigureData{
+		APIServerID:    data.APIServerID,
 		IdpHost:        data.IdpHost,
 		OrganizationID: data.OrganizationID,
 		SDKClient:      client,

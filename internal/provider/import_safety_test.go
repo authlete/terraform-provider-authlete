@@ -152,3 +152,45 @@ func camel(s string) string {
 	}
 	return string(out)
 }
+
+// --- non-public clusters -----------------------------------------------------
+
+// TestAPIServerIDIsConfigurable guards a regression found in review: service
+// creation worked only on the four public clusters, because api_server_id was
+// derivable from a built-in map and settable nowhere. Dedicated Cloud,
+// On-Premise and pre-production hosts such as nextdev-api.authlete.net are not
+// in that map, so the IdP rejected create and delete with an apiServerId error.
+func TestAPIServerIDIsConfigurable(t *testing.T) {
+	attrs := providerSchema(t)
+	if _, ok := attrs["api_server_id"]; !ok {
+		t.Fatal("provider schema has no `api_server_id` attribute.\n\n" +
+			"Without it, only the four public clusters work: every other deployment " +
+			"has an API server id that cannot be derived from the host and must be " +
+			"configured. Declared as an x-speakeasy-globals parameter in the overlay.")
+	}
+}
+
+func TestAPIServerIDFallsBackToEnv(t *testing.T) {
+	t.Setenv("AUTHLETE_API_SERVER_ID", "12345")
+	if got := APIServerIDFromEnv(); got != 12345 {
+		t.Fatalf("APIServerIDFromEnv() = %d, want 12345", got)
+	}
+	t.Setenv("AUTHLETE_API_SERVER_ID", "")
+	if got := APIServerIDFromEnv(); got != 0 {
+		t.Fatalf("an unset value should yield 0, got %d", got)
+	}
+}
+
+// TestUnmappedClusterYieldsNoID documents why the fallbacks matter: an unknown
+// host produces nothing, so without configuration the IdP request carries no
+// apiServerId at all.
+func TestUnmappedClusterYieldsNoID(t *testing.T) {
+	for _, host := range []string{
+		"https://nextdev-api.authlete.net",
+		"https://authlete.customer.example.com",
+	} {
+		if id, ok := APIServerIDForServerURL(host); ok || id != 0 {
+			t.Errorf("APIServerIDForServerURL(%q) = (%d, %v), want (0, false)", host, id, ok)
+		}
+	}
+}

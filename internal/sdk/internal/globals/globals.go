@@ -6,6 +6,7 @@ package globals
 type Globals struct {
 	OrganizationID *int64  `pathParam:"style=simple,explode=false,name=organizationId"`
 	IdpHost        *string `pathParam:"style=simple,explode=false,name=idpHost"`
+	APIServerID    *int64  `pathParam:"style=simple,explode=false,name=apiServerId"`
 }
 
 func (g *Globals) GetOrganizationID() *int64 {
@@ -20,4 +21,11 @@ func (g *Globals) GetIdpHost() *string {
 		return nil
 	}
 	return g.IdpHost
+}
+
+func (g *Globals) GetAPIServerID() *int64 {
+	if g == nil {
+		return nil
+	}
+	return g.APIServerID
 }

@@ -38,8 +38,10 @@ import (
 // never see it; a generated provider has no such table, which is why customers
 // would otherwise have to look the number up and type it themselves.
 //
-// Self-managed deployments are not in this map and must set api_server_id
-// explicitly on the resource.
+// Self-managed and pre-production deployments are not in this map -- they must
+// set api_server_id on the provider, or AUTHLETE_API_SERVER_ID in the
+// environment. Without one of those, service create and delete fail with an
+// apiServerId error.
 var apiServerIDByHost = map[string]int64{
 	"us.authlete.com": 76281,
 	"jp.authlete.com": 53285,
@@ -92,6 +94,18 @@ type idpRoutingTransport struct {
 	// several organizations through provider aliases.
 	organizationID int64
 	next           http.RoundTripper
+}
+
+// APIServerIDFromEnv reads the API server id from the environment, used when the
+// provider block does not set api_server_id and the cluster is not in the map
+// above -- which is the case for Dedicated Cloud, On-Premise and pre-production
+// hosts such as nextdev-api.authlete.net.
+func APIServerIDFromEnv() int64 {
+	v, err := strconv.ParseInt(strings.TrimSpace(os.Getenv("AUTHLETE_API_SERVER_ID")), 10, 64)
+	if err != nil {
+		return 0
+	}
+	return v
 }
 
 // OrganizationIDFromEnv reads the organization from the environment, used as a

@@ -158,6 +158,13 @@ func WithIdpHost(idpHost string) SDKOption {
 	}
 }
 
+// WithAPIServerID allows setting the APIServerID parameter for all supported operations
+func WithAPIServerID(apiServerID int64) SDKOption {
+	return func(sdk *Authlete) {
+		sdk.sdkConfiguration.Globals.APIServerID = &apiServerID
+	}
+}
+
 func WithRetryConfig(retryConfig retry.Config) SDKOption {
 	return func(sdk *Authlete) {
 		sdk.sdkConfiguration.RetryConfig = &retryConfig

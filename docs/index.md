@@ -48,6 +48,7 @@ provider "authlete" {
 
 ### Optional
 
+- `api_server_id` (Number)
 - `bearer` (String, Sensitive) Authenticate every request with a **Service Access Token** or **Organization Token**.
 Set the token value in the `Authorization: Bearer <token>` header.
 
