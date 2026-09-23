@@ -71,6 +71,14 @@ WithIdpHost allows setting the IdpHost parameter for all supported operations.
 sdk.WithIdpHost(/* ... */)
 ```
 
+### WithAPIServerID
+
+WithAPIServerID allows setting the APIServerID parameter for all supported operations.
+
+```go
+sdk.WithAPIServerID(/* ... */)
+```
+
 ### WithRetryConfig
 
 WithRetryConfig allows setting the default retry configuration used by the SDK for all supported operations.
