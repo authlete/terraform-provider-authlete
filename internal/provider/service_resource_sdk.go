@@ -300,9 +300,13 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		for _, v := range resp.SupportedDigestAlgorithms {
 			r.SupportedDigestAlgorithms = append(r.SupportedDigestAlgorithms, types.StringValue(v))
 		}
-		r.SupportedDisplays = make([]types.String, 0, len(resp.SupportedDisplays))
-		for _, v := range resp.SupportedDisplays {
-			r.SupportedDisplays = append(r.SupportedDisplays, types.StringValue(string(v)))
+		if resp.SupportedDisplays != nil {
+			r.SupportedDisplays = make([]types.String, 0, len(resp.SupportedDisplays))
+			for _, v := range resp.SupportedDisplays {
+				r.SupportedDisplays = append(r.SupportedDisplays, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedDisplays = nil
 		}
 		r.SupportedDocuments = make([]types.String, 0, len(resp.SupportedDocuments))
 		for _, v := range resp.SupportedDocuments {
@@ -646,9 +650,12 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	for supportedUILocalesIndex := range r.SupportedUILocales {
 		supportedUILocales = append(supportedUILocales, r.SupportedUILocales[supportedUILocalesIndex].ValueString())
 	}
-	supportedDisplays := make([]shared.Display, 0, len(r.SupportedDisplays))
-	for _, supportedDisplaysItem := range r.SupportedDisplays {
-		supportedDisplays = append(supportedDisplays, shared.Display(supportedDisplaysItem.ValueString()))
+	var supportedDisplays []shared.Display
+	if r.SupportedDisplays != nil {
+		supportedDisplays = make([]shared.Display, 0, len(r.SupportedDisplays))
+		for _, supportedDisplaysItem := range r.SupportedDisplays {
+			supportedDisplays = append(supportedDisplays, shared.Display(supportedDisplaysItem.ValueString()))
+		}
 	}
 	pkceRequired := new(bool)
 	if !r.PkceRequired.IsUnknown() && !r.PkceRequired.IsNull() {

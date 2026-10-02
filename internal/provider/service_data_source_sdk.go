@@ -300,9 +300,13 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		for _, v := range resp.SupportedDigestAlgorithms {
 			r.SupportedDigestAlgorithms = append(r.SupportedDigestAlgorithms, types.StringValue(v))
 		}
-		r.SupportedDisplays = make([]types.String, 0, len(resp.SupportedDisplays))
-		for _, v := range resp.SupportedDisplays {
-			r.SupportedDisplays = append(r.SupportedDisplays, types.StringValue(string(v)))
+		if resp.SupportedDisplays != nil {
+			r.SupportedDisplays = make([]types.String, 0, len(resp.SupportedDisplays))
+			for _, v := range resp.SupportedDisplays {
+				r.SupportedDisplays = append(r.SupportedDisplays, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedDisplays = nil
 		}
 		r.SupportedDocuments = make([]types.String, 0, len(resp.SupportedDocuments))
 		for _, v := range resp.SupportedDocuments {
