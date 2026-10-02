@@ -284,9 +284,13 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		for _, v := range resp.SupportedClaims {
 			r.SupportedClaims = append(r.SupportedClaims, types.StringValue(v))
 		}
-		r.SupportedClaimTypes = make([]types.String, 0, len(resp.SupportedClaimTypes))
-		for _, v := range resp.SupportedClaimTypes {
-			r.SupportedClaimTypes = append(r.SupportedClaimTypes, types.StringValue(string(v)))
+		if resp.SupportedClaimTypes != nil {
+			r.SupportedClaimTypes = make([]types.String, 0, len(resp.SupportedClaimTypes))
+			for _, v := range resp.SupportedClaimTypes {
+				r.SupportedClaimTypes = append(r.SupportedClaimTypes, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedClaimTypes = nil
 		}
 		r.SupportedClientRegistrationTypes = make([]types.String, 0, len(resp.SupportedClientRegistrationTypes))
 		for _, v := range resp.SupportedClientRegistrationTypes {
@@ -336,9 +340,13 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		for _, v := range resp.SupportedEvidence {
 			r.SupportedEvidence = append(r.SupportedEvidence, types.StringValue(v))
 		}
-		r.SupportedGrantTypes = make([]types.String, 0, len(resp.SupportedGrantTypes))
-		for _, v := range resp.SupportedGrantTypes {
-			r.SupportedGrantTypes = append(r.SupportedGrantTypes, types.StringValue(string(v)))
+		if resp.SupportedGrantTypes != nil {
+			r.SupportedGrantTypes = make([]types.String, 0, len(resp.SupportedGrantTypes))
+			for _, v := range resp.SupportedGrantTypes {
+				r.SupportedGrantTypes = append(r.SupportedGrantTypes, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedGrantTypes = nil
 		}
 		r.SupportedIdentityDocuments = make([]types.String, 0, len(resp.SupportedIdentityDocuments))
 		for _, v := range resp.SupportedIdentityDocuments {
@@ -348,13 +356,21 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		for _, v := range resp.SupportedIntrospectionAuthMethods {
 			r.SupportedIntrospectionAuthMethods = append(r.SupportedIntrospectionAuthMethods, types.StringValue(string(v)))
 		}
-		r.SupportedPromptValues = make([]types.String, 0, len(resp.SupportedPromptValues))
-		for _, v := range resp.SupportedPromptValues {
-			r.SupportedPromptValues = append(r.SupportedPromptValues, types.StringValue(string(v)))
+		if resp.SupportedPromptValues != nil {
+			r.SupportedPromptValues = make([]types.String, 0, len(resp.SupportedPromptValues))
+			for _, v := range resp.SupportedPromptValues {
+				r.SupportedPromptValues = append(r.SupportedPromptValues, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedPromptValues = nil
 		}
-		r.SupportedResponseTypes = make([]types.String, 0, len(resp.SupportedResponseTypes))
-		for _, v := range resp.SupportedResponseTypes {
-			r.SupportedResponseTypes = append(r.SupportedResponseTypes, types.StringValue(string(v)))
+		if resp.SupportedResponseTypes != nil {
+			r.SupportedResponseTypes = make([]types.String, 0, len(resp.SupportedResponseTypes))
+			for _, v := range resp.SupportedResponseTypes {
+				r.SupportedResponseTypes = append(r.SupportedResponseTypes, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedResponseTypes = nil
 		}
 		r.SupportedRevocationAuthMethods = make([]types.String, 0, len(resp.SupportedRevocationAuthMethods))
 		for _, v := range resp.SupportedRevocationAuthMethods {
@@ -399,9 +415,13 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		for _, v := range resp.SupportedSnses {
 			r.SupportedSnses = append(r.SupportedSnses, types.StringValue(string(v)))
 		}
-		r.SupportedTokenAuthMethods = make([]types.String, 0, len(resp.SupportedTokenAuthMethods))
-		for _, v := range resp.SupportedTokenAuthMethods {
-			r.SupportedTokenAuthMethods = append(r.SupportedTokenAuthMethods, types.StringValue(string(v)))
+		if resp.SupportedTokenAuthMethods != nil {
+			r.SupportedTokenAuthMethods = make([]types.String, 0, len(resp.SupportedTokenAuthMethods))
+			for _, v := range resp.SupportedTokenAuthMethods {
+				r.SupportedTokenAuthMethods = append(r.SupportedTokenAuthMethods, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedTokenAuthMethods = nil
 		}
 		r.SupportedTrustFrameworks = make([]types.String, 0, len(resp.SupportedTrustFrameworks))
 		for _, v := range resp.SupportedTrustFrameworks {
@@ -612,13 +632,19 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		authenticationCallbackAPISecret = nil
 	}
-	supportedGrantTypes := make([]shared.GrantType, 0, len(r.SupportedGrantTypes))
-	for _, supportedGrantTypesItem := range r.SupportedGrantTypes {
-		supportedGrantTypes = append(supportedGrantTypes, shared.GrantType(supportedGrantTypesItem.ValueString()))
+	var supportedGrantTypes []shared.GrantType
+	if r.SupportedGrantTypes != nil {
+		supportedGrantTypes = make([]shared.GrantType, 0, len(r.SupportedGrantTypes))
+		for _, supportedGrantTypesItem := range r.SupportedGrantTypes {
+			supportedGrantTypes = append(supportedGrantTypes, shared.GrantType(supportedGrantTypesItem.ValueString()))
+		}
 	}
-	supportedResponseTypes := make([]shared.ResponseType, 0, len(r.SupportedResponseTypes))
-	for _, supportedResponseTypesItem := range r.SupportedResponseTypes {
-		supportedResponseTypes = append(supportedResponseTypes, shared.ResponseType(supportedResponseTypesItem.ValueString()))
+	var supportedResponseTypes []shared.ResponseType
+	if r.SupportedResponseTypes != nil {
+		supportedResponseTypes = make([]shared.ResponseType, 0, len(r.SupportedResponseTypes))
+		for _, supportedResponseTypesItem := range r.SupportedResponseTypes {
+			supportedResponseTypes = append(supportedResponseTypes, shared.ResponseType(supportedResponseTypesItem.ValueString()))
+		}
 	}
 	supportedAuthorizationDetailsTypes := make([]string, 0, len(r.SupportedAuthorizationDetailsTypes))
 	for supportedAuthorizationDetailsTypesIndex := range r.SupportedAuthorizationDetailsTypes {
@@ -687,9 +713,12 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		tokenEndpoint = nil
 	}
-	supportedTokenAuthMethods := make([]shared.ClientAuthMethod, 0, len(r.SupportedTokenAuthMethods))
-	for _, supportedTokenAuthMethodsItem := range r.SupportedTokenAuthMethods {
-		supportedTokenAuthMethods = append(supportedTokenAuthMethods, shared.ClientAuthMethod(supportedTokenAuthMethodsItem.ValueString()))
+	var supportedTokenAuthMethods []shared.ClientAuthMethod
+	if r.SupportedTokenAuthMethods != nil {
+		supportedTokenAuthMethods = make([]shared.ClientAuthMethod, 0, len(r.SupportedTokenAuthMethods))
+		for _, supportedTokenAuthMethodsItem := range r.SupportedTokenAuthMethods {
+			supportedTokenAuthMethods = append(supportedTokenAuthMethods, shared.ClientAuthMethod(supportedTokenAuthMethodsItem.ValueString()))
+		}
 	}
 	missingClientIDAllowed := new(bool)
 	if !r.MissingClientIDAllowed.IsUnknown() && !r.MissingClientIDAllowed.IsNull() {
@@ -920,9 +949,12 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		allowableClockSkew = nil
 	}
-	supportedClaimTypes := make([]shared.ClaimType, 0, len(r.SupportedClaimTypes))
-	for _, supportedClaimTypesItem := range r.SupportedClaimTypes {
-		supportedClaimTypes = append(supportedClaimTypes, shared.ClaimType(supportedClaimTypesItem.ValueString()))
+	var supportedClaimTypes []shared.ClaimType
+	if r.SupportedClaimTypes != nil {
+		supportedClaimTypes = make([]shared.ClaimType, 0, len(r.SupportedClaimTypes))
+		for _, supportedClaimTypesItem := range r.SupportedClaimTypes {
+			supportedClaimTypes = append(supportedClaimTypes, shared.ClaimType(supportedClaimTypesItem.ValueString()))
+		}
 	}
 	supportedClaimLocales := make([]string, 0, len(r.SupportedClaimLocales))
 	for supportedClaimLocalesIndex := range r.SupportedClaimLocales {
@@ -1524,9 +1556,12 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		userPinLength = nil
 	}
-	supportedPromptValues := make([]shared.Prompt, 0, len(r.SupportedPromptValues))
-	for _, supportedPromptValuesItem := range r.SupportedPromptValues {
-		supportedPromptValues = append(supportedPromptValues, shared.Prompt(supportedPromptValuesItem.ValueString()))
+	var supportedPromptValues []shared.Prompt
+	if r.SupportedPromptValues != nil {
+		supportedPromptValues = make([]shared.Prompt, 0, len(r.SupportedPromptValues))
+		for _, supportedPromptValuesItem := range r.SupportedPromptValues {
+			supportedPromptValues = append(supportedPromptValues, shared.Prompt(supportedPromptValuesItem.ValueString()))
+		}
 	}
 	idTokenReissuable := new(bool)
 	if !r.IDTokenReissuable.IsUnknown() && !r.IDTokenReissuable.IsNull() {

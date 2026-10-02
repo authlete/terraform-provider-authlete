@@ -2,7 +2,7 @@ terraform {
   required_providers {
     authlete = {
       source  = "authlete/authlete"
-      version = "0.0.2"
+      version = "0.0.3"
     }
   }
 }
