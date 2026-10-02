@@ -10,6 +10,7 @@ import (
 	tfTypes "github.com/authlete/terraform-provider-authlete/internal/provider/types"
 	"github.com/authlete/terraform-provider-authlete/internal/sdk"
 	"github.com/authlete/terraform-provider-authlete/internal/sdk/models/operations"
+	stateupgraders "github.com/authlete/terraform-provider-authlete/internal/stateupgraders"
 	speakeasy_objectvalidators "github.com/authlete/terraform-provider-authlete/internal/validators/objectvalidators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -23,7 +24,7 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ resource.Resource = &ServiceResource{}
-var _ resource.ResourceWithImportState = &ServiceResource{}
+var _ resource.ResourceWithUpgradeState = &ServiceResource{}
 
 func NewServiceResource() resource.Resource {
 	return &ServiceResource{}
@@ -240,6 +241,7 @@ func (r *ServiceResource) Metadata(ctx context.Context, req resource.MetadataReq
 func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Service Resource",
+		Version:             1,
 		Attributes: map[string]schema.Attribute{
 			"access_token_duration": schema.Int64Attribute{
 				Computed: true,
@@ -2184,4 +2186,10 @@ func (r *ServiceResource) ImportState(ctx context.Context, req resource.ImportSt
 	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("api_key"), apiKey)...)
+}
+
+func (r *ServiceResource) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
+	return map[int64]resource.StateUpgrader{
+		0: {StateUpgrader: stateupgraders.ServiceStateUpgraderV0},
+	}
 }
