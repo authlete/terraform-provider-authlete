@@ -7,6 +7,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	custom_int32planmodifier "github.com/authlete/terraform-provider-authlete/internal/planmodifiers/int32planmodifier"
+	custom_int64planmodifier "github.com/authlete/terraform-provider-authlete/internal/planmodifiers/int64planmodifier"
 	custom_stringplanmodifier "github.com/authlete/terraform-provider-authlete/internal/planmodifiers/stringplanmodifier"
 	"github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
 	tfTypes "github.com/authlete/terraform-provider-authlete/internal/provider/types"
@@ -375,7 +377,10 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					`This property corresponds to the ` + "`" + `backchannel_user_code_parameter` + "`" + ` metadata.`,
 			},
 			"client_id": schema.Int64Attribute{
-				Computed:    true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					custom_int64planmodifier.UseStateForUnknown(),
+				},
 				Description: `A client ID.`,
 			},
 			"client_id_alias": schema.StringAttribute{
@@ -425,6 +430,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"client_secret": schema.StringAttribute{
 				Computed:  true,
 				Sensitive: true,
+				PlanModifiers: []planmodifier.String{
+					custom_stringplanmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: `The client secret. A random 512-bit value encoded by base64url (86 letters). The value of this` + "\n" +
 					`property is assigned by Authlete.`,
 			},
@@ -487,7 +495,10 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					`Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
 			},
 			"created_at": schema.Int64Attribute{
-				Computed:    true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					custom_int64planmodifier.UseStateForUnknown(),
+				},
 				Description: `The time at which this client was created. The value is represented as milliseconds since the UNIX epoch (1970-01-01).`,
 			},
 			"credential_offer_endpoint": schema.StringAttribute{
@@ -855,7 +866,10 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					`[FAPI 2.0 Security Profile, 8.1.1. use_mtls_endpoint_aliases](https://openid.bitbucket.io/fapi/fapi-2_0-security-profile.html#section-8.1.1).`,
 			},
 			"number": schema.Int32Attribute{
-				Computed:    true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int32{
+					custom_int32planmodifier.UseStateForUnknown(),
+				},
 				Description: `The sequential number of the client. The value of this property is assigned by Authlete.`,
 			},
 			"organization_name": schema.StringAttribute{
@@ -1088,6 +1102,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"service_number": schema.Int32Attribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.Int32{
+					custom_int32planmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: `The sequential number of the service of the client application. The value of this property is` + "\n" +
 					`assigned by Authlete.`,
 			},

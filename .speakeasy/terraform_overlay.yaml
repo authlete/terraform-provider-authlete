@@ -684,3 +684,79 @@ actions:
         The custom client metadata in JSON format.
 
         Authlete keeps only the keys declared in the parent service's `supported_custom_client_metadata`. Any other key is discarded silently: the apply succeeds, the key does not appear on the client, and every subsequent plan offers to add it again. Declare the key on the service before setting it here.
+
+  # ---------- Identity and secrets do not change on an update ----------
+  #
+  # Nothing told Terraform that these are stable, so every update planned them
+  # as "known after apply". That is not cosmetic: client_secret going unknown
+  # makes every consumer of it -- a Vault entry, a Kubernetes secret, anything
+  # using replace_triggered_by -- plan a write whenever any unrelated field on
+  # the client changes.
+  #
+  # Deliberately limited to values that cannot change as a side effect of an
+  # update: the identifiers, the creation timestamp, and the secrets, which only
+  # change through explicit rotation. modified_at is excluded because it changes
+  # on every update by definition.
+  #
+  # A refresh still picks up a secret rotated out of band -- this governs what
+  # the plan predicts, not what is read back.
+
+  - target: $.components.schemas.service.properties.apiKey
+    description: Stable across updates, so do not plan it as unknown
+    update:
+      x-speakeasy-plan-modifiers:
+        - UseStateForUnknown
+
+  - target: $.components.schemas.service.properties.apiSecret
+    description: Stable across updates, so do not plan it as unknown
+    update:
+      x-speakeasy-plan-modifiers:
+        - UseStateForUnknown
+
+  - target: $.components.schemas.service.properties.createdAt
+    description: Stable across updates, so do not plan it as unknown
+    update:
+      x-speakeasy-plan-modifiers:
+        - UseStateForUnknown
+
+  - target: $.components.schemas.service.properties.number
+    description: Stable across updates, so do not plan it as unknown
+    update:
+      x-speakeasy-plan-modifiers:
+        - UseStateForUnknown
+
+  - target: $.components.schemas.service.properties.serviceOwnerNumber
+    description: Stable across updates, so do not plan it as unknown
+    update:
+      x-speakeasy-plan-modifiers:
+        - UseStateForUnknown
+
+  - target: $.components.schemas.client.properties.clientId
+    description: Stable across updates, so do not plan it as unknown
+    update:
+      x-speakeasy-plan-modifiers:
+        - UseStateForUnknown
+
+  - target: $.components.schemas.client.properties.clientSecret
+    description: Stable across updates, so do not plan it as unknown
+    update:
+      x-speakeasy-plan-modifiers:
+        - UseStateForUnknown
+
+  - target: $.components.schemas.client.properties.createdAt
+    description: Stable across updates, so do not plan it as unknown
+    update:
+      x-speakeasy-plan-modifiers:
+        - UseStateForUnknown
+
+  - target: $.components.schemas.client.properties.number
+    description: Stable across updates, so do not plan it as unknown
+    update:
+      x-speakeasy-plan-modifiers:
+        - UseStateForUnknown
+
+  - target: $.components.schemas.client.properties.serviceNumber
+    description: Stable across updates, so do not plan it as unknown
+    update:
+      x-speakeasy-plan-modifiers:
+        - UseStateForUnknown
