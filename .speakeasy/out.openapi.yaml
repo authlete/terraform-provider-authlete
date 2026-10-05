@@ -10847,52 +10847,62 @@ components:
             The key ID of a JWK containing a self-signed certificate of this client.
         tlsClientAuthSubjectDn:
           type: string
-          description: |
+          description: |-
             The string representation of the expected subject distinguished name of the certificate this
             client will use in mutual TLS authentication.
 
             See `tls_client_auth_subject_dn` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
             Registration" for details.
+
+            Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
           x-speakeasy-plan-modifiers:
             - ClearSuperseded_tls_client_auth_subject_dn
         tlsClientAuthSanDns:
           type: string
-          description: |
+          description: |-
             The string representation of the expected DNS subject alternative name of the certificate this
             client will use in mutual TLS authentication.
 
             See `tls_client_auth_san_dns` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
             Registration" for details.
+
+            Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
           x-speakeasy-plan-modifiers:
             - ClearSuperseded_tls_client_auth_san_dns
         tlsClientAuthSanUri:
           type: string
-          description: |
+          description: |-
             The string representation of the expected URI subject alternative name of the certificate this
             client will use in mutual TLS authentication.
 
             See `tls_client_auth_san_uri` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
             Registration" for details.
+
+            Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
           x-speakeasy-plan-modifiers:
             - ClearSuperseded_tls_client_auth_san_uri
         tlsClientAuthSanIp:
           type: string
-          description: |
+          description: |-
             The string representation of the expected IP address subject alternative name of the certificate
             this client will use in mutual TLS authentication.
 
             See `tls_client_auth_san_ip` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
             Registration" for details.
+
+            Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
           x-speakeasy-plan-modifiers:
             - ClearSuperseded_tls_client_auth_san_ip
         tlsClientAuthSanEmail:
           type: string
-          description: |
+          description: |-
             The string representation of the expected email address subject alternative name of the certificate
             this client will use in mutual TLS authentication.
 
             See `tls_client_auth_san_email` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
             Registration" for details.
+
+            Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
           x-speakeasy-plan-modifiers:
             - ClearSuperseded_tls_client_auth_san_email
         parRequired:

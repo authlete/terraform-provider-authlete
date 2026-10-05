@@ -175,22 +175,6 @@ It exists because most Authlete settings have a sensible server-side default, an
 staying silent is how you say "Authlete decides". The cost is that silence cannot
 also mean "undo".
 
-### The one exception
-
-A client's certificate subject type is handled for you. Authlete accepts exactly
-one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`,
-`tls_client_auth_san_email`, `tls_client_auth_san_ip` and
-`tls_client_auth_san_uri`, so switching between them works by deleting the old
-line and adding the new one. The provider clears the superseded value and shows
-it in the plan:
-
-```
-- tls_client_auth_san_dns    = "client.example.com" -> null
-+ tls_client_auth_subject_dn = "CN=client,O=Example"
-```
-
-Setting two of them at once is refused before anything is sent.
-
 # Development
 
 ## Contributions
