@@ -14,6 +14,7 @@ import (
 	tfTypes "github.com/authlete/terraform-provider-authlete/internal/provider/types"
 	"github.com/authlete/terraform-provider-authlete/internal/sdk"
 	stateupgraders "github.com/authlete/terraform-provider-authlete/internal/stateupgraders"
+	custom_listvalidators "github.com/authlete/terraform-provider-authlete/internal/validators/listvalidators"
 	speakeasy_objectvalidators "github.com/authlete/terraform-provider-authlete/internal/validators/objectvalidators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -676,6 +677,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Optional:    true,
 				ElementType: types.StringType,
 				Description: `The FAPI modes for this client.`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"front_channel_request_object_encryption_required": schema.BoolAttribute{
 				Computed: true,
@@ -690,6 +694,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				MarkdownDescription: `A string array of grant types which the client application declares that it will restrict itself to using.` + "\n" +
 					`This property corresponds to ` + "`" + `grant_types` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0,` + "\n" +
 					`2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"id_token_encryption_alg": schema.StringAttribute{
 				Computed: true,
@@ -1073,6 +1080,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				MarkdownDescription: `A string array of response types which the client application declares that it will restrict itself to using.` + "\n" +
 					`This property corresponds to ` + "`" + `response_types` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0,` + "\n" +
 					`2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"rs_request_signed": schema.BoolAttribute{
 				Computed:    true,

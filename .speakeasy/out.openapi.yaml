@@ -10783,6 +10783,8 @@ components:
             A string array of grant types which the client application declares that it will restrict itself to using.
             This property corresponds to `grant_types` in [OpenID Connect Dynamic Client Registration 1.0,
             2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
+          x-speakeasy-plan-validators:
+            - ValidEnumValues
         responseTypes:
           type: array
           items:
@@ -10791,6 +10793,8 @@ components:
             A string array of response types which the client application declares that it will restrict itself to using.
             This property corresponds to `response_types` in [OpenID Connect Dynamic Client Registration 1.0,
             2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
+          x-speakeasy-plan-validators:
+            - ValidEnumValues
         redirectUris:
           type: array
           items:
@@ -11410,6 +11414,8 @@ components:
               Part 2: Advanced" if the FAPI feature is enabled in Authlete, the FAPI profile is supported by
               the service, and the FAPI modes for the service are set to `null`.
               </Accordion>
+          x-speakeasy-plan-validators:
+            - ValidEnumValues
         responseModes:
           type: array
           items:
@@ -11862,6 +11868,8 @@ components:
             The value of this property is used as `grant_types_supported property` in the
             [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
           nullable: true
+          x-speakeasy-plan-validators:
+            - ValidEnumValues
         supportedResponseTypes:
           type: array
           items:
@@ -11873,6 +11881,8 @@ components:
             The value of this property is used as `response_types_supported` property in the
             [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
           nullable: true
+          x-speakeasy-plan-validators:
+            - ValidEnumValues
         supportedAuthorizationDetailsTypes:
           type: array
           items:
@@ -11888,6 +11898,8 @@ components:
             $ref: '#/components/schemas/service_profile'
           description: |
             The profiles that this service supports.
+          x-speakeasy-plan-validators:
+            - ValidEnumValues
         errorDescriptionOmitted:
           type: boolean
           description: |
@@ -11943,6 +11955,8 @@ components:
 
             The value of this property is used as `display_values_supported` property in the Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
           nullable: true
+          x-speakeasy-plan-validators:
+            - ValidEnumValues
         pkceRequired:
           type: boolean
           description: |
@@ -12002,6 +12016,8 @@ components:
             The value of this property is used as `token_endpoint_auth_methods_supports` property in the
             [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
           nullable: true
+          x-speakeasy-plan-validators:
+            - ValidEnumValues
         missingClientIdAllowed:
           type: boolean
           description: |
@@ -12026,6 +12042,8 @@ components:
             $ref: '#/components/schemas/client_auth_method'
           description: |
             Client authentication methods supported at the revocation endpoint.
+          x-speakeasy-plan-validators:
+            - ValidEnumValues
         introspectionEndpoint:
           type: string
           description: The URI of the introspection endpoint.
@@ -12041,6 +12059,8 @@ components:
             Client authentication methods supported at the introspection endpoint.
           items:
             $ref: '#/components/schemas/client_auth_method'
+          x-speakeasy-plan-validators:
+            - ValidEnumValues
         pushedAuthReqEndpoint:
           type: string
           description: |
@@ -12285,6 +12305,8 @@ components:
             The value of this property is used as `claim_types_supported` property in the [OpenID Provider
             Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
           nullable: true
+          x-speakeasy-plan-validators:
+            - ValidEnumValues
         supportedClaimLocales:
           type: array
           items:
@@ -12528,6 +12550,8 @@ components:
 
             Backchannel token delivery modes are defined in the specification of [CIBA (Client Initiated
             Backchannel Authentication)](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html).
+          x-speakeasy-plan-validators:
+            - ValidEnumValues
         backchannelAuthReqIdDuration:
           type: integer
           format: int32
@@ -13102,6 +13126,8 @@ components:
             Supported attachment types. This property corresponds to the &#123;@code
             attachments_supported&#125; server metadata which was added by the third
             implementer's draft of OpenID Connect for Identity Assurance 1.0.
+          x-speakeasy-plan-validators:
+            - ValidEnumValues
         supportedDigestAlgorithms:
           type: array
           items:
@@ -13162,6 +13188,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/client_registration_type'
+          x-speakeasy-plan-validators:
+            - ValidEnumValues
         tokenExchangeByIdentifiableClientsOnly:
           type: boolean
           description: |
@@ -13299,6 +13327,8 @@ components:
           description: |
             The supported `prompt` values.
           nullable: true
+          x-speakeasy-plan-validators:
+            - ValidEnumValues
         idTokenReissuable:
           type: boolean
           description: |
@@ -13324,6 +13354,8 @@ components:
             For instance, when this property is set to an array containing `FAPI1_ADVANCED` only, Authlete always
             processes requests to this service based on "Financial-grade API Security Profile 1.0 - Part 2:
             Advanced" if the FAPI feature is enabled in Authlete and the FAPI profile is supported by this service.
+          x-speakeasy-plan-validators:
+            - ValidEnumValues
         credentialDuration:
           type: integer
           format: int64

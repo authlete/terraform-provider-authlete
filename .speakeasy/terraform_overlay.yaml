@@ -760,3 +760,118 @@ actions:
     update:
       x-speakeasy-plan-modifiers:
         - UseStateForUnknown
+
+  # ---------- Enum lists are checked at plan time ----------
+  #
+  # Speakeasy emits a OneOf validator for a scalar enum but not for the elements
+  # of a list of enums, so a misspelled value went to Authlete unchecked: about a
+  # minute of retries, then a generic 500 naming neither the attribute nor the
+  # value. Inlining the enum on the items schema does not help -- the generator
+  # does no element-level validation for lists at all.
+  #
+  # One validator serves all of them. It resolves the attribute from the path and
+  # checks the value against the enum type the SDK already generates from the
+  # specification, so the permitted set can never drift from the spec. See
+  # internal/provider/validators/enum_list.go.
+  #
+  # service.supported_snses and client.response_modes are deliberately absent:
+  # their enums are inline rather than named, so no Go type is generated and the
+  # only option would be a hand-copied list, which would eventually reject a
+  # value Authlete had added. client.client_registration_types is read-only in
+  # the specification, so there is nothing for a practitioner to get wrong.
+
+  - target: $.components.schemas.service.properties.supportedGrantTypes
+    description: Reject element values Authlete does not accept
+    update:
+      x-speakeasy-plan-validators:
+        - ValidEnumValues
+
+  - target: $.components.schemas.service.properties.supportedResponseTypes
+    description: Reject element values Authlete does not accept
+    update:
+      x-speakeasy-plan-validators:
+        - ValidEnumValues
+
+  - target: $.components.schemas.service.properties.supportedServiceProfiles
+    description: Reject element values Authlete does not accept
+    update:
+      x-speakeasy-plan-validators:
+        - ValidEnumValues
+
+  - target: $.components.schemas.service.properties.supportedDisplays
+    description: Reject element values Authlete does not accept
+    update:
+      x-speakeasy-plan-validators:
+        - ValidEnumValues
+
+  - target: $.components.schemas.service.properties.supportedTokenAuthMethods
+    description: Reject element values Authlete does not accept
+    update:
+      x-speakeasy-plan-validators:
+        - ValidEnumValues
+
+  - target: $.components.schemas.service.properties.supportedRevocationAuthMethods
+    description: Reject element values Authlete does not accept
+    update:
+      x-speakeasy-plan-validators:
+        - ValidEnumValues
+
+  - target: $.components.schemas.service.properties.supportedIntrospectionAuthMethods
+    description: Reject element values Authlete does not accept
+    update:
+      x-speakeasy-plan-validators:
+        - ValidEnumValues
+
+  - target: $.components.schemas.service.properties.supportedClaimTypes
+    description: Reject element values Authlete does not accept
+    update:
+      x-speakeasy-plan-validators:
+        - ValidEnumValues
+
+  - target: $.components.schemas.service.properties.supportedBackchannelTokenDeliveryModes
+    description: Reject element values Authlete does not accept
+    update:
+      x-speakeasy-plan-validators:
+        - ValidEnumValues
+
+  - target: $.components.schemas.service.properties.supportedAttachments
+    description: Reject element values Authlete does not accept
+    update:
+      x-speakeasy-plan-validators:
+        - ValidEnumValues
+
+  - target: $.components.schemas.service.properties.supportedClientRegistrationTypes
+    description: Reject element values Authlete does not accept
+    update:
+      x-speakeasy-plan-validators:
+        - ValidEnumValues
+
+  - target: $.components.schemas.service.properties.supportedPromptValues
+    description: Reject element values Authlete does not accept
+    update:
+      x-speakeasy-plan-validators:
+        - ValidEnumValues
+
+  - target: $.components.schemas.service.properties.fapiModes
+    description: Reject element values Authlete does not accept
+    update:
+      x-speakeasy-plan-validators:
+        - ValidEnumValues
+
+  - target: $.components.schemas.client.properties.grantTypes
+    description: Reject element values Authlete does not accept
+    update:
+      x-speakeasy-plan-validators:
+        - ValidEnumValues
+
+  - target: $.components.schemas.client.properties.responseTypes
+    description: Reject element values Authlete does not accept
+    update:
+      x-speakeasy-plan-validators:
+        - ValidEnumValues
+
+  - target: $.components.schemas.client.properties.fapiModes
+    description: Reject element values Authlete does not accept
+    update:
+      x-speakeasy-plan-validators:
+        - ValidEnumValues

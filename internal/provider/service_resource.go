@@ -13,6 +13,7 @@ import (
 	"github.com/authlete/terraform-provider-authlete/internal/sdk"
 	"github.com/authlete/terraform-provider-authlete/internal/sdk/models/operations"
 	stateupgraders "github.com/authlete/terraform-provider-authlete/internal/stateupgraders"
+	custom_listvalidators "github.com/authlete/terraform-provider-authlete/internal/validators/listvalidators"
 	speakeasy_objectvalidators "github.com/authlete/terraform-provider-authlete/internal/validators/objectvalidators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -861,6 +862,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`For instance, when this property is set to an array containing ` + "`" + `FAPI1_ADVANCED` + "`" + ` only, Authlete always` + "\n" +
 					`processes requests to this service based on "Financial-grade API Security Profile 1.0 - Part 2:` + "\n" +
 					`Advanced" if the FAPI feature is enabled in Authlete and the FAPI profile is supported by this service.`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"federation_configuration_duration": schema.Int64Attribute{
 				Computed:    true,
@@ -1451,6 +1455,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: `Supported attachment types. This property corresponds to the &#123;@code` + "\n" +
 					`attachments_supported&#125; server metadata which was added by the third` + "\n" +
 					`implementer's draft of OpenID Connect for Identity Assurance 1.0.`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_authorization_details_types": schema.ListAttribute{
 				Computed:    true,
@@ -1470,6 +1477,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`` + "\n" +
 					`Backchannel token delivery modes are defined in the specification of [CIBA (Client Initiated` + "\n" +
 					`Backchannel Authentication)](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html).`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_claim_locales": schema.ListAttribute{
 				Computed:    true,
@@ -1491,6 +1501,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`` + "\n" +
 					`The value of this property is used as ` + "`" + `claim_types_supported` + "`" + ` property in the [OpenID Provider` + "\n" +
 					`Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_claims": schema.ListAttribute{
 				Computed:    true,
@@ -1504,6 +1517,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_custom_client_metadata": schema.ListAttribute{
 				Computed:    true,
@@ -1528,6 +1544,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: `Values of ` + "`" + `display` + "`" + ` request parameter that service supports.` + "\n" +
 					`` + "\n" +
 					`The value of this property is used as ` + "`" + `display_values_supported` + "`" + ` property in the Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_documents": schema.ListAttribute{
 				Computed:    true,
@@ -1597,6 +1616,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`` + "\n" +
 					`The value of this property is used as ` + "`" + `grant_types_supported property` + "`" + ` in the` + "\n" +
 					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_identity_documents": schema.ListAttribute{
 				Computed:    true,
@@ -1610,12 +1632,18 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional:    true,
 				ElementType: types.StringType,
 				Description: `Client authentication methods supported at the introspection endpoint.`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_prompt_values": schema.ListAttribute{
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
 				Description: `The supported ` + "`" + `prompt` + "`" + ` values.`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_response_types": schema.ListAttribute{
 				Computed:    true,
@@ -1626,12 +1654,18 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`` + "\n" +
 					`The value of this property is used as ` + "`" + `response_types_supported` + "`" + ` property in the` + "\n" +
 					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_revocation_auth_methods": schema.ListAttribute{
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
 				Description: `Client authentication methods supported at the revocation endpoint.`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_scopes": schema.ListNestedAttribute{
 				Computed: true,
@@ -1709,6 +1743,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional:    true,
 				ElementType: types.StringType,
 				Description: `The profiles that this service supports.`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_snses": schema.ListAttribute{
 				Computed:    true,
@@ -1724,6 +1761,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`` + "\n" +
 					`The value of this property is used as ` + "`" + `token_endpoint_auth_methods_supports` + "`" + ` property in the` + "\n" +
 					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_trust_frameworks": schema.ListAttribute{
 				Computed:    true,
