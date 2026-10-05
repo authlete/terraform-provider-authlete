@@ -11391,6 +11391,7 @@ components:
               - FRAGMENT_JWT
               - FORM_POST_JWT
           description: The response modes that this client may use.
+          nullable: true
         credentialResponseEncryptionRequired:
           type: boolean
           description: True if credential responses to this client must be always encrypted.
@@ -11450,6 +11451,7 @@ components:
             the SPIFFE trust bundle for validating JWT-SVIDs. Corresponds to the
             `spiffe_bundle_endpoint` client metadata parameter.
       x-speakeasy-entity: Client
+      x-speakeasy-entity-version: 1
     delivery_mode:
       type: string
       enum:
@@ -11811,6 +11813,7 @@ components:
 
             The value of this property is used as `grant_types_supported property` in the
             [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
+          nullable: true
         supportedResponseTypes:
           type: array
           items:
@@ -11821,6 +11824,7 @@ components:
 
             The value of this property is used as `response_types_supported` property in the
             [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
+          nullable: true
         supportedAuthorizationDetailsTypes:
           type: array
           items:
@@ -11890,6 +11894,7 @@ components:
             Values of `display` request parameter that service supports.
 
             The value of this property is used as `display_values_supported` property in the Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
+          nullable: true
         pkceRequired:
           type: boolean
           description: |
@@ -11948,6 +11953,7 @@ components:
 
             The value of this property is used as `token_endpoint_auth_methods_supports` property in the
             [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
+          nullable: true
         missingClientIdAllowed:
           type: boolean
           description: |
@@ -12230,6 +12236,7 @@ components:
 
             The value of this property is used as `claim_types_supported` property in the [OpenID Provider
             Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
+          nullable: true
         supportedClaimLocales:
           type: array
           items:
@@ -13238,6 +13245,7 @@ components:
             $ref: '#/components/schemas/prompt'
           description: |
             The supported `prompt` values.
+          nullable: true
         idTokenReissuable:
           type: boolean
           description: |
@@ -13397,6 +13405,7 @@ components:
             The flag indicating whether this service includes a `sid` (session ID)
             claim in ID tokens, supporting per-session backchannel logout.
       x-speakeasy-entity: Service
+      x-speakeasy-entity-version: 1
     sns_credentials:
       type: object
       properties:

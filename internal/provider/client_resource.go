@@ -10,6 +10,7 @@ import (
 	"github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
 	tfTypes "github.com/authlete/terraform-provider-authlete/internal/provider/types"
 	"github.com/authlete/terraform-provider-authlete/internal/sdk"
+	stateupgraders "github.com/authlete/terraform-provider-authlete/internal/stateupgraders"
 	speakeasy_objectvalidators "github.com/authlete/terraform-provider-authlete/internal/validators/objectvalidators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -22,7 +23,7 @@ import (
 
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ resource.Resource = &ClientResource{}
-var _ resource.ResourceWithImportState = &ClientResource{}
+var _ resource.ResourceWithUpgradeState = &ClientResource{}
 
 func NewClientResource() resource.Resource {
 	return &ClientResource{}
@@ -154,6 +155,7 @@ func (r *ClientResource) Metadata(ctx context.Context, req resource.MetadataRequ
 func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Client Resource",
+		Version:             1,
 		Attributes: map[string]schema.Attribute{
 			"application_type": schema.StringAttribute{
 				Computed: true,
@@ -1651,4 +1653,10 @@ func (r *ClientResource) ImportState(ctx context.Context, req resource.ImportSta
 		return
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("service_id"), data.ServiceID)...)
+}
+
+func (r *ClientResource) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
+	return map[int64]resource.StateUpgrader{
+		0: {StateUpgrader: stateupgraders.ClientStateUpgraderV0},
+	}
 }

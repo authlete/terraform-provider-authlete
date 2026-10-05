@@ -8,6 +8,7 @@ actions:
     description: Mark the service schema as a Terraform-managed entity
     update:
       x-speakeasy-entity: Service
+      x-speakeasy-entity-version: 1
 
   # Services are created and deleted through the IdP (login.authlete.com), NOT
   # through the regional cluster's /api/service/create. The cluster endpoint
@@ -90,6 +91,7 @@ actions:
       breaks type reconciliation on read/update/delete responses.
     update:
       x-speakeasy-entity: Client
+      x-speakeasy-entity-version: 1
       additionalProperties: false
 
   - target: $.paths['/api/{serviceId}/client/create'].post
