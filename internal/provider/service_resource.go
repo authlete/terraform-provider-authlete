@@ -14,6 +14,7 @@ import (
 	"github.com/authlete/terraform-provider-authlete/internal/sdk"
 	"github.com/authlete/terraform-provider-authlete/internal/sdk/models/operations"
 	stateupgraders "github.com/authlete/terraform-provider-authlete/internal/stateupgraders"
+	custom_listvalidators "github.com/authlete/terraform-provider-authlete/internal/validators/listvalidators"
 	speakeasy_objectvalidators "github.com/authlete/terraform-provider-authlete/internal/validators/objectvalidators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -1529,6 +1530,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				MarkdownDescription: `Values of ` + "`" + `display` + "`" + ` request parameter that service supports.` + "\n" +
 					`` + "\n" +
 					`The value of this property is used as ` + "`" + `display_values_supported` + "`" + ` property in the Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_documents": schema.ListAttribute{
 				Computed:    true,
