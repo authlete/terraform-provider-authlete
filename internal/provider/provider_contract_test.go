@@ -90,7 +90,7 @@ func TestProviderExposesConfiguredAttributes(t *testing.T) {
 // outcomes, since the customer sees no error.
 func TestTransportIsWrapped(t *testing.T) {
 	inner := &capture{}
-	rt := NewIdpRoutingTransport("idp.internal", 0, 0, inner)
+	rt := NewIdpRoutingTransport("https://us.authlete.com", "idp.internal", 0, 0, inner)
 
 	if rt == http.RoundTripper(inner) {
 		t.Fatal("NewIdpRoutingTransport returned the inner transport unchanged for a " +

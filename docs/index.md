@@ -16,30 +16,13 @@ terraform {
   required_providers {
     authlete = {
       source  = "authlete/authlete"
-      version = "0.0.17"
+      version = "0.0.18"
     }
   }
 }
 
 provider "authlete" {
-  # An Organization Token from the Authlete console. Creating a service requires
-  # one; a Service Access Token is scoped to a single existing service and
-  # cannot create another.
-  #
-  # Prefer the environment variable. A token written here ends up in version
-  # control.
-  # bearer = "..." # or set AUTHLETE_TOKEN
-
-  # Your regional cluster. Defaults to https://us.authlete.com.
-  server_url = "https://us.authlete.com" # or set AUTHLETE_SERVER_URL
-
-  # Dedicated Cloud and On-Premise deployments only. Shared Cloud uses
-  # Authlete's own IdP and needs nothing here.
-  # idp_host = "authlete-login.example.com" # or set AUTHLETE_IDP_HOST
-
-  # For a self-managed deployment behind a proxy or a private CA.
-  # http_headers    = { "X-Example" = "value" }
-  # tls_skip_verify = false
+  server_url = "..." # Optional - can use AUTHLETE_SERVER_URL environment variable
 }
 ```
 
@@ -48,7 +31,21 @@ provider "authlete" {
 
 ### Optional
 
-- `api_server_id` (Number)
+- `api_server_id` (Number) Which API server the IdP should create the service on. The
+Authlete console calls this the cluster ID.
+
+Derived automatically for the four public clusters, so Shared
+Cloud deployments need not set it. Dedicated Cloud, On-Premise and
+pre-production hosts are not derivable and must supply it, or the
+IdP rejects create and delete.
+
+Must describe the same deployment as server_url. Creating a
+service on one cluster and reading it from another fails on the
+next refresh with a 403, leaving a service Terraform can neither
+read nor delete.
+
+Also settable with the AUTHLETE_API_SERVER_ID environment
+variable.
 - `bearer` (String, Sensitive) Authenticate every request with a **Service Access Token** or **Organization Token**.
 Set the token value in the `Authorization: Bearer <token>` header.
 
@@ -59,7 +56,21 @@ Set the token value in the `Authorization: Bearer <token>` header.
 Both token types are issued by the Authlete console or provisioning APIs.
 . Configurable via environment variable `AUTHLETE_TOKEN`.
 - `http_headers` (Map of String) HTTP headers to include in all requests
-- `idp_host` (String)
-- `organization_id` (Number)
+- `idp_host` (String) The host of your own identity server, for Dedicated Cloud and
+On-Premise deployments. Leave unset on Shared Cloud, which uses
+Authlete's own IdP at login.authlete.com.
+
+Set this whenever server_url is not one of the four public
+clusters. Without it, creating a service sends your organization
+token to login.authlete.com instead of your deployment, and the
+error only says that apiServerId must not be null.
+
+Also settable with the AUTHLETE_IDP_HOST environment variable.
+- `organization_id` (Number) The Authlete organization services are created under. Required to
+create or delete a service, which goes through the IdP rather than
+the regional cluster.
+
+Also settable with the AUTHLETE_ORGANIZATION_ID environment
+variable. Shown in the Authlete console.
 - `server_url` (String) Server URL (defaults to https://us.authlete.com)
 - `tls_skip_verify` (Boolean) Disable TLS verification in HTTP client

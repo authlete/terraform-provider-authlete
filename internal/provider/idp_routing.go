@@ -23,6 +23,7 @@ package provider
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -79,6 +80,9 @@ func defaultIdpOrigin() string {
 // so they reach a customer's own IdP instead. Every other request is passed
 // through untouched.
 type idpRoutingTransport struct {
+	// serverURL is the configured cluster, used only to tell a public cluster
+	// from a self-managed deployment. See misdirectedIdpError.
+	serverURL string
 	// idpHost is the replacement IdP host, optionally including a scheme and
 	// port. Empty means no rewriting is performed.
 	idpHost string
@@ -124,15 +128,50 @@ func OrganizationIDFromEnv() int64 {
 //
 // When neither applies the inner transport is returned unchanged, so the
 // shared-cloud path keeps exactly its generated behaviour.
-func NewIdpRoutingTransport(idpHost string, apiServerID, organizationID int64, next http.RoundTripper) http.RoundTripper {
+func NewIdpRoutingTransport(serverURL, idpHost string, apiServerID, organizationID int64, next http.RoundTripper) http.RoundTripper {
 	idpHost = strings.TrimSpace(idpHost)
-	if idpHost == "" && apiServerID == 0 && organizationID == 0 {
-		return next
-	}
 	if next == nil {
 		next = http.DefaultTransport
 	}
-	return &idpRoutingTransport{idpHost: idpHost, apiServerID: apiServerID, organizationID: organizationID, next: next}
+	// serverURL alone still warrants wrapping: a deployment that is not one of
+	// the public clusters must not reach Authlete's shared IdP, even when
+	// nothing else is configured. See misdirectedIdpError.
+	_, publicCluster := APIServerIDForServerURL(serverURL)
+	if idpHost == "" && apiServerID == 0 && organizationID == 0 && publicCluster {
+		return next
+	}
+	return &idpRoutingTransport{
+		serverURL:      strings.TrimSpace(serverURL),
+		idpHost:        idpHost,
+		apiServerID:    apiServerID,
+		organizationID: organizationID,
+		next:           next,
+	}
+}
+
+// misdirectedIdpError is returned instead of sending an organization token to
+// Authlete's shared IdP from a deployment that is not one of the public
+// clusters.
+//
+// A Dedicated Cloud or On-Premise customer who sets server_url and
+// organization_id but forgets idp_host would otherwise have their token sent to
+// login.authlete.com, and Authlete answers only that apiServerId must not be
+// null -- which says nothing about the host being wrong.
+//
+// Deliberately narrow: it fires only when the configured server_url is not a
+// cluster this provider knows, which is unambiguous. An unrecognised host is
+// exactly the deployment that must set idp_host.
+func misdirectedIdpError(serverURL, origin string) error {
+	return fmt.Errorf(
+		"refusing to send an Authlete organization token to %s.\n\n"+
+			"server_url is %q, which is not one of Authlete's public clusters, so this is a "+
+			"Dedicated Cloud or On-Premise deployment with its own identity server. Creating "+
+			"and deleting a service goes through that identity server, not the regional "+
+			"cluster, and idp_host is not set -- so the request would go to Authlete's shared "+
+			"IdP instead of yours.\n\n"+
+			"Set idp_host on the provider, or the AUTHLETE_IDP_HOST environment variable, to "+
+			"your own identity server.",
+		origin, serverURL)
 }
 
 // idpBodyPaths are the IdP operations whose request body carries apiServerId.
@@ -149,6 +188,15 @@ func (t *idpRoutingTransport) RoundTrip(req *http.Request) (*http.Response, erro
 
 	if req.URL.Scheme+"://"+req.URL.Host != origin {
 		return t.next.RoundTrip(req)
+	}
+
+	// Bound for Authlete's shared IdP. If server_url is a deployment this
+	// provider does not recognise, that is a self-managed one and the request
+	// must not go here.
+	if t.idpHost == "" && t.serverURL != "" {
+		if _, publicCluster := APIServerIDForServerURL(t.serverURL); !publicCluster {
+			return nil, misdirectedIdpError(t.serverURL, origin)
+		}
 	}
 
 	// RoundTrip must not modify the request it is given.

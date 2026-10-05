@@ -104,7 +104,7 @@ patch = '''
 	// Redaction sits outside the generated logging transport, which records
 	// every request and response body verbatim. See log_redaction.go.
 	httpClient.Transport = NewLogRedactingTransport(
-		NewIdpRoutingTransport(idpHost, apiServerID, organizationID, httpClient.Transport))
+		NewIdpRoutingTransport(serverUrl, idpHost, apiServerID, organizationID, httpClient.Transport))
 '''
 src = open(path).read()
 src = src.replace(anchor + "\n", anchor + "\n" + patch, 1)

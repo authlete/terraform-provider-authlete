@@ -41,7 +41,7 @@ func TestDefaultIdpOriginTracksGeneratedSpec(t *testing.T) {
 
 func TestUnsetIdpHostIsAPassthrough(t *testing.T) {
 	inner := &capture{}
-	rt := NewIdpRoutingTransport("", 0, 0, inner)
+	rt := NewIdpRoutingTransport("https://us.authlete.com", "", 0, 0, inner)
 
 	if rt != http.RoundTripper(inner) {
 		t.Fatal("no idp_host and no apiServerId must return the inner transport unchanged, " +
@@ -51,7 +51,7 @@ func TestUnsetIdpHostIsAPassthrough(t *testing.T) {
 
 func TestIdpBoundRequestIsRerouted(t *testing.T) {
 	inner := &capture{}
-	rt := NewIdpRoutingTransport("authlete-login.example.com", 0, 0, inner)
+	rt := NewIdpRoutingTransport("https://us.authlete.com", "authlete-login.example.com", 0, 0, inner)
 
 	send(t, rt, defaultIdpOrigin()+"/api/service")
 
@@ -63,7 +63,7 @@ func TestIdpBoundRequestIsRerouted(t *testing.T) {
 
 func TestClusterTrafficIsUntouched(t *testing.T) {
 	inner := &capture{}
-	rt := NewIdpRoutingTransport("authlete-login.example.com", 0, 0, inner)
+	rt := NewIdpRoutingTransport("https://us.authlete.com", "authlete-login.example.com", 0, 0, inner)
 
 	// A service read goes to the regional cluster, not the IdP. Rerouting it
 	// would send API traffic to the IdP and break every read.
@@ -83,7 +83,7 @@ func TestSchemeAndPortAreHonoured(t *testing.T) {
 		{"  idp.internal  ", "https://idp.internal/api/service"},
 	} {
 		inner := &capture{}
-		rt := NewIdpRoutingTransport(tc.idpHost, 0, 0, inner)
+		rt := NewIdpRoutingTransport("https://us.authlete.com", tc.idpHost, 0, 0, inner)
 		send(t, rt, defaultIdpOrigin()+"/api/service")
 		if len(inner.got) != 1 || inner.got[0] != tc.want {
 			t.Errorf("idp_host %q: got %v, want [%s]", tc.idpHost, inner.got, tc.want)
@@ -93,7 +93,7 @@ func TestSchemeAndPortAreHonoured(t *testing.T) {
 
 func TestOriginalRequestIsNotMutated(t *testing.T) {
 	inner := &capture{}
-	rt := NewIdpRoutingTransport("idp.internal", 0, 0, inner)
+	rt := NewIdpRoutingTransport("https://us.authlete.com", "idp.internal", 0, 0, inner)
 
 	req := httptest.NewRequest(http.MethodPost, defaultIdpOrigin()+"/api/service", nil)
 	req.RequestURI = ""
@@ -162,7 +162,7 @@ func decode(t *testing.T, s string) map[string]any {
 
 func TestAPIServerIDIsInjectedWhenAbsent(t *testing.T) {
 	inner := &bodyCapture{}
-	rt := NewIdpRoutingTransport("", 53285, 0, inner)
+	rt := NewIdpRoutingTransport("https://us.authlete.com", "", 53285, 0, inner)
 
 	postJSON(t, rt, defaultIdpOrigin()+"/api/service", `{"organizationId":123456789012345,"service":{"serviceName":"x"}}`)
 
@@ -177,7 +177,7 @@ func TestAPIServerIDIsInjectedWhenAbsent(t *testing.T) {
 
 func TestExplicitAPIServerIDIsNeverOverwritten(t *testing.T) {
 	inner := &bodyCapture{}
-	rt := NewIdpRoutingTransport("", 53285, 0, inner)
+	rt := NewIdpRoutingTransport("https://us.authlete.com", "", 53285, 0, inner)
 
 	postJSON(t, rt, defaultIdpOrigin()+"/api/service", `{"apiServerId":99999,"organizationId":1}`)
 
@@ -188,7 +188,7 @@ func TestExplicitAPIServerIDIsNeverOverwritten(t *testing.T) {
 
 func TestAPIServerIDInjectedOnRemoveToo(t *testing.T) {
 	inner := &bodyCapture{}
-	rt := NewIdpRoutingTransport("", 76281, 0, inner)
+	rt := NewIdpRoutingTransport("https://us.authlete.com", "", 76281, 0, inner)
 
 	postJSON(t, rt, defaultIdpOrigin()+"/api/service/remove", `{"organizationId":1,"serviceId":2}`)
 
@@ -199,7 +199,7 @@ func TestAPIServerIDInjectedOnRemoveToo(t *testing.T) {
 
 func TestClusterBodiesAreNotTouched(t *testing.T) {
 	inner := &bodyCapture{}
-	rt := NewIdpRoutingTransport("", 53285, 0, inner)
+	rt := NewIdpRoutingTransport("https://us.authlete.com", "", 53285, 0, inner)
 
 	const body = `{"serviceName":"x"}`
 	postJSON(t, rt, "https://jp.authlete.com/api/12345/service/update", body)
@@ -211,12 +211,74 @@ func TestClusterBodiesAreNotTouched(t *testing.T) {
 
 func TestNonJSONBodyIsLeftAlone(t *testing.T) {
 	inner := &bodyCapture{}
-	rt := NewIdpRoutingTransport("", 53285, 0, inner)
+	rt := NewIdpRoutingTransport("https://us.authlete.com", "", 53285, 0, inner)
 
 	const body = `not json at all`
 	postJSON(t, rt, defaultIdpOrigin()+"/api/service", body)
 
 	if inner.body != body {
 		t.Fatalf("non-JSON body was altered: %s", inner.body)
+	}
+}
+
+// --- misdirected IdP ---------------------------------------------------------
+
+// A Dedicated Cloud or On-Premise customer who sets server_url and
+// organization_id but forgets idp_host would otherwise have their organization
+// token sent to Authlete's shared IdP, and Authlete answers only that
+// apiServerId must not be null -- which says nothing about the host.
+func TestSelfManagedDeploymentRefusesTheSharedIdp(t *testing.T) {
+	inner := &capture{}
+	rt := NewIdpRoutingTransport("https://authlete.customer.example.com", "", 0, 12345, inner)
+
+	req, err := http.NewRequest(http.MethodPost, defaultIdpOrigin()+"/api/service", strings.NewReader("{}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := rt.RoundTrip(req); err == nil {
+		t.Fatal("a self-managed server_url with no idp_host must not reach the shared IdP")
+	} else if !contains(err.Error(), "idp_host") {
+		t.Errorf("the error should name idp_host, got: %v", err)
+	}
+	if len(inner.got) != 0 {
+		t.Errorf("the request reached the network (%v); nothing should have been sent", inner.got)
+	}
+}
+
+// Shared cloud is unaffected: a public cluster with no idp_host is the normal
+// configuration and must keep working.
+func TestPublicClusterStillReachesTheSharedIdp(t *testing.T) {
+	inner := &capture{}
+	rt := NewIdpRoutingTransport("https://us.authlete.com", "", 0, 12345, inner)
+
+	req, err := http.NewRequest(http.MethodPost, defaultIdpOrigin()+"/api/service", strings.NewReader("{}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := rt.RoundTrip(req); err != nil {
+		t.Fatalf("shared cloud must keep working: %v", err)
+	}
+	if len(inner.got) == 0 {
+		t.Error("the request did not reach the inner transport")
+	}
+}
+
+// Setting idp_host is the fix, so it must be accepted.
+func TestSelfManagedWithIdpHostIsAllowed(t *testing.T) {
+	inner := &capture{}
+	rt := NewIdpRoutingTransport("https://authlete.customer.example.com", "idp.customer.example.com", 0, 12345, inner)
+
+	req, err := http.NewRequest(http.MethodPost, defaultIdpOrigin()+"/api/service", strings.NewReader("{}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := rt.RoundTrip(req); err != nil {
+		t.Fatalf("idp_host set is the correct configuration: %v", err)
+	}
+	if len(inner.got) == 0 {
+		t.Fatal("the request did not reach the inner transport")
+	}
+	if !contains(inner.got[0], "idp.customer.example.com") {
+		t.Errorf("request went to %s, want idp.customer.example.com", inner.got[0])
 	}
 }
