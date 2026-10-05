@@ -835,7 +835,9 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 					`` + "\n" +
 					`This ` + "`" + `hsks` + "`" + ` property is output only, meaning that ` + "`" + `hsks` + "`" + ` in requests to ` + "`" + `/api/service/create` + "`" + `` + "\n" +
 					`API and ` + "`" + `/api/service/update` + "`" + ` API do not have any effect. The contents of this property is controlled` + "\n" +
-					`only by ` + "`" + `/api/hsk/*` + "`" + ` APIs.`,
+					`only by ` + "`" + `/api/hsk/*` + "`" + ` APIs.` + "\n" +
+					`` + "\n" +
+					`Read-only. Hardware security module keys are managed through Authlete's separate HSK API, which this provider does not expose. The service create and update endpoints ignore this field, so a value written here is discarded silently and the plan never settles. What this returns is for reference.`,
 			},
 			"hsm_enabled": schema.BoolAttribute{
 				Computed: true,
@@ -972,7 +974,9 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 					`` + "\n" +
 					`  | Key | Description |` + "\n" +
 					`  | --- | --- |` + "\n" +
-					`  | ` + "`" + `clientCount` + "`" + ` | The number of client applications which belong to this service.  |`,
+					`  | ` + "`" + `clientCount` + "`" + ` | The number of client applications which belong to this service.  |` + "\n" +
+					`` + "\n" +
+					`Read-only. Authlete owns these values -- ` + "`" + `clientCount` + "`" + ` changes as clients are added or removed -- and the service create and update endpoints ignore anything written here, including an empty list.`,
 			},
 			"missing_client_id_allowed": schema.BoolAttribute{
 				Computed: true,
@@ -1291,7 +1295,9 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 					`currently doesn't provide any API to help implementations for ` + "`" + `AGGREGATED` + "`" + ` and ` + "`" + `DISTRIBUTED` + "`" + `.` + "\n" +
 					`` + "\n" +
 					`The value of this property is used as ` + "`" + `claim_types_supported` + "`" + ` property in the [OpenID Provider` + "\n" +
-					`Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+					`Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).` + "\n" +
+					`` + "\n" +
+					`Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy the order Terraform reports back, or write the list in the order the attribute documentation gives.`,
 			},
 			"supported_claims": schema.ListAttribute{
 				Computed:    true,
@@ -1323,7 +1329,9 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of ` + "`" + `display` + "`" + ` request parameter that service supports.` + "\n" +
 					`` + "\n" +
-					`The value of this property is used as ` + "`" + `display_values_supported` + "`" + ` property in the Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+					`The value of this property is used as ` + "`" + `display_values_supported` + "`" + ` property in the Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).` + "\n" +
+					`` + "\n" +
+					`Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy the order Terraform reports back, or write the list in the order the attribute documentation gives.`,
 			},
 			"supported_documents": schema.ListAttribute{
 				Computed:    true,
@@ -1384,7 +1392,9 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 				MarkdownDescription: `Values of ` + "`" + `grant_type` + "`" + ` request parameter that the service supports.` + "\n" +
 					`` + "\n" +
 					`The value of this property is used as ` + "`" + `grant_types_supported property` + "`" + ` in the` + "\n" +
-					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).` + "\n" +
+					`` + "\n" +
+					`Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy the order Terraform reports back, or write the list in the order the attribute documentation gives.`,
 			},
 			"supported_identity_documents": schema.ListAttribute{
 				Computed:    true,
@@ -1400,7 +1410,9 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			"supported_prompt_values": schema.ListAttribute{
 				Computed:    true,
 				ElementType: types.StringType,
-				Description: `The supported ` + "`" + `prompt` + "`" + ` values.`,
+				MarkdownDescription: `The supported ` + "`" + `prompt` + "`" + ` values.` + "\n" +
+					`` + "\n" +
+					`Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy the order Terraform reports back, or write the list in the order the attribute documentation gives.`,
 			},
 			"supported_response_types": schema.ListAttribute{
 				Computed:    true,
@@ -1409,7 +1421,9 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 					`the service supports. Valid values are listed in Response Type.` + "\n" +
 					`` + "\n" +
 					`The value of this property is used as ` + "`" + `response_types_supported` + "`" + ` property in the` + "\n" +
-					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).` + "\n" +
+					`` + "\n" +
+					`Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy the order Terraform reports back, or write the list in the order the attribute documentation gives.`,
 			},
 			"supported_revocation_auth_methods": schema.ListAttribute{
 				Computed:    true,
@@ -1466,7 +1480,9 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 						},
 					},
 				},
-				Description: `Scopes supported by the service.`,
+				MarkdownDescription: `Scopes supported by the service.` + "\n" +
+					`` + "\n" +
+					`Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy the order Terraform reports back, or write the list in the order the attribute documentation gives.`,
 			},
 			"supported_service_profiles": schema.ListAttribute{
 				Computed:    true,
