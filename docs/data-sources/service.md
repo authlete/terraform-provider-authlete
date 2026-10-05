@@ -66,7 +66,7 @@ OAuth 2.0 Attestation-Based Client Authentication.
 
 If the value is not empty, Authlete generates Authorization header for Basic authentication when
 making a request to the authentication callback endpoint.
-- `authentication_callback_api_secret` (String) API secret for `basic` authentication at the authentication callback endpoint.
+- `authentication_callback_api_secret` (String, Sensitive) API secret for `basic` authentication at the authentication callback endpoint.
 - `authentication_callback_endpoint` (String) A Web API endpoint for user authentication which is to be prepared on the service side.
 
 The endpoint must be implemented if you do not implement the UI at the authorization endpoint
@@ -146,7 +146,7 @@ metadata via CIMD where applicable.
 UNIX epoch (`1970-01-01`).
 - `credential_duration` (Number) The default duration of verifiable credentials in seconds.
 - `credential_issuer_metadata` (Attributes) (see [below for nested schema](#nestedatt--credential_issuer_metadata))
-- `credential_jwks` (String) The JWK Set document containing private keys that are used to sign
+- `credential_jwks` (String, Sensitive) The JWK Set document containing private keys that are used to sign
 verifiable credentials.
 - `credential_jwks_uri` (String) The URL at which the JWK Set document of the credential issuer is
 exposed.
@@ -166,7 +166,7 @@ This property affects behaviors of `/api/client/registration` and other family A
 - `description` (String) The description about the service.
 - `developer_authentication_callback_api_key` (String) The API key for basic authentication at the developer authentication 
 callback endpoint.
-- `developer_authentication_callback_api_secret` (String) The API secret for basic authentication at the developer authentication 
+- `developer_authentication_callback_api_secret` (String, Sensitive) The API secret for basic authentication at the developer authentication 
 callback endpoint.
 - `developer_authentication_callback_endpoint` (String) The endpoint for developer authentication callbacks. This is used when 
 developers log into the developer portal.
@@ -229,7 +229,7 @@ processes requests to this service based on "Financial-grade API Security Profil
 Advanced" if the FAPI feature is enabled in Authlete and the FAPI profile is supported by this service.
 - `federation_configuration_duration` (Number) The duration of the entity configuration in seconds.
 - `federation_enabled` (Boolean) flag indicating whether this service supports OpenID Connect Federation 1
-- `federation_jwks` (String) JWK Set document containing keys that are used to sign (1) self-signed
+- `federation_jwks` (String, Sensitive) JWK Set document containing keys that are used to sign (1) self-signed
 entity statement of this service and (2) the response from
 `signed_jwks_uri`.
 - `federation_registration_endpoint` (String) The URI of the federation registration endpoint. This property corresponds
@@ -272,7 +272,7 @@ A URL that starts with  https:// and has no query or fragment component.
 
 The value of this property is used as `iss` claim in an [ID token](https://openid.net/specs/openid-connect-core-1_0.html#IDToken)
 and `issuer` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
-- `jwks` (String) The content of the service's [JSON Web Key Set](https://tools.ietf.org/html/rfc7517) document.
+- `jwks` (String, Sensitive) The content of the service's [JSON Web Key Set](https://tools.ietf.org/html/rfc7517) document.
 
 If this property is not `null` in a `/service/create` request or a `/service/update` request,
 Authlete hosts the content in the database. This property must not be `null` and must contain
@@ -667,7 +667,7 @@ Read-Only:
 Read-Only:
 
 - `api_key` (String) API key.
-- `api_secret` (String) API secret.
+- `api_secret` (String, Sensitive) API secret.
 - `sns` (String) SNS.
 
 

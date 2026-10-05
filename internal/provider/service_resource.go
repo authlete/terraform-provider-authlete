@@ -365,6 +365,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"authentication_callback_api_secret": schema.StringAttribute{
 				Computed:    true,
 				Optional:    true,
+				Sensitive:   true,
 				Description: `API secret for ` + "`" + `basic` + "`" + ` authentication at the authentication callback endpoint.`,
 			},
 			"authentication_callback_endpoint": schema.StringAttribute{
@@ -656,8 +657,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				},
 			},
 			"credential_jwks": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
+				Computed:  true,
+				Optional:  true,
+				Sensitive: true,
 				MarkdownDescription: `The JWK Set document containing private keys that are used to sign` + "\n" +
 					`verifiable credentials.`,
 			},
@@ -707,7 +709,8 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`callback endpoint.`,
 			},
 			"developer_authentication_callback_api_secret": schema.StringAttribute{
-				Computed: true,
+				Computed:  true,
+				Sensitive: true,
 				MarkdownDescription: `The API secret for basic authentication at the developer authentication ` + "\n" +
 					`callback endpoint.`,
 			},
@@ -860,6 +863,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				CustomType: customtypes.JWKSType{},
 				Computed:   true,
 				Optional:   true,
+				Sensitive:  true,
 				MarkdownDescription: `JWK Set document containing keys that are used to sign (1) self-signed` + "\n" +
 					`entity statement of this service and (2) the response from` + "\n" +
 					`` + "`" + `signed_jwks_uri` + "`" + `.`,
@@ -1020,6 +1024,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				CustomType: customtypes.JWKSType{},
 				Computed:   true,
 				Optional:   true,
+				Sensitive:  true,
 				MarkdownDescription: `The content of the service's [JSON Web Key Set](https://tools.ietf.org/html/rfc7517) document.` + "\n" +
 					`` + "\n" +
 					`If this property is not ` + "`" + `null` + "`" + ` in a ` + "`" + `/service/create` + "`" + ` request or a ` + "`" + `/service/update` + "`" + ` request,` + "\n" +
@@ -1419,6 +1424,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 						"api_secret": schema.StringAttribute{
 							Computed:    true,
 							Optional:    true,
+							Sensitive:   true,
 							Description: `API secret.`,
 						},
 						"sns": schema.StringAttribute{

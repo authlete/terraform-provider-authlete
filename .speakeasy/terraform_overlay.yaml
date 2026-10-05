@@ -161,6 +161,55 @@ actions:
     update:
       x-speakeasy-param-sensitive: true
 
+  # The remaining secret-bearing fields. Verified unmasked: service jwks and
+  # authentication_callback_api_secret were observed printing in plan output,
+  # and the rest carry the same kind of material by schema.
+  #
+  # The JWK Sets are the serious ones. service.jwks must contain public/private
+  # key pairs for asymmetric ID token signing, and credentialJwks is documented
+  # as "containing private keys". A leaked client secret compromises one
+  # application; a leaked service signing key lets someone mint tokens for every
+  # client under that authorization server.
+  #
+  # Sensitive keeps these out of plan output, terraform state show and CI logs.
+  # It does NOT remove them from state -- that is ENG-5904, and needs ephemeral
+  # resources, which are not planned.
+  #
+  # Deliberately NOT marked: client.jwks ("must not include private keys of the
+  # client application") and trustAnchors[].jwks ("public keys of the trust
+  # anchor"). Both are public by contract, so masking them would cost
+  # readability for no gain.
+
+  - target: $.components.schemas.service.properties.jwks
+    description: Conceal the service JWK Set, which holds private signing keys
+    update:
+      x-speakeasy-param-sensitive: true
+
+  - target: $.components.schemas.service.properties.federationJwks
+    description: Conceal the federation JWK Set, which signs entity statements
+    update:
+      x-speakeasy-param-sensitive: true
+
+  - target: $.components.schemas.service.properties.credentialJwks
+    description: Conceal the credential JWK Set, documented as holding private keys
+    update:
+      x-speakeasy-param-sensitive: true
+
+  - target: $.components.schemas.service.properties.authenticationCallbackApiSecret
+    description: Conceal the authentication callback secret
+    update:
+      x-speakeasy-param-sensitive: true
+
+  - target: $.components.schemas.service.properties.developerAuthenticationCallbackApiSecret
+    description: Conceal the developer authentication callback secret
+    update:
+      x-speakeasy-param-sensitive: true
+
+  - target: $.components.schemas.sns_credentials.properties.apiSecret
+    description: Conceal the SNS credential secret
+    update:
+      x-speakeasy-param-sensitive: true
+
   # ---------- JWK Set round-tripping ----------
   # Authlete returns a JWK Set with whitespace stripped and member keys
   # reordered, so a byte comparison reports a change on every plan after the

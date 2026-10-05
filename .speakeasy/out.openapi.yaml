@@ -11730,6 +11730,7 @@ components:
         developerAuthenticationCallbackApiSecret:
           type: string
           description: "The API secret for basic authentication at the developer authentication \ncallback endpoint.\n"
+          x-speakeasy-param-sensitive: true
           readOnly: true
         supportedSnses:
           type: array
@@ -11794,6 +11795,7 @@ components:
         authenticationCallbackApiSecret:
           type: string
           description: API secret for `basic` authentication at the authentication callback endpoint.
+          x-speakeasy-param-sensitive: true
         supportedAcrs:
           readOnly: true
           type: array
@@ -12336,6 +12338,7 @@ components:
             pairs of public/private keys if the service wants to support asymmetric signatures for ID tokens
             and asymmetric encryption for request objects. See [OpenID Connect Core 1.0, 10. Signatures and
             Encryption](https://openid.net/specs/openid-connect-core-1_0.html#SigEnc) for details.
+          x-speakeasy-param-sensitive: true
           x-speakeasy-terraform-custom-type:
             imports:
               - "github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
@@ -12996,6 +12999,7 @@ components:
             JWK Set document containing keys that are used to sign (1) self-signed
             entity statement of this service and (2) the response from
             `signed_jwks_uri`.
+          x-speakeasy-param-sensitive: true
           x-speakeasy-terraform-custom-type:
             imports:
               - "github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
@@ -13256,6 +13260,7 @@ components:
           description: |
             The JWK Set document containing private keys that are used to sign
             verifiable credentials.
+          x-speakeasy-param-sensitive: true
         fapiModes:
           type: array
           items:
@@ -13418,6 +13423,7 @@ components:
         apiSecret:
           type: string
           description: API secret.
+          x-speakeasy-param-sensitive: true
     sns:
       type: string
       enum:
