@@ -181,9 +181,9 @@ func WithTimeout(timeout time.Duration) SDKOption {
 // New creates a new instance of the SDK with the provided options
 func New(opts ...SDKOption) *Authlete {
 	sdk := &Authlete{
-		SDKVersion: "0.0.11",
+		SDKVersion: "0.0.12",
 		sdkConfiguration: config.SDKConfiguration{
-			UserAgent:  "speakeasy-sdk/terraform 0.0.11 2.932.9 3.0.16 github.com/authlete/terraform-provider-authlete/internal/sdk",
+			UserAgent:  "speakeasy-sdk/terraform 0.0.12 2.932.9 3.0.16 github.com/authlete/terraform-provider-authlete/internal/sdk",
 			Globals:    globals.Globals{},
 			ServerList: ServerList,
 		},

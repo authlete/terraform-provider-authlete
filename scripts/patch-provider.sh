@@ -22,7 +22,10 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 FILE=internal/provider/provider.go
-MARKER="hand-added, see idp_routing.go"
+# Check the functional calls, not a comment. An earlier version keyed on the
+# comment above the patch, which meant a regeneration that kept the comment and
+# dropped the code read as healthy -- and the file still compiles either way.
+REQUIRED_CALLS=("NewIdpRoutingTransport(" "NewLogRedactingTransport(")
 ANCHOR="	httpClient.Transport = NewProviderHTTPTransport(providerHTTPTransportOpts)"
 
 CHECK=false
@@ -30,14 +33,19 @@ CHECK=false
 
 [[ -f "$FILE" ]] || { echo "error: $FILE not found" >&2; exit 1; }
 
-if grep -qF "$MARKER" "$FILE"; then
+missing=()
+for call in "${REQUIRED_CALLS[@]}"; do
+  grep -qF "$call" "$FILE" || missing+=("$call")
+done
+
+if [[ ${#missing[@]} -eq 0 ]]; then
   $CHECK && echo "ok: provider.go patch is present"
   exit 0
 fi
 
 if $CHECK; then
   cat >&2 <<EOF
-error: the provider.go patch is missing.
+error: the provider.go patch is missing (${missing[*]}).
 
 The line wrapping the HTTP transport is gone, so idp_host and organization_id
 would be accepted and silently ignored: service create and delete would go to
@@ -93,7 +101,10 @@ patch = '''
 	if apiServerID == 0 {
 		apiServerID, _ = APIServerIDForServerURL(serverUrl)
 	}
-	httpClient.Transport = NewIdpRoutingTransport(idpHost, apiServerID, organizationID, httpClient.Transport)
+	// Redaction sits outside the generated logging transport, which records
+	// every request and response body verbatim. See log_redaction.go.
+	httpClient.Transport = NewLogRedactingTransport(
+		NewIdpRoutingTransport(idpHost, apiServerID, organizationID, httpClient.Transport))
 '''
 src = open(path).read()
 src = src.replace(anchor + "\n", anchor + "\n" + patch, 1)

@@ -172,7 +172,10 @@ func (p *AuthleteProvider) Configure(ctx context.Context, req provider.Configure
 	if apiServerID == 0 {
 		apiServerID, _ = APIServerIDForServerURL(serverUrl)
 	}
-	httpClient.Transport = NewIdpRoutingTransport(idpHost, apiServerID, organizationID, httpClient.Transport)
+	// Redaction sits outside the generated logging transport, which records
+	// every request and response body verbatim. See log_redaction.go.
+	httpClient.Transport = NewLogRedactingTransport(
+		NewIdpRoutingTransport(idpHost, apiServerID, organizationID, httpClient.Transport))
 
 	opts := []sdk.SDKOption{
 		sdk.WithServerURL(serverUrl),
