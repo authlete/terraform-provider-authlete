@@ -845,7 +845,9 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 					`client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
 					`See ` + "`" + `tls_client_auth_san_dns` + "`" + ` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client` + "\n" +
-					`Registration" for details.`,
+					`Registration" for details.` + "\n" +
+					`` + "\n" +
+					`Authlete accepts exactly one of ` + "`" + `tls_client_auth_subject_dn` + "`" + `, ` + "`" + `tls_client_auth_san_dns` + "`" + `, ` + "`" + `tls_client_auth_san_email` + "`" + `, ` + "`" + `tls_client_auth_san_ip` + "`" + ` and ` + "`" + `tls_client_auth_san_uri` + "`" + `. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.`,
 			},
 			"tls_client_auth_san_email": schema.StringAttribute{
 				Computed: true,
@@ -853,7 +855,9 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 					`this client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
 					`See ` + "`" + `tls_client_auth_san_email` + "`" + ` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client` + "\n" +
-					`Registration" for details.`,
+					`Registration" for details.` + "\n" +
+					`` + "\n" +
+					`Authlete accepts exactly one of ` + "`" + `tls_client_auth_subject_dn` + "`" + `, ` + "`" + `tls_client_auth_san_dns` + "`" + `, ` + "`" + `tls_client_auth_san_email` + "`" + `, ` + "`" + `tls_client_auth_san_ip` + "`" + ` and ` + "`" + `tls_client_auth_san_uri` + "`" + `. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.`,
 			},
 			"tls_client_auth_san_ip": schema.StringAttribute{
 				Computed: true,
@@ -861,7 +865,9 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 					`this client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
 					`See ` + "`" + `tls_client_auth_san_ip` + "`" + ` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client` + "\n" +
-					`Registration" for details.`,
+					`Registration" for details.` + "\n" +
+					`` + "\n" +
+					`Authlete accepts exactly one of ` + "`" + `tls_client_auth_subject_dn` + "`" + `, ` + "`" + `tls_client_auth_san_dns` + "`" + `, ` + "`" + `tls_client_auth_san_email` + "`" + `, ` + "`" + `tls_client_auth_san_ip` + "`" + ` and ` + "`" + `tls_client_auth_san_uri` + "`" + `. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.`,
 			},
 			"tls_client_auth_san_uri": schema.StringAttribute{
 				Computed: true,
@@ -869,7 +875,9 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 					`client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
 					`See ` + "`" + `tls_client_auth_san_uri` + "`" + ` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client` + "\n" +
-					`Registration" for details.`,
+					`Registration" for details.` + "\n" +
+					`` + "\n" +
+					`Authlete accepts exactly one of ` + "`" + `tls_client_auth_subject_dn` + "`" + `, ` + "`" + `tls_client_auth_san_dns` + "`" + `, ` + "`" + `tls_client_auth_san_email` + "`" + `, ` + "`" + `tls_client_auth_san_ip` + "`" + ` and ` + "`" + `tls_client_auth_san_uri` + "`" + `. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.`,
 			},
 			"tls_client_auth_subject_dn": schema.StringAttribute{
 				Computed: true,
@@ -877,7 +885,9 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 					`client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
 					`See ` + "`" + `tls_client_auth_subject_dn` + "`" + ` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client` + "\n" +
-					`Registration" for details.`,
+					`Registration" for details.` + "\n" +
+					`` + "\n" +
+					`Authlete accepts exactly one of ` + "`" + `tls_client_auth_subject_dn` + "`" + `, ` + "`" + `tls_client_auth_san_dns` + "`" + `, ` + "`" + `tls_client_auth_san_email` + "`" + `, ` + "`" + `tls_client_auth_san_ip` + "`" + ` and ` + "`" + `tls_client_auth_san_uri` + "`" + `. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.`,
 			},
 			"tls_client_certificate_bound_access_tokens": schema.BoolAttribute{
 				Computed:    true,
