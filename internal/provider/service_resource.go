@@ -902,49 +902,38 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"hsks": schema.ListNestedAttribute{
 				Computed: true,
-				Optional: true,
 				NestedObject: schema.NestedAttributeObject{
-					Validators: []validator.Object{
-						speakeasy_objectvalidators.NotNull(),
-					},
 					Attributes: map[string]schema.Attribute{
 						"alg": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 							MarkdownDescription: `The algorithm of the key on the HSM. When the key use is ` + "`" + `"sig"` + "`" + `, the algorithm represents a` + "\n" +
 								`signing algorithm such as ` + "`" + `"ES256"` + "`" + `. When the key use is ` + "`" + `"enc"` + "`" + `, the algorithm represents an` + "\n" +
 								`encryption algorithm such as ` + "`" + `"RSA-OAEP-256"` + "`" + `.`,
 						},
 						"handle": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 							MarkdownDescription: `The handle for the key on the HSM.` + "\n" +
 								`A handle is a base64url-encoded 256-bit random value (43 letters) which is assigned by Authlete on the call of the /api/hsk/create API`,
 						},
 						"hsm_name": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 							MarkdownDescription: `The name of the HSM.` + "\n" +
 								`The identifier for the HSM that sits behind the Authlete server. For example, "google".`,
 						},
 						"kid": schema.StringAttribute{
 							Computed:    true,
-							Optional:    true,
 							Description: `Key ID for the key on the HSM.`,
 						},
 						"kty": schema.StringAttribute{
 							Computed:    true,
-							Optional:    true,
 							Description: `The key type (EC or RSA)`,
 						},
 						"public_key": schema.StringAttribute{
 							Computed:    true,
-							Optional:    true,
 							Description: `The public key that corresponds to the key on the HSM.`,
 						},
 						"use": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 							MarkdownDescription: `Get the use of the key on the HSM.` + "\n" +
 								`When the key use is "sig" (signature), the private key on the HSM is used to sign data and the corresponding public key is used to verify the signature.` + "\n" +
 								`When the key use is "enc" (encryption), the private key on the HSM is used to decrypt encrypted data which have been encrypted with the corresponding public key`,
@@ -955,7 +944,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`` + "\n" +
 					`This ` + "`" + `hsks` + "`" + ` property is output only, meaning that ` + "`" + `hsks` + "`" + ` in requests to ` + "`" + `/api/service/create` + "`" + `` + "\n" +
 					`API and ` + "`" + `/api/service/update` + "`" + ` API do not have any effect. The contents of this property is controlled` + "\n" +
-					`only by ` + "`" + `/api/hsk/*` + "`" + ` APIs.`,
+					`only by ` + "`" + `/api/hsk/*` + "`" + ` APIs.` + "\n" +
+					`` + "\n" +
+					`Read-only. Hardware security module keys are managed through Authlete's separate HSK API, which this provider does not expose. The service create and update endpoints ignore this field, so a value written here is discarded silently and the plan never settles. What this returns is for reference.`,
 			},
 			"hsm_enabled": schema.BoolAttribute{
 				Computed: true,
@@ -1094,20 +1085,14 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"metadata": schema.ListNestedAttribute{
 				Computed: true,
-				Optional: true,
 				NestedObject: schema.NestedAttributeObject{
-					Validators: []validator.Object{
-						speakeasy_objectvalidators.NotNull(),
-					},
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
 							Computed:    true,
-							Optional:    true,
 							Description: `The key part.`,
 						},
 						"value": schema.StringAttribute{
 							Computed:    true,
-							Optional:    true,
 							Description: `The value part.`,
 						},
 					},
@@ -1117,7 +1102,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`` + "\n" +
 					`  | Key | Description |` + "\n" +
 					`  | --- | --- |` + "\n" +
-					`  | ` + "`" + `clientCount` + "`" + ` | The number of client applications which belong to this service.  |`,
+					`  | ` + "`" + `clientCount` + "`" + ` | The number of client applications which belong to this service.  |` + "\n" +
+					`` + "\n" +
+					`Read-only. Authlete owns these values -- ` + "`" + `clientCount` + "`" + ` changes as clients are added or removed -- and the service create and update endpoints ignore anything written here, including an empty list.`,
 			},
 			"missing_client_id_allowed": schema.BoolAttribute{
 				Computed: true,
@@ -1411,26 +1398,19 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"sns_credentials": schema.ListNestedAttribute{
 				Computed: true,
-				Optional: true,
 				NestedObject: schema.NestedAttributeObject{
-					Validators: []validator.Object{
-						speakeasy_objectvalidators.NotNull(),
-					},
 					Attributes: map[string]schema.Attribute{
 						"api_key": schema.StringAttribute{
 							Computed:    true,
-							Optional:    true,
 							Description: `API key.`,
 						},
 						"api_secret": schema.StringAttribute{
 							Computed:    true,
-							Optional:    true,
 							Sensitive:   true,
 							Description: `API secret.`,
 						},
 						"sns": schema.StringAttribute{
 							Computed:    true,
-							Optional:    true,
 							Description: `SNS.`,
 						},
 					},
