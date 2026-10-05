@@ -1154,7 +1154,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
-					custom_stringplanmodifier.AuthletepmClearSupersededSubjectTypeTLSClientAuthSanDNS(),
+					custom_stringplanmodifier.ClearSupersededTLSClientAuthSanDNS(),
 				},
 				MarkdownDescription: `The string representation of the expected DNS subject alternative name of the certificate this` + "\n" +
 					`client will use in mutual TLS authentication.` + "\n" +
@@ -1165,6 +1165,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"tls_client_auth_san_email": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					custom_stringplanmodifier.ClearSupersededTLSClientAuthSanEmail(),
+				},
 				MarkdownDescription: `The string representation of the expected email address subject alternative name of the certificate` + "\n" +
 					`this client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
@@ -1174,6 +1177,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"tls_client_auth_san_ip": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					custom_stringplanmodifier.ClearSupersededTLSClientAuthSanIP(),
+				},
 				MarkdownDescription: `The string representation of the expected IP address subject alternative name of the certificate` + "\n" +
 					`this client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
@@ -1183,6 +1189,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"tls_client_auth_san_uri": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					custom_stringplanmodifier.ClearSupersededTLSClientAuthSanURI(),
+				},
 				MarkdownDescription: `The string representation of the expected URI subject alternative name of the certificate this` + "\n" +
 					`client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
@@ -1192,6 +1201,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"tls_client_auth_subject_dn": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					custom_stringplanmodifier.ClearSupersededTLSClientAuthSubjectDn(),
+				},
 				MarkdownDescription: `The string representation of the expected subject distinguished name of the certificate this` + "\n" +
 					`client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
