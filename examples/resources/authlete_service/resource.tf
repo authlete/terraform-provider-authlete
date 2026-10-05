@@ -100,45 +100,28 @@ resource "authlete_service" "my_service" {
   front_channel_request_object_encryption_required = false
   grant_management_action_required                 = true
   grant_management_endpoint                        = "...my_grant_management_endpoint..."
-  hsks = [
-    {
-      alg        = "...my_alg..."
-      handle     = "...my_handle..."
-      hsm_name   = "...my_hsm_name..."
-      kid        = "...my_kid..."
-      kty        = "...my_kty..."
-      public_key = "...my_public_key..."
-      use        = "...my_use..."
-    }
-  ]
-  hsm_enabled                            = true
-  http_alias_prohibited                  = true
-  id_token_aud_type                      = "...my_id_token_aud_type..."
-  id_token_duration                      = 10
-  id_token_reissuable                    = true
-  id_token_signature_key_id              = "...my_id_token_signature_key_id..."
-  introspection_endpoint                 = "https://coordinated-hovel.info/"
-  introspection_signature_key_id         = "...my_introspection_signature_key_id..."
-  iss_suppressed                         = true
-  issuer                                 = "...my_issuer..."
-  jwks                                   = "...my_jwks..."
-  jwks_uri                               = "https://black-publication.com/"
-  jwt_grant_by_identifiable_clients_only = false
-  jwt_grant_encrypted_jwt_rejected       = true
-  jwt_grant_unsigned_jwt_rejected        = true
+  hsm_enabled                                      = true
+  http_alias_prohibited                            = true
+  id_token_aud_type                                = "...my_id_token_aud_type..."
+  id_token_duration                                = 10
+  id_token_reissuable                              = true
+  id_token_signature_key_id                        = "...my_id_token_signature_key_id..."
+  introspection_endpoint                           = "https://coordinated-hovel.info/"
+  introspection_signature_key_id                   = "...my_introspection_signature_key_id..."
+  iss_suppressed                                   = true
+  issuer                                           = "...my_issuer..."
+  jwks                                             = "...my_jwks..."
+  jwks_uri                                         = "https://black-publication.com/"
+  jwt_grant_by_identifiable_clients_only           = false
+  jwt_grant_encrypted_jwt_rejected                 = true
+  jwt_grant_unsigned_jwt_rejected                  = true
   key_attester_roots = [
     "..."
   ]
   key_attester_roots_enabled        = true
   key_attester_roots_only           = true
   loopback_redirection_uri_variable = true
-  metadata = [
-    {
-      key   = "...my_key..."
-      value = "...my_value..."
-    }
-  ]
-  missing_client_id_allowed = true
+  missing_client_id_allowed         = true
   mtls_endpoint_aliases = [
     {
       name = "...my_name..."
@@ -179,13 +162,6 @@ resource "authlete_service" "my_service" {
   service_name                                     = "...my_service_name..."
   signed_jwks_uri                                  = "...my_signed_jwks_uri..."
   single_access_token_per_subject                  = true
-  sns_credentials = [
-    {
-      api_key    = "...my_api_key..."
-      api_secret = "...my_api_secret..."
-      sns        = "...my_sns..."
-    }
-  ]
   supported_attachments = [
     "EMBEDDED"
   ]
