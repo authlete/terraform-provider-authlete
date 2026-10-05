@@ -392,3 +392,66 @@ actions:
             schema:
               type: integer
               format: int64
+
+  # ---------- Optional arrays: null must not be sent as [] ----------
+  #
+  # The generated Terraform->SDK conversion builds every list with
+  # make([]T, 0, len(...)), which yields an empty but NON-nil slice when the
+  # practitioner never set the attribute. The JSON tag is `omitzero`, and for a
+  # slice only nil is the zero value, so an unset list serialises as [] instead
+  # of being omitted. Authlete applies its defaults only when a key is ABSENT,
+  # so the service is created supporting nothing. plan and apply are both clean
+  # and the failure surfaces later at runtime, one error at a time: A015304
+  # (displays), A009305 (response type), A049305 (grant type).
+  #
+  # The same generated function handles scalars correctly four lines earlier --
+  # it allocates, checks IsNull/IsUnknown, and sets the pointer back to nil. The
+  # inconsistency is a generator defect, reported upstream.
+  #
+  # Marking the array `nullable: true` makes the generator emit that same nil
+  # guard for the list, on both the write and the read path. The Terraform
+  # schema is unchanged (verified byte-identical), the SDK field stays []T, and
+  # null / [] / populated now reach the wire as absent / [] / values.
+  #
+  # Deliberately limited to the seven fields where the server has a default and
+  # the failure is known. A blanket sweep would flip ~40 further list attributes
+  # from [] to null in state, and any config writing `= []` on one the server
+  # does not echo back would then diff on every plan. Widen only per field, with
+  # the round-trip verified against the live API.
+  #
+  # Guarded by TestOptionalArraysOmitNull in nullable_arrays_test.go.
+
+  - target: $.components.schemas.service.properties.supportedDisplays
+    description: Omit when unset so the server applies its default
+    update:
+      nullable: true
+
+  - target: $.components.schemas.service.properties.supportedGrantTypes
+    description: Omit when unset so the server applies its default
+    update:
+      nullable: true
+
+  - target: $.components.schemas.service.properties.supportedResponseTypes
+    description: Omit when unset so the server applies its default
+    update:
+      nullable: true
+
+  - target: $.components.schemas.service.properties.supportedTokenAuthMethods
+    description: Omit when unset so the server applies its default
+    update:
+      nullable: true
+
+  - target: $.components.schemas.service.properties.supportedPromptValues
+    description: Omit when unset so the server applies its default
+    update:
+      nullable: true
+
+  - target: $.components.schemas.service.properties.supportedClaimTypes
+    description: Omit when unset so the server applies its default
+    update:
+      nullable: true
+
+  - target: $.components.schemas.client.properties.responseModes
+    description: Omit when unset so the server applies its default
+    update:
+      nullable: true

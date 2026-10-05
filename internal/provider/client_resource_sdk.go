@@ -239,9 +239,13 @@ func (r *ClientResourceModel) RefreshFromSharedClient(ctx context.Context, resp 
 		for _, v := range resp.RequestUris {
 			r.RequestUris = append(r.RequestUris, types.StringValue(v))
 		}
-		r.ResponseModes = make([]types.String, 0, len(resp.ResponseModes))
-		for _, v := range resp.ResponseModes {
-			r.ResponseModes = append(r.ResponseModes, types.StringValue(string(v)))
+		if resp.ResponseModes != nil {
+			r.ResponseModes = make([]types.String, 0, len(resp.ResponseModes))
+			for _, v := range resp.ResponseModes {
+				r.ResponseModes = append(r.ResponseModes, types.StringValue(string(v)))
+			}
+		} else {
+			r.ResponseModes = nil
 		}
 		r.ResponseTypes = make([]types.String, 0, len(resp.ResponseTypes))
 		for _, v := range resp.ResponseTypes {
@@ -968,9 +972,12 @@ func (r *ClientResourceModel) ToSharedClientInput(ctx context.Context) (*shared.
 	for _, fapiModesItem := range r.FapiModes {
 		fapiModes = append(fapiModes, shared.FapiMode(fapiModesItem.ValueString()))
 	}
-	responseModes := make([]shared.ResponseMode, 0, len(r.ResponseModes))
-	for _, responseModesItem := range r.ResponseModes {
-		responseModes = append(responseModes, shared.ResponseMode(responseModesItem.ValueString()))
+	var responseModes []shared.ResponseMode
+	if r.ResponseModes != nil {
+		responseModes = make([]shared.ResponseMode, 0, len(r.ResponseModes))
+		for _, responseModesItem := range r.ResponseModes {
+			responseModes = append(responseModes, shared.ResponseMode(responseModesItem.ValueString()))
+		}
 	}
 	credentialResponseEncryptionRequired := new(bool)
 	if !r.CredentialResponseEncryptionRequired.IsUnknown() && !r.CredentialResponseEncryptionRequired.IsNull() {

@@ -239,9 +239,13 @@ func (r *ClientDataSourceModel) RefreshFromSharedClient(ctx context.Context, res
 		for _, v := range resp.RequestUris {
 			r.RequestUris = append(r.RequestUris, types.StringValue(v))
 		}
-		r.ResponseModes = make([]types.String, 0, len(resp.ResponseModes))
-		for _, v := range resp.ResponseModes {
-			r.ResponseModes = append(r.ResponseModes, types.StringValue(string(v)))
+		if resp.ResponseModes != nil {
+			r.ResponseModes = make([]types.String, 0, len(resp.ResponseModes))
+			for _, v := range resp.ResponseModes {
+				r.ResponseModes = append(r.ResponseModes, types.StringValue(string(v)))
+			}
+		} else {
+			r.ResponseModes = nil
 		}
 		r.ResponseTypes = make([]types.String, 0, len(resp.ResponseTypes))
 		for _, v := range resp.ResponseTypes {
