@@ -97,6 +97,7 @@ type Service struct {
 	//   | --- | --- |
 	//   | `clientCount` | The number of client applications which belong to this service.  |
 	//
+	// Read-only. Authlete owns these values -- `clientCount` changes as clients are added or removed -- and the service create and update endpoints ignore anything written here, including an empty list.
 	Metadata []Pair `json:"metadata,omitzero"`
 	// The time at which this service was created. The value is represented as milliseconds since the
 	// UNIX epoch (`1970-01-01`).
@@ -134,6 +135,7 @@ type Service struct {
 	// The value of this property is used as `grant_types_supported property` in the
 	// [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
 	//
+	// Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy the order Terraform reports back, or write the list in the order the attribute documentation gives.
 	SupportedGrantTypes []GrantType `json:"supportedGrantTypes,omitzero"`
 	// Values of `response_type` request parameter that
 	// the service supports. Valid values are listed in Response Type.
@@ -141,6 +143,7 @@ type Service struct {
 	// The value of this property is used as `response_types_supported` property in the
 	// [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
 	//
+	// Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy the order Terraform reports back, or write the list in the order the attribute documentation gives.
 	SupportedResponseTypes []ResponseType `json:"supportedResponseTypes,omitzero"`
 	// The supported data types that can be used as values of the type field in `authorization_details`.
 	//
@@ -193,6 +196,7 @@ type Service struct {
 	//
 	// The value of this property is used as `display_values_supported` property in the Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
 	//
+	// Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy the order Terraform reports back, or write the list in the order the attribute documentation gives.
 	SupportedDisplays []Display `json:"supportedDisplays,omitzero"`
 	// The flag to indicate whether the use of Proof Key for Code Exchange (PKCE) is always required for authorization requests by Authorization Code Flow.
 	//
@@ -372,6 +376,7 @@ type Service struct {
 	RefreshTokenKept *bool `json:"refreshTokenKept,omitzero"`
 	// Scopes supported by the service.
 	//
+	// Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy the order Terraform reports back, or write the list in the order the attribute documentation gives.
 	SupportedScopes []Scope `json:"supportedScopes,omitzero"`
 	// The flag to indicate whether requests that request no scope are rejected or not.
 	//
@@ -391,6 +396,7 @@ type Service struct {
 	// The value of this property is used as `claim_types_supported` property in the [OpenID Provider
 	// Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
 	//
+	// Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy the order Terraform reports back, or write the list in the order the attribute documentation gives.
 	SupportedClaimTypes []ClaimType `json:"supportedClaimTypes,omitzero"`
 	// Claim locales that the service supports. Each element is a language tag defined in [RFC 5646](https://tools.ietf.org/html/rfc5646).
 	// For example, `en-US` and `ja-JP`. See [OpenID Connect Core 1.0, 5.2. Languages and Scripts](https://openid.net/specs/openid-connect-core-1_0.html#ClaimsLanguagesAndScripts)
@@ -613,6 +619,7 @@ type Service struct {
 	// API and `/api/service/update` API do not have any effect. The contents of this property is controlled
 	// only by `/api/hsk/*` APIs.
 	//
+	// Read-only. Hardware security module keys are managed through Authlete's separate HSK API, which this provider does not expose. The service create and update endpoints ignore this field, so a value written here is discarded silently and the plan never settles. What this returns is for reference.
 	Hsks []Hsk `json:"hsks,omitzero"`
 	// The URL of the grant management endpoint.
 	//
@@ -847,6 +854,7 @@ type Service struct {
 	UserPinLength *int `json:"userPinLength,omitzero"`
 	// The supported `prompt` values.
 	//
+	// Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy the order Terraform reports back, or write the list in the order the attribute documentation gives.
 	SupportedPromptValues []Prompt `json:"supportedPromptValues,omitzero"`
 	// The flag indicating whether to enable the feature of ID token
 	// reissuance in the refresh token flow.
