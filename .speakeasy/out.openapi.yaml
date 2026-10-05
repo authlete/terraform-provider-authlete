@@ -10853,6 +10853,8 @@ components:
 
             See `tls_client_auth_subject_dn` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
             Registration" for details.
+          x-speakeasy-plan-modifiers:
+            - ClearSuperseded_tls_client_auth_subject_dn
         tlsClientAuthSanDns:
           type: string
           description: |
@@ -10861,6 +10863,8 @@ components:
 
             See `tls_client_auth_san_dns` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
             Registration" for details.
+          x-speakeasy-plan-modifiers:
+            - ClearSuperseded_tls_client_auth_san_dns
         tlsClientAuthSanUri:
           type: string
           description: |
@@ -10869,6 +10873,8 @@ components:
 
             See `tls_client_auth_san_uri` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
             Registration" for details.
+          x-speakeasy-plan-modifiers:
+            - ClearSuperseded_tls_client_auth_san_uri
         tlsClientAuthSanIp:
           type: string
           description: |
@@ -10877,6 +10883,8 @@ components:
 
             See `tls_client_auth_san_ip` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
             Registration" for details.
+          x-speakeasy-plan-modifiers:
+            - ClearSuperseded_tls_client_auth_san_ip
         tlsClientAuthSanEmail:
           type: string
           description: |
@@ -10885,6 +10893,8 @@ components:
 
             See `tls_client_auth_san_email` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
             Registration" for details.
+          x-speakeasy-plan-modifiers:
+            - ClearSuperseded_tls_client_auth_san_email
         parRequired:
           type: boolean
           description: |

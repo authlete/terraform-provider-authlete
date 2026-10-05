@@ -506,3 +506,54 @@ actions:
     description: Omit when unset so the server applies its default
     update:
       nullable: true
+
+  # ---------- mTLS certificate subject types ----------
+  #
+  # Authlete accepts exactly one way of identifying a client's certificate and
+  # rejects a request naming two with A032216. These five attributes are
+  # Optional+Computed, so removing one from configuration does not clear it:
+  # Terraform keeps the last known value and the provider sends it alongside the
+  # new one. Switching subject type therefore fails on every apply, and setting
+  # the old attribute to "" does not help, because an empty string still counts
+  # as naming it. The only escape is replacing the client, which changes its
+  # client_id and breaks every application using it.
+  #
+  # The modifier clears an attribute configuration no longer names, when
+  # configuration names a different one. Terraform renders the clearing in the
+  # plan like any other change, so nothing happens silently. The ambiguous case
+  # -- two named at once -- is refused at plan time instead, by the validator in
+  # internal/provider/mtls_subject_validation.go.
+  #
+  # Speakeasy generates a stub per entry under
+  # internal/planmodifiers/stringplanmodifier/ and writes it only when absent,
+  # so the delegation to internal/provider/planmodifiers survives regeneration.
+
+  - target: $.components.schemas.client.properties.tlsClientAuthSubjectDn
+    description: Clear this subject type when configuration names a different one
+    update:
+      x-speakeasy-plan-modifiers:
+        - ClearSuperseded_tls_client_auth_subject_dn
+
+  - target: $.components.schemas.client.properties.tlsClientAuthSanDns
+    description: Clear this subject type when configuration names a different one
+    update:
+      x-speakeasy-plan-modifiers:
+        - ClearSuperseded_tls_client_auth_san_dns
+
+  - target: $.components.schemas.client.properties.tlsClientAuthSanEmail
+    description: Clear this subject type when configuration names a different one
+    update:
+      x-speakeasy-plan-modifiers:
+        - ClearSuperseded_tls_client_auth_san_email
+
+  - target: $.components.schemas.client.properties.tlsClientAuthSanIp
+    description: Clear this subject type when configuration names a different one
+    update:
+      x-speakeasy-plan-modifiers:
+        - ClearSuperseded_tls_client_auth_san_ip
+
+  - target: $.components.schemas.client.properties.tlsClientAuthSanUri
+    description: Clear this subject type when configuration names a different one
+    update:
+      x-speakeasy-plan-modifiers:
+        - ClearSuperseded_tls_client_auth_san_uri

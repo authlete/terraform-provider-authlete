@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	custom_stringplanmodifier "github.com/authlete/terraform-provider-authlete/internal/planmodifiers/stringplanmodifier"
 	"github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
 	tfTypes "github.com/authlete/terraform-provider-authlete/internal/provider/types"
 	"github.com/authlete/terraform-provider-authlete/internal/sdk"
@@ -16,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -1150,6 +1152,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"tls_client_auth_san_dns": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					custom_stringplanmodifier.ClearSupersededTLSClientAuthSanDNS(),
+				},
 				MarkdownDescription: `The string representation of the expected DNS subject alternative name of the certificate this` + "\n" +
 					`client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
@@ -1159,6 +1164,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"tls_client_auth_san_email": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					custom_stringplanmodifier.ClearSupersededTLSClientAuthSanEmail(),
+				},
 				MarkdownDescription: `The string representation of the expected email address subject alternative name of the certificate` + "\n" +
 					`this client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
@@ -1168,6 +1176,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"tls_client_auth_san_ip": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					custom_stringplanmodifier.ClearSupersededTLSClientAuthSanIP(),
+				},
 				MarkdownDescription: `The string representation of the expected IP address subject alternative name of the certificate` + "\n" +
 					`this client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
@@ -1177,6 +1188,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"tls_client_auth_san_uri": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					custom_stringplanmodifier.ClearSupersededTLSClientAuthSanURI(),
+				},
 				MarkdownDescription: `The string representation of the expected URI subject alternative name of the certificate this` + "\n" +
 					`client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
@@ -1186,6 +1200,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"tls_client_auth_subject_dn": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					custom_stringplanmodifier.ClearSupersededTLSClientAuthSubjectDn(),
+				},
 				MarkdownDescription: `The string representation of the expected subject distinguished name of the certificate this` + "\n" +
 					`client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
