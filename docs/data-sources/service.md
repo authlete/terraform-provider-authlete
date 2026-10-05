@@ -247,7 +247,9 @@ include the `grant_management_action` request parameter.
 
 This `hsks` property is output only, meaning that `hsks` in requests to `/api/service/create`
 API and `/api/service/update` API do not have any effect. The contents of this property is controlled
-only by `/api/hsk/*` APIs. (see [below for nested schema](#nestedatt--hsks))
+only by `/api/hsk/*` APIs.
+
+Read-only. Hardware security module keys are managed through Authlete's separate HSK API, which this provider does not expose. The service create and update endpoints ignore this field, so a value written here is discarded silently and the plan never settles. What this returns is for reference. (see [below for nested schema](#nestedatt--hsks))
 - `hsm_enabled` (Boolean) The flag indicating whether HSM (Hardware Security Module) support is enabled for this service.
 
 When this flag is `false`, keys managed in HSMs are not used even if they exist. In addition,
@@ -309,7 +311,9 @@ The predefined service metadata is listed in the following table.
 
   | Key | Description |
   | --- | --- |
-  | `clientCount` | The number of client applications which belong to this service.  | (see [below for nested schema](#nestedatt--metadata))
+  | `clientCount` | The number of client applications which belong to this service.  |
+
+Read-only. Authlete owns these values -- `clientCount` changes as clients are added or removed -- and the service create and update endpoints ignore anything written here, including an empty list. (see [below for nested schema](#nestedatt--metadata))
 - `missing_client_id_allowed` (Boolean) The flag to indicate token requests from public clients without the `client_id` request parameter are allowed when the client can be guessed from `authorization_code` or `refresh_token`.
 
 This flag should not be set unless you have special reasons.

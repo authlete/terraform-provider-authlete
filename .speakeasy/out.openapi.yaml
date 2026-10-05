@@ -11150,8 +11150,10 @@ components:
             to align with the change made by the 5th draft of the RAR specification.
         customMetadata:
           type: string
-          description: |
+          description: |-
             The custom client metadata in JSON format.
+
+            Authlete keeps only the keys declared in the parent service's `supported_custom_client_metadata`. Any other key is discarded silently: the apply succeeds, the key does not appear on the client, and every subsequent plan offers to add it again. Declare the key on the service before setting it here.
           x-mint:
             metadata:
               description: "The custom client metadata in JSON format."
@@ -11765,6 +11767,7 @@ components:
           items:
             $ref: '#/components/schemas/sns_credentials'
           description: "The credentials for social login services (SNS) that are used for \nend-user authentication.\n"
+          readOnly: true
         clientIdAliasEnabled:
           type: boolean
           description: Deprecated. Always `true`.
@@ -11773,13 +11776,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/pair'
-          description: |
+          description: |-
             The `metadata` of the service. The content of the returned array depends on contexts.
             The predefined service metadata is listed in the following table.
 
               | Key | Description |
               | --- | --- |
               | `clientCount` | The number of client applications which belong to this service.  |
+
+            Read-only. Authlete owns these values -- `clientCount` changes as clients are added or removed -- and the service create and update endpoints ignore anything written here, including an empty list.
+          readOnly: true
         createdAt:
           type: integer
           format: int64
@@ -12845,12 +12851,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/hsk'
-          description: |
+          description: |-
             The information about keys managed on HSMs (Hardware Security Modules).
 
             This `hsks` property is output only, meaning that `hsks` in requests to `/api/service/create`
             API and `/api/service/update` API do not have any effect. The contents of this property is controlled
             only by `/api/hsk/*` APIs.
+
+            Read-only. Hardware security module keys are managed through Authlete's separate HSK API, which this provider does not expose. The service create and update endpoints ignore this field, so a value written here is discarded silently and the plan never settles. What this returns is for reference.
+          readOnly: true
         grantManagementEndpoint:
           type: string
           description: |

@@ -620,3 +620,67 @@ actions:
         Registration" for details.
 
         Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
+
+  # ---------- Fields the server ignores on write ----------
+  #
+  # Each of these is Optional+Computed, so a practitioner can set it, the apply
+  # succeeds, Authlete discards the value, and the plan offers the same change on
+  # every run without ever converging.
+  #
+  # Terraform has a built-in guard for exactly this: it errors when a provider
+  # returns something other than what it planned. The generated create and update
+  # overwrite the API response with the plan (refreshPlan), so the two can never
+  # disagree and the guard never fires. That line is emitted unconditionally with
+  # no configuration behind it -- see CUSTOMIZATION.md.
+  #
+  # readOnly removes the attribute from the writable surface, so there is no
+  # desired value to compare against and no diff to settle.
+
+  - target: $.components.schemas.service.properties.hsks
+    description: HSM keys are managed through the separate HSK API, not here
+    update:
+      readOnly: true
+      description: |-
+        The information about keys managed on HSMs (Hardware Security Modules).
+
+        This `hsks` property is output only, meaning that `hsks` in requests to `/api/service/create`
+        API and `/api/service/update` API do not have any effect. The contents of this property is controlled
+        only by `/api/hsk/*` APIs.
+
+        Read-only. Hardware security module keys are managed through Authlete's separate HSK API, which this provider does not expose. The service create and update endpoints ignore this field, so a value written here is discarded silently and the plan never settles. What this returns is for reference.
+
+  - target: $.components.schemas.service.properties.metadata
+    description: Server-owned, so writes are ignored and diff forever
+    update:
+      readOnly: true
+      description: |-
+        The `metadata` of the service. The content of the returned array depends on contexts.
+        The predefined service metadata is listed in the following table.
+
+          | Key | Description |
+          | --- | --- |
+          | `clientCount` | The number of client applications which belong to this service.  |
+
+        Read-only. Authlete owns these values -- `clientCount` changes as clients are added or removed -- and the service create and update endpoints ignore anything written here, including an empty list.
+
+  # snsCredentials has no server-side storage at all, the same category as
+  # apiSecret. Marked read-only rather than removed, so an existing configuration
+  # setting it keeps planning rather than failing to parse.
+  - target: $.components.schemas.service.properties.snsCredentials
+    description: No server-side storage; read-only so it stops diffing
+    update:
+      readOnly: true
+
+  # Documented, not enforced. A check could compare against the parent service's
+  # allowlist, but only when Terraform can see that service -- not when it lives
+  # in another configuration, and not when it is created in the same run without
+  # the list written explicitly. That is the case someone new to this feature
+  # hits, so the check would be quiet exactly where it is needed. Revisit if this
+  # is reported in practice.
+  - target: $.components.schemas.client.properties.customMetadata
+    description: Note that undeclared keys are discarded
+    update:
+      description: |-
+        The custom client metadata in JSON format.
+
+        Authlete keeps only the keys declared in the parent service's `supported_custom_client_metadata`. Any other key is discarded silently: the apply succeeds, the key does not appear on the client, and every subsequent plan offers to add it again. Declare the key on the service before setting it here.

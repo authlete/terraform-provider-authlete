@@ -173,3 +173,40 @@ generic snippet twice. Hence the freeze.
 hand-written files there are deleted, and `.genignore` does not save them.
 Guides belong in `templates/guides/*.md.tmpl`, which renders into `docs/guides/`
 and survives.
+
+## 6. A guard Terraform provides that the generated code switches off
+
+Terraform checks, after every apply, that the provider returned what it planned.
+When they differ it stops with "Provider produced inconsistent result after
+apply", naming the attribute and both values. That is how the ecosystem surfaces
+a server quietly ignoring or rewriting input.
+
+The generated create and update end with:
+
+```go
+data.RefreshFromSharedService(ctx, res.Service)   // fill from the API response
+refreshPlan(ctx, plan, &data)                     // then overwrite with the plan
+resp.State.Set(ctx, &data)
+```
+
+The second line means the response and the plan can never disagree, so the guard
+never fires. It is emitted unconditionally for every create and update — there is
+no gen.yaml key, no extension, and no `x-speakeasy-*` annotation that disables
+it.
+
+It is not careless. A generator serving hundreds of APIs cannot know which fields
+a server legitimately normalises — reordering a list, trimming whitespace,
+filling a default — and each of those would raise the error during a healthy
+apply. "Never error" is the defensible default when the server is unknown.
+
+The cost for us is that a field the server silently ignores produces no signal at
+all. `hsks`, `metadata` and `sns_credentials` were each found by someone noticing
+a plan that never settled, not by the provider saying anything. The next one will
+be found the same way.
+
+Removing the line is possible — both resource files are tracked for persistent
+edits — but it would be two hand edits in generated files, to re-enable an alarm
+whose false-positive rate against Authlete is unmeasured. The experiment is
+cheap: delete the line locally, run `testing/run.sh` through create, update and
+re-plan, and count the errors. If two or three fields normalise, mark them and
+keep the guard. If forty do, put it back. Not yet done.

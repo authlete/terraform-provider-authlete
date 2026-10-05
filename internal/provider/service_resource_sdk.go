@@ -568,51 +568,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		clientsPerDeveloper = nil
 	}
-	snsCredentials := make([]shared.SnsCredentials, 0, len(r.SnsCredentials))
-	for snsCredentialsIndex := range r.SnsCredentials {
-		sns := new(string)
-		if !r.SnsCredentials[snsCredentialsIndex].Sns.IsUnknown() && !r.SnsCredentials[snsCredentialsIndex].Sns.IsNull() {
-			*sns = r.SnsCredentials[snsCredentialsIndex].Sns.ValueString()
-		} else {
-			sns = nil
-		}
-		apiKey := new(string)
-		if !r.SnsCredentials[snsCredentialsIndex].APIKey.IsUnknown() && !r.SnsCredentials[snsCredentialsIndex].APIKey.IsNull() {
-			*apiKey = r.SnsCredentials[snsCredentialsIndex].APIKey.ValueString()
-		} else {
-			apiKey = nil
-		}
-		apiSecret := new(string)
-		if !r.SnsCredentials[snsCredentialsIndex].APISecret.IsUnknown() && !r.SnsCredentials[snsCredentialsIndex].APISecret.IsNull() {
-			*apiSecret = r.SnsCredentials[snsCredentialsIndex].APISecret.ValueString()
-		} else {
-			apiSecret = nil
-		}
-		snsCredentials = append(snsCredentials, shared.SnsCredentials{
-			Sns:       sns,
-			APIKey:    apiKey,
-			APISecret: apiSecret,
-		})
-	}
-	metadata := make([]shared.Pair, 0, len(r.Metadata))
-	for metadataIndex := range r.Metadata {
-		key := new(string)
-		if !r.Metadata[metadataIndex].Key.IsUnknown() && !r.Metadata[metadataIndex].Key.IsNull() {
-			*key = r.Metadata[metadataIndex].Key.ValueString()
-		} else {
-			key = nil
-		}
-		value := new(string)
-		if !r.Metadata[metadataIndex].Value.IsUnknown() && !r.Metadata[metadataIndex].Value.IsNull() {
-			*value = r.Metadata[metadataIndex].Value.ValueString()
-		} else {
-			value = nil
-		}
-		metadata = append(metadata, shared.Pair{
-			Key:   key,
-			Value: value,
-		})
-	}
 	authenticationCallbackEndpoint := new(string)
 	if !r.AuthenticationCallbackEndpoint.IsUnknown() && !r.AuthenticationCallbackEndpoint.IsNull() {
 		*authenticationCallbackEndpoint = r.AuthenticationCallbackEndpoint.ValueString()
@@ -892,34 +847,34 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 			} else {
 				tag = nil
 			}
-			value1 := new(string)
+			value := new(string)
 			if !r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Value.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Value.IsNull() {
-				*value1 = r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Value.ValueString()
+				*value = r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Value.ValueString()
 			} else {
-				value1 = nil
+				value = nil
 			}
 			descriptions = append(descriptions, shared.TaggedValue{
 				Tag:   tag,
-				Value: value1,
+				Value: value,
 			})
 		}
 		attributes := make([]shared.Pair, 0, len(r.SupportedScopes[supportedScopesIndex].Attributes))
 		for attributesIndex := range r.SupportedScopes[supportedScopesIndex].Attributes {
-			key1 := new(string)
+			key := new(string)
 			if !r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Key.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Key.IsNull() {
-				*key1 = r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Key.ValueString()
+				*key = r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Key.ValueString()
 			} else {
-				key1 = nil
+				key = nil
 			}
-			value2 := new(string)
+			value1 := new(string)
 			if !r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Value.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Value.IsNull() {
-				*value2 = r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Value.ValueString()
+				*value1 = r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Value.ValueString()
 			} else {
-				value2 = nil
+				value1 = nil
 			}
 			attributes = append(attributes, shared.Pair{
-				Key:   key1,
-				Value: value2,
+				Key:   key,
+				Value: value1,
 			})
 		}
 		supportedScopes = append(supportedScopes, shared.Scope{
@@ -1145,21 +1100,21 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	}
 	attributes1 := make([]shared.Pair, 0, len(r.Attributes))
 	for attributesIndex1 := range r.Attributes {
-		key2 := new(string)
+		key1 := new(string)
 		if !r.Attributes[attributesIndex1].Key.IsUnknown() && !r.Attributes[attributesIndex1].Key.IsNull() {
-			*key2 = r.Attributes[attributesIndex1].Key.ValueString()
+			*key1 = r.Attributes[attributesIndex1].Key.ValueString()
 		} else {
-			key2 = nil
+			key1 = nil
 		}
-		value3 := new(string)
+		value2 := new(string)
 		if !r.Attributes[attributesIndex1].Value.IsUnknown() && !r.Attributes[attributesIndex1].Value.IsNull() {
-			*value3 = r.Attributes[attributesIndex1].Value.ValueString()
+			*value2 = r.Attributes[attributesIndex1].Value.ValueString()
 		} else {
-			value3 = nil
+			value2 = nil
 		}
 		attributes1 = append(attributes1, shared.Pair{
-			Key:   key2,
-			Value: value3,
+			Key:   key1,
+			Value: value2,
 		})
 	}
 	nbfOptional := new(bool)
@@ -1207,60 +1162,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		*hsmEnabled = r.HsmEnabled.ValueBool()
 	} else {
 		hsmEnabled = nil
-	}
-	hsks := make([]shared.Hsk, 0, len(r.Hsks))
-	for hsksIndex := range r.Hsks {
-		kty := new(string)
-		if !r.Hsks[hsksIndex].Kty.IsUnknown() && !r.Hsks[hsksIndex].Kty.IsNull() {
-			*kty = r.Hsks[hsksIndex].Kty.ValueString()
-		} else {
-			kty = nil
-		}
-		use := new(string)
-		if !r.Hsks[hsksIndex].Use.IsUnknown() && !r.Hsks[hsksIndex].Use.IsNull() {
-			*use = r.Hsks[hsksIndex].Use.ValueString()
-		} else {
-			use = nil
-		}
-		kid := new(string)
-		if !r.Hsks[hsksIndex].Kid.IsUnknown() && !r.Hsks[hsksIndex].Kid.IsNull() {
-			*kid = r.Hsks[hsksIndex].Kid.ValueString()
-		} else {
-			kid = nil
-		}
-		hsmName := new(string)
-		if !r.Hsks[hsksIndex].HsmName.IsUnknown() && !r.Hsks[hsksIndex].HsmName.IsNull() {
-			*hsmName = r.Hsks[hsksIndex].HsmName.ValueString()
-		} else {
-			hsmName = nil
-		}
-		handle := new(string)
-		if !r.Hsks[hsksIndex].Handle.IsUnknown() && !r.Hsks[hsksIndex].Handle.IsNull() {
-			*handle = r.Hsks[hsksIndex].Handle.ValueString()
-		} else {
-			handle = nil
-		}
-		publicKey := new(string)
-		if !r.Hsks[hsksIndex].PublicKey.IsUnknown() && !r.Hsks[hsksIndex].PublicKey.IsNull() {
-			*publicKey = r.Hsks[hsksIndex].PublicKey.ValueString()
-		} else {
-			publicKey = nil
-		}
-		alg := new(string)
-		if !r.Hsks[hsksIndex].Alg.IsUnknown() && !r.Hsks[hsksIndex].Alg.IsNull() {
-			*alg = r.Hsks[hsksIndex].Alg.ValueString()
-		} else {
-			alg = nil
-		}
-		hsks = append(hsks, shared.Hsk{
-			Kty:       kty,
-			Use:       use,
-			Kid:       kid,
-			HsmName:   hsmName,
-			Handle:    handle,
-			PublicKey: publicKey,
-			Alg:       alg,
-		})
 	}
 	grantManagementEndpoint := new(string)
 	if !r.GrantManagementEndpoint.IsUnknown() && !r.GrantManagementEndpoint.IsNull() {
@@ -1791,8 +1692,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		Description:                                 description,
 		ClientAssertionAudRestrictedToIssuer:        clientAssertionAudRestrictedToIssuer,
 		ClientsPerDeveloper:                         clientsPerDeveloper,
-		SnsCredentials:                              snsCredentials,
-		Metadata:                                    metadata,
 		AuthenticationCallbackEndpoint:              authenticationCallbackEndpoint,
 		AuthenticationCallbackAPIKey:                authenticationCallbackAPIKey,
 		AuthenticationCallbackAPISecret:             authenticationCallbackAPISecret,
@@ -1882,7 +1781,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		RequestObjectEncryptionAlgMatchRequired:     requestObjectEncryptionAlgMatchRequired,
 		RequestObjectEncryptionEncMatchRequired:     requestObjectEncryptionEncMatchRequired,
 		HsmEnabled:                                  hsmEnabled,
-		Hsks:                                        hsks,
 		GrantManagementEndpoint:                     grantManagementEndpoint,
 		GrantManagementActionRequired:               grantManagementActionRequired,
 		UnauthorizedOnClientConfigSupported:         unauthorizedOnClientConfigSupported,

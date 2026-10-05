@@ -371,8 +371,10 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Description: `True if credential responses to this client must be always encrypted.`,
 			},
 			"custom_metadata": schema.StringAttribute{
-				Computed:    true,
-				Description: `The custom client metadata in JSON format.`,
+				Computed: true,
+				MarkdownDescription: `The custom client metadata in JSON format.` + "\n" +
+					`` + "\n" +
+					`Authlete keeps only the keys declared in the parent service's ` + "`" + `supported_custom_client_metadata` + "`" + `. Any other key is discarded silently: the apply succeeds, the key does not appear on the client, and every subsequent plan offers to add it again. Declare the key on the service before setting it here.`,
 			},
 			"default_acrs": schema.ListAttribute{
 				Computed:    true,

@@ -503,6 +503,7 @@ type Client struct {
 	AuthorizationDetailsTypes []string `json:"authorizationDetailsTypes,omitzero"`
 	// The custom client metadata in JSON format.
 	//
+	// Authlete keeps only the keys declared in the parent service's `supported_custom_client_metadata`. Any other key is discarded silently: the apply succeeds, the key does not appear on the client, and every subsequent plan offers to add it again. Declare the key on the service before setting it here.
 	CustomMetadata *string `json:"customMetadata,omitzero"`
 	// The flag indicating whether encryption of request object is required when the request object
 	// is passed through the front channel.
@@ -1795,6 +1796,7 @@ type ClientInput struct {
 	AuthorizationDetailsTypes []string `json:"authorizationDetailsTypes,omitzero" form:"name=authorizationDetailsTypes"`
 	// The custom client metadata in JSON format.
 	//
+	// Authlete keeps only the keys declared in the parent service's `supported_custom_client_metadata`. Any other key is discarded silently: the apply succeeds, the key does not appear on the client, and every subsequent plan offers to add it again. Declare the key on the service before setting it here.
 	CustomMetadata *string `json:"customMetadata,omitzero" form:"name=customMetadata"`
 	// The flag indicating whether encryption of request object is required when the request object
 	// is passed through the front channel.

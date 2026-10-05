@@ -115,45 +115,28 @@ resource "authlete_service" "my_service" {
   front_channel_request_object_encryption_required = false
   grant_management_action_required                 = true
   grant_management_endpoint                        = "...my_grant_management_endpoint..."
-  hsks = [
-    {
-      alg        = "...my_alg..."
-      handle     = "...my_handle..."
-      hsm_name   = "...my_hsm_name..."
-      kid        = "...my_kid..."
-      kty        = "...my_kty..."
-      public_key = "...my_public_key..."
-      use        = "...my_use..."
-    }
-  ]
-  hsm_enabled                            = true
-  http_alias_prohibited                  = true
-  id_token_aud_type                      = "...my_id_token_aud_type..."
-  id_token_duration                      = 10
-  id_token_reissuable                    = true
-  id_token_signature_key_id              = "...my_id_token_signature_key_id..."
-  introspection_endpoint                 = "https://coordinated-hovel.info/"
-  introspection_signature_key_id         = "...my_introspection_signature_key_id..."
-  iss_suppressed                         = true
-  issuer                                 = "...my_issuer..."
-  jwks                                   = "...my_jwks..."
-  jwks_uri                               = "https://black-publication.com/"
-  jwt_grant_by_identifiable_clients_only = false
-  jwt_grant_encrypted_jwt_rejected       = true
-  jwt_grant_unsigned_jwt_rejected        = true
+  hsm_enabled                                      = true
+  http_alias_prohibited                            = true
+  id_token_aud_type                                = "...my_id_token_aud_type..."
+  id_token_duration                                = 10
+  id_token_reissuable                              = true
+  id_token_signature_key_id                        = "...my_id_token_signature_key_id..."
+  introspection_endpoint                           = "https://coordinated-hovel.info/"
+  introspection_signature_key_id                   = "...my_introspection_signature_key_id..."
+  iss_suppressed                                   = true
+  issuer                                           = "...my_issuer..."
+  jwks                                             = "...my_jwks..."
+  jwks_uri                                         = "https://black-publication.com/"
+  jwt_grant_by_identifiable_clients_only           = false
+  jwt_grant_encrypted_jwt_rejected                 = true
+  jwt_grant_unsigned_jwt_rejected                  = true
   key_attester_roots = [
     "..."
   ]
   key_attester_roots_enabled        = true
   key_attester_roots_only           = true
   loopback_redirection_uri_variable = true
-  metadata = [
-    {
-      key   = "...my_key..."
-      value = "...my_value..."
-    }
-  ]
-  missing_client_id_allowed = true
+  missing_client_id_allowed         = true
   mtls_endpoint_aliases = [
     {
       name = "...my_name..."
@@ -194,13 +177,6 @@ resource "authlete_service" "my_service" {
   service_name                                     = "...my_service_name..."
   signed_jwks_uri                                  = "...my_signed_jwks_uri..."
   single_access_token_per_subject                  = true
-  sns_credentials = [
-    {
-      api_key    = "...my_api_key..."
-      api_secret = "...my_api_secret..."
-      sns        = "...my_sns..."
-    }
-  ]
   supported_attachments = [
     "EMBEDDED"
   ]
@@ -537,11 +513,6 @@ is passed through the front channel.
 request such as CIBA backchannel authentication request and device authorization request) must
 include the `grant_management_action` request parameter.
 - `grant_management_endpoint` (String) The URL of the grant management endpoint.
-- `hsks` (Attributes List) The information about keys managed on HSMs (Hardware Security Modules).
-
-This `hsks` property is output only, meaning that `hsks` in requests to `/api/service/create`
-API and `/api/service/update` API do not have any effect. The contents of this property is controlled
-only by `/api/hsk/*` APIs. (see [below for nested schema](#nestedatt--hsks))
 - `hsm_enabled` (Boolean) The flag indicating whether HSM (Hardware Security Module) support is enabled for this service.
 
 When this flag is `false`, keys managed in HSMs are not used even if they exist. In addition,
@@ -598,12 +569,6 @@ x5c chain validation are enabled.
 attester roots is accepted.
 - `loopback_redirection_uri_variable` (Boolean) The flag indicating whether the port number component of redirection URIs can be variable when
 the host component indicates loopback.
-- `metadata` (Attributes List) The `metadata` of the service. The content of the returned array depends on contexts.
-The predefined service metadata is listed in the following table.
-
-  | Key | Description |
-  | --- | --- |
-  | `clientCount` | The number of client applications which belong to this service.  | (see [below for nested schema](#nestedatt--metadata))
 - `missing_client_id_allowed` (Boolean) The flag to indicate token requests from public clients without the `client_id` request parameter are allowed when the client can be guessed from `authorization_code` or `refresh_token`.
 
 This flag should not be set unless you have special reasons.
@@ -722,8 +687,6 @@ server metadata defined in OpenID Connect Federation 1.0.
 If `true`, an attempt to issue a new access token invalidates existing access tokens that are associated with the same subject and the same client.
 
 Note that, however, attempts by [Client Credentials Flow](https://tools.ietf.org/html/rfc6749#section-4.4) do not invalidate existing access tokens because access tokens issued by Client Credentials Flow are not associated with any end-user's subject. Also note that an attempt by [Refresh Token Flow](https://tools.ietf.org/html/rfc6749#section-6) invalidates the coupled access token only and this invalidation is always performed regardless of whether the value of this setting item is `true` or `false`.
-- `sns_credentials` (Attributes List) The credentials for social login services (SNS) that are used for 
-end-user authentication. (see [below for nested schema](#nestedatt--sns_credentials))
 - `supported_attachments` (List of String) Supported attachment types. This property corresponds to the &#123;@code
 attachments_supported&#125; server metadata which was added by the third
 implementer's draft of OpenID Connect for Identity Assurance 1.0.
@@ -887,11 +850,28 @@ is `/api/service/jwks/get/direct/service-api-key`. '
 is `/api/auth/token/direct/service-api-key`.
 - `direct_user_info_endpoint_enabled` (Boolean, Deprecated) The flag to indicate whether the direct userinfo endpoint is enabled or not. The path
 of the endpoint is `/api/auth/userinfo/direct/service-api-key`.
+- `hsks` (Attributes List) The information about keys managed on HSMs (Hardware Security Modules).
+
+This `hsks` property is output only, meaning that `hsks` in requests to `/api/service/create`
+API and `/api/service/update` API do not have any effect. The contents of this property is controlled
+only by `/api/hsk/*` APIs.
+
+Read-only. Hardware security module keys are managed through Authlete's separate HSK API, which this provider does not expose. The service create and update endpoints ignore this field, so a value written here is discarded silently and the plan never settles. What this returns is for reference. (see [below for nested schema](#nestedatt--hsks))
+- `metadata` (Attributes List) The `metadata` of the service. The content of the returned array depends on contexts.
+The predefined service metadata is listed in the following table.
+
+  | Key | Description |
+  | --- | --- |
+  | `clientCount` | The number of client applications which belong to this service.  |
+
+Read-only. Authlete owns these values -- `clientCount` changes as clients are added or removed -- and the service create and update endpoints ignore anything written here, including an empty list. (see [below for nested schema](#nestedatt--metadata))
 - `modified_at` (Number) The time at which this service was last modified. The value is represented as milliseconds since
 the UNIX epoch (1970-01-01).
 - `number` (Number) The sequential number of the service. The value of this property is assigned by Authlete.
 - `service_owner_number` (Number) The number of the organization that owns this service. This value is 
 assigned by Authlete.
+- `sns_credentials` (Attributes List) The credentials for social login services (SNS) that are used for 
+end-user authentication. (see [below for nested schema](#nestedatt--sns_credentials))
 - `supported_acrs` (List of String) Values of acrs (authentication context class references) that the service supports.
 
 The value of this property is used as `acr_values_supported`
@@ -944,35 +924,6 @@ is `true`, every credential request to the credential issuer must include the `c
 property.
 
 
-<a id="nestedatt--hsks"></a>
-### Nested Schema for `hsks`
-
-Optional:
-
-- `alg` (String) The algorithm of the key on the HSM. When the key use is `"sig"`, the algorithm represents a
-signing algorithm such as `"ES256"`. When the key use is `"enc"`, the algorithm represents an
-encryption algorithm such as `"RSA-OAEP-256"`.
-- `handle` (String) The handle for the key on the HSM.
-A handle is a base64url-encoded 256-bit random value (43 letters) which is assigned by Authlete on the call of the /api/hsk/create API
-- `hsm_name` (String) The name of the HSM.
-The identifier for the HSM that sits behind the Authlete server. For example, "google".
-- `kid` (String) Key ID for the key on the HSM.
-- `kty` (String) The key type (EC or RSA)
-- `public_key` (String) The public key that corresponds to the key on the HSM.
-- `use` (String) Get the use of the key on the HSM.
-When the key use is "sig" (signature), the private key on the HSM is used to sign data and the corresponding public key is used to verify the signature.
-When the key use is "enc" (encryption), the private key on the HSM is used to decrypt encrypted data which have been encrypted with the corresponding public key
-
-
-<a id="nestedatt--metadata"></a>
-### Nested Schema for `metadata`
-
-Optional:
-
-- `key` (String) The key part.
-- `value` (String) The value part.
-
-
 <a id="nestedatt--mtls_endpoint_aliases"></a>
 ### Nested Schema for `mtls_endpoint_aliases`
 
@@ -980,16 +931,6 @@ Optional:
 
 - `name` (String)
 - `uri` (String)
-
-
-<a id="nestedatt--sns_credentials"></a>
-### Nested Schema for `sns_credentials`
-
-Optional:
-
-- `api_key` (String) API key.
-- `api_secret` (String, Sensitive) API secret.
-- `sns` (String) SNS.
 
 
 <a id="nestedatt--supported_scopes"></a>
@@ -1029,6 +970,45 @@ Optional:
 
 - `entity_id` (String) the entity ID of the trust anchor
 - `jwks` (String) the JWK Set document containing public keys of the trust anchor
+
+
+<a id="nestedatt--hsks"></a>
+### Nested Schema for `hsks`
+
+Read-Only:
+
+- `alg` (String) The algorithm of the key on the HSM. When the key use is `"sig"`, the algorithm represents a
+signing algorithm such as `"ES256"`. When the key use is `"enc"`, the algorithm represents an
+encryption algorithm such as `"RSA-OAEP-256"`.
+- `handle` (String) The handle for the key on the HSM.
+A handle is a base64url-encoded 256-bit random value (43 letters) which is assigned by Authlete on the call of the /api/hsk/create API
+- `hsm_name` (String) The name of the HSM.
+The identifier for the HSM that sits behind the Authlete server. For example, "google".
+- `kid` (String) Key ID for the key on the HSM.
+- `kty` (String) The key type (EC or RSA)
+- `public_key` (String) The public key that corresponds to the key on the HSM.
+- `use` (String) Get the use of the key on the HSM.
+When the key use is "sig" (signature), the private key on the HSM is used to sign data and the corresponding public key is used to verify the signature.
+When the key use is "enc" (encryption), the private key on the HSM is used to decrypt encrypted data which have been encrypted with the corresponding public key
+
+
+<a id="nestedatt--metadata"></a>
+### Nested Schema for `metadata`
+
+Read-Only:
+
+- `key` (String) The key part.
+- `value` (String) The value part.
+
+
+<a id="nestedatt--sns_credentials"></a>
+### Nested Schema for `sns_credentials`
+
+Read-Only:
+
+- `api_key` (String) API key.
+- `api_secret` (String, Sensitive) API secret.
+- `sns` (String) SNS.
 
 ## Import
 

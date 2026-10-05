@@ -120,6 +120,8 @@ Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMe
 (wallet) receives a credential offer from the credential issuer.
 - `credential_response_encryption_required` (Boolean) True if credential responses to this client must be always encrypted.
 - `custom_metadata` (String) The custom client metadata in JSON format.
+
+Authlete keeps only the keys declared in the parent service's `supported_custom_client_metadata`. Any other key is discarded silently: the apply succeeds, the key does not appear on the client, and every subsequent plan offers to add it again. Declare the key on the service before setting it here.
 - `default_acrs` (List of String) The default ACRs (Authentication Context Class References). This value is used when an authorization
 request from the client application has neither `acr_values` request parameter nor `acr` claim
 in claims request parameter.

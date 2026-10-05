@@ -834,7 +834,9 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 					`` + "\n" +
 					`This ` + "`" + `hsks` + "`" + ` property is output only, meaning that ` + "`" + `hsks` + "`" + ` in requests to ` + "`" + `/api/service/create` + "`" + `` + "\n" +
 					`API and ` + "`" + `/api/service/update` + "`" + ` API do not have any effect. The contents of this property is controlled` + "\n" +
-					`only by ` + "`" + `/api/hsk/*` + "`" + ` APIs.`,
+					`only by ` + "`" + `/api/hsk/*` + "`" + ` APIs.` + "\n" +
+					`` + "\n" +
+					`Read-only. Hardware security module keys are managed through Authlete's separate HSK API, which this provider does not expose. The service create and update endpoints ignore this field, so a value written here is discarded silently and the plan never settles. What this returns is for reference.`,
 			},
 			"hsm_enabled": schema.BoolAttribute{
 				Computed: true,
@@ -971,7 +973,9 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 					`` + "\n" +
 					`  | Key | Description |` + "\n" +
 					`  | --- | --- |` + "\n" +
-					`  | ` + "`" + `clientCount` + "`" + ` | The number of client applications which belong to this service.  |`,
+					`  | ` + "`" + `clientCount` + "`" + ` | The number of client applications which belong to this service.  |` + "\n" +
+					`` + "\n" +
+					`Read-only. Authlete owns these values -- ` + "`" + `clientCount` + "`" + ` changes as clients are added or removed -- and the service create and update endpoints ignore anything written here, including an empty list.`,
 			},
 			"missing_client_id_allowed": schema.BoolAttribute{
 				Computed: true,
