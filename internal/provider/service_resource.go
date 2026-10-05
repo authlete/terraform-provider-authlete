@@ -6,6 +6,8 @@ package provider
 import (
 	"context"
 	"fmt"
+	custom_int32planmodifier "github.com/authlete/terraform-provider-authlete/internal/planmodifiers/int32planmodifier"
+	custom_int64planmodifier "github.com/authlete/terraform-provider-authlete/internal/planmodifiers/int64planmodifier"
 	custom_stringplanmodifier "github.com/authlete/terraform-provider-authlete/internal/planmodifiers/stringplanmodifier"
 	"github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
 	tfTypes "github.com/authlete/terraform-provider-authlete/internal/provider/types"
@@ -320,7 +322,10 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`The clock skew is taken into consideration when time-related claims in a JWT (e.g. ` + "`" + `exp` + "`" + `, ` + "`" + `iat` + "`" + `, ` + "`" + `nbf` + "`" + `) are verified.`,
 			},
 			"api_key": schema.Int64Attribute{
-				Computed:    true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					custom_int64planmodifier.UseStateForUnknown(),
+				},
 				Description: `The service ID used in Authlete API calls. The value of this property is assigned by Authlete.`,
 			},
 			"api_secret": schema.StringAttribute{
@@ -569,6 +574,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"created_at": schema.Int64Attribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					custom_int64planmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: `The time at which this service was created. The value is represented as milliseconds since the` + "\n" +
 					`UNIX epoch (` + "`" + `1970-01-01` + "`" + `).`,
 			},
@@ -1168,7 +1176,10 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`request is regarded as a FAPI-Part2 request.`,
 			},
 			"number": schema.Int32Attribute{
-				Computed:    true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int32{
+					custom_int32planmodifier.UseStateForUnknown(),
+				},
 				Description: `The sequential number of the service. The value of this property is assigned by Authlete.`,
 			},
 			"oid4vci_version": schema.StringAttribute{
@@ -1382,6 +1393,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"service_owner_number": schema.Int32Attribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.Int32{
+					custom_int32planmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: `The number of the organization that owns this service. This value is ` + "\n" +
 					`assigned by Authlete.`,
 			},
