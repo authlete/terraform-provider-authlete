@@ -27,18 +27,6 @@ type ServiceInput struct {
 	// The maximum number of client applications that a developer can have.
 	//
 	ClientsPerDeveloper *int `json:"clientsPerDeveloper,omitzero" form:"name=clientsPerDeveloper"`
-	// The credentials for social login services (SNS) that are used for
-	// end-user authentication.
-	//
-	SnsCredentials []SnsCredentials `json:"snsCredentials,omitzero" form:"name=snsCredentials,json"`
-	// The `metadata` of the service. The content of the returned array depends on contexts.
-	// The predefined service metadata is listed in the following table.
-	//
-	//   | Key | Description |
-	//   | --- | --- |
-	//   | `clientCount` | The number of client applications which belong to this service.  |
-	//
-	Metadata []Pair `json:"metadata,omitzero" form:"name=metadata,json"`
 	// A Web API endpoint for user authentication which is to be prepared on the service side.
 	//
 	// The endpoint must be implemented if you do not implement the UI at the authorization endpoint
@@ -61,6 +49,7 @@ type ServiceInput struct {
 	// The value of this property is used as `grant_types_supported property` in the
 	// [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
 	//
+	// Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy back the order Terraform reports.
 	SupportedGrantTypes []GrantType `json:"supportedGrantTypes,omitzero" form:"name=supportedGrantTypes"`
 	// Values of `response_type` request parameter that
 	// the service supports. Valid values are listed in Response Type.
@@ -68,6 +57,7 @@ type ServiceInput struct {
 	// The value of this property is used as `response_types_supported` property in the
 	// [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
 	//
+	// Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy back the order Terraform reports.
 	SupportedResponseTypes []ResponseType `json:"supportedResponseTypes,omitzero" form:"name=supportedResponseTypes"`
 	// The supported data types that can be used as values of the type field in `authorization_details`.
 	//
@@ -113,6 +103,7 @@ type ServiceInput struct {
 	//
 	// The value of this property is used as `display_values_supported` property in the Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
 	//
+	// Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy back the order Terraform reports.
 	SupportedDisplays []Display `json:"supportedDisplays,omitzero" form:"name=supportedDisplays"`
 	// The flag to indicate whether the use of Proof Key for Code Exchange (PKCE) is always required for authorization requests by Authorization Code Flow.
 	//
@@ -278,6 +269,7 @@ type ServiceInput struct {
 	RefreshTokenKept *bool `json:"refreshTokenKept,omitzero" form:"name=refreshTokenKept"`
 	// Scopes supported by the service.
 	//
+	// Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy back the order Terraform reports.
 	SupportedScopes []Scope `json:"supportedScopes,omitzero" form:"name=supportedScopes,json"`
 	// The flag to indicate whether requests that request no scope are rejected or not.
 	//
@@ -297,6 +289,7 @@ type ServiceInput struct {
 	// The value of this property is used as `claim_types_supported` property in the [OpenID Provider
 	// Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
 	//
+	// Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy back the order Terraform reports.
 	SupportedClaimTypes []ClaimType `json:"supportedClaimTypes,omitzero" form:"name=supportedClaimTypes"`
 	// Claim locales that the service supports. Each element is a language tag defined in [RFC 5646](https://tools.ietf.org/html/rfc5646).
 	// For example, `en-US` and `ja-JP`. See [OpenID Connect Core 1.0, 5.2. Languages and Scripts](https://openid.net/specs/openid-connect-core-1_0.html#ClaimsLanguagesAndScripts)
@@ -501,13 +494,6 @@ type ServiceInput struct {
 	// server you are using does not support HSM.
 	//
 	HsmEnabled *bool `json:"hsmEnabled,omitzero" form:"name=hsmEnabled"`
-	// The information about keys managed on HSMs (Hardware Security Modules).
-	//
-	// This `hsks` property is output only, meaning that `hsks` in requests to `/api/service/create`
-	// API and `/api/service/update` API do not have any effect. The contents of this property is controlled
-	// only by `/api/hsk/*` APIs.
-	//
-	Hsks []Hsk `json:"hsks,omitzero" form:"name=hsks,json"`
 	// The URL of the grant management endpoint.
 	//
 	GrantManagementEndpoint *string `json:"grantManagementEndpoint,omitzero" form:"name=grantManagementEndpoint"`
@@ -741,6 +727,7 @@ type ServiceInput struct {
 	UserPinLength *int `json:"userPinLength,omitzero" form:"name=userPinLength"`
 	// The supported `prompt` values.
 	//
+	// Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy back the order Terraform reports.
 	SupportedPromptValues []Prompt `json:"supportedPromptValues,omitzero" form:"name=supportedPromptValues"`
 	// The flag indicating whether to enable the feature of ID token
 	// reissuance in the refresh token flow.
@@ -910,20 +897,6 @@ func (s *ServiceInput) GetClientsPerDeveloper() *int {
 		return nil
 	}
 	return s.ClientsPerDeveloper
-}
-
-func (s *ServiceInput) GetSnsCredentials() []SnsCredentials {
-	if s == nil {
-		return nil
-	}
-	return s.SnsCredentials
-}
-
-func (s *ServiceInput) GetMetadata() []Pair {
-	if s == nil {
-		return nil
-	}
-	return s.Metadata
 }
 
 func (s *ServiceInput) GetAuthenticationCallbackEndpoint() *string {
@@ -1547,13 +1520,6 @@ func (s *ServiceInput) GetHsmEnabled() *bool {
 		return nil
 	}
 	return s.HsmEnabled
-}
-
-func (s *ServiceInput) GetHsks() []Hsk {
-	if s == nil {
-		return nil
-	}
-	return s.Hsks
 }
 
 func (s *ServiceInput) GetGrantManagementEndpoint() *string {

@@ -8,11 +8,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	custom_int32planmodifier "github.com/authlete/terraform-provider-authlete/internal/planmodifiers/int32planmodifier"
+	custom_int64planmodifier "github.com/authlete/terraform-provider-authlete/internal/planmodifiers/int64planmodifier"
 	custom_stringplanmodifier "github.com/authlete/terraform-provider-authlete/internal/planmodifiers/stringplanmodifier"
 	"github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
 	tfTypes "github.com/authlete/terraform-provider-authlete/internal/provider/types"
 	"github.com/authlete/terraform-provider-authlete/internal/sdk"
 	stateupgraders "github.com/authlete/terraform-provider-authlete/internal/stateupgraders"
+	custom_listvalidators "github.com/authlete/terraform-provider-authlete/internal/validators/listvalidators"
 	speakeasy_objectvalidators "github.com/authlete/terraform-provider-authlete/internal/validators/objectvalidators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -376,7 +379,10 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					`This property corresponds to the ` + "`" + `backchannel_user_code_parameter` + "`" + ` metadata.`,
 			},
 			"client_id": schema.Int64Attribute{
-				Computed:    true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					custom_int64planmodifier.UseStateForUnknown(),
+				},
 				Description: `A client ID.`,
 			},
 			"client_id_alias": schema.StringAttribute{
@@ -426,6 +432,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"client_secret": schema.StringAttribute{
 				Computed:  true,
 				Sensitive: true,
+				PlanModifiers: []planmodifier.String{
+					custom_stringplanmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: `The client secret. A random 512-bit value encoded by base64url (86 letters). The value of this` + "\n" +
 					`property is assigned by Authlete.`,
 			},
@@ -488,7 +497,10 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					`Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
 			},
 			"created_at": schema.Int64Attribute{
-				Computed:    true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					custom_int64planmodifier.UseStateForUnknown(),
+				},
 				Description: `The time at which this client was created. The value is represented as milliseconds since the UNIX epoch (1970-01-01).`,
 			},
 			"credential_offer_endpoint": schema.StringAttribute{
@@ -503,9 +515,11 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Description: `True if credential responses to this client must be always encrypted.`,
 			},
 			"custom_metadata": schema.StringAttribute{
-				Computed:    true,
-				Optional:    true,
-				Description: `The custom client metadata in JSON format.`,
+				Computed: true,
+				Optional: true,
+				MarkdownDescription: `The custom client metadata in JSON format.` + "\n" +
+					`` + "\n" +
+					`Authlete keeps only the keys declared in the parent service's ` + "`" + `supported_custom_client_metadata` + "`" + `. Any other key is discarded silently: the apply succeeds, the key does not appear on the client, and every subsequent plan offers to add it again. Declare the key on the service before setting it here.`,
 			},
 			"default_acrs": schema.ListAttribute{
 				Computed:    true,
@@ -664,6 +678,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Optional:    true,
 				ElementType: types.StringType,
 				Description: `The FAPI modes for this client.`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"front_channel_request_object_encryption_required": schema.BoolAttribute{
 				Computed: true,
@@ -677,7 +694,12 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				ElementType: types.StringType,
 				MarkdownDescription: `A string array of grant types which the client application declares that it will restrict itself to using.` + "\n" +
 					`This property corresponds to ` + "`" + `grant_types` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0,` + "\n" +
-					`2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+					`2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).` + "\n" +
+					`` + "\n" +
+					`Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy back the order Terraform reports.`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"id_token_encryption_alg": schema.StringAttribute{
 				Computed: true,
@@ -854,7 +876,10 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					`[FAPI 2.0 Security Profile, 8.1.1. use_mtls_endpoint_aliases](https://openid.bitbucket.io/fapi/fapi-2_0-security-profile.html#section-8.1.1).`,
 			},
 			"number": schema.Int32Attribute{
-				Computed:    true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int32{
+					custom_int32planmodifier.UseStateForUnknown(),
+				},
 				Description: `The sequential number of the client. The value of this property is assigned by Authlete.`,
 			},
 			"organization_name": schema.StringAttribute{
@@ -1049,7 +1074,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
-				Description: `The response modes that this client may use.`,
+				MarkdownDescription: `The response modes that this client may use.` + "\n" +
+					`` + "\n" +
+					`Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy back the order Terraform reports.`,
 			},
 			"response_types": schema.ListAttribute{
 				Computed:    true,
@@ -1057,7 +1084,12 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				ElementType: types.StringType,
 				MarkdownDescription: `A string array of response types which the client application declares that it will restrict itself to using.` + "\n" +
 					`This property corresponds to ` + "`" + `response_types` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0,` + "\n" +
-					`2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+					`2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).` + "\n" +
+					`` + "\n" +
+					`Authlete stores these in its own canonical order, whatever order they are sent in. A configuration listing them in a different order shows a reordering on every plan, and applying does not resolve it. Apply once and copy back the order Terraform reports.`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"rs_request_signed": schema.BoolAttribute{
 				Computed:    true,
@@ -1087,6 +1119,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"service_number": schema.Int32Attribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.Int32{
+					custom_int32planmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: `The sequential number of the service of the client application. The value of this property is` + "\n" +
 					`assigned by Authlete.`,
 			},
@@ -1160,7 +1195,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					`client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
 					`See ` + "`" + `tls_client_auth_san_dns` + "`" + ` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client` + "\n" +
-					`Registration" for details.`,
+					`Registration" for details.` + "\n" +
+					`` + "\n" +
+					`Authlete accepts exactly one of ` + "`" + `tls_client_auth_subject_dn` + "`" + `, ` + "`" + `tls_client_auth_san_dns` + "`" + `, ` + "`" + `tls_client_auth_san_email` + "`" + `, ` + "`" + `tls_client_auth_san_ip` + "`" + ` and ` + "`" + `tls_client_auth_san_uri` + "`" + `. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.`,
 			},
 			"tls_client_auth_san_email": schema.StringAttribute{
 				Computed: true,
@@ -1172,7 +1209,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					`this client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
 					`See ` + "`" + `tls_client_auth_san_email` + "`" + ` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client` + "\n" +
-					`Registration" for details.`,
+					`Registration" for details.` + "\n" +
+					`` + "\n" +
+					`Authlete accepts exactly one of ` + "`" + `tls_client_auth_subject_dn` + "`" + `, ` + "`" + `tls_client_auth_san_dns` + "`" + `, ` + "`" + `tls_client_auth_san_email` + "`" + `, ` + "`" + `tls_client_auth_san_ip` + "`" + ` and ` + "`" + `tls_client_auth_san_uri` + "`" + `. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.`,
 			},
 			"tls_client_auth_san_ip": schema.StringAttribute{
 				Computed: true,
@@ -1184,7 +1223,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					`this client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
 					`See ` + "`" + `tls_client_auth_san_ip` + "`" + ` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client` + "\n" +
-					`Registration" for details.`,
+					`Registration" for details.` + "\n" +
+					`` + "\n" +
+					`Authlete accepts exactly one of ` + "`" + `tls_client_auth_subject_dn` + "`" + `, ` + "`" + `tls_client_auth_san_dns` + "`" + `, ` + "`" + `tls_client_auth_san_email` + "`" + `, ` + "`" + `tls_client_auth_san_ip` + "`" + ` and ` + "`" + `tls_client_auth_san_uri` + "`" + `. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.`,
 			},
 			"tls_client_auth_san_uri": schema.StringAttribute{
 				Computed: true,
@@ -1196,7 +1237,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					`client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
 					`See ` + "`" + `tls_client_auth_san_uri` + "`" + ` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client` + "\n" +
-					`Registration" for details.`,
+					`Registration" for details.` + "\n" +
+					`` + "\n" +
+					`Authlete accepts exactly one of ` + "`" + `tls_client_auth_subject_dn` + "`" + `, ` + "`" + `tls_client_auth_san_dns` + "`" + `, ` + "`" + `tls_client_auth_san_email` + "`" + `, ` + "`" + `tls_client_auth_san_ip` + "`" + ` and ` + "`" + `tls_client_auth_san_uri` + "`" + `. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.`,
 			},
 			"tls_client_auth_subject_dn": schema.StringAttribute{
 				Computed: true,
@@ -1208,7 +1251,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					`client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
 					`See ` + "`" + `tls_client_auth_subject_dn` + "`" + ` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client` + "\n" +
-					`Registration" for details.`,
+					`Registration" for details.` + "\n" +
+					`` + "\n" +
+					`Authlete accepts exactly one of ` + "`" + `tls_client_auth_subject_dn` + "`" + `, ` + "`" + `tls_client_auth_san_dns` + "`" + `, ` + "`" + `tls_client_auth_san_email` + "`" + `, ` + "`" + `tls_client_auth_san_ip` + "`" + ` and ` + "`" + `tls_client_auth_san_uri` + "`" + `. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.`,
 			},
 			"tls_client_certificate_bound_access_tokens": schema.BoolAttribute{
 				Computed:    true,
