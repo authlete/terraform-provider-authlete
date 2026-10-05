@@ -23,6 +23,7 @@ package provider
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -174,6 +175,52 @@ func misdirectedIdpError(serverURL, origin string) error {
 		origin, serverURL)
 }
 
+// --- clearer failures --------------------------------------------------------
+
+// errNoToken is returned instead of letting every resource fail separately with
+// a bare 401. Without a token the SDK sends no Authorization header at all, so
+// a configuration with ten resources produced ten identical 401 A001202 errors,
+// none of which said that no token was configured.
+//
+// Checked here rather than in Configure because a token may come from
+// AUTHLETE_TOKEN, which a provider config validator cannot see. The transport
+// sees what was actually sent.
+func errNoToken() error {
+	return errors.New(
+		"no Authlete API token is configured.\n\n" +
+			"Set `bearer` on the provider, or the AUTHLETE_TOKEN environment variable.\n\n" +
+			"Creating or deleting a service needs an Organization Token. A Service Access " +
+			"Token is scoped to one existing service and can read and update it, but cannot " +
+			"create another. Both are issued from the Authlete console.")
+}
+
+// errWrongTokenType is returned instead of a bare 401 from the IdP. Those two
+// endpoints always require an Organization Token, so a 401 there is almost
+// always a Service Access Token being used by mistake -- and the raw response
+// says only A286301 inside an HTTP dump.
+func errWrongTokenType(path string) error {
+	return fmt.Errorf(
+		"Authlete rejected the token for %s (401).\n\n"+
+			"Creating and deleting a service goes through Authlete's identity server and "+
+			"requires an Organization Token. A Service Access Token is scoped to a single "+
+			"existing service and cannot create or delete one, which is the usual cause of "+
+			"this.\n\n"+
+			"Check that `bearer`, or AUTHLETE_TOKEN, holds an Organization Token from the "+
+			"Authlete console.", path)
+}
+
+// errIdpUnreachable names the host actually contacted. Go's HTTP client wraps a
+// transport error using the original request URL, and the rewrite to a
+// customer's own IdP happens inside this transport -- so a connection failure
+// reported Post "https://login.authlete.com/api/service" even though that host
+// was never contacted, which is actively misleading when debugging one.
+func errIdpUnreachable(target *url.URL, err error) error {
+	return fmt.Errorf("could not reach the identity server at %s://%s: %w\n\n"+
+		"This is the host configured as idp_host. The address Terraform reports elsewhere "+
+		"may be Authlete's default rather than this one.",
+		target.Scheme, target.Host, err)
+}
+
 // idpBodyPaths are the IdP operations whose request body carries apiServerId.
 var idpBodyPaths = map[string]bool{
 	"/api/service":        true,
@@ -181,6 +228,12 @@ var idpBodyPaths = map[string]bool{
 }
 
 func (t *idpRoutingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	// Applies to every request, not only IdP ones: without a token the failure
+	// is otherwise one bare 401 per resource.
+	if req.Header.Get("Authorization") == "" {
+		return nil, errNoToken()
+	}
+
 	origin := defaultIdpOrigin()
 	if origin == "" || req.URL == nil {
 		return t.next.RoundTrip(req)
@@ -233,7 +286,18 @@ func (t *idpRoutingTransport) RoundTrip(req *http.Request) (*http.Response, erro
 		}
 	}
 
-	return t.next.RoundTrip(cloned)
+	res, err := t.next.RoundTrip(cloned)
+	if err != nil && t.idpHost != "" {
+		return nil, errIdpUnreachable(cloned.URL, err)
+	}
+	if err == nil && res != nil && res.StatusCode == http.StatusUnauthorized && idpBodyPaths[req.URL.Path] {
+		if res.Body != nil {
+			_, _ = io.Copy(io.Discard, res.Body)
+			_ = res.Body.Close()
+		}
+		return nil, errWrongTokenType(req.URL.Path)
+	}
+	return res, err
 }
 
 // injectInt64Fields fills in JSON body fields that are absent or zero. A value

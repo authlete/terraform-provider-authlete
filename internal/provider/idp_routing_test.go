@@ -3,6 +3,7 @@ package provider
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -26,6 +27,7 @@ func (c *capture) RoundTrip(req *http.Request) (*http.Response, error) {
 func send(t *testing.T, rt http.RoundTripper, rawURL string) {
 	t.Helper()
 	req := httptest.NewRequest(http.MethodPost, rawURL, nil)
+	req.Header.Set("Authorization", "Bearer test-token")
 	req.RequestURI = ""
 	if _, err := rt.RoundTrip(req); err != nil {
 		t.Fatalf("RoundTrip(%s): %v", rawURL, err)
@@ -96,6 +98,7 @@ func TestOriginalRequestIsNotMutated(t *testing.T) {
 	rt := NewIdpRoutingTransport("https://us.authlete.com", "idp.internal", 0, 0, inner)
 
 	req := httptest.NewRequest(http.MethodPost, defaultIdpOrigin()+"/api/service", nil)
+	req.Header.Set("Authorization", "Bearer test-token")
 	req.RequestURI = ""
 	before := req.URL.Host
 
@@ -145,6 +148,7 @@ func (c *bodyCapture) RoundTrip(req *http.Request) (*http.Response, error) {
 func postJSON(t *testing.T, rt http.RoundTripper, rawURL, body string) {
 	t.Helper()
 	req := httptest.NewRequest(http.MethodPost, rawURL, strings.NewReader(body))
+	req.Header.Set("Authorization", "Bearer test-token")
 	req.RequestURI = ""
 	if _, err := rt.RoundTrip(req); err != nil {
 		t.Fatalf("RoundTrip: %v", err)
@@ -235,6 +239,7 @@ func TestSelfManagedDeploymentRefusesTheSharedIdp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	req.Header.Set("Authorization", "Bearer organization-token")
 	if _, err := rt.RoundTrip(req); err == nil {
 		t.Fatal("a self-managed server_url with no idp_host must not reach the shared IdP")
 	} else if !contains(err.Error(), "idp_host") {
@@ -255,6 +260,7 @@ func TestPublicClusterStillReachesTheSharedIdp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	req.Header.Set("Authorization", "Bearer organization-token")
 	if _, err := rt.RoundTrip(req); err != nil {
 		t.Fatalf("shared cloud must keep working: %v", err)
 	}
@@ -272,6 +278,7 @@ func TestSelfManagedWithIdpHostIsAllowed(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	req.Header.Set("Authorization", "Bearer organization-token")
 	if _, err := rt.RoundTrip(req); err != nil {
 		t.Fatalf("idp_host set is the correct configuration: %v", err)
 	}
@@ -280,5 +287,113 @@ func TestSelfManagedWithIdpHostIsAllowed(t *testing.T) {
 	}
 	if !contains(inner.got[0], "idp.customer.example.com") {
 		t.Errorf("request went to %s, want idp.customer.example.com", inner.got[0])
+	}
+}
+
+// --- clearer failures --------------------------------------------------------
+
+// Without a token the SDK sends no Authorization header, and every resource
+// used to fail separately with a bare 401 A001202 that never mentioned the
+// missing token.
+func TestMissingTokenFailsOnceWithAnExplanation(t *testing.T) {
+	inner := &capture{}
+	rt := NewIdpRoutingTransport("https://us.authlete.com", "", 0, 12345, inner)
+
+	req, err := http.NewRequest(http.MethodGet, "https://us.authlete.com/api/1/service/get", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = rt.RoundTrip(req)
+	if err == nil {
+		t.Fatal("a request with no Authorization header must not be sent")
+	}
+	for _, want := range []string{"AUTHLETE_TOKEN", "Organization Token"} {
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("the error should mention %q, got: %v", want, err)
+		}
+	}
+	if len(inner.got) != 0 {
+		t.Error("the request was sent despite having no token")
+	}
+}
+
+// A token that is present must pass through untouched.
+func TestRequestWithATokenIsNotBlocked(t *testing.T) {
+	inner := &capture{}
+	rt := NewIdpRoutingTransport("https://us.authlete.com", "", 0, 12345, inner)
+
+	req, err := http.NewRequest(http.MethodGet, "https://us.authlete.com/api/1/service/get", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Authorization", "Bearer something")
+	if _, err := rt.RoundTrip(req); err != nil {
+		t.Fatalf("a request carrying a token must be sent: %v", err)
+	}
+	if len(inner.got) == 0 {
+		t.Error("the request did not reach the inner transport")
+	}
+}
+
+// unauthorized answers 401 to everything, standing in for Authlete rejecting a
+// Service Access Token on a service create.
+type unauthorized struct{}
+
+func (unauthorized) RoundTrip(req *http.Request) (*http.Response, error) {
+	return &http.Response{
+		StatusCode: http.StatusUnauthorized,
+		Body:       http.NoBody,
+		Request:    req,
+		Header:     make(http.Header),
+	}, nil
+}
+
+// Creating a service requires an Organization Token. A Service Access Token
+// produced a raw 401 A286301 inside an HTTP dump that never said which token
+// type was needed.
+func TestWrongTokenTypeOnServiceCreateExplainsItself(t *testing.T) {
+	rt := NewIdpRoutingTransport("https://us.authlete.com", "", 0, 12345, unauthorized{})
+
+	req, err := http.NewRequest(http.MethodPost, defaultIdpOrigin()+"/api/service", strings.NewReader("{}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Authorization", "Bearer service-access-token")
+	_, err = rt.RoundTrip(req)
+	if err == nil {
+		t.Fatal("a 401 from the IdP create path should be explained, not passed through bare")
+	}
+	if !contains(err.Error(), "organization token") {
+		t.Errorf("the error should name the token type required, got: %v", err)
+	}
+}
+
+// failing stands in for an unreachable idp_host.
+type failing struct{}
+
+func (failing) RoundTrip(*http.Request) (*http.Response, error) {
+	return nil, errors.New("connection refused")
+}
+
+// Go's HTTP client wraps transport errors using the original request URL, so a
+// connection failure against a customer's own IdP reported Authlete's default
+// host instead -- the one address that was definitely not contacted.
+func TestUnreachableIdpNamesTheHostActuallyTried(t *testing.T) {
+	rt := NewIdpRoutingTransport("https://us.authlete.com", "idp.customer.example.com", 0, 12345, failing{})
+
+	req, err := http.NewRequest(http.MethodPost, defaultIdpOrigin()+"/api/service", strings.NewReader("{}"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Authorization", "Bearer organization-token")
+	_, err = rt.RoundTrip(req)
+	if err == nil {
+		t.Fatal("expected the connection failure to surface")
+	}
+	if !contains(err.Error(), "idp.customer.example.com") {
+		t.Errorf("the error should name the host actually tried, got: %v", err)
+	}
+	if contains(err.Error(), "login.authlete.com") {
+		t.Errorf("the error names a host that was never contacted: %v", err)
 	}
 }
