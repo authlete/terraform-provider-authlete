@@ -142,3 +142,34 @@ cd testing && ASSUME_YES=1 ./run.sh apply && ./run.sh plan && ASSUME_YES=1 ./run
 
 The second `plan` must report **No changes**. A diff there means something stopped
 round-tripping, which is the failure mode that reaches customers as permanent plan noise.
+
+## 5. The README
+
+`README.md` is generated in sections, each wrapped in a `<!-- Start X [id] -->`
+and `<!-- End X [id] -->` pair. Everything between a pair is rewritten on every
+run, silently: the README is spliced rather than three-way merged, so an edit
+inside a pair disappears without a conflict and without a line in the run
+output. It can never be protected by persistent edits either — the generator
+hard-codes `^README\.md` as untrackable.
+
+Three things work:
+
+- **Write above the first marker or below the last one.** Both positions are
+  left alone. The generated table of contents indexes hand-written sections and
+  re-indexes them if they move.
+- **Freeze one section** with a `<!-- No X [id] -->` line immediately above its
+  `Start` marker. The `[id]` must match; the title text is free-form. The
+  Installation block is frozen this way, which is why its version pin has to be
+  updated by hand at release time.
+- **`.genignore` the whole file**, if we ever want to own it outright. Not used
+  today, since the generated sections are worth keeping current.
+
+Feeding the Installation block from `examples/provider/provider.tf` looks like
+it should work — that section renders the file's contents — but it is not
+deterministic. Four identical runs produced the annotated block twice and the
+generic snippet twice. Hence the freeze.
+
+`docs/` is a different case again: it is rebuilt wholesale by `tfplugindocs`,
+hand-written files there are deleted, and `.genignore` does not save them.
+Guides belong in `templates/guides/*.md.tmpl`, which renders into `docs/guides/`
+and survives.
