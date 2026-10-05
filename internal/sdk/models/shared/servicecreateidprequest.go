@@ -14,8 +14,9 @@ type ServiceCreateIdpRequest struct {
 	//
 	APIServerID *int64 `json:"apiServerId,omitzero"`
 	// The numeric ID of the organization the service belongs to.
-	OrganizationID int64         `json:"organizationId"`
-	Service        *ServiceInput `json:"service,omitzero"`
+	OrganizationID int64 `json:"organizationId"`
+	// An Authlete service. PROBE-MARKER removing an attribute from configuration does not reset it.
+	Service *ServiceInput `json:"service,omitzero"`
 }
 
 func (s ServiceCreateIdpRequest) MarshalJSON() ([]byte, error) {

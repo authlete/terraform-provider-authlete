@@ -7,6 +7,7 @@ import (
 	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/utils"
 )
 
+// ServiceInput - An Authlete service. PROBE-MARKER removing an attribute from configuration does not reset it.
 type ServiceInput struct {
 	// The name of this service.
 	ServiceName *string `json:"serviceName,omitzero" form:"name=serviceName"`

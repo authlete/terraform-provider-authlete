@@ -74,7 +74,8 @@ type AuthorizationResponse struct {
 	// for `max_age` request parameter, and see "[OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata), default_max_age"
 	// for `defaultMaxAge` configuration parameter.
 	//
-	MaxAge  *int     `json:"maxAge,omitzero"`
+	MaxAge *int `json:"maxAge,omitzero"`
+	// An Authlete service. PROBE-MARKER removing an attribute from configuration does not reset it.
 	Service *Service `json:"service,omitzero"`
 	// The scopes that the client application requests. This value comes from `scope` request parameter.
 	// If the request does not contain `scope` parameter, this parameter is a list of scopes which are registered as default.

@@ -32,6 +32,7 @@ func (e *SupportedSnse) UnmarshalJSON(data []byte) error {
 	}
 }
 
+// Service - An Authlete service. PROBE-MARKER removing an attribute from configuration does not reset it.
 type Service struct {
 	// The sequential number of the service. The value of this property is assigned by Authlete.
 	Number *int `json:"number,omitzero"`
