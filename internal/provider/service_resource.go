@@ -16,7 +16,6 @@ import (
 	stateupgraders "github.com/authlete/terraform-provider-authlete/internal/stateupgraders"
 	custom_listvalidators "github.com/authlete/terraform-provider-authlete/internal/validators/listvalidators"
 	speakeasy_objectvalidators "github.com/authlete/terraform-provider-authlete/internal/validators/objectvalidators"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -1619,7 +1618,6 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`The value of this property is used as ` + "`" + `grant_types_supported property` + "`" + ` in the` + "\n" +
 					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 				Validators: []validator.List{
-					listvalidator.UniqueValues(),
 					custom_listvalidators.ValidEnumValues(),
 				},
 			},
