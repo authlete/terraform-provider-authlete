@@ -30,6 +30,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/authlete/terraform-provider-authlete/internal/sdk/models/shared"
 )
 
 // marshalWith converts a model to its SDK input and returns the JSON body.
@@ -116,4 +118,59 @@ func TestOptionalArraysOmitNull(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestEmptyListsSurviveRefresh is the read half of the same contract.
+//
+// Authlete stores an explicitly empty list as "nothing supported" and then
+// omits the field from its response entirely. Absence is not ambiguous for
+// these seven: each has a non-empty server default, so a field left unset comes
+// back populated and only an explicitly emptied one comes back missing. The
+// correct read is therefore an empty list.
+//
+// Mapping it to null instead is what the generator does on its own, and it
+// leaves `supported_displays = []` planning the same change forever: state says
+// null, the configuration says [], and the two never converge. Terraform's own
+// semantic-equality hook cannot paper over this, because the framework skips it
+// whenever the proposed new value is null.
+//
+// Re-applied by scripts/patch-empty-lists.sh, which this test guards.
+func TestEmptyListsSurviveRefresh(t *testing.T) {
+	t.Run("service", func(t *testing.T) {
+		var m ServiceResourceModel
+		if diags := m.RefreshFromSharedService(context.Background(), &shared.Service{}); diags.HasError() {
+			t.Fatalf("refresh: %v", diags)
+		}
+		for _, tc := range []struct {
+			attr string
+			got  []types.String
+		}{
+			{"supported_displays", m.SupportedDisplays},
+			{"supported_grant_types", m.SupportedGrantTypes},
+			{"supported_response_types", m.SupportedResponseTypes},
+			{"supported_token_auth_methods", m.SupportedTokenAuthMethods},
+			{"supported_prompt_values", m.SupportedPromptValues},
+			{"supported_claim_types", m.SupportedClaimTypes},
+		} {
+			if tc.got == nil {
+				t.Errorf("%s read back as null from a response that omits it.\n\n"+
+					"Authlete omits these fields only when they are explicitly empty, "+
+					"so the read must produce an empty list. As null, a configuration "+
+					"with %s = [] never settles: apply succeeds and the next plan "+
+					"shows the same change again.\n\n"+
+					"Run ./scripts/patch-empty-lists.sh.", tc.attr, tc.attr)
+			}
+		}
+	})
+
+	t.Run("client", func(t *testing.T) {
+		var m ClientResourceModel
+		if diags := m.RefreshFromSharedClient(context.Background(), &shared.Client{}); diags.HasError() {
+			t.Fatalf("refresh: %v", diags)
+		}
+		if m.ResponseModes == nil {
+			t.Error("response_modes read back as null from a response that omits it.\n\n" +
+				"Run ./scripts/patch-empty-lists.sh.")
+		}
+	})
 }

@@ -48,17 +48,17 @@ jobs:
           ref: ${{ steps.target.outputs.branch }}
           fetch-depth: 0
 
-      - name: Is the hand edit still there?
+      - name: Are the patches still there?
         if: steps.target.outputs.skip != 'true'
         id: check
         run: |
-          if ./scripts/patch-provider.sh --check; then
+          if ./scripts/patch-provider.sh --check && ./scripts/patch-empty-lists.sh --check; then
             echo "needs_repair=false" >> "$GITHUB_OUTPUT"
           else
             echo "needs_repair=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Re-apply it and open a pull request
+      - name: Re-apply them and open a pull request
         if: steps.check.outputs.needs_repair == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -66,32 +66,44 @@ jobs:
         run: |
           set -euo pipefail
           ./scripts/patch-provider.sh
+          ./scripts/patch-empty-lists.sh
 
           fix_branch="repair/provider-patch-${GITHUB_RUN_ID}"
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b "$fix_branch"
-          git add internal/provider/provider.go
-          git commit -m "Re-apply the provider.go transport patch
+          git add -A internal/provider
+          git commit -m "Re-apply the post-generation patches
 
-          The last regeneration dropped the hand edit that wraps the HTTP
-          transport. Without it the provider still builds, but idp_host and
+          The last regeneration dropped one or both of the edits that survive
+          through Speakeasy's three-way merge. Neither failure breaks the build,
+          which is why they are caught here.
+
+          provider.go: without the transport wrapper, idp_host and
           organization_id are accepted and silently ignored, so service create
           and delete go to Authlete's shared cloud regardless of configuration.
 
-          Re-applied with scripts/patch-provider.sh."
+          The *_sdk.go reads: without the empty-list mapping, a list explicitly
+          set to [] reads back as null, so the configuration plans the same
+          change forever.
+
+          Re-applied with scripts/patch-provider.sh and
+          scripts/patch-empty-lists.sh."
           git push origin "$fix_branch"
 
           gh pr create \
             --base "$BASE" \
             --head "$fix_branch" \
-            --title "Re-apply the provider.go transport patch" \
-            --body "The last regeneration dropped the hand edit in \`internal/provider/provider.go\`.
+            --title "Re-apply the post-generation patches" \
+            --body "The last regeneration dropped one or both of the edits under \`internal/provider\`.
 
-          Without it \`idp_host\` and \`organization_id\` are accepted and silently ignored, so service create and delete go to Authlete's shared cloud regardless of configuration. The file still compiles, which is why this is caught here rather than by the build.
+          Neither failure breaks the build, which is why this is caught here rather than by the compiler.
 
-          Re-applied automatically with \`scripts/patch-provider.sh\`. Merge this into \`$BASE\` before merging that branch."
+          - \`provider.go\`: without the transport wrapper, \`idp_host\` and \`organization_id\` are accepted and silently ignored, so service create and delete go to Authlete's shared cloud regardless of configuration.
+          - the \`*_sdk.go\` reads: without the empty-list mapping, a list explicitly set to \`[]\` reads back as null, so the configuration plans the same change forever.
+
+          Re-applied automatically with \`scripts/patch-provider.sh\` and \`scripts/patch-empty-lists.sh\`. Merge this into \`$BASE\` before merging that branch."
 
       - name: Nothing to do
         if: steps.check.outputs.needs_repair == 'false'
-        run: echo "The hand edit is present on ${{ steps.target.outputs.branch }}."
+        run: echo "Both patches are present on ${{ steps.target.outputs.branch }}."

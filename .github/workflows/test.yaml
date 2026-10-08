@@ -53,6 +53,13 @@ jobs:
       - name: Check the provider.go patch is present
         run: ./scripts/patch-provider.sh --check
 
+      # The read-path patch that lets an explicitly empty list round-trip. Like
+      # the one above it survives regeneration through a merge that can drop it
+      # silently, and the provider still builds without it -- a configuration
+      # setting one of these lists to [] simply never settles.
+      - name: Check the empty-list read patch is present
+        run: ./scripts/patch-empty-lists.sh --check
+
       - name: Build
         run: go build ./...
 
