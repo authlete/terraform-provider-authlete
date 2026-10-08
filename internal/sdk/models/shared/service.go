@@ -97,6 +97,7 @@ type Service struct {
 	//   | --- | --- |
 	//   | `clientCount` | The number of client applications which belong to this service.  |
 	//
+	// Read-only. Authlete owns these values -- `clientCount` changes as clients are added or removed -- and the service create and update endpoints ignore anything written here, including an empty list.
 	Metadata []Pair `json:"metadata,omitzero"`
 	// The time at which this service was created. The value is represented as milliseconds since the
 	// UNIX epoch (`1970-01-01`).
@@ -613,6 +614,7 @@ type Service struct {
 	// API and `/api/service/update` API do not have any effect. The contents of this property is controlled
 	// only by `/api/hsk/*` APIs.
 	//
+	// Read-only. Hardware security module keys are managed through Authlete's separate HSK API, which this provider does not expose. The service create and update endpoints ignore this field, so a value written here is discarded silently and the plan never settles. What this returns is for reference.
 	Hsks []Hsk `json:"hsks,omitzero"`
 	// The URL of the grant management endpoint.
 	//
