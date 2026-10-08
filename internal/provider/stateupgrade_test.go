@@ -311,3 +311,58 @@ func TestUpgradePassesThroughCurrentShape(t *testing.T) {
 		}
 	})
 }
+
+// TestSchemaVersionIsDeclared guards the thing that makes every other part of
+// the migration run at all.
+//
+// Terraform decides whether to upgrade state by comparing the version recorded
+// in state against the version the resource declares. v1.3.17 declared none, so
+// its state is version 0. If this provider also declares none, Terraform sees 0
+// against 0, runs no upgrader, and loads the old state straight into the new
+// schema -- which is the original bug: identifiers land null and the first
+// refresh calls /api/0/service/get.
+//
+// The version comes from x-speakeasy-entity-version in the overlay. Removing
+// that entry silently reverts to the broken behaviour: the upgraders stay in
+// the tree, still compile, and are simply never called. Every other migration
+// test keeps passing because they invoke the upgraders directly.
+func TestSchemaVersionIsDeclared(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		resource resource.Resource
+		upgrader string
+	}{
+		{"authlete_service", NewServiceResource(), "ServiceStateUpgraderV0"},
+		{"authlete_client", NewClientResource(), "ClientStateUpgraderV0"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			version := resourceSchema(t, tc.resource).Version
+			if version < 1 {
+				t.Errorf("%s declares schema version %d.\n\n"+
+					"v1.3.17 state is recorded as version 0. At version %d Terraform "+
+					"compares 0 against %d, runs no upgrader, and loads v1.3.x state "+
+					"directly into the current schema: the identifiers land null and the "+
+					"first refresh fails with a 403 naming service 0.\n\n"+
+					"Restore x-speakeasy-entity-version on the %s entity in "+
+					".speakeasy/terraform_overlay.yaml.",
+					tc.name, version, version, version, tc.name)
+				return
+			}
+
+			// Declaring a version is only half of it: an upgrader has to be
+			// registered for the version the old provider wrote.
+			withUpgrade, ok := tc.resource.(resource.ResourceWithUpgradeState)
+			if !ok {
+				t.Fatalf("%s no longer implements ResourceWithUpgradeState, so no "+
+					"migration can run however the version is set", tc.name)
+			}
+			upgraders := withUpgrade.UpgradeState(context.Background())
+			if _, ok := upgraders[0]; !ok {
+				t.Errorf("%s declares version %d but registers no upgrader for version 0.\n\n"+
+					"Version 0 is what v1.3.17 wrote. Without an upgrader for it, Terraform "+
+					"refuses the state outright and %s is the entry point that never runs.",
+					tc.name, version, tc.upgrader)
+			}
+		})
+	}
+}

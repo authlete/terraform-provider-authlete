@@ -9,8 +9,13 @@ import (
 	"testing"
 
 	"github.com/authlete/terraform-provider-authlete/internal/provider/planmodifiers"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // TestSubjectTypeAttributesExist guards the list against a rename. If an
@@ -65,4 +70,108 @@ func TestClientRefusesTwoSubjectTypes(t *testing.T) {
 	if len(r.ConfigValidators(context.Background())) == 0 {
 		t.Error("ClientResource has no config validators registered")
 	}
+}
+
+// subjectSchema is a cut-down schema holding only the five subject types. The
+// modifier looks attributes up by path, so it behaves identically here and
+// building the full client object value is not worth it.
+func subjectSchema() schema.Schema {
+	attrs := map[string]schema.Attribute{}
+	for _, name := range planmodifiers.MTLSSubjectAttributes {
+		attrs[name] = schema.StringAttribute{Optional: true}
+	}
+	return schema.Schema{Attributes: attrs}
+}
+
+// subjectValue builds an object value over the five subject types, with the
+// named ones set and the rest null.
+func subjectValue(t *testing.T, sch schema.Schema, set map[string]string) tftypes.Value {
+	t.Helper()
+	objType, ok := sch.Type().TerraformType(context.Background()).(tftypes.Object)
+	if !ok {
+		t.Fatal("subject schema did not produce an object type")
+	}
+	vals := map[string]tftypes.Value{}
+	for _, name := range planmodifiers.MTLSSubjectAttributes {
+		if v, present := set[name]; present {
+			vals[name] = tftypes.NewValue(tftypes.String, v)
+		} else {
+			vals[name] = tftypes.NewValue(tftypes.String, nil)
+		}
+	}
+	return tftypes.NewValue(objType, vals)
+}
+
+// TestSupersededSubjectTypeIsCleared exercises the modifier rather than
+// asserting it is attached.
+//
+// TestSubjectTypesCarryTheModifier only checks that the attribute has at least
+// one plan modifier, so a modifier gutted to a no-op passes it. That is the
+// shape this regression would actually take: the behaviour drops out, the
+// wiring stays, and switching subject type starts failing with A032216 again --
+// recoverable only by replacing the client, which changes its client_id.
+//
+// Planning null rather than "" matters: Authlete counts an empty string as
+// naming the subject type, so the field has to be absent from the request.
+func TestSupersededSubjectTypeIsCleared(t *testing.T) {
+	sch := subjectSchema()
+	const self = "tls_client_auth_subject_dn"
+	const other = "tls_client_auth_san_dns"
+
+	modify := func(t *testing.T, state, config map[string]string, stateValue types.String) planmodifier.StringResponse {
+		t.Helper()
+		req := planmodifier.StringRequest{
+			Path:       path.Root(self),
+			StateValue: stateValue,
+			Config:     tfsdk.Config{Schema: sch, Raw: subjectValue(t, sch, config)},
+			State:      tfsdk.State{Schema: sch, Raw: subjectValue(t, sch, state)},
+		}
+		resp := planmodifier.StringResponse{PlanValue: stateValue}
+		planmodifiers.ClearSupersededSubjectType(self).PlanModifyString(context.Background(), req, &resp)
+		return resp
+	}
+
+	t.Run("superseded value is planned null", func(t *testing.T) {
+		resp := modify(t,
+			map[string]string{self: "CN=old"},           // state holds the old subject type
+			map[string]string{other: "api.example.com"}, // configuration names a different one
+			types.StringValue("CN=old"))
+
+		if !resp.PlanValue.IsNull() {
+			t.Errorf("%s planned as %v, want null.\n\n"+
+				"Configuration moved to %s, so the old value must leave the request "+
+				"entirely. Sending it alongside the new one is rejected with A032216, "+
+				"and the only way out for the customer is replacing the client.\n\n"+
+				"An empty string is not good enough: Authlete counts \"\" as naming this "+
+				"subject type. The plan value has to be null.",
+				self, resp.PlanValue, other)
+		}
+	})
+
+	t.Run("still named in configuration, so left alone", func(t *testing.T) {
+		resp := modify(t,
+			map[string]string{self: "CN=old"},
+			map[string]string{self: "CN=new"},
+			types.StringValue("CN=old"))
+
+		if resp.PlanValue.IsNull() {
+			t.Error("the attribute configuration still names was cleared.\n\n" +
+				"Only a superseded subject type may be cleared; clearing the one in use " +
+				"would silently drop the customer's value.")
+		}
+	})
+
+	t.Run("creation is untouched", func(t *testing.T) {
+		req := planmodifier.StringRequest{
+			Path:       path.Root(self),
+			StateValue: types.StringNull(),
+			Config:     tfsdk.Config{Schema: sch, Raw: subjectValue(t, sch, map[string]string{other: "api.example.com"})},
+			State:      tfsdk.State{Schema: sch, Raw: tftypes.NewValue(sch.Type().TerraformType(context.Background()), nil)},
+		}
+		resp := planmodifier.StringResponse{PlanValue: types.StringNull()}
+		planmodifiers.ClearSupersededSubjectType(self).PlanModifyString(context.Background(), req, &resp)
+		if resp.Diagnostics.HasError() {
+			t.Errorf("creation produced diagnostics: %v", resp.Diagnostics.Errors())
+		}
+	})
 }

@@ -10,6 +10,7 @@ package provider
 
 import (
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 )
@@ -81,5 +82,53 @@ func TestRedactionWrapsEveryTransport(t *testing.T) {
 	if rt := NewLogRedactingTransport(inner); rt == http.RoundTripper(inner) {
 		t.Fatal("NewLogRedactingTransport returned its inner transport unchanged; " +
 			"redaction must apply on every path, including shared cloud")
+	}
+}
+
+// TestRedactionIsWiredIntoConfigure guards the wiring rather than the pattern.
+//
+// Every other test in this file proves the regexp masks what it should, and
+// TestRedactionWrapsEveryTransport proves the constructor wraps. None of them
+// notice if provider.go stops calling the constructor: the transport still
+// exists, still compiles, still passes its own tests, and nothing is redacted
+// because nothing installs it. TF_LOG=DEBUG then writes client secrets and
+// private keys verbatim again.
+//
+// That edit lives in a generated file and is re-applied by
+// scripts/patch-provider.sh, so it can be dropped by a regeneration. The script
+// checks it too; this fails under `go test` as well, where a dropped edit is
+// more likely to be noticed.
+//
+// Order matters as much as presence. The redacting transport installs masking
+// on the request context, and the generated logging transport reads that
+// context when it records bodies. Redaction has to be the outermost wrapper, so
+// the context is already masked by the time anything logs.
+func TestRedactionIsWiredIntoConfigure(t *testing.T) {
+	src, err := os.ReadFile("provider.go")
+	if err != nil {
+		t.Fatalf("cannot read provider.go: %v", err)
+	}
+	body := string(src)
+
+	if !strings.Contains(body, "NewLogRedactingTransport(") {
+		t.Fatal("provider.go never calls NewLogRedactingTransport.\n\n" +
+			"Nothing installs masking, so TF_LOG=DEBUG writes client secrets, " +
+			"callback secrets and private keys verbatim into the log.\n\n" +
+			"A regeneration has most likely dropped the edit. Run:\n\n" +
+			"  ./scripts/patch-provider.sh")
+	}
+
+	redact := strings.Index(body, "NewLogRedactingTransport(")
+	route := strings.Index(body, "NewIdpRoutingTransport(")
+	if route < 0 {
+		t.Fatal("provider.go never calls NewIdpRoutingTransport; run ./scripts/patch-provider.sh")
+	}
+	if redact > route {
+		t.Error("NewLogRedactingTransport is applied inside NewIdpRoutingTransport.\n\n" +
+			"Redaction installs masking on the request context, and the generated " +
+			"logging transport reads that context when it records bodies. Wrapped on " +
+			"the inside, the masking is installed after logging has already seen the " +
+			"unmasked request.\n\n" +
+			"Redaction must be the outermost transport.")
 	}
 }
