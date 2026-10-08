@@ -240,14 +240,11 @@ func (r *ClientDataSourceModel) RefreshFromSharedClient(ctx context.Context, res
 		for _, v := range resp.RequestUris {
 			r.RequestUris = append(r.RequestUris, types.StringValue(v))
 		}
-		if resp.ResponseModes != nil {
-			r.ResponseModes = make([]types.String, 0, len(resp.ResponseModes))
-			for _, v := range resp.ResponseModes {
-				r.ResponseModes = append(r.ResponseModes, types.StringValue(string(v)))
-			}
-		} else {
-			r.ResponseModes = nil
-		}
+		responseModesValue, responseModesDiags := types.ListValueFrom(ctx, types.StringType, resp.ResponseModes)
+		diags.Append(responseModesDiags...)
+		responseModesValuable, responseModesDiags := customtypes.NewEmptyOrNullListType().ValueFromList(ctx, responseModesValue)
+		diags.Append(responseModesDiags...)
+		r.ResponseModes, _ = responseModesValuable.(customtypes.EmptyOrNullList)
 		r.ResponseTypes = make([]types.String, 0, len(resp.ResponseTypes))
 		for _, v := range resp.ResponseTypes {
 			r.ResponseTypes = append(r.ResponseTypes, types.StringValue(string(v)))

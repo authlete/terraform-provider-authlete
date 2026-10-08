@@ -31,115 +31,115 @@ type ClientDataSource struct {
 
 // ClientDataSourceModel describes the data model.
 type ClientDataSourceModel struct {
-	ApplicationType                             types.String             `tfsdk:"application_type"`
-	Attributes                                  []tfTypes.Pair           `tfsdk:"attributes"`
-	AuthorizationDetailsTypes                   []types.String           `tfsdk:"authorization_details_types"`
-	AuthorizationEncryptionAlg                  types.String             `tfsdk:"authorization_encryption_alg"`
-	AuthorizationEncryptionEnc                  types.String             `tfsdk:"authorization_encryption_enc"`
-	AuthorizationSignAlg                        types.String             `tfsdk:"authorization_sign_alg"`
-	AuthTimeRequired                            types.Bool               `tfsdk:"auth_time_required"`
-	AutomaticallyRegistered                     types.Bool               `tfsdk:"automatically_registered"`
-	BackchannelLogoutSessionRequired            types.Bool               `tfsdk:"backchannel_logout_session_required"`
-	BackchannelLogoutURI                        types.String             `tfsdk:"backchannel_logout_uri"`
-	BcDeliveryMode                              types.String             `tfsdk:"bc_delivery_mode"`
-	BcNotificationEndpoint                      types.String             `tfsdk:"bc_notification_endpoint"`
-	BcRequestSignAlg                            types.String             `tfsdk:"bc_request_sign_alg"`
-	BcUserCodeRequired                          types.Bool               `tfsdk:"bc_user_code_required"`
-	ClientID                                    types.Int64              `tfsdk:"client_id"`
-	ClientIDAlias                               types.String             `tfsdk:"client_id_alias"`
-	ClientIDAliasEnabled                        types.Bool               `tfsdk:"client_id_alias_enabled"`
-	ClientName                                  types.String             `tfsdk:"client_name"`
-	ClientNames                                 []tfTypes.TaggedValue    `tfsdk:"client_names"`
-	ClientRegistrationTypes                     []types.String           `tfsdk:"client_registration_types"`
-	ClientSecret                                types.String             `tfsdk:"client_secret"`
-	ClientSource                                types.String             `tfsdk:"client_source"`
-	ClientType                                  types.String             `tfsdk:"client_type"`
-	ClientURI                                   types.String             `tfsdk:"client_uri"`
-	ClientUris                                  []tfTypes.TaggedValue    `tfsdk:"client_uris"`
-	Contacts                                    []types.String           `tfsdk:"contacts"`
-	CreatedAt                                   types.Int64              `tfsdk:"created_at"`
-	CredentialOfferEndpoint                     types.String             `tfsdk:"credential_offer_endpoint"`
-	CredentialResponseEncryptionRequired        types.Bool               `tfsdk:"credential_response_encryption_required"`
-	CustomMetadata                              types.String             `tfsdk:"custom_metadata"`
-	DefaultAcrs                                 []types.String           `tfsdk:"default_acrs"`
-	DefaultMaxAge                               types.Int32              `tfsdk:"default_max_age"`
-	DerivedSectorIdentifier                     types.String             `tfsdk:"derived_sector_identifier"`
-	Description                                 types.String             `tfsdk:"description"`
-	Descriptions                                []tfTypes.TaggedValue    `tfsdk:"descriptions"`
-	Developer                                   types.String             `tfsdk:"developer"`
-	DigestAlgorithm                             types.String             `tfsdk:"digest_algorithm"`
-	DiscoveredByMetadataDocument                types.Bool               `tfsdk:"discovered_by_metadata_document"`
-	DpopRequired                                types.Bool               `tfsdk:"dpop_required"`
-	DynamicallyRegistered                       types.Bool               `tfsdk:"dynamically_registered"`
-	EntityID                                    types.String             `tfsdk:"entity_id"`
-	ExplicitlyRegistered                        types.Bool               `tfsdk:"explicitly_registered"`
-	Extension                                   *tfTypes.ClientExtension `tfsdk:"extension"`
-	FapiModes                                   []types.String           `tfsdk:"fapi_modes"`
-	FrontChannelRequestObjectEncryptionRequired types.Bool               `tfsdk:"front_channel_request_object_encryption_required"`
-	GrantTypes                                  []types.String           `tfsdk:"grant_types"`
-	IDTokenEncryptionAlg                        types.String             `tfsdk:"id_token_encryption_alg"`
-	IDTokenEncryptionEnc                        types.String             `tfsdk:"id_token_encryption_enc"`
-	IDTokenSignAlg                              types.String             `tfsdk:"id_token_sign_alg"`
-	InScopeForTokenMigration                    types.Bool               `tfsdk:"in_scope_for_token_migration"`
-	Jwks                                        customtypes.JWKS         `tfsdk:"jwks"`
-	JwksURI                                     types.String             `tfsdk:"jwks_uri"`
-	Locked                                      types.Bool               `tfsdk:"locked"`
-	LoginURI                                    types.String             `tfsdk:"login_uri"`
-	LogoURI                                     types.String             `tfsdk:"logo_uri"`
-	LogoUris                                    []tfTypes.TaggedValue    `tfsdk:"logo_uris"`
-	MetadataDocumentExpiresAt                   types.Int64              `tfsdk:"metadata_document_expires_at"`
-	MetadataDocumentLocation                    types.String             `tfsdk:"metadata_document_location"`
-	MetadataDocumentUpdatedAt                   types.Int64              `tfsdk:"metadata_document_updated_at"`
-	ModifiedAt                                  types.Int64              `tfsdk:"modified_at"`
-	MtlsEndpointAliasesUsed                     types.Bool               `tfsdk:"mtls_endpoint_aliases_used"`
-	Number                                      types.Int32              `tfsdk:"number"`
-	OrganizationName                            types.String             `tfsdk:"organization_name"`
-	ParRequired                                 types.Bool               `tfsdk:"par_required"`
-	PkceRequired                                types.Bool               `tfsdk:"pkce_required"`
-	PkceS256Required                            types.Bool               `tfsdk:"pkce_s256_required"`
-	PolicyURI                                   types.String             `tfsdk:"policy_uri"`
-	PolicyUris                                  []tfTypes.TaggedValue    `tfsdk:"policy_uris"`
-	RedirectUris                                []types.String           `tfsdk:"redirect_uris"`
-	RegistrationAccessTokenHash                 types.String             `tfsdk:"registration_access_token_hash"`
-	RequestEncryptionAlg                        types.String             `tfsdk:"request_encryption_alg"`
-	RequestEncryptionEnc                        types.String             `tfsdk:"request_encryption_enc"`
-	RequestObjectEncryptionAlgMatchRequired     types.Bool               `tfsdk:"request_object_encryption_alg_match_required"`
-	RequestObjectEncryptionEncMatchRequired     types.Bool               `tfsdk:"request_object_encryption_enc_match_required"`
-	RequestObjectRequired                       types.Bool               `tfsdk:"request_object_required"`
-	RequestSignAlg                              types.String             `tfsdk:"request_sign_alg"`
-	RequestUris                                 []types.String           `tfsdk:"request_uris"`
-	ResponseModes                               []types.String           `tfsdk:"response_modes"`
-	ResponseTypes                               []types.String           `tfsdk:"response_types"`
-	RsRequestSigned                             types.Bool               `tfsdk:"rs_request_signed"`
-	RsSignedRequestKeyID                        types.String             `tfsdk:"rs_signed_request_key_id"`
-	SectorIdentifierURI                         types.String             `tfsdk:"sector_identifier_uri"`
-	SelfSignedCertificateKeyID                  types.String             `tfsdk:"self_signed_certificate_key_id"`
-	ServiceID                                   types.String             `tfsdk:"service_id"`
-	ServiceNumber                               types.Int32              `tfsdk:"service_number"`
-	SignedJwksURI                               types.String             `tfsdk:"signed_jwks_uri"`
-	SingleAccessTokenPerSubject                 types.Bool               `tfsdk:"single_access_token_per_subject"`
-	SoftwareID                                  types.String             `tfsdk:"software_id"`
-	SoftwareVersion                             types.String             `tfsdk:"software_version"`
-	SpiffeBundleEndpoint                        types.String             `tfsdk:"spiffe_bundle_endpoint"`
-	SpiffeID                                    types.String             `tfsdk:"spiffe_id"`
-	SubjectType                                 types.String             `tfsdk:"subject_type"`
-	TLSClientAuthSanDNS                         types.String             `tfsdk:"tls_client_auth_san_dns"`
-	TLSClientAuthSanEmail                       types.String             `tfsdk:"tls_client_auth_san_email"`
-	TLSClientAuthSanIP                          types.String             `tfsdk:"tls_client_auth_san_ip"`
-	TLSClientAuthSanURI                         types.String             `tfsdk:"tls_client_auth_san_uri"`
-	TLSClientAuthSubjectDn                      types.String             `tfsdk:"tls_client_auth_subject_dn"`
-	TLSClientCertificateBoundAccessTokens       types.Bool               `tfsdk:"tls_client_certificate_bound_access_tokens"`
-	TokenAuthMethod                             types.String             `tfsdk:"token_auth_method"`
-	TokenAuthSignAlg                            types.String             `tfsdk:"token_auth_sign_alg"`
-	TosURI                                      types.String             `tfsdk:"tos_uri"`
-	TosUris                                     []tfTypes.TaggedValue    `tfsdk:"tos_uris"`
-	TrustAnchorID                               types.String             `tfsdk:"trust_anchor_id"`
-	TrustChain                                  []types.String           `tfsdk:"trust_chain"`
-	TrustChainExpiresAt                         types.Int64              `tfsdk:"trust_chain_expires_at"`
-	TrustChainUpdatedAt                         types.Int64              `tfsdk:"trust_chain_updated_at"`
-	UserInfoEncryptionAlg                       types.String             `tfsdk:"user_info_encryption_alg"`
-	UserInfoEncryptionEnc                       types.String             `tfsdk:"user_info_encryption_enc"`
-	UserInfoSignAlg                             types.String             `tfsdk:"user_info_sign_alg"`
+	ApplicationType                             types.String                `tfsdk:"application_type"`
+	Attributes                                  []tfTypes.Pair              `tfsdk:"attributes"`
+	AuthorizationDetailsTypes                   []types.String              `tfsdk:"authorization_details_types"`
+	AuthorizationEncryptionAlg                  types.String                `tfsdk:"authorization_encryption_alg"`
+	AuthorizationEncryptionEnc                  types.String                `tfsdk:"authorization_encryption_enc"`
+	AuthorizationSignAlg                        types.String                `tfsdk:"authorization_sign_alg"`
+	AuthTimeRequired                            types.Bool                  `tfsdk:"auth_time_required"`
+	AutomaticallyRegistered                     types.Bool                  `tfsdk:"automatically_registered"`
+	BackchannelLogoutSessionRequired            types.Bool                  `tfsdk:"backchannel_logout_session_required"`
+	BackchannelLogoutURI                        types.String                `tfsdk:"backchannel_logout_uri"`
+	BcDeliveryMode                              types.String                `tfsdk:"bc_delivery_mode"`
+	BcNotificationEndpoint                      types.String                `tfsdk:"bc_notification_endpoint"`
+	BcRequestSignAlg                            types.String                `tfsdk:"bc_request_sign_alg"`
+	BcUserCodeRequired                          types.Bool                  `tfsdk:"bc_user_code_required"`
+	ClientID                                    types.Int64                 `tfsdk:"client_id"`
+	ClientIDAlias                               types.String                `tfsdk:"client_id_alias"`
+	ClientIDAliasEnabled                        types.Bool                  `tfsdk:"client_id_alias_enabled"`
+	ClientName                                  types.String                `tfsdk:"client_name"`
+	ClientNames                                 []tfTypes.TaggedValue       `tfsdk:"client_names"`
+	ClientRegistrationTypes                     []types.String              `tfsdk:"client_registration_types"`
+	ClientSecret                                types.String                `tfsdk:"client_secret"`
+	ClientSource                                types.String                `tfsdk:"client_source"`
+	ClientType                                  types.String                `tfsdk:"client_type"`
+	ClientURI                                   types.String                `tfsdk:"client_uri"`
+	ClientUris                                  []tfTypes.TaggedValue       `tfsdk:"client_uris"`
+	Contacts                                    []types.String              `tfsdk:"contacts"`
+	CreatedAt                                   types.Int64                 `tfsdk:"created_at"`
+	CredentialOfferEndpoint                     types.String                `tfsdk:"credential_offer_endpoint"`
+	CredentialResponseEncryptionRequired        types.Bool                  `tfsdk:"credential_response_encryption_required"`
+	CustomMetadata                              types.String                `tfsdk:"custom_metadata"`
+	DefaultAcrs                                 []types.String              `tfsdk:"default_acrs"`
+	DefaultMaxAge                               types.Int32                 `tfsdk:"default_max_age"`
+	DerivedSectorIdentifier                     types.String                `tfsdk:"derived_sector_identifier"`
+	Description                                 types.String                `tfsdk:"description"`
+	Descriptions                                []tfTypes.TaggedValue       `tfsdk:"descriptions"`
+	Developer                                   types.String                `tfsdk:"developer"`
+	DigestAlgorithm                             types.String                `tfsdk:"digest_algorithm"`
+	DiscoveredByMetadataDocument                types.Bool                  `tfsdk:"discovered_by_metadata_document"`
+	DpopRequired                                types.Bool                  `tfsdk:"dpop_required"`
+	DynamicallyRegistered                       types.Bool                  `tfsdk:"dynamically_registered"`
+	EntityID                                    types.String                `tfsdk:"entity_id"`
+	ExplicitlyRegistered                        types.Bool                  `tfsdk:"explicitly_registered"`
+	Extension                                   *tfTypes.ClientExtension    `tfsdk:"extension"`
+	FapiModes                                   []types.String              `tfsdk:"fapi_modes"`
+	FrontChannelRequestObjectEncryptionRequired types.Bool                  `tfsdk:"front_channel_request_object_encryption_required"`
+	GrantTypes                                  []types.String              `tfsdk:"grant_types"`
+	IDTokenEncryptionAlg                        types.String                `tfsdk:"id_token_encryption_alg"`
+	IDTokenEncryptionEnc                        types.String                `tfsdk:"id_token_encryption_enc"`
+	IDTokenSignAlg                              types.String                `tfsdk:"id_token_sign_alg"`
+	InScopeForTokenMigration                    types.Bool                  `tfsdk:"in_scope_for_token_migration"`
+	Jwks                                        customtypes.JWKS            `tfsdk:"jwks"`
+	JwksURI                                     types.String                `tfsdk:"jwks_uri"`
+	Locked                                      types.Bool                  `tfsdk:"locked"`
+	LoginURI                                    types.String                `tfsdk:"login_uri"`
+	LogoURI                                     types.String                `tfsdk:"logo_uri"`
+	LogoUris                                    []tfTypes.TaggedValue       `tfsdk:"logo_uris"`
+	MetadataDocumentExpiresAt                   types.Int64                 `tfsdk:"metadata_document_expires_at"`
+	MetadataDocumentLocation                    types.String                `tfsdk:"metadata_document_location"`
+	MetadataDocumentUpdatedAt                   types.Int64                 `tfsdk:"metadata_document_updated_at"`
+	ModifiedAt                                  types.Int64                 `tfsdk:"modified_at"`
+	MtlsEndpointAliasesUsed                     types.Bool                  `tfsdk:"mtls_endpoint_aliases_used"`
+	Number                                      types.Int32                 `tfsdk:"number"`
+	OrganizationName                            types.String                `tfsdk:"organization_name"`
+	ParRequired                                 types.Bool                  `tfsdk:"par_required"`
+	PkceRequired                                types.Bool                  `tfsdk:"pkce_required"`
+	PkceS256Required                            types.Bool                  `tfsdk:"pkce_s256_required"`
+	PolicyURI                                   types.String                `tfsdk:"policy_uri"`
+	PolicyUris                                  []tfTypes.TaggedValue       `tfsdk:"policy_uris"`
+	RedirectUris                                []types.String              `tfsdk:"redirect_uris"`
+	RegistrationAccessTokenHash                 types.String                `tfsdk:"registration_access_token_hash"`
+	RequestEncryptionAlg                        types.String                `tfsdk:"request_encryption_alg"`
+	RequestEncryptionEnc                        types.String                `tfsdk:"request_encryption_enc"`
+	RequestObjectEncryptionAlgMatchRequired     types.Bool                  `tfsdk:"request_object_encryption_alg_match_required"`
+	RequestObjectEncryptionEncMatchRequired     types.Bool                  `tfsdk:"request_object_encryption_enc_match_required"`
+	RequestObjectRequired                       types.Bool                  `tfsdk:"request_object_required"`
+	RequestSignAlg                              types.String                `tfsdk:"request_sign_alg"`
+	RequestUris                                 []types.String              `tfsdk:"request_uris"`
+	ResponseModes                               customtypes.EmptyOrNullList `tfsdk:"response_modes"`
+	ResponseTypes                               []types.String              `tfsdk:"response_types"`
+	RsRequestSigned                             types.Bool                  `tfsdk:"rs_request_signed"`
+	RsSignedRequestKeyID                        types.String                `tfsdk:"rs_signed_request_key_id"`
+	SectorIdentifierURI                         types.String                `tfsdk:"sector_identifier_uri"`
+	SelfSignedCertificateKeyID                  types.String                `tfsdk:"self_signed_certificate_key_id"`
+	ServiceID                                   types.String                `tfsdk:"service_id"`
+	ServiceNumber                               types.Int32                 `tfsdk:"service_number"`
+	SignedJwksURI                               types.String                `tfsdk:"signed_jwks_uri"`
+	SingleAccessTokenPerSubject                 types.Bool                  `tfsdk:"single_access_token_per_subject"`
+	SoftwareID                                  types.String                `tfsdk:"software_id"`
+	SoftwareVersion                             types.String                `tfsdk:"software_version"`
+	SpiffeBundleEndpoint                        types.String                `tfsdk:"spiffe_bundle_endpoint"`
+	SpiffeID                                    types.String                `tfsdk:"spiffe_id"`
+	SubjectType                                 types.String                `tfsdk:"subject_type"`
+	TLSClientAuthSanDNS                         types.String                `tfsdk:"tls_client_auth_san_dns"`
+	TLSClientAuthSanEmail                       types.String                `tfsdk:"tls_client_auth_san_email"`
+	TLSClientAuthSanIP                          types.String                `tfsdk:"tls_client_auth_san_ip"`
+	TLSClientAuthSanURI                         types.String                `tfsdk:"tls_client_auth_san_uri"`
+	TLSClientAuthSubjectDn                      types.String                `tfsdk:"tls_client_auth_subject_dn"`
+	TLSClientCertificateBoundAccessTokens       types.Bool                  `tfsdk:"tls_client_certificate_bound_access_tokens"`
+	TokenAuthMethod                             types.String                `tfsdk:"token_auth_method"`
+	TokenAuthSignAlg                            types.String                `tfsdk:"token_auth_sign_alg"`
+	TosURI                                      types.String                `tfsdk:"tos_uri"`
+	TosUris                                     []tfTypes.TaggedValue       `tfsdk:"tos_uris"`
+	TrustAnchorID                               types.String                `tfsdk:"trust_anchor_id"`
+	TrustChain                                  []types.String              `tfsdk:"trust_chain"`
+	TrustChainExpiresAt                         types.Int64                 `tfsdk:"trust_chain_expires_at"`
+	TrustChainUpdatedAt                         types.Int64                 `tfsdk:"trust_chain_updated_at"`
+	UserInfoEncryptionAlg                       types.String                `tfsdk:"user_info_encryption_alg"`
+	UserInfoEncryptionEnc                       types.String                `tfsdk:"user_info_encryption_enc"`
+	UserInfoSignAlg                             types.String                `tfsdk:"user_info_sign_alg"`
 }
 
 // Metadata returns the data source type name.
@@ -372,8 +372,10 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Description: `True if credential responses to this client must be always encrypted.`,
 			},
 			"custom_metadata": schema.StringAttribute{
-				Computed:    true,
-				Description: `The custom client metadata in JSON format.`,
+				Computed: true,
+				MarkdownDescription: `The custom client metadata in JSON format.` + "\n" +
+					`` + "\n" +
+					`Authlete keeps only the keys declared in the parent service's ` + "`" + `supported_custom_client_metadata` + "`" + `. Any other key is discarded silently: the apply succeeds, the key does not appear on the client, and every subsequent plan offers to add it again. Declare the key on the service before setting it here.`,
 			},
 			"default_acrs": schema.ListAttribute{
 				Computed:    true,
@@ -754,6 +756,7 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 					`See [OpenID Connect Core 1.0, 6.2. Passing a Request Object by Reference](https://openid.net/specs/openid-connect-core-1_0.html#RequestUriParameter) for details.`,
 			},
 			"response_modes": schema.ListAttribute{
+				CustomType:  customtypes.NewEmptyOrNullListType(),
 				Computed:    true,
 				ElementType: types.StringType,
 				Description: `The response modes that this client may use.`,
@@ -845,7 +848,9 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 					`client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
 					`See ` + "`" + `tls_client_auth_san_dns` + "`" + ` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client` + "\n" +
-					`Registration" for details.`,
+					`Registration" for details.` + "\n" +
+					`` + "\n" +
+					`Authlete accepts exactly one of ` + "`" + `tls_client_auth_subject_dn` + "`" + `, ` + "`" + `tls_client_auth_san_dns` + "`" + `, ` + "`" + `tls_client_auth_san_email` + "`" + `, ` + "`" + `tls_client_auth_san_ip` + "`" + ` and ` + "`" + `tls_client_auth_san_uri` + "`" + `. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.`,
 			},
 			"tls_client_auth_san_email": schema.StringAttribute{
 				Computed: true,
@@ -853,7 +858,9 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 					`this client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
 					`See ` + "`" + `tls_client_auth_san_email` + "`" + ` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client` + "\n" +
-					`Registration" for details.`,
+					`Registration" for details.` + "\n" +
+					`` + "\n" +
+					`Authlete accepts exactly one of ` + "`" + `tls_client_auth_subject_dn` + "`" + `, ` + "`" + `tls_client_auth_san_dns` + "`" + `, ` + "`" + `tls_client_auth_san_email` + "`" + `, ` + "`" + `tls_client_auth_san_ip` + "`" + ` and ` + "`" + `tls_client_auth_san_uri` + "`" + `. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.`,
 			},
 			"tls_client_auth_san_ip": schema.StringAttribute{
 				Computed: true,
@@ -861,7 +868,9 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 					`this client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
 					`See ` + "`" + `tls_client_auth_san_ip` + "`" + ` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client` + "\n" +
-					`Registration" for details.`,
+					`Registration" for details.` + "\n" +
+					`` + "\n" +
+					`Authlete accepts exactly one of ` + "`" + `tls_client_auth_subject_dn` + "`" + `, ` + "`" + `tls_client_auth_san_dns` + "`" + `, ` + "`" + `tls_client_auth_san_email` + "`" + `, ` + "`" + `tls_client_auth_san_ip` + "`" + ` and ` + "`" + `tls_client_auth_san_uri` + "`" + `. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.`,
 			},
 			"tls_client_auth_san_uri": schema.StringAttribute{
 				Computed: true,
@@ -869,7 +878,9 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 					`client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
 					`See ` + "`" + `tls_client_auth_san_uri` + "`" + ` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client` + "\n" +
-					`Registration" for details.`,
+					`Registration" for details.` + "\n" +
+					`` + "\n" +
+					`Authlete accepts exactly one of ` + "`" + `tls_client_auth_subject_dn` + "`" + `, ` + "`" + `tls_client_auth_san_dns` + "`" + `, ` + "`" + `tls_client_auth_san_email` + "`" + `, ` + "`" + `tls_client_auth_san_ip` + "`" + ` and ` + "`" + `tls_client_auth_san_uri` + "`" + `. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.`,
 			},
 			"tls_client_auth_subject_dn": schema.StringAttribute{
 				Computed: true,
@@ -877,7 +888,9 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 					`client will use in mutual TLS authentication.` + "\n" +
 					`` + "\n" +
 					`See ` + "`" + `tls_client_auth_subject_dn` + "`" + ` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client` + "\n" +
-					`Registration" for details.`,
+					`Registration" for details.` + "\n" +
+					`` + "\n" +
+					`Authlete accepts exactly one of ` + "`" + `tls_client_auth_subject_dn` + "`" + `, ` + "`" + `tls_client_auth_san_dns` + "`" + `, ` + "`" + `tls_client_auth_san_email` + "`" + `, ` + "`" + `tls_client_auth_san_ip` + "`" + ` and ` + "`" + `tls_client_auth_san_uri` + "`" + `. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.`,
 			},
 			"tls_client_certificate_bound_access_tokens": schema.BoolAttribute{
 				Computed:    true,

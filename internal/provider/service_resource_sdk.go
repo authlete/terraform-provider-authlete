@@ -284,14 +284,11 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		for _, v := range resp.SupportedClaims {
 			r.SupportedClaims = append(r.SupportedClaims, types.StringValue(v))
 		}
-		if resp.SupportedClaimTypes != nil {
-			r.SupportedClaimTypes = make([]types.String, 0, len(resp.SupportedClaimTypes))
-			for _, v := range resp.SupportedClaimTypes {
-				r.SupportedClaimTypes = append(r.SupportedClaimTypes, types.StringValue(string(v)))
-			}
-		} else {
-			r.SupportedClaimTypes = nil
-		}
+		supportedClaimTypesValue, supportedClaimTypesDiags := types.ListValueFrom(ctx, types.StringType, resp.SupportedClaimTypes)
+		diags.Append(supportedClaimTypesDiags...)
+		supportedClaimTypesValuable, supportedClaimTypesDiags := customtypes.NewEmptyOrNullListType().ValueFromList(ctx, supportedClaimTypesValue)
+		diags.Append(supportedClaimTypesDiags...)
+		r.SupportedClaimTypes, _ = supportedClaimTypesValuable.(customtypes.EmptyOrNullList)
 		r.SupportedClientRegistrationTypes = make([]types.String, 0, len(resp.SupportedClientRegistrationTypes))
 		for _, v := range resp.SupportedClientRegistrationTypes {
 			r.SupportedClientRegistrationTypes = append(r.SupportedClientRegistrationTypes, types.StringValue(string(v)))
@@ -304,14 +301,11 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		for _, v := range resp.SupportedDigestAlgorithms {
 			r.SupportedDigestAlgorithms = append(r.SupportedDigestAlgorithms, types.StringValue(v))
 		}
-		if resp.SupportedDisplays != nil {
-			r.SupportedDisplays = make([]types.String, 0, len(resp.SupportedDisplays))
-			for _, v := range resp.SupportedDisplays {
-				r.SupportedDisplays = append(r.SupportedDisplays, types.StringValue(string(v)))
-			}
-		} else {
-			r.SupportedDisplays = nil
-		}
+		supportedDisplaysValue, supportedDisplaysDiags := types.ListValueFrom(ctx, types.StringType, resp.SupportedDisplays)
+		diags.Append(supportedDisplaysDiags...)
+		supportedDisplaysValuable, supportedDisplaysDiags := customtypes.NewEmptyOrNullListType().ValueFromList(ctx, supportedDisplaysValue)
+		diags.Append(supportedDisplaysDiags...)
+		r.SupportedDisplays, _ = supportedDisplaysValuable.(customtypes.EmptyOrNullList)
 		r.SupportedDocuments = make([]types.String, 0, len(resp.SupportedDocuments))
 		for _, v := range resp.SupportedDocuments {
 			r.SupportedDocuments = append(r.SupportedDocuments, types.StringValue(v))
@@ -340,14 +334,11 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		for _, v := range resp.SupportedEvidence {
 			r.SupportedEvidence = append(r.SupportedEvidence, types.StringValue(v))
 		}
-		if resp.SupportedGrantTypes != nil {
-			r.SupportedGrantTypes = make([]types.String, 0, len(resp.SupportedGrantTypes))
-			for _, v := range resp.SupportedGrantTypes {
-				r.SupportedGrantTypes = append(r.SupportedGrantTypes, types.StringValue(string(v)))
-			}
-		} else {
-			r.SupportedGrantTypes = nil
-		}
+		supportedGrantTypesValue, supportedGrantTypesDiags := types.ListValueFrom(ctx, types.StringType, resp.SupportedGrantTypes)
+		diags.Append(supportedGrantTypesDiags...)
+		supportedGrantTypesValuable, supportedGrantTypesDiags := customtypes.NewEmptyOrNullListType().ValueFromList(ctx, supportedGrantTypesValue)
+		diags.Append(supportedGrantTypesDiags...)
+		r.SupportedGrantTypes, _ = supportedGrantTypesValuable.(customtypes.EmptyOrNullList)
 		r.SupportedIdentityDocuments = make([]types.String, 0, len(resp.SupportedIdentityDocuments))
 		for _, v := range resp.SupportedIdentityDocuments {
 			r.SupportedIdentityDocuments = append(r.SupportedIdentityDocuments, types.StringValue(v))
@@ -356,22 +347,16 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		for _, v := range resp.SupportedIntrospectionAuthMethods {
 			r.SupportedIntrospectionAuthMethods = append(r.SupportedIntrospectionAuthMethods, types.StringValue(string(v)))
 		}
-		if resp.SupportedPromptValues != nil {
-			r.SupportedPromptValues = make([]types.String, 0, len(resp.SupportedPromptValues))
-			for _, v := range resp.SupportedPromptValues {
-				r.SupportedPromptValues = append(r.SupportedPromptValues, types.StringValue(string(v)))
-			}
-		} else {
-			r.SupportedPromptValues = nil
-		}
-		if resp.SupportedResponseTypes != nil {
-			r.SupportedResponseTypes = make([]types.String, 0, len(resp.SupportedResponseTypes))
-			for _, v := range resp.SupportedResponseTypes {
-				r.SupportedResponseTypes = append(r.SupportedResponseTypes, types.StringValue(string(v)))
-			}
-		} else {
-			r.SupportedResponseTypes = nil
-		}
+		supportedPromptValuesValue, supportedPromptValuesDiags := types.ListValueFrom(ctx, types.StringType, resp.SupportedPromptValues)
+		diags.Append(supportedPromptValuesDiags...)
+		supportedPromptValuesValuable, supportedPromptValuesDiags := customtypes.NewEmptyOrNullListType().ValueFromList(ctx, supportedPromptValuesValue)
+		diags.Append(supportedPromptValuesDiags...)
+		r.SupportedPromptValues, _ = supportedPromptValuesValuable.(customtypes.EmptyOrNullList)
+		supportedResponseTypesValue, supportedResponseTypesDiags := types.ListValueFrom(ctx, types.StringType, resp.SupportedResponseTypes)
+		diags.Append(supportedResponseTypesDiags...)
+		supportedResponseTypesValuable, supportedResponseTypesDiags := customtypes.NewEmptyOrNullListType().ValueFromList(ctx, supportedResponseTypesValue)
+		diags.Append(supportedResponseTypesDiags...)
+		r.SupportedResponseTypes, _ = supportedResponseTypesValuable.(customtypes.EmptyOrNullList)
 		r.SupportedRevocationAuthMethods = make([]types.String, 0, len(resp.SupportedRevocationAuthMethods))
 		for _, v := range resp.SupportedRevocationAuthMethods {
 			r.SupportedRevocationAuthMethods = append(r.SupportedRevocationAuthMethods, types.StringValue(string(v)))
@@ -415,14 +400,11 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		for _, v := range resp.SupportedSnses {
 			r.SupportedSnses = append(r.SupportedSnses, types.StringValue(string(v)))
 		}
-		if resp.SupportedTokenAuthMethods != nil {
-			r.SupportedTokenAuthMethods = make([]types.String, 0, len(resp.SupportedTokenAuthMethods))
-			for _, v := range resp.SupportedTokenAuthMethods {
-				r.SupportedTokenAuthMethods = append(r.SupportedTokenAuthMethods, types.StringValue(string(v)))
-			}
-		} else {
-			r.SupportedTokenAuthMethods = nil
-		}
+		supportedTokenAuthMethodsValue, supportedTokenAuthMethodsDiags := types.ListValueFrom(ctx, types.StringType, resp.SupportedTokenAuthMethods)
+		diags.Append(supportedTokenAuthMethodsDiags...)
+		supportedTokenAuthMethodsValuable, supportedTokenAuthMethodsDiags := customtypes.NewEmptyOrNullListType().ValueFromList(ctx, supportedTokenAuthMethodsValue)
+		diags.Append(supportedTokenAuthMethodsDiags...)
+		r.SupportedTokenAuthMethods, _ = supportedTokenAuthMethodsValuable.(customtypes.EmptyOrNullList)
 		r.SupportedTrustFrameworks = make([]types.String, 0, len(resp.SupportedTrustFrameworks))
 		for _, v := range resp.SupportedTrustFrameworks {
 			r.SupportedTrustFrameworks = append(r.SupportedTrustFrameworks, types.StringValue(v))
@@ -569,51 +551,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		clientsPerDeveloper = nil
 	}
-	snsCredentials := make([]shared.SnsCredentials, 0, len(r.SnsCredentials))
-	for snsCredentialsIndex := range r.SnsCredentials {
-		sns := new(string)
-		if !r.SnsCredentials[snsCredentialsIndex].Sns.IsUnknown() && !r.SnsCredentials[snsCredentialsIndex].Sns.IsNull() {
-			*sns = r.SnsCredentials[snsCredentialsIndex].Sns.ValueString()
-		} else {
-			sns = nil
-		}
-		apiKey := new(string)
-		if !r.SnsCredentials[snsCredentialsIndex].APIKey.IsUnknown() && !r.SnsCredentials[snsCredentialsIndex].APIKey.IsNull() {
-			*apiKey = r.SnsCredentials[snsCredentialsIndex].APIKey.ValueString()
-		} else {
-			apiKey = nil
-		}
-		apiSecret := new(string)
-		if !r.SnsCredentials[snsCredentialsIndex].APISecret.IsUnknown() && !r.SnsCredentials[snsCredentialsIndex].APISecret.IsNull() {
-			*apiSecret = r.SnsCredentials[snsCredentialsIndex].APISecret.ValueString()
-		} else {
-			apiSecret = nil
-		}
-		snsCredentials = append(snsCredentials, shared.SnsCredentials{
-			Sns:       sns,
-			APIKey:    apiKey,
-			APISecret: apiSecret,
-		})
-	}
-	metadata := make([]shared.Pair, 0, len(r.Metadata))
-	for metadataIndex := range r.Metadata {
-		key := new(string)
-		if !r.Metadata[metadataIndex].Key.IsUnknown() && !r.Metadata[metadataIndex].Key.IsNull() {
-			*key = r.Metadata[metadataIndex].Key.ValueString()
-		} else {
-			key = nil
-		}
-		value := new(string)
-		if !r.Metadata[metadataIndex].Value.IsUnknown() && !r.Metadata[metadataIndex].Value.IsNull() {
-			*value = r.Metadata[metadataIndex].Value.ValueString()
-		} else {
-			value = nil
-		}
-		metadata = append(metadata, shared.Pair{
-			Key:   key,
-			Value: value,
-		})
-	}
 	authenticationCallbackEndpoint := new(string)
 	if !r.AuthenticationCallbackEndpoint.IsUnknown() && !r.AuthenticationCallbackEndpoint.IsNull() {
 		*authenticationCallbackEndpoint = r.AuthenticationCallbackEndpoint.ValueString()
@@ -633,18 +570,12 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		authenticationCallbackAPISecret = nil
 	}
 	var supportedGrantTypes []shared.GrantType
-	if r.SupportedGrantTypes != nil {
-		supportedGrantTypes = make([]shared.GrantType, 0, len(r.SupportedGrantTypes))
-		for _, supportedGrantTypesItem := range r.SupportedGrantTypes {
-			supportedGrantTypes = append(supportedGrantTypes, shared.GrantType(supportedGrantTypesItem.ValueString()))
-		}
+	if !r.SupportedGrantTypes.IsUnknown() && !r.SupportedGrantTypes.IsNull() {
+		diags.Append(r.SupportedGrantTypes.ElementsAs(ctx, &supportedGrantTypes, true)...)
 	}
 	var supportedResponseTypes []shared.ResponseType
-	if r.SupportedResponseTypes != nil {
-		supportedResponseTypes = make([]shared.ResponseType, 0, len(r.SupportedResponseTypes))
-		for _, supportedResponseTypesItem := range r.SupportedResponseTypes {
-			supportedResponseTypes = append(supportedResponseTypes, shared.ResponseType(supportedResponseTypesItem.ValueString()))
-		}
+	if !r.SupportedResponseTypes.IsUnknown() && !r.SupportedResponseTypes.IsNull() {
+		diags.Append(r.SupportedResponseTypes.ElementsAs(ctx, &supportedResponseTypes, true)...)
 	}
 	supportedAuthorizationDetailsTypes := make([]string, 0, len(r.SupportedAuthorizationDetailsTypes))
 	for supportedAuthorizationDetailsTypesIndex := range r.SupportedAuthorizationDetailsTypes {
@@ -677,11 +608,8 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		supportedUILocales = append(supportedUILocales, r.SupportedUILocales[supportedUILocalesIndex].ValueString())
 	}
 	var supportedDisplays []shared.Display
-	if r.SupportedDisplays != nil {
-		supportedDisplays = make([]shared.Display, 0, len(r.SupportedDisplays))
-		for _, supportedDisplaysItem := range r.SupportedDisplays {
-			supportedDisplays = append(supportedDisplays, shared.Display(supportedDisplaysItem.ValueString()))
-		}
+	if !r.SupportedDisplays.IsUnknown() && !r.SupportedDisplays.IsNull() {
+		diags.Append(r.SupportedDisplays.ElementsAs(ctx, &supportedDisplays, true)...)
 	}
 	pkceRequired := new(bool)
 	if !r.PkceRequired.IsUnknown() && !r.PkceRequired.IsNull() {
@@ -714,11 +642,8 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		tokenEndpoint = nil
 	}
 	var supportedTokenAuthMethods []shared.ClientAuthMethod
-	if r.SupportedTokenAuthMethods != nil {
-		supportedTokenAuthMethods = make([]shared.ClientAuthMethod, 0, len(r.SupportedTokenAuthMethods))
-		for _, supportedTokenAuthMethodsItem := range r.SupportedTokenAuthMethods {
-			supportedTokenAuthMethods = append(supportedTokenAuthMethods, shared.ClientAuthMethod(supportedTokenAuthMethodsItem.ValueString()))
-		}
+	if !r.SupportedTokenAuthMethods.IsUnknown() && !r.SupportedTokenAuthMethods.IsNull() {
+		diags.Append(r.SupportedTokenAuthMethods.ElementsAs(ctx, &supportedTokenAuthMethods, true)...)
 	}
 	missingClientIDAllowed := new(bool)
 	if !r.MissingClientIDAllowed.IsUnknown() && !r.MissingClientIDAllowed.IsNull() {
@@ -893,34 +818,34 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 			} else {
 				tag = nil
 			}
-			value1 := new(string)
+			value := new(string)
 			if !r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Value.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Value.IsNull() {
-				*value1 = r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Value.ValueString()
+				*value = r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Value.ValueString()
 			} else {
-				value1 = nil
+				value = nil
 			}
 			descriptions = append(descriptions, shared.TaggedValue{
 				Tag:   tag,
-				Value: value1,
+				Value: value,
 			})
 		}
 		attributes := make([]shared.Pair, 0, len(r.SupportedScopes[supportedScopesIndex].Attributes))
 		for attributesIndex := range r.SupportedScopes[supportedScopesIndex].Attributes {
-			key1 := new(string)
+			key := new(string)
 			if !r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Key.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Key.IsNull() {
-				*key1 = r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Key.ValueString()
+				*key = r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Key.ValueString()
 			} else {
-				key1 = nil
+				key = nil
 			}
-			value2 := new(string)
+			value1 := new(string)
 			if !r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Value.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Value.IsNull() {
-				*value2 = r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Value.ValueString()
+				*value1 = r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Value.ValueString()
 			} else {
-				value2 = nil
+				value1 = nil
 			}
 			attributes = append(attributes, shared.Pair{
-				Key:   key1,
-				Value: value2,
+				Key:   key,
+				Value: value1,
 			})
 		}
 		supportedScopes = append(supportedScopes, shared.Scope{
@@ -950,11 +875,8 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		allowableClockSkew = nil
 	}
 	var supportedClaimTypes []shared.ClaimType
-	if r.SupportedClaimTypes != nil {
-		supportedClaimTypes = make([]shared.ClaimType, 0, len(r.SupportedClaimTypes))
-		for _, supportedClaimTypesItem := range r.SupportedClaimTypes {
-			supportedClaimTypes = append(supportedClaimTypes, shared.ClaimType(supportedClaimTypesItem.ValueString()))
-		}
+	if !r.SupportedClaimTypes.IsUnknown() && !r.SupportedClaimTypes.IsNull() {
+		diags.Append(r.SupportedClaimTypes.ElementsAs(ctx, &supportedClaimTypes, true)...)
 	}
 	supportedClaimLocales := make([]string, 0, len(r.SupportedClaimLocales))
 	for supportedClaimLocalesIndex := range r.SupportedClaimLocales {
@@ -1146,21 +1068,21 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	}
 	attributes1 := make([]shared.Pair, 0, len(r.Attributes))
 	for attributesIndex1 := range r.Attributes {
-		key2 := new(string)
+		key1 := new(string)
 		if !r.Attributes[attributesIndex1].Key.IsUnknown() && !r.Attributes[attributesIndex1].Key.IsNull() {
-			*key2 = r.Attributes[attributesIndex1].Key.ValueString()
+			*key1 = r.Attributes[attributesIndex1].Key.ValueString()
 		} else {
-			key2 = nil
+			key1 = nil
 		}
-		value3 := new(string)
+		value2 := new(string)
 		if !r.Attributes[attributesIndex1].Value.IsUnknown() && !r.Attributes[attributesIndex1].Value.IsNull() {
-			*value3 = r.Attributes[attributesIndex1].Value.ValueString()
+			*value2 = r.Attributes[attributesIndex1].Value.ValueString()
 		} else {
-			value3 = nil
+			value2 = nil
 		}
 		attributes1 = append(attributes1, shared.Pair{
-			Key:   key2,
-			Value: value3,
+			Key:   key1,
+			Value: value2,
 		})
 	}
 	nbfOptional := new(bool)
@@ -1208,60 +1130,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		*hsmEnabled = r.HsmEnabled.ValueBool()
 	} else {
 		hsmEnabled = nil
-	}
-	hsks := make([]shared.Hsk, 0, len(r.Hsks))
-	for hsksIndex := range r.Hsks {
-		kty := new(string)
-		if !r.Hsks[hsksIndex].Kty.IsUnknown() && !r.Hsks[hsksIndex].Kty.IsNull() {
-			*kty = r.Hsks[hsksIndex].Kty.ValueString()
-		} else {
-			kty = nil
-		}
-		use := new(string)
-		if !r.Hsks[hsksIndex].Use.IsUnknown() && !r.Hsks[hsksIndex].Use.IsNull() {
-			*use = r.Hsks[hsksIndex].Use.ValueString()
-		} else {
-			use = nil
-		}
-		kid := new(string)
-		if !r.Hsks[hsksIndex].Kid.IsUnknown() && !r.Hsks[hsksIndex].Kid.IsNull() {
-			*kid = r.Hsks[hsksIndex].Kid.ValueString()
-		} else {
-			kid = nil
-		}
-		hsmName := new(string)
-		if !r.Hsks[hsksIndex].HsmName.IsUnknown() && !r.Hsks[hsksIndex].HsmName.IsNull() {
-			*hsmName = r.Hsks[hsksIndex].HsmName.ValueString()
-		} else {
-			hsmName = nil
-		}
-		handle := new(string)
-		if !r.Hsks[hsksIndex].Handle.IsUnknown() && !r.Hsks[hsksIndex].Handle.IsNull() {
-			*handle = r.Hsks[hsksIndex].Handle.ValueString()
-		} else {
-			handle = nil
-		}
-		publicKey := new(string)
-		if !r.Hsks[hsksIndex].PublicKey.IsUnknown() && !r.Hsks[hsksIndex].PublicKey.IsNull() {
-			*publicKey = r.Hsks[hsksIndex].PublicKey.ValueString()
-		} else {
-			publicKey = nil
-		}
-		alg := new(string)
-		if !r.Hsks[hsksIndex].Alg.IsUnknown() && !r.Hsks[hsksIndex].Alg.IsNull() {
-			*alg = r.Hsks[hsksIndex].Alg.ValueString()
-		} else {
-			alg = nil
-		}
-		hsks = append(hsks, shared.Hsk{
-			Kty:       kty,
-			Use:       use,
-			Kid:       kid,
-			HsmName:   hsmName,
-			Handle:    handle,
-			PublicKey: publicKey,
-			Alg:       alg,
-		})
 	}
 	grantManagementEndpoint := new(string)
 	if !r.GrantManagementEndpoint.IsUnknown() && !r.GrantManagementEndpoint.IsNull() {
@@ -1557,11 +1425,8 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		userPinLength = nil
 	}
 	var supportedPromptValues []shared.Prompt
-	if r.SupportedPromptValues != nil {
-		supportedPromptValues = make([]shared.Prompt, 0, len(r.SupportedPromptValues))
-		for _, supportedPromptValuesItem := range r.SupportedPromptValues {
-			supportedPromptValues = append(supportedPromptValues, shared.Prompt(supportedPromptValuesItem.ValueString()))
-		}
+	if !r.SupportedPromptValues.IsUnknown() && !r.SupportedPromptValues.IsNull() {
+		diags.Append(r.SupportedPromptValues.ElementsAs(ctx, &supportedPromptValues, true)...)
 	}
 	idTokenReissuable := new(bool)
 	if !r.IDTokenReissuable.IsUnknown() && !r.IDTokenReissuable.IsNull() {
@@ -1792,8 +1657,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		Description:                                 description,
 		ClientAssertionAudRestrictedToIssuer:        clientAssertionAudRestrictedToIssuer,
 		ClientsPerDeveloper:                         clientsPerDeveloper,
-		SnsCredentials:                              snsCredentials,
-		Metadata:                                    metadata,
 		AuthenticationCallbackEndpoint:              authenticationCallbackEndpoint,
 		AuthenticationCallbackAPIKey:                authenticationCallbackAPIKey,
 		AuthenticationCallbackAPISecret:             authenticationCallbackAPISecret,
@@ -1883,7 +1746,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		RequestObjectEncryptionAlgMatchRequired:     requestObjectEncryptionAlgMatchRequired,
 		RequestObjectEncryptionEncMatchRequired:     requestObjectEncryptionEncMatchRequired,
 		HsmEnabled:                                  hsmEnabled,
-		Hsks:                                        hsks,
 		GrantManagementEndpoint:                     grantManagementEndpoint,
 		GrantManagementActionRequired:               grantManagementActionRequired,
 		UnauthorizedOnClientConfigSupported:         unauthorizedOnClientConfigSupported,

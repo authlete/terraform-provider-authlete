@@ -177,11 +177,11 @@ type ServiceDataSourceModel struct {
 	SupportedBackchannelTokenDeliveryModes      []types.String                    `tfsdk:"supported_backchannel_token_delivery_modes"`
 	SupportedClaimLocales                       []types.String                    `tfsdk:"supported_claim_locales"`
 	SupportedClaims                             []types.String                    `tfsdk:"supported_claims"`
-	SupportedClaimTypes                         []types.String                    `tfsdk:"supported_claim_types"`
+	SupportedClaimTypes                         customtypes.EmptyOrNullList       `tfsdk:"supported_claim_types"`
 	SupportedClientRegistrationTypes            []types.String                    `tfsdk:"supported_client_registration_types"`
 	SupportedCustomClientMetadata               []types.String                    `tfsdk:"supported_custom_client_metadata"`
 	SupportedDigestAlgorithms                   []types.String                    `tfsdk:"supported_digest_algorithms"`
-	SupportedDisplays                           []types.String                    `tfsdk:"supported_displays"`
+	SupportedDisplays                           customtypes.EmptyOrNullList       `tfsdk:"supported_displays"`
 	SupportedDocuments                          []types.String                    `tfsdk:"supported_documents"`
 	SupportedDocumentsCheckMethods              []types.String                    `tfsdk:"supported_documents_check_methods"`
 	SupportedDocumentsMethods                   []types.String                    `tfsdk:"supported_documents_methods"`
@@ -189,16 +189,16 @@ type ServiceDataSourceModel struct {
 	SupportedDocumentsVerificationMethods       []types.String                    `tfsdk:"supported_documents_verification_methods"`
 	SupportedElectronicRecords                  []types.String                    `tfsdk:"supported_electronic_records"`
 	SupportedEvidence                           []types.String                    `tfsdk:"supported_evidence"`
-	SupportedGrantTypes                         []types.String                    `tfsdk:"supported_grant_types"`
+	SupportedGrantTypes                         customtypes.EmptyOrNullList       `tfsdk:"supported_grant_types"`
 	SupportedIdentityDocuments                  []types.String                    `tfsdk:"supported_identity_documents"`
 	SupportedIntrospectionAuthMethods           []types.String                    `tfsdk:"supported_introspection_auth_methods"`
-	SupportedPromptValues                       []types.String                    `tfsdk:"supported_prompt_values"`
-	SupportedResponseTypes                      []types.String                    `tfsdk:"supported_response_types"`
+	SupportedPromptValues                       customtypes.EmptyOrNullList       `tfsdk:"supported_prompt_values"`
+	SupportedResponseTypes                      customtypes.EmptyOrNullList       `tfsdk:"supported_response_types"`
 	SupportedRevocationAuthMethods              []types.String                    `tfsdk:"supported_revocation_auth_methods"`
 	SupportedScopes                             []tfTypes.Scope                   `tfsdk:"supported_scopes"`
 	SupportedServiceProfiles                    []types.String                    `tfsdk:"supported_service_profiles"`
 	SupportedSnses                              []types.String                    `tfsdk:"supported_snses"`
-	SupportedTokenAuthMethods                   []types.String                    `tfsdk:"supported_token_auth_methods"`
+	SupportedTokenAuthMethods                   customtypes.EmptyOrNullList       `tfsdk:"supported_token_auth_methods"`
 	SupportedTrustFrameworks                    []types.String                    `tfsdk:"supported_trust_frameworks"`
 	SupportedUILocales                          []types.String                    `tfsdk:"supported_ui_locales"`
 	SupportedVerificationMethods                []types.String                    `tfsdk:"supported_verification_methods"`
@@ -835,7 +835,9 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 					`` + "\n" +
 					`This ` + "`" + `hsks` + "`" + ` property is output only, meaning that ` + "`" + `hsks` + "`" + ` in requests to ` + "`" + `/api/service/create` + "`" + `` + "\n" +
 					`API and ` + "`" + `/api/service/update` + "`" + ` API do not have any effect. The contents of this property is controlled` + "\n" +
-					`only by ` + "`" + `/api/hsk/*` + "`" + ` APIs.`,
+					`only by ` + "`" + `/api/hsk/*` + "`" + ` APIs.` + "\n" +
+					`` + "\n" +
+					`Read-only. Hardware security module keys are managed through Authlete's separate HSK API, which this provider does not expose. The service create and update endpoints ignore this field, so a value written here is discarded silently and the plan never settles. What this returns is for reference.`,
 			},
 			"hsm_enabled": schema.BoolAttribute{
 				Computed: true,
@@ -972,7 +974,9 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 					`` + "\n" +
 					`  | Key | Description |` + "\n" +
 					`  | --- | --- |` + "\n" +
-					`  | ` + "`" + `clientCount` + "`" + ` | The number of client applications which belong to this service.  |`,
+					`  | ` + "`" + `clientCount` + "`" + ` | The number of client applications which belong to this service.  |` + "\n" +
+					`` + "\n" +
+					`Read-only. Authlete owns these values -- ` + "`" + `clientCount` + "`" + ` changes as clients are added or removed -- and the service create and update endpoints ignore anything written here, including an empty list.`,
 			},
 			"missing_client_id_allowed": schema.BoolAttribute{
 				Computed: true,
@@ -1285,6 +1289,7 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"supported_claim_types": schema.ListAttribute{
+				CustomType:  customtypes.NewEmptyOrNullListType(),
 				Computed:    true,
 				ElementType: types.StringType,
 				MarkdownDescription: `Claim types supported by the service. Valid values are listed in Claim Type. Note that Authlete` + "\n" +
@@ -1319,6 +1324,7 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 					`Assurance 1.0.`,
 			},
 			"supported_displays": schema.ListAttribute{
+				CustomType:  customtypes.NewEmptyOrNullListType(),
 				Computed:    true,
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of ` + "`" + `display` + "`" + ` request parameter that service supports.` + "\n" +
@@ -1379,6 +1385,7 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 				Description: `Evidence supported by this service. This corresponds to the ` + "`" + `evidence_supported` + "`" + ` [metadata](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#rfc.section.7).`,
 			},
 			"supported_grant_types": schema.ListAttribute{
+				CustomType:  customtypes.NewEmptyOrNullListType(),
 				Computed:    true,
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of ` + "`" + `grant_type` + "`" + ` request parameter that the service supports.` + "\n" +
@@ -1398,11 +1405,13 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 				Description: `Client authentication methods supported at the introspection endpoint.`,
 			},
 			"supported_prompt_values": schema.ListAttribute{
+				CustomType:  customtypes.NewEmptyOrNullListType(),
 				Computed:    true,
 				ElementType: types.StringType,
 				Description: `The supported ` + "`" + `prompt` + "`" + ` values.`,
 			},
 			"supported_response_types": schema.ListAttribute{
+				CustomType:  customtypes.NewEmptyOrNullListType(),
 				Computed:    true,
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of ` + "`" + `response_type` + "`" + ` request parameter that` + "\n" +
@@ -1480,6 +1489,7 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 					`authentication.`,
 			},
 			"supported_token_auth_methods": schema.ListAttribute{
+				CustomType:  customtypes.NewEmptyOrNullListType(),
 				Computed:    true,
 				ElementType: types.StringType,
 				MarkdownDescription: `Client authentication methods supported by the token endpoint of the service.` + "\n" +

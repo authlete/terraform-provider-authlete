@@ -284,14 +284,11 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		for _, v := range resp.SupportedClaims {
 			r.SupportedClaims = append(r.SupportedClaims, types.StringValue(v))
 		}
-		if resp.SupportedClaimTypes != nil {
-			r.SupportedClaimTypes = make([]types.String, 0, len(resp.SupportedClaimTypes))
-			for _, v := range resp.SupportedClaimTypes {
-				r.SupportedClaimTypes = append(r.SupportedClaimTypes, types.StringValue(string(v)))
-			}
-		} else {
-			r.SupportedClaimTypes = nil
-		}
+		supportedClaimTypesValue, supportedClaimTypesDiags := types.ListValueFrom(ctx, types.StringType, resp.SupportedClaimTypes)
+		diags.Append(supportedClaimTypesDiags...)
+		supportedClaimTypesValuable, supportedClaimTypesDiags := customtypes.NewEmptyOrNullListType().ValueFromList(ctx, supportedClaimTypesValue)
+		diags.Append(supportedClaimTypesDiags...)
+		r.SupportedClaimTypes, _ = supportedClaimTypesValuable.(customtypes.EmptyOrNullList)
 		r.SupportedClientRegistrationTypes = make([]types.String, 0, len(resp.SupportedClientRegistrationTypes))
 		for _, v := range resp.SupportedClientRegistrationTypes {
 			r.SupportedClientRegistrationTypes = append(r.SupportedClientRegistrationTypes, types.StringValue(string(v)))
@@ -304,14 +301,11 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		for _, v := range resp.SupportedDigestAlgorithms {
 			r.SupportedDigestAlgorithms = append(r.SupportedDigestAlgorithms, types.StringValue(v))
 		}
-		if resp.SupportedDisplays != nil {
-			r.SupportedDisplays = make([]types.String, 0, len(resp.SupportedDisplays))
-			for _, v := range resp.SupportedDisplays {
-				r.SupportedDisplays = append(r.SupportedDisplays, types.StringValue(string(v)))
-			}
-		} else {
-			r.SupportedDisplays = nil
-		}
+		supportedDisplaysValue, supportedDisplaysDiags := types.ListValueFrom(ctx, types.StringType, resp.SupportedDisplays)
+		diags.Append(supportedDisplaysDiags...)
+		supportedDisplaysValuable, supportedDisplaysDiags := customtypes.NewEmptyOrNullListType().ValueFromList(ctx, supportedDisplaysValue)
+		diags.Append(supportedDisplaysDiags...)
+		r.SupportedDisplays, _ = supportedDisplaysValuable.(customtypes.EmptyOrNullList)
 		r.SupportedDocuments = make([]types.String, 0, len(resp.SupportedDocuments))
 		for _, v := range resp.SupportedDocuments {
 			r.SupportedDocuments = append(r.SupportedDocuments, types.StringValue(v))
@@ -340,14 +334,11 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		for _, v := range resp.SupportedEvidence {
 			r.SupportedEvidence = append(r.SupportedEvidence, types.StringValue(v))
 		}
-		if resp.SupportedGrantTypes != nil {
-			r.SupportedGrantTypes = make([]types.String, 0, len(resp.SupportedGrantTypes))
-			for _, v := range resp.SupportedGrantTypes {
-				r.SupportedGrantTypes = append(r.SupportedGrantTypes, types.StringValue(string(v)))
-			}
-		} else {
-			r.SupportedGrantTypes = nil
-		}
+		supportedGrantTypesValue, supportedGrantTypesDiags := types.ListValueFrom(ctx, types.StringType, resp.SupportedGrantTypes)
+		diags.Append(supportedGrantTypesDiags...)
+		supportedGrantTypesValuable, supportedGrantTypesDiags := customtypes.NewEmptyOrNullListType().ValueFromList(ctx, supportedGrantTypesValue)
+		diags.Append(supportedGrantTypesDiags...)
+		r.SupportedGrantTypes, _ = supportedGrantTypesValuable.(customtypes.EmptyOrNullList)
 		r.SupportedIdentityDocuments = make([]types.String, 0, len(resp.SupportedIdentityDocuments))
 		for _, v := range resp.SupportedIdentityDocuments {
 			r.SupportedIdentityDocuments = append(r.SupportedIdentityDocuments, types.StringValue(v))
@@ -356,22 +347,16 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		for _, v := range resp.SupportedIntrospectionAuthMethods {
 			r.SupportedIntrospectionAuthMethods = append(r.SupportedIntrospectionAuthMethods, types.StringValue(string(v)))
 		}
-		if resp.SupportedPromptValues != nil {
-			r.SupportedPromptValues = make([]types.String, 0, len(resp.SupportedPromptValues))
-			for _, v := range resp.SupportedPromptValues {
-				r.SupportedPromptValues = append(r.SupportedPromptValues, types.StringValue(string(v)))
-			}
-		} else {
-			r.SupportedPromptValues = nil
-		}
-		if resp.SupportedResponseTypes != nil {
-			r.SupportedResponseTypes = make([]types.String, 0, len(resp.SupportedResponseTypes))
-			for _, v := range resp.SupportedResponseTypes {
-				r.SupportedResponseTypes = append(r.SupportedResponseTypes, types.StringValue(string(v)))
-			}
-		} else {
-			r.SupportedResponseTypes = nil
-		}
+		supportedPromptValuesValue, supportedPromptValuesDiags := types.ListValueFrom(ctx, types.StringType, resp.SupportedPromptValues)
+		diags.Append(supportedPromptValuesDiags...)
+		supportedPromptValuesValuable, supportedPromptValuesDiags := customtypes.NewEmptyOrNullListType().ValueFromList(ctx, supportedPromptValuesValue)
+		diags.Append(supportedPromptValuesDiags...)
+		r.SupportedPromptValues, _ = supportedPromptValuesValuable.(customtypes.EmptyOrNullList)
+		supportedResponseTypesValue, supportedResponseTypesDiags := types.ListValueFrom(ctx, types.StringType, resp.SupportedResponseTypes)
+		diags.Append(supportedResponseTypesDiags...)
+		supportedResponseTypesValuable, supportedResponseTypesDiags := customtypes.NewEmptyOrNullListType().ValueFromList(ctx, supportedResponseTypesValue)
+		diags.Append(supportedResponseTypesDiags...)
+		r.SupportedResponseTypes, _ = supportedResponseTypesValuable.(customtypes.EmptyOrNullList)
 		r.SupportedRevocationAuthMethods = make([]types.String, 0, len(resp.SupportedRevocationAuthMethods))
 		for _, v := range resp.SupportedRevocationAuthMethods {
 			r.SupportedRevocationAuthMethods = append(r.SupportedRevocationAuthMethods, types.StringValue(string(v)))
@@ -415,14 +400,11 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		for _, v := range resp.SupportedSnses {
 			r.SupportedSnses = append(r.SupportedSnses, types.StringValue(string(v)))
 		}
-		if resp.SupportedTokenAuthMethods != nil {
-			r.SupportedTokenAuthMethods = make([]types.String, 0, len(resp.SupportedTokenAuthMethods))
-			for _, v := range resp.SupportedTokenAuthMethods {
-				r.SupportedTokenAuthMethods = append(r.SupportedTokenAuthMethods, types.StringValue(string(v)))
-			}
-		} else {
-			r.SupportedTokenAuthMethods = nil
-		}
+		supportedTokenAuthMethodsValue, supportedTokenAuthMethodsDiags := types.ListValueFrom(ctx, types.StringType, resp.SupportedTokenAuthMethods)
+		diags.Append(supportedTokenAuthMethodsDiags...)
+		supportedTokenAuthMethodsValuable, supportedTokenAuthMethodsDiags := customtypes.NewEmptyOrNullListType().ValueFromList(ctx, supportedTokenAuthMethodsValue)
+		diags.Append(supportedTokenAuthMethodsDiags...)
+		r.SupportedTokenAuthMethods, _ = supportedTokenAuthMethodsValuable.(customtypes.EmptyOrNullList)
 		r.SupportedTrustFrameworks = make([]types.String, 0, len(resp.SupportedTrustFrameworks))
 		for _, v := range resp.SupportedTrustFrameworks {
 			r.SupportedTrustFrameworks = append(r.SupportedTrustFrameworks, types.StringValue(v))

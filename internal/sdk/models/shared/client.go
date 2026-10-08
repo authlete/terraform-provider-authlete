@@ -236,6 +236,7 @@ type Client struct {
 	// See `tls_client_auth_subject_dn` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
 	// Registration" for details.
 	//
+	// Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
 	TLSClientAuthSubjectDn *string `json:"tlsClientAuthSubjectDn,omitzero"`
 	// The string representation of the expected DNS subject alternative name of the certificate this
 	// client will use in mutual TLS authentication.
@@ -243,6 +244,7 @@ type Client struct {
 	// See `tls_client_auth_san_dns` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
 	// Registration" for details.
 	//
+	// Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
 	TLSClientAuthSanDNS *string `json:"tlsClientAuthSanDns,omitzero"`
 	// The string representation of the expected URI subject alternative name of the certificate this
 	// client will use in mutual TLS authentication.
@@ -250,6 +252,7 @@ type Client struct {
 	// See `tls_client_auth_san_uri` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
 	// Registration" for details.
 	//
+	// Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
 	TLSClientAuthSanURI *string `json:"tlsClientAuthSanUri,omitzero"`
 	// The string representation of the expected IP address subject alternative name of the certificate
 	// this client will use in mutual TLS authentication.
@@ -257,6 +260,7 @@ type Client struct {
 	// See `tls_client_auth_san_ip` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
 	// Registration" for details.
 	//
+	// Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
 	TLSClientAuthSanIP *string `json:"tlsClientAuthSanIp,omitzero"`
 	// The string representation of the expected email address subject alternative name of the certificate
 	// this client will use in mutual TLS authentication.
@@ -264,6 +268,7 @@ type Client struct {
 	// See `tls_client_auth_san_email` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
 	// Registration" for details.
 	//
+	// Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
 	TLSClientAuthSanEmail *string `json:"tlsClientAuthSanEmail,omitzero"`
 	// The flag to indicate whether this client is required to use the pushed authorization request endpoint.
 	// This property corresponds to the `require_pushed_authorization_requests` client metadata defined
@@ -499,6 +504,7 @@ type Client struct {
 	AuthorizationDetailsTypes []string `json:"authorizationDetailsTypes,omitzero"`
 	// The custom client metadata in JSON format.
 	//
+	// Authlete keeps only the keys declared in the parent service's `supported_custom_client_metadata`. Any other key is discarded silently: the apply succeeds, the key does not appear on the client, and every subsequent plan offers to add it again. Declare the key on the service before setting it here.
 	CustomMetadata *string `json:"customMetadata,omitzero"`
 	// The flag indicating whether encryption of request object is required when the request object
 	// is passed through the front channel.
@@ -1528,6 +1534,7 @@ type ClientInput struct {
 	// See `tls_client_auth_subject_dn` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
 	// Registration" for details.
 	//
+	// Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
 	TLSClientAuthSubjectDn *string `json:"tlsClientAuthSubjectDn,omitzero" form:"name=tlsClientAuthSubjectDn"`
 	// The string representation of the expected DNS subject alternative name of the certificate this
 	// client will use in mutual TLS authentication.
@@ -1535,6 +1542,7 @@ type ClientInput struct {
 	// See `tls_client_auth_san_dns` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
 	// Registration" for details.
 	//
+	// Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
 	TLSClientAuthSanDNS *string `json:"tlsClientAuthSanDns,omitzero" form:"name=tlsClientAuthSanDns"`
 	// The string representation of the expected URI subject alternative name of the certificate this
 	// client will use in mutual TLS authentication.
@@ -1542,6 +1550,7 @@ type ClientInput struct {
 	// See `tls_client_auth_san_uri` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
 	// Registration" for details.
 	//
+	// Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
 	TLSClientAuthSanURI *string `json:"tlsClientAuthSanUri,omitzero" form:"name=tlsClientAuthSanUri"`
 	// The string representation of the expected IP address subject alternative name of the certificate
 	// this client will use in mutual TLS authentication.
@@ -1549,6 +1558,7 @@ type ClientInput struct {
 	// See `tls_client_auth_san_ip` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
 	// Registration" for details.
 	//
+	// Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
 	TLSClientAuthSanIP *string `json:"tlsClientAuthSanIp,omitzero" form:"name=tlsClientAuthSanIp"`
 	// The string representation of the expected email address subject alternative name of the certificate
 	// this client will use in mutual TLS authentication.
@@ -1556,6 +1566,7 @@ type ClientInput struct {
 	// See `tls_client_auth_san_email` in "Mutual TLS Profiles for OAuth Clients, 2.3. Dynamic Client
 	// Registration" for details.
 	//
+	// Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
 	TLSClientAuthSanEmail *string `json:"tlsClientAuthSanEmail,omitzero" form:"name=tlsClientAuthSanEmail"`
 	// The flag to indicate whether this client is required to use the pushed authorization request endpoint.
 	// This property corresponds to the `require_pushed_authorization_requests` client metadata defined
@@ -1786,6 +1797,7 @@ type ClientInput struct {
 	AuthorizationDetailsTypes []string `json:"authorizationDetailsTypes,omitzero" form:"name=authorizationDetailsTypes"`
 	// The custom client metadata in JSON format.
 	//
+	// Authlete keeps only the keys declared in the parent service's `supported_custom_client_metadata`. Any other key is discarded silently: the apply succeeds, the key does not appear on the client, and every subsequent plan offers to add it again. Declare the key on the service before setting it here.
 	CustomMetadata *string `json:"customMetadata,omitzero" form:"name=customMetadata"`
 	// The flag indicating whether encryption of request object is required when the request object
 	// is passed through the front channel.
