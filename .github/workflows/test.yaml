@@ -59,6 +59,14 @@ jobs:
       - name: Vet
         run: go vet ./...
 
+      # The same linter `speakeasy run` runs during generation. Without this,
+      # lint breakage is invisible until someone regenerates: go build, go vet
+      # and the tests all pass, generation fails. That happened once -- error
+      # strings added for clearer diagnostics tripped ST1005 and left the branch
+      # unable to regenerate for several commits.
+      - name: Lint
+        run: go run honnef.co/go/tools/cmd/staticcheck@v0.7.0 -checks=inherit,-SA1019,-SA5008 ./...
+
       # The contract tests in internal/provider/provider_contract_test.go are the
       # important ones here: they assert that the hand edits carried by
       # persistentEdits are still present. Losing them does not break the build,

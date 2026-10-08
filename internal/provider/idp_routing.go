@@ -163,6 +163,10 @@ func NewIdpRoutingTransport(serverURL, idpHost string, apiServerID, organization
 // cluster this provider knows, which is unambiguous. An unrecognised host is
 // exactly the deployment that must set idp_host.
 func misdirectedIdpError(serverURL, origin string) error {
+	// These are terminal messages shown to a practitioner in Terraform output, not
+	// Go errors that get wrapped into a longer sentence, so the usual lowercase
+	// no-trailing-punctuation convention does not apply.
+	//lint:ignore ST1005 user-facing diagnostic
 	return fmt.Errorf(
 		"refusing to send an Authlete organization token to %s.\n\n"+
 			"server_url is %q, which is not one of Authlete's public clusters, so this is a "+
@@ -186,6 +190,10 @@ func misdirectedIdpError(serverURL, origin string) error {
 // AUTHLETE_TOKEN, which a provider config validator cannot see. The transport
 // sees what was actually sent.
 func errNoToken() error {
+	// These are terminal messages shown to a practitioner in Terraform output, not
+	// Go errors that get wrapped into a longer sentence, so the usual lowercase
+	// no-trailing-punctuation convention does not apply.
+	//lint:ignore ST1005 user-facing diagnostic
 	return errors.New(
 		"no Authlete API token is configured.\n\n" +
 			"Set `bearer` on the provider, or the AUTHLETE_TOKEN environment variable.\n\n" +
@@ -199,6 +207,10 @@ func errNoToken() error {
 // always a Service Access Token being used by mistake -- and the raw response
 // says only A286301 inside an HTTP dump.
 func errWrongTokenType(path string) error {
+	// These are terminal messages shown to a practitioner in Terraform output, not
+	// Go errors that get wrapped into a longer sentence, so the usual lowercase
+	// no-trailing-punctuation convention does not apply.
+	//lint:ignore ST1005 user-facing diagnostic
 	return fmt.Errorf(
 		"Authlete rejected the token for %s (401).\n\n"+
 			"Creating and deleting a service goes through Authlete's identity server and "+
@@ -215,6 +227,10 @@ func errWrongTokenType(path string) error {
 // reported Post "https://login.authlete.com/api/service" even though that host
 // was never contacted, which is actively misleading when debugging one.
 func errIdpUnreachable(target *url.URL, err error) error {
+	// These are terminal messages shown to a practitioner in Terraform output, not
+	// Go errors that get wrapped into a longer sentence, so the usual lowercase
+	// no-trailing-punctuation convention does not apply.
+	//lint:ignore ST1005 user-facing diagnostic
 	return fmt.Errorf("could not reach the identity server at %s://%s: %w\n\n"+
 		"This is the host configured as idp_host. The address Terraform reports elsewhere "+
 		"may be Authlete's default rather than this one.",
