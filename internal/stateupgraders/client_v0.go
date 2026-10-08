@@ -34,8 +34,10 @@ func ClientStateUpgraderV0(ctx context.Context, req resource.UpgradeStateRequest
 				"the client with.\n\n" +
 				"Recover it by removing the resource from state and importing it again:\n\n" +
 				"  terraform state rm authlete_client.<name>\n" +
-				"  terraform import authlete_client.<name> <service api key>/<client id>\n\n" +
-				"Importing preserves the client and its secret; nothing is recreated.",
+				"  terraform import authlete_client.<name> '{\"client_id\": <client id>, \"service_id\": \"<service api key>\"}'\n\n" +
+				"The client importer takes a JSON object, not a slash-separated pair. Both " +
+				"values are shown in the Authlete console. Importing preserves the client " +
+				"and its secret; nothing is recreated.",
 		},
 		{
 			from:      "service_api_key",
@@ -49,7 +51,8 @@ func ClientStateUpgraderV0(ctx context.Context, req resource.UpgradeStateRequest
 				"inferred.\n\n" +
 				"Set `service_id` in configuration, then re-adopt this resource:\n\n" +
 				"  terraform state rm authlete_client.<name>\n" +
-				"  terraform import authlete_client.<name> <service api key>/<client id>\n\n" +
+				"  terraform import authlete_client.<name> '{\"client_id\": <client id>, \"service_id\": \"<service api key>\"}'\n\n" +
+				"The client importer takes a JSON object, not a slash-separated pair. " +
 				"Importing preserves the client and its secret; nothing is recreated.",
 		},
 	}, req, resp)

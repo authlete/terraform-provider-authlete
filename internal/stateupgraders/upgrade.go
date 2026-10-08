@@ -100,6 +100,19 @@ func upgrade(_ context.Context, entity string, renames []rename, req resource.Up
 	}
 
 	for _, r := range renames {
+		// State already carrying the current name needs no rename. Terraform
+		// recorded every v3-draft build before x-speakeasy-entity-version was
+		// added as version 0, the same version v1.3.x wrote, so this upgrader
+		// runs over state that is already in the current shape. Without this
+		// check those resources stopped with "api_key is missing" -- naming an
+		// attribute that is in fact present and correct.
+		if to, ok := attrs[r.to]; ok {
+			if _, blank := stringish(to); !blank {
+				delete(attrs, r.from)
+				continue
+			}
+		}
+
 		raw, present := attrs[r.from]
 		value, empty := stringish(raw)
 

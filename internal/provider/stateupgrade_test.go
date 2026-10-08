@@ -233,3 +233,81 @@ func TestServiceStateUpgradeFromRealV1317State(t *testing.T) {
 		t.Error("`id` survived the migration")
 	}
 }
+
+// TestUpgradePassesThroughCurrentShape covers state that is already in this
+// provider's shape.
+//
+// Terraform recorded every v3-draft build from before x-speakeasy-entity-version
+// was added as schema_version 0 -- the same version v1.3.x wrote. There is no
+// way to tell the two apart by version alone, so this upgrader runs over both.
+// Old state carries `id`; the newer state already carries `api_key` and
+// `client_id` and has no `id` at all, and the upgrader used to stop on it with
+// "api_key is missing", naming an attribute that was present and correct.
+//
+// Reproduced live before the fix. Upgrading from v1.3.17 itself was unaffected,
+// which is why it survived the original round of testing.
+func TestUpgradePassesThroughCurrentShape(t *testing.T) {
+	t.Run("service", func(t *testing.T) {
+		out, errSummary := runUpgrade(t, stateupgraders.ServiceStateUpgraderV0,
+			schemaTypeOf(t, NewServiceResource()), map[string]any{
+				"api_key":      int64(8689741203439953),
+				"service_name": "already-v3",
+			})
+		if errSummary != "" {
+			t.Fatalf("state already in the current shape was refused: %s\n\n"+
+				"api_key is present. The upgrader must pass it through, not "+
+				"report it missing.", errSummary)
+		}
+		var apiKey *big.Float
+		if err := out["api_key"].As(&apiKey); err != nil {
+			t.Fatalf("api_key did not decode as a number: %v", err)
+		}
+		if got := apiKey.Text('f', 0); got != "8689741203439953" {
+			t.Errorf("api_key = %s, want it carried through unchanged", got)
+		}
+		if got := mustString(t, out["service_name"]); got != "already-v3" {
+			t.Errorf("service_name = %q, want it carried through unchanged", got)
+		}
+	})
+
+	t.Run("client", func(t *testing.T) {
+		out, errSummary := runUpgrade(t, stateupgraders.ClientStateUpgraderV0,
+			schemaTypeOf(t, NewClientResource()), map[string]any{
+				"client_id":   int64(41925176568),
+				"service_id":  "8689741203439953",
+				"client_name": "already-v3",
+			})
+		if errSummary != "" {
+			t.Fatalf("state already in the current shape was refused: %s", errSummary)
+		}
+		var clientID *big.Float
+		if err := out["client_id"].As(&clientID); err != nil {
+			t.Fatalf("client_id did not decode as a number: %v", err)
+		}
+		if got := clientID.Text('f', 0); got != "41925176568" {
+			t.Errorf("client_id = %s, want it carried through unchanged", got)
+		}
+		if got := mustString(t, out["service_id"]); got != "8689741203439953" {
+			t.Errorf("service_id = %q, want it carried through unchanged", got)
+		}
+	})
+
+	// Old state still migrates. The pass-through must not shadow the rename.
+	t.Run("v1.3.x state still migrates", func(t *testing.T) {
+		out, errSummary := runUpgrade(t, stateupgraders.ServiceStateUpgraderV0,
+			schemaTypeOf(t, NewServiceResource()), map[string]any{
+				"id":           "8689741203439953",
+				"service_name": "legacy",
+			})
+		if errSummary != "" {
+			t.Fatalf("v1.3.x state no longer migrates: %s", errSummary)
+		}
+		var apiKey *big.Float
+		if err := out["api_key"].As(&apiKey); err != nil {
+			t.Fatalf("api_key did not decode as a number: %v", err)
+		}
+		if got := apiKey.Text('f', 0); got != "8689741203439953" {
+			t.Errorf("api_key = %s, want the value from id", got)
+		}
+	})
+}
