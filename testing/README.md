@@ -22,6 +22,46 @@ in effect" warning on every command; that is expected.
 ./run.sh show        # dump current state
 ```
 
+## OpenTofu
+
+OpenTofu implements the same plugin protocol as Terraform, so the same provider
+binary, the same configuration and the same `dev_overrides` file work under
+either. Set `TF_BIN` to run any of the commands above against it:
+
+```bash
+TF_BIN=tofu ./run.sh validate
+TF_BIN=tofu ./run.sh apply
+TF_BIN=tofu ./run.sh import
+```
+
+Install it with `brew install opentofu`.
+
+Verified end to end against OpenTofu 1.13.1 and the live API: create, plan,
+settle, import in both the plain and JSON forms, state migration from 1.3.x, and
+destroy. Nothing in the provider is Terraform-specific.
+
+What this does **not** cover is distribution. OpenTofu resolves providers from
+its own registry rather than HashiCorp's, so an OpenTofu user cannot `tofu init`
+this provider until it is published there. The harness sidesteps that with
+`dev_overrides`, which points straight at the local binary.
+
+Three things are kept separate per CLI, because both record providers by full
+registry address and neither can read the other's:
+
+| | How |
+|---|---|
+| plugin cache | `TF_DATA_DIR`, so `.terraform-terraform` and `.terraform-tofu` |
+| state | `terraform-terraform.tfstate` and `terraform-tofu.tfstate` |
+| dependency lock | swapped in and out, since its path is fixed |
+
+Without that, whichever CLI ran last leaves the other unable to find
+`hashicorp/tls`, or failing with `authentication signature from unknown issuer`
+when it reads a state file naming the wrong registry. Neither error says
+anything about the real cause.
+
+The two state files are independent. `apply` under one CLI is invisible to the
+other, so destroy with the same CLI you applied with.
+
 `validate` and `plan` work with no credentials at all — Terraform only needs the
 API once it has to reconcile something that exists. `apply` and `destroy` refuse
 to run without a token.

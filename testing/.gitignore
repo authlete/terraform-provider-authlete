@@ -8,3 +8,7 @@ terraform.tfstate.backup
 .env.local
 jwks_*.json
 *.pem
+.terraform-*/
+terraform-*.tfstate
+terraform-*.tfstate.backup
+.terraform.lock.*.hcl
