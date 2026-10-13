@@ -27,18 +27,6 @@ type ServiceInput struct {
 	// The maximum number of client applications that a developer can have.
 	//
 	ClientsPerDeveloper *int `json:"clientsPerDeveloper,omitzero" form:"name=clientsPerDeveloper"`
-	// The credentials for social login services (SNS) that are used for
-	// end-user authentication.
-	//
-	SnsCredentials []SnsCredentials `json:"snsCredentials,omitzero" form:"name=snsCredentials,json"`
-	// The `metadata` of the service. The content of the returned array depends on contexts.
-	// The predefined service metadata is listed in the following table.
-	//
-	//   | Key | Description |
-	//   | --- | --- |
-	//   | `clientCount` | The number of client applications which belong to this service.  |
-	//
-	Metadata []Pair `json:"metadata,omitzero" form:"name=metadata,json"`
 	// A Web API endpoint for user authentication which is to be prepared on the service side.
 	//
 	// The endpoint must be implemented if you do not implement the UI at the authorization endpoint
@@ -501,13 +489,6 @@ type ServiceInput struct {
 	// server you are using does not support HSM.
 	//
 	HsmEnabled *bool `json:"hsmEnabled,omitzero" form:"name=hsmEnabled"`
-	// The information about keys managed on HSMs (Hardware Security Modules).
-	//
-	// This `hsks` property is output only, meaning that `hsks` in requests to `/api/service/create`
-	// API and `/api/service/update` API do not have any effect. The contents of this property is controlled
-	// only by `/api/hsk/*` APIs.
-	//
-	Hsks []Hsk `json:"hsks,omitzero" form:"name=hsks,json"`
 	// The URL of the grant management endpoint.
 	//
 	GrantManagementEndpoint *string `json:"grantManagementEndpoint,omitzero" form:"name=grantManagementEndpoint"`
@@ -910,20 +891,6 @@ func (s *ServiceInput) GetClientsPerDeveloper() *int {
 		return nil
 	}
 	return s.ClientsPerDeveloper
-}
-
-func (s *ServiceInput) GetSnsCredentials() []SnsCredentials {
-	if s == nil {
-		return nil
-	}
-	return s.SnsCredentials
-}
-
-func (s *ServiceInput) GetMetadata() []Pair {
-	if s == nil {
-		return nil
-	}
-	return s.Metadata
 }
 
 func (s *ServiceInput) GetAuthenticationCallbackEndpoint() *string {
@@ -1547,13 +1514,6 @@ func (s *ServiceInput) GetHsmEnabled() *bool {
 		return nil
 	}
 	return s.HsmEnabled
-}
-
-func (s *ServiceInput) GetHsks() []Hsk {
-	if s == nil {
-		return nil
-	}
-	return s.Hsks
 }
 
 func (s *ServiceInput) GetGrantManagementEndpoint() *string {
