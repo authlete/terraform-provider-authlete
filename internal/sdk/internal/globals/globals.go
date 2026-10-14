@@ -4,9 +4,40 @@
 package globals
 
 type Globals struct {
-	OrganizationID *int64  `pathParam:"style=simple,explode=false,name=organizationId"`
-	IdpHost        *string `pathParam:"style=simple,explode=false,name=idpHost"`
-	APIServerID    *int64  `pathParam:"style=simple,explode=false,name=apiServerId"`
+	// The Authlete organization services are created under. Required to
+	// create or delete a service, which goes through the IdP rather than
+	// the regional cluster.
+	//
+	// Also settable with the AUTHLETE_ORGANIZATION_ID environment
+	// variable. Shown in the Authlete console.
+	OrganizationID *int64 `pathParam:"style=simple,explode=false,name=organizationId"`
+	// The host of your own identity server, for Dedicated Cloud and
+	// On-Premise deployments. Leave unset on Shared Cloud, which uses
+	// Authlete's own IdP at login.authlete.com.
+	//
+	// Set this whenever server_url is not one of the four public
+	// clusters. Without it, creating a service sends your organization
+	// token to login.authlete.com instead of your deployment, and the
+	// error only says that apiServerId must not be null.
+	//
+	// Also settable with the AUTHLETE_IDP_HOST environment variable.
+	IdpHost *string `pathParam:"style=simple,explode=false,name=idpHost"`
+	// Which API server the IdP should create the service on. The
+	// Authlete console calls this the cluster ID.
+	//
+	// Derived automatically for the four public clusters, so Shared
+	// Cloud deployments need not set it. Dedicated Cloud, On-Premise and
+	// pre-production hosts are not derivable and must supply it, or the
+	// IdP rejects create and delete.
+	//
+	// Must describe the same deployment as server_url. Creating a
+	// service on one cluster and reading it from another fails on the
+	// next refresh with a 403, leaving a service Terraform can neither
+	// read nor delete.
+	//
+	// Also settable with the AUTHLETE_API_SERVER_ID environment
+	// variable.
+	APIServerID *int64 `pathParam:"style=simple,explode=false,name=apiServerId"`
 }
 
 func (g *Globals) GetOrganizationID() *int64 {
