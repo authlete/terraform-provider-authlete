@@ -245,7 +245,7 @@ func (r *ClientDataSourceModel) RefreshFromSharedClient(ctx context.Context, res
 				r.ResponseModes = append(r.ResponseModes, types.StringValue(string(v)))
 			}
 		} else {
-			r.ResponseModes = nil
+			r.ResponseModes = []types.String{}
 		}
 		r.ResponseTypes = make([]types.String, 0, len(resp.ResponseTypes))
 		for _, v := range resp.ResponseTypes {
