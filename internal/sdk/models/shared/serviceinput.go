@@ -264,8 +264,9 @@ type ServiceInput struct {
 	// See [RFC 6749 6. Refreshing an Access Token](https://tools.ietf.org/html/rfc6749#section-6), as to how to get a new access token using a refresh token.
 	//
 	RefreshTokenKept *bool `json:"refreshTokenKept,omitzero" form:"name=refreshTokenKept"`
-	// Scopes supported by the service.
+	// The scopes supported by the service.
 	//
+	// Authlete returns this list in an order of its own and fills in fields a configuration naming only the scope does not set, so a plan may offer to rewrite it even when nothing has changed. Applying is harmless and the stored scopes are correct. The sibling lists this affected are compared without regard to order; this one cannot be, because reordering cannot be told apart from an edit to a scope's description.
 	SupportedScopes []Scope `json:"supportedScopes,omitzero" form:"name=supportedScopes,json"`
 	// The flag to indicate whether requests that request no scope are rejected or not.
 	//

@@ -719,6 +719,14 @@ actions:
 
         Authlete keeps only the keys declared in the parent service's `supported_custom_client_metadata`. Any other key is discarded silently: the apply succeeds, the key does not appear on the client, and every subsequent plan offers to add it again. Declare the key on the service before setting it here.
 
+  - target: $.components.schemas.service.properties.supportedScopes
+    description: Note that the order is not preserved
+    update:
+      description: |-
+        The scopes supported by the service.
+
+        Authlete returns this list in an order of its own and fills in fields a configuration naming only the scope does not set, so a plan may offer to rewrite it even when nothing has changed. Applying is harmless and the stored scopes are correct. The sibling lists this affected are compared without regard to order; this one cannot be, because reordering cannot be told apart from an edit to a scope's description.
+
   # ---------- Identity and secrets do not change on an update ----------
   #
   # Nothing told Terraform that these are stable, so every update planned them

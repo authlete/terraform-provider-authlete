@@ -762,7 +762,9 @@ the service supports. Valid values are listed in Response Type.
 The value of this property is used as `response_types_supported` property in the
 [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
 - `supported_revocation_auth_methods` (List of String) Client authentication methods supported at the revocation endpoint.
-- `supported_scopes` (Attributes List) Scopes supported by the service. (see [below for nested schema](#nestedatt--supported_scopes))
+- `supported_scopes` (Attributes List) The scopes supported by the service.
+
+Authlete returns this list in an order of its own and fills in fields a configuration naming only the scope does not set, so a plan may offer to rewrite it even when nothing has changed. Applying is harmless and the stored scopes are correct. The sibling lists this affected are compared without regard to order; this one cannot be, because reordering cannot be told apart from an edit to a scope's description. (see [below for nested schema](#nestedatt--supported_scopes))
 - `supported_service_profiles` (List of String) The profiles that this service supports.
 - `supported_token_auth_methods` (List of String) Client authentication methods supported by the token endpoint of the service.
 
