@@ -1451,8 +1451,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"supported_attachments": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrdersupportedAttachments(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Supported attachment types. This property corresponds to the &#123;@code` + "\n" +
 					`attachments_supported&#125; server metadata which was added by the third` + "\n" +
@@ -1495,8 +1498,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"supported_claim_types": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrdersupportedClaimTypes(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Claim types supported by the service. Valid values are listed in Claim Type. Note that Authlete` + "\n" +
 					`currently doesn't provide any API to help implementations for ` + "`" + `AGGREGATED` + "`" + ` and ` + "`" + `DISTRIBUTED` + "`" + `.` + "\n" +
@@ -1511,7 +1517,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
-					custom_listplanmodifier.KeepOrderSupportedClaims(),
+					custom_listplanmodifier.KeepOrdersupportedClaims(),
 				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Claim names that the service supports. The standard claim names listed in [OpenID Connect Core 1.0,` + "\n" +
@@ -1543,8 +1549,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`Assurance 1.0.`,
 			},
 			"supported_displays": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrdersupportedDisplays(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of ` + "`" + `display` + "`" + ` request parameter that service supports.` + "\n" +
 					`` + "\n" +
@@ -1617,7 +1626,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
-					custom_listplanmodifier.KeepOrderSupportedGrantTypes(),
+					custom_listplanmodifier.KeepOrdersupportedGrantTypes(),
 				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of ` + "`" + `grant_type` + "`" + ` request parameter that the service supports.` + "\n" +
@@ -1645,8 +1654,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				},
 			},
 			"supported_prompt_values": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrdersupportedPromptValues(),
+				},
 				ElementType: types.StringType,
 				Description: `The supported ` + "`" + `prompt` + "`" + ` values.`,
 				Validators: []validator.List{
@@ -1654,8 +1666,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				},
 			},
 			"supported_response_types": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrdersupportedResponseTypes(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of ` + "`" + `response_type` + "`" + ` request parameter that` + "\n" +
 					`the service supports. Valid values are listed in Response Type.` + "\n" +
@@ -1678,6 +1693,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"supported_scopes": schema.ListNestedAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrdersupportedScopes(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Validators: []validator.Object{
 						speakeasy_objectvalidators.NotNull(),
@@ -1747,8 +1765,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `Scopes supported by the service.`,
 			},
 			"supported_service_profiles": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrdersupportedServiceProfiles(),
+				},
 				ElementType: types.StringType,
 				Description: `The profiles that this service supports.`,
 				Validators: []validator.List{
@@ -1762,8 +1783,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`authentication.`,
 			},
 			"supported_token_auth_methods": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrdersupportedTokenAuthMethods(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Client authentication methods supported by the token endpoint of the service.` + "\n" +
 					`` + "\n" +
