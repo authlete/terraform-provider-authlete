@@ -289,7 +289,7 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 				r.SupportedClaimTypes = append(r.SupportedClaimTypes, types.StringValue(string(v)))
 			}
 		} else {
-			r.SupportedClaimTypes = []types.String{}
+			r.SupportedClaimTypes = nil
 		}
 		r.SupportedClientRegistrationTypes = make([]types.String, 0, len(resp.SupportedClientRegistrationTypes))
 		for _, v := range resp.SupportedClientRegistrationTypes {
@@ -309,7 +309,7 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 				r.SupportedDisplays = append(r.SupportedDisplays, types.StringValue(string(v)))
 			}
 		} else {
-			r.SupportedDisplays = []types.String{}
+			r.SupportedDisplays = nil
 		}
 		r.SupportedDocuments = make([]types.String, 0, len(resp.SupportedDocuments))
 		for _, v := range resp.SupportedDocuments {
@@ -345,7 +345,7 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 				r.SupportedGrantTypes = append(r.SupportedGrantTypes, types.StringValue(string(v)))
 			}
 		} else {
-			r.SupportedGrantTypes = []types.String{}
+			r.SupportedGrantTypes = nil
 		}
 		r.SupportedIdentityDocuments = make([]types.String, 0, len(resp.SupportedIdentityDocuments))
 		for _, v := range resp.SupportedIdentityDocuments {
@@ -361,7 +361,7 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 				r.SupportedPromptValues = append(r.SupportedPromptValues, types.StringValue(string(v)))
 			}
 		} else {
-			r.SupportedPromptValues = []types.String{}
+			r.SupportedPromptValues = nil
 		}
 		if resp.SupportedResponseTypes != nil {
 			r.SupportedResponseTypes = make([]types.String, 0, len(resp.SupportedResponseTypes))
@@ -369,7 +369,7 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 				r.SupportedResponseTypes = append(r.SupportedResponseTypes, types.StringValue(string(v)))
 			}
 		} else {
-			r.SupportedResponseTypes = []types.String{}
+			r.SupportedResponseTypes = nil
 		}
 		r.SupportedRevocationAuthMethods = make([]types.String, 0, len(resp.SupportedRevocationAuthMethods))
 		for _, v := range resp.SupportedRevocationAuthMethods {
@@ -420,7 +420,7 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 				r.SupportedTokenAuthMethods = append(r.SupportedTokenAuthMethods, types.StringValue(string(v)))
 			}
 		} else {
-			r.SupportedTokenAuthMethods = []types.String{}
+			r.SupportedTokenAuthMethods = nil
 		}
 		r.SupportedTrustFrameworks = make([]types.String, 0, len(resp.SupportedTrustFrameworks))
 		for _, v := range resp.SupportedTrustFrameworks {
