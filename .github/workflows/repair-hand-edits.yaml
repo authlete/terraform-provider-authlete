@@ -52,7 +52,8 @@ jobs:
         if: steps.target.outputs.skip != 'true'
         id: check
         run: |
-          if ./scripts/patch-provider.sh --check && ./scripts/patch-empty-lists.sh --check; then
+          if ./scripts/patch-provider.sh --check && ./scripts/patch-empty-lists.sh --check \
+             && python3 scripts/fill-keep-order-stubs.py --check; then
             echo "needs_repair=false" >> "$GITHUB_OUTPUT"
           else
             echo "needs_repair=true" >> "$GITHUB_OUTPUT"
@@ -67,6 +68,7 @@ jobs:
           set -euo pipefail
           ./scripts/patch-provider.sh
           ./scripts/patch-empty-lists.sh
+          python3 scripts/fill-keep-order-stubs.py
 
           fix_branch="repair/provider-patch-${GITHUB_RUN_ID}"
           git config user.name  "github-actions[bot]"

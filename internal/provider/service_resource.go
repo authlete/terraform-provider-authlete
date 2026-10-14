@@ -7,6 +7,7 @@ import (
 	"fmt"
 	custom_int32planmodifier "github.com/authlete/terraform-provider-authlete/internal/planmodifiers/int32planmodifier"
 	custom_int64planmodifier "github.com/authlete/terraform-provider-authlete/internal/planmodifiers/int64planmodifier"
+	custom_listplanmodifier "github.com/authlete/terraform-provider-authlete/internal/planmodifiers/listplanmodifier"
 	custom_stringplanmodifier "github.com/authlete/terraform-provider-authlete/internal/planmodifiers/stringplanmodifier"
 	"github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
 	tfTypes "github.com/authlete/terraform-provider-authlete/internal/provider/types"
@@ -1449,8 +1450,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"supported_attachments": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedAttachments(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Supported attachment types. This property corresponds to the &#123;@code` + "\n" +
 					`attachments_supported&#125; server metadata which was added by the third` + "\n" +
@@ -1493,8 +1497,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"supported_claim_types": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedClaimTypes(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Claim types supported by the service. Valid values are listed in Claim Type. Note that Authlete` + "\n" +
 					`currently doesn't provide any API to help implementations for ` + "`" + `AGGREGATED` + "`" + ` and ` + "`" + `DISTRIBUTED` + "`" + `.` + "\n" +
@@ -1506,8 +1513,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				},
 			},
 			"supported_claims": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedClaims(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Claim names that the service supports. The standard claim names listed in [OpenID Connect Core 1.0,` + "\n" +
 					`5.1. Standard Claim](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims) should` + "\n" +
@@ -1538,8 +1548,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`Assurance 1.0.`,
 			},
 			"supported_displays": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedDisplays(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of ` + "`" + `display` + "`" + ` request parameter that service supports.` + "\n" +
 					`` + "\n" +
@@ -1609,8 +1622,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `Evidence supported by this service. This corresponds to the ` + "`" + `evidence_supported` + "`" + ` [metadata](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#rfc.section.7).`,
 			},
 			"supported_grant_types": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedGrantTypes(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of ` + "`" + `grant_type` + "`" + ` request parameter that the service supports.` + "\n" +
 					`` + "\n" +
@@ -1637,8 +1653,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				},
 			},
 			"supported_prompt_values": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedPromptValues(),
+				},
 				ElementType: types.StringType,
 				Description: `The supported ` + "`" + `prompt` + "`" + ` values.`,
 				Validators: []validator.List{
@@ -1646,8 +1665,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				},
 			},
 			"supported_response_types": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedResponseTypes(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of ` + "`" + `response_type` + "`" + ` request parameter that` + "\n" +
 					`the service supports. Valid values are listed in Response Type.` + "\n" +
@@ -1739,8 +1761,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `Scopes supported by the service.`,
 			},
 			"supported_service_profiles": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedServiceProfiles(),
+				},
 				ElementType: types.StringType,
 				Description: `The profiles that this service supports.`,
 				Validators: []validator.List{
@@ -1754,8 +1779,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`authentication.`,
 			},
 			"supported_token_auth_methods": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedTokenAuthMethods(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Client authentication methods supported by the token endpoint of the service.` + "\n" +
 					`` + "\n" +

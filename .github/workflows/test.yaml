@@ -60,6 +60,13 @@ jobs:
       - name: Check the empty-list read patch is present
         run: ./scripts/patch-empty-lists.sh --check
 
+      # Speakeasy writes one stub per named plan modifier the first time it sees
+      # it, with a body that raises "TODO: implement". It does not overwrite the
+      # file afterwards, so the filled-in bodies normally survive -- but a stub
+      # regenerated from scratch would fail every plan for that attribute.
+      - name: Check the KeepOrder plan modifiers are implemented
+        run: python3 scripts/fill-keep-order-stubs.py --check
+
       - name: Build
         run: go build ./...
 

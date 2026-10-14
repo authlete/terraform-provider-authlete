@@ -826,6 +826,12 @@ actions:
       x-speakeasy-plan-validators:
         - ValidEnumValues
 
+  # supported_scopes is deliberately absent. It is a list of objects, and
+  # Authlete fills in default_entry, description and attributes that a
+  # configuration naming only the scope does not set, so its elements differ by
+  # more than their order and this modifier correctly declines. Matching on name
+  # alone would settle the plan and silently swallow a real change to a scope's
+  # description, which is worse than the diff. It remains a known limitation.
   - target: $.components.schemas.service.properties.supportedServiceProfiles
     description: Reject element values Authlete does not accept
     update:
@@ -909,3 +915,95 @@ actions:
     update:
       x-speakeasy-plan-validators:
         - ValidEnumValues
+
+  # ---------- Lists Authlete returns in its own order ----------
+  # Authlete stores these as sets and returns them in an order of its own, so a
+  # configuration that lists the same values in a different order plans a change
+  # on every run and never converges. Confirmed live against each one below: a
+  # service and a client were created with every list deliberately unsorted, and
+  # these are the ones that came back permuted. The nine lists that kept their
+  # order are deliberately left alone.
+  #
+  # A custom list type implementing semantic equality is the obvious fix and the
+  # one used for the JWK Set attributes. It cannot be used here:
+  # x-speakeasy-terraform-custom-type is applied to string properties and
+  # silently ignored on arrays, so the generated schema comes back unchanged.
+  # Verified by trying it.
+  #
+  # A plan modifier reaches the same end. It keeps the order already in state
+  # whenever the configuration holds the same elements, so the plan has nothing
+  # to show. Logic in internal/provider/planmodifiers/unordered_list.go, guarded
+  # by TestReorderedListPlansNoChange.
+
+  - target: $.components.schemas.service.properties.supportedAttachments
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_supported_attachments
+
+  - target: $.components.schemas.service.properties.supportedClaimTypes
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_supported_claim_types
+
+  - target: $.components.schemas.service.properties.supportedClaims
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_supported_claims
+
+  - target: $.components.schemas.service.properties.supportedDisplays
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_supported_displays
+
+  - target: $.components.schemas.service.properties.supportedGrantTypes
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_supported_grant_types
+
+  - target: $.components.schemas.service.properties.supportedPromptValues
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_supported_prompt_values
+
+  - target: $.components.schemas.service.properties.supportedResponseTypes
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_supported_response_types
+
+
+  - target: $.components.schemas.service.properties.supportedServiceProfiles
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_supported_service_profiles
+
+  - target: $.components.schemas.service.properties.supportedTokenAuthMethods
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_supported_token_auth_methods
+
+  - target: $.components.schemas.client.properties.grantTypes
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_grant_types
+
+  - target: $.components.schemas.client.properties.responseModes
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_response_modes
+
+  - target: $.components.schemas.client.properties.responseTypes
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_response_types
