@@ -1693,9 +1693,6 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"supported_scopes": schema.ListNestedAttribute{
 				Computed: true,
 				Optional: true,
-				PlanModifiers: []planmodifier.List{
-					custom_listplanmodifier.KeepOrderSupportedScopes(),
-				},
 				NestedObject: schema.NestedAttributeObject{
 					Validators: []validator.Object{
 						speakeasy_objectvalidators.NotNull(),
