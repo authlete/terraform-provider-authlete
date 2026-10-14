@@ -693,7 +693,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
-					custom_listplanmodifier.KeepOrdergrantTypes(),
+					custom_listplanmodifier.KeepOrderGrantTypes(),
 				},
 				ElementType: types.StringType,
 				MarkdownDescription: `A string array of grant types which the client application declares that it will restrict itself to using.` + "\n" +
@@ -1076,7 +1076,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
-					custom_listplanmodifier.KeepOrderresponseModes(),
+					custom_listplanmodifier.KeepOrderResponseModes(),
 				},
 				ElementType: types.StringType,
 				Description: `The response modes that this client may use.`,
@@ -1085,7 +1085,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
-					custom_listplanmodifier.KeepOrderresponseTypes(),
+					custom_listplanmodifier.KeepOrderResponseTypes(),
 				},
 				ElementType: types.StringType,
 				MarkdownDescription: `A string array of response types which the client application declares that it will restrict itself to using.` + "\n" +

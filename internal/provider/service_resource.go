@@ -1454,7 +1454,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
-					custom_listplanmodifier.KeepOrdersupportedAttachments(),
+					custom_listplanmodifier.KeepOrderSupportedAttachments(),
 				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Supported attachment types. This property corresponds to the &#123;@code` + "\n" +
@@ -1501,7 +1501,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
-					custom_listplanmodifier.KeepOrdersupportedClaimTypes(),
+					custom_listplanmodifier.KeepOrderSupportedClaimTypes(),
 				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Claim types supported by the service. Valid values are listed in Claim Type. Note that Authlete` + "\n" +
@@ -1517,7 +1517,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
-					custom_listplanmodifier.KeepOrdersupportedClaims(),
+					custom_listplanmodifier.KeepOrderSupportedClaims(),
 				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Claim names that the service supports. The standard claim names listed in [OpenID Connect Core 1.0,` + "\n" +
@@ -1552,7 +1552,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
-					custom_listplanmodifier.KeepOrdersupportedDisplays(),
+					custom_listplanmodifier.KeepOrderSupportedDisplays(),
 				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of ` + "`" + `display` + "`" + ` request parameter that service supports.` + "\n" +
@@ -1626,7 +1626,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
-					custom_listplanmodifier.KeepOrdersupportedGrantTypes(),
+					custom_listplanmodifier.KeepOrderSupportedGrantTypes(),
 				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of ` + "`" + `grant_type` + "`" + ` request parameter that the service supports.` + "\n" +
@@ -1657,7 +1657,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
-					custom_listplanmodifier.KeepOrdersupportedPromptValues(),
+					custom_listplanmodifier.KeepOrderSupportedPromptValues(),
 				},
 				ElementType: types.StringType,
 				Description: `The supported ` + "`" + `prompt` + "`" + ` values.`,
@@ -1669,7 +1669,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
-					custom_listplanmodifier.KeepOrdersupportedResponseTypes(),
+					custom_listplanmodifier.KeepOrderSupportedResponseTypes(),
 				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of ` + "`" + `response_type` + "`" + ` request parameter that` + "\n" +
@@ -1694,7 +1694,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
-					custom_listplanmodifier.KeepOrdersupportedScopes(),
+					custom_listplanmodifier.KeepOrderSupportedScopes(),
 				},
 				NestedObject: schema.NestedAttributeObject{
 					Validators: []validator.Object{
@@ -1768,7 +1768,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
-					custom_listplanmodifier.KeepOrdersupportedServiceProfiles(),
+					custom_listplanmodifier.KeepOrderSupportedServiceProfiles(),
 				},
 				ElementType: types.StringType,
 				Description: `The profiles that this service supports.`,
@@ -1786,7 +1786,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
-					custom_listplanmodifier.KeepOrdersupportedTokenAuthMethods(),
+					custom_listplanmodifier.KeepOrderSupportedTokenAuthMethods(),
 				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Client authentication methods supported by the token endpoint of the service.` + "\n" +
