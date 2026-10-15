@@ -11748,6 +11748,7 @@ components:
           readOnly: true
           description: "The API secret of this service. This value is assigned by Authlete and \nis used for service authentication in API calls.\n"
           x-speakeasy-param-sensitive: true
+          x-speakeasy-terraform-ignore: true
           x-speakeasy-plan-modifiers:
             - UseStateForUnknown
         tokenBatchNotificationEndpoint:

@@ -830,8 +830,6 @@ for this service is enabled or not.
 ### Read-Only
 
 - `api_key` (Number) The service ID used in Authlete API calls. The value of this property is assigned by Authlete.
-- `api_secret` (String, Sensitive) The API secret of this service. This value is assigned by Authlete and 
-is used for service authentication in API calls.
 - `client_id_alias_enabled` (Boolean) Deprecated. Always `true`.
 - `created_at` (Number) The time at which this service was created. The value is represented as milliseconds since the
 UNIX epoch (`1970-01-01`).
