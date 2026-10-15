@@ -1,4 +1,4 @@
-# terraform-provider-authlete
+# terraform-provider-authlete 3.0.0
 
 Manage [Authlete](https://www.authlete.com) services and OAuth 2.0 / OpenID
 Connect clients with Terraform.
