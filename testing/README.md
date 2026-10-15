@@ -20,6 +20,7 @@ in effect" warning on every command; that is expected.
 ./run.sh destroy     # removes what apply created
 ./run.sh import      # create a service, import it, assert the plan is clean
 ./run.sh regress     # apply the regression cases, assert the second plan is empty
+./run.sh negative    # assert the things that must be refused still are — no token needed
 ./run.sh show        # dump current state
 ```
 
@@ -66,6 +67,41 @@ other, so destroy with the same CLI you applied with.
 `validate` and `plan` work with no credentials at all — Terraform only needs the
 API once it has to reconcile something that exists. `apply` and `destroy` refuse
 to run without a token.
+
+## Coverage
+
+What each review item is guarded by. "live" means it needs a real Authlete and
+a token; everything else runs offline.
+
+| # | Problem | Guarded by |
+|---|---|---|
+| 1 | unset lists sent as `[]` | `regressions.tf` empty-list case (live) + `scripts/patch-empty-lists.sh --check` |
+| 2 | v1.3.17 state failed at refresh | `./run.sh import` (live) + `stateupgrade_test.go` |
+| 4 | secrets printed in plan output | `sensitive_test.go` |
+| 5 | secrets in `TF_LOG=DEBUG` | `log_redaction_test.go` |
+| 6 | `hsks`, `sns_credentials` accepted and ignored | `negative/readonly-attributes` |
+| 7 | `metadata` diffed forever after import | `negative/readonly-attributes` + `./run.sh import` (live) |
+| 9 | switching mTLS subject type failed | `regressions.tf` subject-type case (live) + `mtls_subject_test.go` |
+| 10 | misspelled enum values reached Authlete | `negative/misspelled-enum` + `enum_validation_test.go` |
+| 11 | identifiers planned as unknown | `regressions.tf` identifier checks (live) + `stable_attributes_test.go` |
+| 12 | lists Authlete reorders diffed forever | `regressions.tf` six scrambled lists (live) + `scripts/fill-keep-order-stubs.py --check` |
+| 15 | globals had no description | `provider_contract_test.go` |
+| 20 | no token gave a bare 401 per resource | `negative/no-token` |
+
+Not guarded here, and why:
+
+| # | Problem | Why not |
+|---|---|---|
+| 3 | deleting a line does not reset a setting | Behaviour is unchanged and is standard Terraform. Documented in the README |
+| 8 | undeclared `custom_metadata` keys discarded | Behaviour is unchanged. The rule is on the attribute |
+| 13 | `require_credential_request_encryption` cannot be enabled | Three fields are missing from the API specification. Belongs to the spec, not the provider |
+| 14 | private deployment sent its token to the shared IdP | Needs a self-managed deployment to reach the refusal. `idp_routing_test.go` covers the routing decision offline |
+| 16 | no in-place client secret rotation | Not implemented. A design choice, not a defect |
+| 18 | connection failure named the wrong host | Needs an unreachable identity server |
+| 19 | wrong token type gave a bare 401 | Needs a Service Access Token to be rejected by the IdP |
+
+Items 14, 18 and 19 are fixed but only provable against infrastructure this
+harness does not have. They are the gap worth closing first.
 
 ## Regression cases
 

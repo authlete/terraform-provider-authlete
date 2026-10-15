@@ -18,6 +18,7 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
 REPO_ROOT="$(cd .. && pwd)"
+TESTING_DIR="$PWD"
 BIN_DIR="$PWD/.provider-bin"
 TFRC="$PWD/.terraformrc.dev"
 MODE="${1:-plan}"
@@ -52,8 +53,8 @@ command -v "$TF" >/dev/null 2>&1 || die \
 command -v go >/dev/null 2>&1 || die "go not found on PATH."
 
 case "$MODE" in
-  validate|plan|apply|destroy|show|import|regress) ;;
-  *) die "unknown mode '$MODE'. Use one of: validate, plan, apply, destroy, show, import, regress" ;;
+  validate|plan|apply|destroy|show|import|regress|negative) ;;
+  *) die "unknown mode '$MODE'. Use one of: validate, plan, apply, destroy, show, import, regress, negative" ;;
 esac
 
 # validate and plan for not-yet-created resources need no live credentials, so a
@@ -305,6 +306,61 @@ EOF
   itself but is not the value that was written."
     fi
     say "All check block assertions passed."
+    ;;
+  negative)
+    # Some fixes make something impossible. A clean plan cannot prove that; the
+    # attempt being refused can, with the message that says why. Each directory
+    # under negative/ holds a configuration that must fail and an `expect` file
+    # holding a regular expression the failure has to match.
+    #
+    # Run in a copy, so no state lands in the repo. None of these reach the API:
+    # two are refused at plan time by the schema or a validator, and the third
+    # is refused in the transport before a request is sent.
+    workdir=$(mktemp -d)
+    trap 'rm -rf "$workdir"' EXIT
+
+    failures=0
+    for case_dir in "$TESTING_DIR"/negative/*/; do
+      [[ -f "$case_dir/main.tf" ]] || continue
+      name=$(basename "$case_dir")
+      expect=$(cat "$case_dir/expect")
+      case_mode=$(cat "$case_dir/mode" 2>/dev/null || echo plan)
+
+      cp "$case_dir/main.tf" "$workdir/"
+      out="$workdir/$name.txt"
+
+      set +e
+      if [[ "$name" == "no-token" ]]; then
+        # The refusal fires in the transport, which only sees what was actually
+        # sent, so it needs a request attempted. Nothing is created: the
+        # transport refuses before the request leaves.
+        ( cd "$workdir" && env -u AUTHLETE_TOKEN "$TF" "$case_mode" -auto-approve -no-color ) > "$out" 2>&1
+      else
+        ( cd "$workdir" && "$TF" "$case_mode" -no-color ) > "$out" 2>&1
+      fi
+      rc=$?
+      set -e
+      rm -f "$workdir/main.tf" "$workdir"/terraform.tfstate*
+
+      if [[ $rc -eq 0 ]]; then
+        warn "$name: succeeded, but it is supposed to fail."
+        failures=$((failures + 1))
+        continue
+      fi
+      if ! grep -qiE "$expect" "$out"; then
+        warn "$name: failed, but not for the expected reason.
+  Expected to match: $expect
+  Got:"
+        tail -12 "$out" >&2
+        failures=$((failures + 1))
+        continue
+      fi
+      say "$name: refused, with the expected message."
+    done
+
+    [[ $failures -eq 0 ]] || die "$failures negative case(s) did not behave as expected.
+  Each one guards a fix that makes something impossible. See negative/README.md."
+    say "Every negative case was refused for the right reason."
     ;;
   show)
     say "$TF show"
