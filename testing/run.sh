@@ -52,14 +52,14 @@ command -v "$TF" >/dev/null 2>&1 || die \
 command -v go >/dev/null 2>&1 || die "go not found on PATH."
 
 case "$MODE" in
-  validate|plan|apply|destroy|show|import) ;;
-  *) die "unknown mode '$MODE'. Use one of: validate, plan, apply, destroy, show" ;;
+  validate|plan|apply|destroy|show|import|regress) ;;
+  *) die "unknown mode '$MODE'. Use one of: validate, plan, apply, destroy, show, import, regress" ;;
 esac
 
 # validate and plan for not-yet-created resources need no live credentials, so a
 # placeholder keeps the provider's Configure step happy without implying access.
 if [[ -z "${AUTHLETE_TOKEN:-}" ]]; then
-  if [[ "$MODE" == "apply" || "$MODE" == "destroy" || "$MODE" == "import" ]]; then
+  if [[ "$MODE" == "apply" || "$MODE" == "destroy" || "$MODE" == "import" || "$MODE" == "regress" ]]; then
     die "AUTHLETE_TOKEN is not set, and '$MODE' talks to the live API.
   Export an Organization Token first:
     export AUTHLETE_TOKEN='...'
@@ -249,6 +249,62 @@ TF
   x-speakeasy-terraform-ignore is still set on organizationId and apiServerId
   in .speakeasy/terraform_overlay.yaml."
     fi
+    ;;
+  regress)
+    # Every fix in testing/regressions.tf shows up as a plan that is not empty
+    # when it regresses, so the assertion is that the plan after an apply
+    # proposes nothing. -detailed-exitcode returns 2 for "changes present",
+    # which is the failure.
+    cat <<EOF
+
+  This creates real objects in the Authlete organization the token belongs to,
+  including a second service named "\${name_prefix}-regressions".
+
+  Run './run.sh destroy' afterwards to remove them.
+
+EOF
+    if [[ "${ASSUME_YES:-}" != "1" ]]; then
+      read -r -p "Continue? [y/N] " reply
+      [[ "$reply" == "y" || "$reply" == "Y" ]] || die "aborted"
+    fi
+
+    workdir=$(mktemp -d)
+    trap 'rm -rf "$workdir"' EXIT
+
+    say "$TF apply"
+    "$TF" apply "${STATE_ARGS[@]}" -auto-approve
+
+    say "$TF plan -detailed-exitcode (expecting no changes)"
+    set +e
+    "$TF" plan "${STATE_ARGS[@]}" -detailed-exitcode -no-color > "$workdir/replan.txt" 2>&1
+    rc=$?
+    set -e
+
+    case "$rc" in
+      0)
+        say "No changes proposed. Every fix in regressions.tf held."
+        ;;
+      2)
+        cat "$workdir/replan.txt"
+        die "A second plan proposed changes. One of the fixes has regressed.
+  The attributes named above say which. regressions.tf documents what each
+  one guards; the offline guards are scripts/patch-empty-lists.sh --check
+  and scripts/fill-keep-order-stubs.py --check."
+        ;;
+      *)
+        cat "$workdir/replan.txt"
+        die "plan failed with exit $rc."
+        ;;
+    esac
+
+    # check blocks report as warnings rather than failing the run, so they are
+    # only noticed if something looks for them.
+    if grep -q "Check block assertion failed" "$workdir/replan.txt"; then
+      grep -A4 "Check block assertion failed" "$workdir/replan.txt"
+      die "A check block failed. The plan was empty, so the value agrees with
+  itself but is not the value that was written."
+    fi
+    say "All check block assertions passed."
     ;;
   show)
     say "$TF show"

@@ -19,6 +19,7 @@ in effect" warning on every command; that is expected.
 ./run.sh apply       # creates a real service + client; prompts first
 ./run.sh destroy     # removes what apply created
 ./run.sh import      # create a service, import it, assert the plan is clean
+./run.sh regress     # apply the regression cases, assert the second plan is empty
 ./run.sh show        # dump current state
 ```
 
@@ -65,6 +66,36 @@ other, so destroy with the same CLI you applied with.
 `validate` and `plan` work with no credentials at all — Terraform only needs the
 API once it has to reconcile something that exists. `apply` and `destroy` refuse
 to run without a token.
+
+## Regression cases
+
+`regressions.tf` holds one case per bug that was fixed, written so that the bug
+reappears as a plan that is not empty.
+
+```
+./run.sh regress
+```
+
+That applies the configuration and then runs `plan -detailed-exitcode`. Exit 2
+means something is still proposed, which means a fix has regressed; the
+attribute named in the plan says which one. The `check` blocks additionally
+assert that values came back in the shape they were written, which an empty
+plan alone does not prove.
+
+| Case | Guards against |
+|---|---|
+| three lists written as `[]` | an absent list reading as null, so `= []` proposes `[] -> null` forever |
+| six lists written out of order | Authlete reordering a list, which Terraform reads as an edit |
+| `tls_client_auth_subject_dn` set alone | the four superseded `san_*` attributes reading as drift to restore |
+| `api_key` and `client_id` asserted present | identifiers planning as unknown and cascading into dependents |
+
+The offline equivalents, which need no credentials, are
+`scripts/patch-empty-lists.sh --check`, `scripts/fill-keep-order-stubs.py --check`
+and the tests in `internal/provider/`.
+
+`supported_scopes` is deliberately absent. It is a documented limitation rather
+than a fixed bug, so including it would fail the no-drift assertion for a known
+reason and hide everything else. See `docs/guides/known-limitations.md`.
 
 ## Configuration
 
