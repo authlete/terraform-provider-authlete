@@ -5,12 +5,12 @@ management:
   docVersion: 3.0.16
   speakeasyVersion: 1.795.1
   generationVersion: 2.932.9
-  releaseVersion: 3.0.0-beta
-  configChecksum: 50b6078001528503386ace9f184d0065
+  releaseVersion: 3.0.0-beta2
+  configChecksum: 0c9facc873e8f01b67b9e052dfaeab7d
 persistentEdits:
-  generation_id: ab8ee90a-7aa4-400c-a476-2bc25421dc66
-  pristine_commit_hash: f4c8a300747718deaec1be44925325d6c975cbeb
-  pristine_tree_hash: 8b201a8f3db1a5f26ac0d5210937f3697b699426
+  generation_id: 9d5a1fb0-ff7f-4958-a5f9-4f57436d39e5
+  pristine_commit_hash: df844e602bf5e6fa474890da40a9e433227763f8
+  pristine_tree_hash: abea1914a743a5b7cdc25785dcd444e367f94414
 features:
   terraform:
     additionalDependencies: 0.1.0
@@ -48,8 +48,8 @@ trackedFiles:
     pristine_git_object: a7612b46be14c305cfcda66b10ebdea5e948143c
   examples/provider/provider.tf:
     id: 954e955c0240
-    last_write_checksum: sha1:985920ddc295ef15d1a491cb64c3fa2d6812497c
-    pristine_git_object: f10694cca0c0931d3f3f8d220857402806788cb2
+    last_write_checksum: sha1:e5216513817c3c4d74aec9c47bfd1cff677e4203
+    pristine_git_object: d3cb5714238894dfdb08299c72634a72bb13f8d3
   examples/resources/authlete_client/import-by-string-id.tf:
     id: 9efa3322fdf0
     last_write_checksum: sha1:2b9b0b56ea4e5c910964d78d3896cc058fdfd4fd
@@ -372,8 +372,8 @@ trackedFiles:
     pristine_git_object: 94ef40f06085040cd99584e772d7391abce5a20b
   internal/sdk/authlete.go:
     id: 81104225f83a
-    last_write_checksum: sha1:8c2a189f9fa8fa241f792bab6c32f4c890309fbb
-    pristine_git_object: 6027753bceaf0cdd7501bb42b39aaf33ddcf4879
+    last_write_checksum: sha1:998e46e72aa802fd230fe376fa90d4864c5f6f66
+    pristine_git_object: 564de278c85918f769962bd5ce6c2946e9b89a6e
   internal/sdk/authorization.go:
     id: 8be896849290
     last_write_checksum: sha1:b6d1847d4153a1345da7c24f2a285ae03a9c6b9b

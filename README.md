@@ -32,7 +32,7 @@ API. This table is what states the mapping.
 <!-- Start Table of Contents [toc] -->
 ## Table of Contents
 <!-- $toc-max-depth=2 -->
-* [terraform-provider-authlete](#terraform-provider-authlete)
+* [terraform-provider-authlete 3.0.0](#terraform-provider-authlete-300)
   * [Requirements](#requirements)
   * [Installation](#installation)
   * [Usage](#usage)
