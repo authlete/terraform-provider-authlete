@@ -4,8 +4,8 @@ package config
 
 import (
 	"context"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/globals"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/retry"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/globals"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/retry"
 	"net/http"
 	"time"
 )

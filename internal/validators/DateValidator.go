@@ -4,7 +4,7 @@ package validators
 
 import (
 	"context"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/types"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/types"
 	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )

@@ -4,8 +4,8 @@ package operations
 
 import (
 	"errors"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/utils"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/retry"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/utils"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/retry"
 	"time"
 )
 

@@ -15,7 +15,7 @@ import (
 	"reflect"
 	"regexp"
 
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/optionalnullable"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/optionalnullable"
 )
 
 const (

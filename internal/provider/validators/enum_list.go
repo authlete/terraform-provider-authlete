@@ -29,7 +29,7 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/models/shared"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/models/shared"
 )
 
 // checker reports whether a value is a member of its enum.

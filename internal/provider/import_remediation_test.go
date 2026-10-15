@@ -22,7 +22,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/authlete/terraform-provider-authlete/internal/stateupgraders"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/stateupgraders"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"

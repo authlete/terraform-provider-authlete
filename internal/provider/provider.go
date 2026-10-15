@@ -5,9 +5,9 @@ package provider
 import (
 	"context"
 	"crypto/tls"
-	authletefunctions "github.com/authlete/terraform-provider-authlete/internal/provider/functions"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/models/shared"
+	authletefunctions "github.com/authlete/terraform-provider-authlete/v3/internal/provider/functions"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/models/shared"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"

@@ -10785,6 +10785,8 @@ components:
             2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
           x-speakeasy-plan-validators:
             - ValidEnumValues
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_grant_types
         responseTypes:
           type: array
           items:
@@ -10795,6 +10797,8 @@ components:
             2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
           x-speakeasy-plan-validators:
             - ValidEnumValues
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_response_types
         redirectUris:
           type: array
           items:
@@ -11041,7 +11045,7 @@ components:
               </Accordion>
           x-speakeasy-terraform-custom-type:
             imports:
-              - "github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
+              - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
             schemaType: customtypes.JWKSType{}
             valueType: customtypes.JWKS
         userInfoSignAlg:
@@ -11430,6 +11434,8 @@ components:
               - FORM_POST_JWT
           description: The response modes that this client may use.
           nullable: true
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_response_modes
         credentialResponseEncryptionRequired:
           type: boolean
           description: True if credential responses to this client must be always encrypted.
@@ -11870,6 +11876,8 @@ components:
           nullable: true
           x-speakeasy-plan-validators:
             - ValidEnumValues
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_grant_types
         supportedResponseTypes:
           type: array
           items:
@@ -11883,6 +11891,8 @@ components:
           nullable: true
           x-speakeasy-plan-validators:
             - ValidEnumValues
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_response_types
         supportedAuthorizationDetailsTypes:
           type: array
           items:
@@ -11900,6 +11910,8 @@ components:
             The profiles that this service supports.
           x-speakeasy-plan-validators:
             - ValidEnumValues
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_service_profiles
         errorDescriptionOmitted:
           type: boolean
           description: |
@@ -11957,6 +11969,8 @@ components:
           nullable: true
           x-speakeasy-plan-validators:
             - ValidEnumValues
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_displays
         pkceRequired:
           type: boolean
           description: |
@@ -12018,6 +12032,8 @@ components:
           nullable: true
           x-speakeasy-plan-validators:
             - ValidEnumValues
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_token_auth_methods
         missingClientIdAllowed:
           type: boolean
           description: |
@@ -12239,8 +12255,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/scope'
-          description: |
-            Scopes supported by the service.
+          description: |-
+            The scopes supported by the service.
+
+            Authlete returns this list in an order of its own and fills in fields a configuration naming only the scope does not set, so a plan may offer to rewrite it even when nothing has changed. Applying is harmless and the stored scopes are correct. The sibling lists this affected are compared without regard to order; this one cannot be, because reordering cannot be told apart from an edit to a scope's description.
           x-mint:
             metadata:
               description: "Scopes supported by the service."
@@ -12307,6 +12325,8 @@ components:
           nullable: true
           x-speakeasy-plan-validators:
             - ValidEnumValues
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_claim_types
         supportedClaimLocales:
           type: array
           items:
@@ -12358,6 +12378,8 @@ components:
               The service may support its original claim names. See [OpenID Connect Core 1.0, 5.1.2. Additional
               Claims](https://openid.net/specs/openid-connect-core-1_0.html#AdditionalClaims).
               </Accordion>
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_claims
         claimShortcutRestrictive:
           type: boolean
           description: |
@@ -12409,7 +12431,7 @@ components:
           x-speakeasy-param-sensitive: true
           x-speakeasy-terraform-custom-type:
             imports:
-              - "github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
+              - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
             schemaType: customtypes.JWKSType{}
             valueType: customtypes.JWKS
         idTokenSignatureKeyId:
@@ -13075,7 +13097,7 @@ components:
           x-speakeasy-param-sensitive: true
           x-speakeasy-terraform-custom-type:
             imports:
-              - "github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
+              - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
             schemaType: customtypes.JWKSType{}
             valueType: customtypes.JWKS
         federationSignatureKeyId:
@@ -13128,6 +13150,8 @@ components:
             implementer's draft of OpenID Connect for Identity Assurance 1.0.
           x-speakeasy-plan-validators:
             - ValidEnumValues
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_attachments
         supportedDigestAlgorithms:
           type: array
           items:
@@ -13329,6 +13353,8 @@ components:
           nullable: true
           x-speakeasy-plan-validators:
             - ValidEnumValues
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_prompt_values
         idTokenReissuable:
           type: boolean
           description: |

@@ -9,7 +9,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/authlete/terraform-provider-authlete/internal/provider/planmodifiers"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/provider/planmodifiers"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"

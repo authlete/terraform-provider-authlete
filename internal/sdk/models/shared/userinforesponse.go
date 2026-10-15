@@ -5,7 +5,7 @@ package shared
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/utils"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/utils"
 )
 
 // UserinfoResponseAction - The next action that the authorization server implementation should take.

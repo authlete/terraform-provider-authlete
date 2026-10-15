@@ -3,7 +3,7 @@ package listplanmodifier
 import (
 	"context"
 
-	authletepm "github.com/authlete/terraform-provider-authlete/internal/provider/planmodifiers"
+	authletepm "github.com/authlete/terraform-provider-authlete/v3/internal/provider/planmodifiers"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )

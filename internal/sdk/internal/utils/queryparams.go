@@ -12,8 +12,8 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/optionalnullable"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/types"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/optionalnullable"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/types"
 )
 
 func PopulateQueryParams(_ context.Context, req *http.Request, queryParams interface{}, globals interface{}, allowEmptyValue map[string]struct{}) error {

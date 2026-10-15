@@ -5,12 +5,12 @@ package sdk
 import (
 	"context"
 	"fmt"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/config"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/hooks"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/utils"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/models/errors"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/models/operations"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/retry"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/config"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/hooks"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/utils"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/models/errors"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/models/operations"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/retry"
 	"net/http"
 	"net/url"
 )

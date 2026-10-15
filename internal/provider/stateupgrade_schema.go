@@ -15,7 +15,7 @@ package provider
 import (
 	"context"
 
-	"github.com/authlete/terraform-provider-authlete/internal/stateupgraders"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/stateupgraders"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 

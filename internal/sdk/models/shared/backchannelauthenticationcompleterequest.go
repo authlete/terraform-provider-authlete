@@ -5,7 +5,7 @@ package shared
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/utils"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/utils"
 )
 
 // BackchannelAuthenticationCompleteRequestResult - The result of the end-user authentication and authorization. One of the following. Details are

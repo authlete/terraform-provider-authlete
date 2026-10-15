@@ -24,3 +24,45 @@ If you have any questions or need further assistance, please feel free to reach 
 Thank you for your understanding and cooperation!
 
 The Maintainers
+
+## Versioning and releases
+
+The provider major is aligned with the Authlete API major it is generated
+from. The 3.x line targets Authlete API 3.0, whose description declares
+`version: 3.0.16`. The alignment was made once, at 3.0.0; after that the
+provider versions on its own changes, so a later major does not imply a new
+Authlete API. README.md carries the compatibility table that states the
+mapping.
+
+The published version is the git tag. `release.yml` fires on `v*` and
+goreleaser builds `{{ .Version }}` from it. Nothing else decides what the
+registry shows.
+
+`.speakeasy/gen.yaml` holds a separate version that the generator copies into
+`internal/sdk/authlete.go`, `examples/provider/provider.tf` and, from that
+example, `docs/index.md`. A plain `speakeasy run` increments it on its own, so
+between releases those files name a version nobody can install. That is
+harmless because the registry renders the tagged commit, provided the tagged
+commit was generated at the version being tagged.
+
+So a release is two steps in this order:
+
+```sh
+speakeasy run --set-version 3.0.0   # same number, no leading v
+git tag v3.0.0 && git push origin v3.0.0
+```
+
+`TestGeneratedVersionsAgree` fails if those files disagree with `gen.yaml`,
+which catches a regeneration applied to some files and reverted in others.
+
+A major of 2 or more needs a matching `/vN` suffix on the Go module path, and
+the generator rewrites its own imports to use it. Changing the major means
+changing `go.mod`, every import of the module, the `importLocation` entries in
+`.speakeasy/gen.yaml` and the import paths in `.speakeasy/terraform_overlay.yaml`.
+Miss any of them and the build fails inside the generator, reporting the
+packages as missing from the published module rather than as a path mismatch.
+`TestModulePathMatchesMajor` catches it first.
+
+The README names no version at all. Its installation block is frozen against
+regeneration, so a number in it would be maintained by hand and would go
+stale; it points at the registry page instead.

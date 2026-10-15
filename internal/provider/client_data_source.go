@@ -5,9 +5,9 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
-	tfTypes "github.com/authlete/terraform-provider-authlete/internal/provider/types"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
+	tfTypes "github.com/authlete/terraform-provider-authlete/v3/internal/provider/types"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"

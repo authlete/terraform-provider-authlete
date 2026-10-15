@@ -3,7 +3,7 @@
 package shared
 
 import (
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/utils"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/utils"
 )
 
 // IdpError - Error response returned by the Authlete IdP server. Unlike the main API's

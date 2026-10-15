@@ -31,7 +31,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/models/shared"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/models/shared"
 )
 
 // marshalWith converts a model to its SDK input and returns the JSON body.

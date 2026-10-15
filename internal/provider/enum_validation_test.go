@@ -11,7 +11,7 @@ package provider
 import (
 	"testing"
 
-	"github.com/authlete/terraform-provider-authlete/internal/provider/validators"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/provider/validators"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )

@@ -3,8 +3,8 @@
 package operations
 
 import (
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/utils"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/models/shared"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/utils"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/models/shared"
 	"net/http"
 	"time"
 )

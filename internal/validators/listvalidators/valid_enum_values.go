@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	authletevalidators "github.com/authlete/terraform-provider-authlete/internal/provider/validators"
+	authletevalidators "github.com/authlete/terraform-provider-authlete/v3/internal/provider/validators"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )

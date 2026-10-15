@@ -4,11 +4,11 @@ package provider
 
 import (
 	"context"
-	"github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
-	"github.com/authlete/terraform-provider-authlete/internal/provider/typeconvert"
-	tfTypes "github.com/authlete/terraform-provider-authlete/internal/provider/types"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/models/operations"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/models/shared"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/provider/typeconvert"
+	tfTypes "github.com/authlete/terraform-provider-authlete/v3/internal/provider/types"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/models/operations"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/models/shared"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
