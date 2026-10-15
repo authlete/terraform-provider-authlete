@@ -9,7 +9,6 @@ import (
 	custom_int32planmodifier "github.com/authlete/terraform-provider-authlete/v3/internal/planmodifiers/int32planmodifier"
 	custom_int64planmodifier "github.com/authlete/terraform-provider-authlete/v3/internal/planmodifiers/int64planmodifier"
 	custom_listplanmodifier "github.com/authlete/terraform-provider-authlete/v3/internal/planmodifiers/listplanmodifier"
-	custom_stringplanmodifier "github.com/authlete/terraform-provider-authlete/v3/internal/planmodifiers/stringplanmodifier"
 	"github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
 	tfTypes "github.com/authlete/terraform-provider-authlete/v3/internal/provider/types"
 	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk"
@@ -51,7 +50,6 @@ type ServiceResourceModel struct {
 	AccessTokenType                             types.String                      `tfsdk:"access_token_type"`
 	AllowableClockSkew                          types.Int32                       `tfsdk:"allowable_clock_skew"`
 	APIKey                                      types.Int64                       `tfsdk:"api_key"`
-	APISecret                                   types.String                      `tfsdk:"api_secret"`
 	AttestationChallengeTimeWindow              types.Int64                       `tfsdk:"attestation_challenge_time_window"`
 	Attributes                                  []tfTypes.Pair                    `tfsdk:"attributes"`
 	AuthenticationCallbackAPIKey                types.String                      `tfsdk:"authentication_callback_api_key"`
@@ -329,15 +327,6 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					custom_int64planmodifier.UseStateForUnknown(),
 				},
 				Description: `The service ID used in Authlete API calls. The value of this property is assigned by Authlete.`,
-			},
-			"api_secret": schema.StringAttribute{
-				Computed:  true,
-				Sensitive: true,
-				PlanModifiers: []planmodifier.String{
-					custom_stringplanmodifier.UseStateForUnknown(),
-				},
-				MarkdownDescription: `The API secret of this service. This value is assigned by Authlete and ` + "\n" +
-					`is used for service authentication in API calls.`,
 			},
 			"attestation_challenge_time_window": schema.Int64Attribute{
 				Computed: true,
