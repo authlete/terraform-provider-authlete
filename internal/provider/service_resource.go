@@ -1103,6 +1103,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"metadata": schema.ListNestedAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.SuppressDiffExplicitSuppress(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
