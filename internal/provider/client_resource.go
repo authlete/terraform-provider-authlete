@@ -1580,6 +1580,10 @@ func (r *ClientResource) Read(ctx context.Context, req resource.ReadRequest, res
 		resp.State.RemoveResource(ctx)
 		return
 	}
+	if serviceIsGone(res.RawResponse) { // scripts/patch-missing-service.py
+		resp.State.RemoveResource(ctx)
+		return
+	}
 	if res.StatusCode != 200 {
 		resp.Diagnostics.AddError(fmt.Sprintf("unexpected response from API. Got an unexpected response code %v", res.StatusCode), debugResponse(res.RawResponse))
 		return
@@ -1697,6 +1701,9 @@ func (r *ClientResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	case 204, 404:
 		break
 	default:
+		if serviceIsGone(res.RawResponse) { // scripts/patch-missing-service.py
+			break // already gone, so there is nothing to delete
+		}
 		resp.Diagnostics.AddError(fmt.Sprintf("unexpected response from API. Got an unexpected response code %v", res.StatusCode), debugResponse(res.RawResponse))
 		return
 	}
