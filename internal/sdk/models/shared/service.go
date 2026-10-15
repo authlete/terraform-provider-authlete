@@ -97,6 +97,7 @@ type Service struct {
 	//   | --- | --- |
 	//   | `clientCount` | The number of client applications which belong to this service.  |
 	//
+	// Read-only. Authlete owns these values -- `clientCount` changes as clients are added or removed -- and the service create and update endpoints ignore anything written here, including an empty list.
 	Metadata []Pair `json:"metadata,omitzero"`
 	// The time at which this service was created. The value is represented as milliseconds since the
 	// UNIX epoch (`1970-01-01`).
@@ -370,8 +371,9 @@ type Service struct {
 	// See [RFC 6749 6. Refreshing an Access Token](https://tools.ietf.org/html/rfc6749#section-6), as to how to get a new access token using a refresh token.
 	//
 	RefreshTokenKept *bool `json:"refreshTokenKept,omitzero"`
-	// Scopes supported by the service.
+	// The scopes supported by the service.
 	//
+	// Authlete returns this list in an order of its own and fills in fields a configuration naming only the scope does not set, so a plan may offer to rewrite it even when nothing has changed. Applying is harmless and the stored scopes are correct. The sibling lists this affected are compared without regard to order; this one cannot be, because reordering cannot be told apart from an edit to a scope's description.
 	SupportedScopes []Scope `json:"supportedScopes,omitzero"`
 	// The flag to indicate whether requests that request no scope are rejected or not.
 	//
@@ -613,6 +615,7 @@ type Service struct {
 	// API and `/api/service/update` API do not have any effect. The contents of this property is controlled
 	// only by `/api/hsk/*` APIs.
 	//
+	// Read-only. Hardware security module keys are managed through Authlete's separate HSK API, which this provider does not expose. The service create and update endpoints ignore this field, so a value written here is discarded silently and the plan never settles. What this returns is for reference.
 	Hsks []Hsk `json:"hsks,omitzero"`
 	// The URL of the grant management endpoint.
 	//
