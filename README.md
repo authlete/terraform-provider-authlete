@@ -18,6 +18,7 @@ Terraform Provider for the *authlete* API.
 * [authlete](#authlete)
   * [Installation](#installation)
   * [Authentication](#authentication)
+  * [Guides](#guides)
   * [Available Resources and Data Sources](#available-resources-and-data-sources)
   * [Testing the provider locally](#testing-the-provider-locally)
   * [Removing a setting from your configuration](#removing-a-setting-from-your-configuration)
@@ -68,27 +69,42 @@ provider "authlete" {
 <!-- Start Authentication [security] -->
 ## Authentication
 
-This provider supports authentication configuration via environment variables and provider configuration.
+Set a token in `bearer`, or in the `AUTHLETE_TOKEN` environment variable.
+Provider configuration wins over the environment. Prefer the environment
+variable: a token written into configuration ends up in version control.
 
-The configuration precedence is:
+The Authlete console issues two kinds of token, and which one you need depends
+on what your configuration does.
 
-- Provider configuration
-- Environment variables
+| Token | Scope | Can do |
+|---|---|---|
+| **Organization Token** | the whole organization | Everything, including creating and deleting services. |
+| **Service Access Token** | one existing service | That service and the clients inside it. **Cannot create or delete a service.** |
 
-Available configuration:
+**Use an Organization Token unless you have a reason not to.** Creating and
+deleting a service goes through Authlete's identity server rather than your
+cluster, and that endpoint accepts only an Organization Token. Any configuration
+with an `authlete_service` resource in it will hit this on the first apply.
 
-| Provider Attribute | Description |
-|---|---|
-| `bearer` | Authenticate every request with a **Service Access Token** or **Organization Token**.
-Set the token value in the `Authorization: Bearer <token>` header.
+A Service Access Token is enough when the service already exists and Terraform
+only manages what is inside it, for example a configuration that holds
+`authlete_client` resources and refers to the service by id. Everything other
+than service create and delete goes to your cluster, where a Service Access
+Token is accepted.
 
-**Service Access Token**: Scoped to a single service. Use when automating service-level configuration or runtime flows.
+If you supply a token that cannot do what the configuration asks, the provider
+says which kind is required rather than returning a bare 401.
 
-**Organization Token**: Scoped to the organization; inherits permissions across services. Use for org-wide automation or when managing multiple services programmatically.
-
-Both token types are issued by the Authlete console or provisioning APIs.
-. Configurable via environment variable `AUTHLETE_TOKEN`. |
 <!-- End Authentication [security] -->
+
+## Guides
+
+Longer-form documentation, also published on the Terraform registry.
+
+| Guide | What it covers |
+|---|---|
+| [Shared Cloud, Dedicated Cloud and On-Premise](docs/guides/deployment-types.md) | Which settings each deployment needs, and why creating a service talks to a different host than everything else |
+| [Known limitations](docs/guides/known-limitations.md) | Behaviour that looks like a defect and is not, and what to do instead |
 
 <!-- Start Available Resources and Data Sources [operations] -->
 ## Available Resources and Data Sources
