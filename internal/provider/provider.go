@@ -62,6 +62,21 @@ func (p *AuthleteProvider) Schema(ctx context.Context, req provider.SchemaReques
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"api_server_id": schema.Int64Attribute{
+				Description: `Which API server the IdP should create the service on. The` + "\n" +
+					`Authlete console calls this the cluster ID.` + "\n" +
+					`` + "\n" +
+					`Derived automatically for the four public clusters, so Shared` + "\n" +
+					`Cloud deployments need not set it. Dedicated Cloud, On-Premise and` + "\n" +
+					`pre-production hosts are not derivable and must supply it, or the` + "\n" +
+					`IdP rejects create and delete.` + "\n" +
+					`` + "\n" +
+					`Must describe the same deployment as server_url. Creating a` + "\n" +
+					`service on one cluster and reading it from another fails on the` + "\n" +
+					`next refresh with a 403, leaving a service Terraform can neither` + "\n" +
+					`read nor delete.` + "\n" +
+					`` + "\n" +
+					`Also settable with the AUTHLETE_API_SERVER_ID environment` + "\n" +
+					`variable.`,
 				Optional: true,
 			},
 			"bearer": schema.StringAttribute{
@@ -83,9 +98,25 @@ func (p *AuthleteProvider) Schema(ctx context.Context, req provider.SchemaReques
 				Optional:    true,
 			},
 			"idp_host": schema.StringAttribute{
+				Description: `The host of your own identity server, for Dedicated Cloud and` + "\n" +
+					`On-Premise deployments. Leave unset on Shared Cloud, which uses` + "\n" +
+					`Authlete's own IdP at login.authlete.com.` + "\n" +
+					`` + "\n" +
+					`Set this whenever server_url is not one of the four public` + "\n" +
+					`clusters. Without it, creating a service sends your organization` + "\n" +
+					`token to login.authlete.com instead of your deployment, and the` + "\n" +
+					`error only says that apiServerId must not be null.` + "\n" +
+					`` + "\n" +
+					`Also settable with the AUTHLETE_IDP_HOST environment variable.`,
 				Optional: true,
 			},
 			"organization_id": schema.Int64Attribute{
+				Description: `The Authlete organization services are created under. Required to` + "\n" +
+					`create or delete a service, which goes through the IdP rather than` + "\n" +
+					`the regional cluster.` + "\n" +
+					`` + "\n" +
+					`Also settable with the AUTHLETE_ORGANIZATION_ID environment` + "\n" +
+					`variable. Shown in the Authlete console.`,
 				Optional: true,
 			},
 			"server_url": schema.StringAttribute{
