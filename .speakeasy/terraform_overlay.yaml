@@ -961,6 +961,19 @@ actions:
       x-speakeasy-plan-modifiers:
         - KeepOrder_supported_claims
 
+  # Authlete fills metadata in after the service exists -- clientCount appears
+  # only once the service has a client -- and it is readOnly, so nothing in
+  # configuration ever sets it. Left alone it plans as unknown on every update,
+  # which reads as "known value -> (known after apply)" and is itself enough to
+  # mark the service as changing, which in turn marks every other computed
+  # attribute unknown. SuppressDiff carries the state value into the plan when
+  # the planned value is unknown, which is exactly this case.
+  - target: $.components.schemas.service.properties.metadata
+    description: Hold the value Authlete filled in rather than planning it unknown
+    update:
+      x-speakeasy-plan-modifiers:
+        - SuppressDiff(ExplicitSuppress)
+
   - target: $.components.schemas.service.properties.supportedDisplays
     description: Keep the order already in state when the elements are unchanged
     update:

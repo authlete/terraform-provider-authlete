@@ -53,14 +53,14 @@ command -v "$TF" >/dev/null 2>&1 || die \
 command -v go >/dev/null 2>&1 || die "go not found on PATH."
 
 case "$MODE" in
-  validate|plan|apply|destroy|show|import|regress|negative) ;;
-  *) die "unknown mode '$MODE'. Use one of: validate, plan, apply, destroy, show, import, regress, negative" ;;
+  validate|plan|apply|destroy|show|import|regress|regress-destroy|negative) ;;
+  *) die "unknown mode '$MODE'. Use one of: validate, plan, apply, destroy, show, import, regress, regress-destroy, negative" ;;
 esac
 
 # validate and plan for not-yet-created resources need no live credentials, so a
 # placeholder keeps the provider's Configure step happy without implying access.
 if [[ -z "${AUTHLETE_TOKEN:-}" ]]; then
-  if [[ "$MODE" == "apply" || "$MODE" == "destroy" || "$MODE" == "import" || "$MODE" == "regress" ]]; then
+  if [[ "$MODE" == "apply" || "$MODE" == "destroy" || "$MODE" == "import" || "$MODE" == "regress" || "$MODE" == "regress-destroy" ]]; then
     die "AUTHLETE_TOKEN is not set, and '$MODE' talks to the live API.
   Export an Organization Token first:
     export AUTHLETE_TOKEN='...'
@@ -259,9 +259,10 @@ TF
     cat <<EOF
 
   This creates real objects in the Authlete organization the token belongs to,
-  including a second service named "\${name_prefix}-regressions".
+  one service named "\${name_prefix}-regressions" and a client under it,
+  in testing/regressions/ with its own state.
 
-  Run './run.sh destroy' afterwards to remove them.
+  Run './run.sh regress-destroy' afterwards to remove them.
 
 EOF
     if [[ "${ASSUME_YES:-}" != "1" ]]; then
@@ -272,12 +273,18 @@ EOF
     workdir=$(mktemp -d)
     trap 'rm -rf "$workdir"' EXIT
 
-    say "$TF apply"
-    "$TF" apply "${STATE_ARGS[@]}" -auto-approve
+    # Own directory and own state. The organization's service quota is small
+    # and ../main.tf already uses a slot, so the two configurations cannot be
+    # applied at the same time. Destroy one before running the other.
+    cd "$TESTING_DIR/regressions"
+    REG_STATE_ARGS=(-state="$TESTING_DIR/regressions/terraform-$(basename "$TF").tfstate")
+
+    say "$TF apply (regressions/)"
+    "$TF" apply "${REG_STATE_ARGS[@]}" -auto-approve
 
     say "$TF plan -detailed-exitcode (expecting no changes)"
     set +e
-    "$TF" plan "${STATE_ARGS[@]}" -detailed-exitcode -no-color > "$workdir/replan.txt" 2>&1
+    "$TF" plan "${REG_STATE_ARGS[@]}" -detailed-exitcode -no-color > "$workdir/replan.txt" 2>&1
     rc=$?
     set -e
 
@@ -361,6 +368,12 @@ EOF
     [[ $failures -eq 0 ]] || die "$failures negative case(s) did not behave as expected.
   Each one guards a fix that makes something impossible. See negative/README.md."
     say "Every negative case was refused for the right reason."
+    ;;
+  regress-destroy)
+    cd "$TESTING_DIR/regressions"
+    say "$TF destroy (regressions/)"
+    "$TF" destroy -state="$TESTING_DIR/regressions/terraform-$(basename "$TF").tfstate" \
+      ${ASSUME_YES:+-auto-approve}
     ;;
   show)
     say "$TF show"

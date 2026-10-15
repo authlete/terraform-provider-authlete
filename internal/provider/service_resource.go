@@ -1102,6 +1102,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"metadata": schema.ListNestedAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.SuppressDiffExplicitSuppress(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
@@ -2129,11 +2132,14 @@ func (r *ServiceResource) Read(ctx context.Context, req resource.ReadRequest, re
 		resp.Diagnostics.AddError("unexpected response from API. Got an unexpected response body", debugResponse(res.RawResponse))
 		return
 	}
+	prevListOrder := *data // scripts/patch-list-order.py
 	resp.Diagnostics.Append(data.RefreshFromSharedService(ctx, res.Service)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	keepServiceListOrder(&prevListOrder, data) // scripts/patch-list-order.py
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

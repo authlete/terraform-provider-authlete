@@ -67,6 +67,13 @@ jobs:
       - name: Check the KeepOrder plan modifiers are implemented
         run: python3 scripts/fill-keep-order-stubs.py --check
 
+      # The modifiers above stop those lists showing a diff; this stops Read
+      # overwriting state with Authlete's order, which marked the resource as
+      # changing and planned every computed attribute unknown. Both halves are
+      # needed, and a regeneration drops this one silently.
+      - name: Check list order is preserved on read
+        run: python3 scripts/patch-list-order.py --check
+
       - name: Build
         run: go build ./...
 

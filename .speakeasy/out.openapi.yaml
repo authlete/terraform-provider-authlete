@@ -11816,6 +11816,8 @@ components:
 
             Read-only. Authlete owns these values -- `clientCount` changes as clients are added or removed -- and the service create and update endpoints ignore anything written here, including an empty list.
           readOnly: true
+          x-speakeasy-plan-modifiers:
+            - SuppressDiff(ExplicitSuppress)
         createdAt:
           type: integer
           format: int64

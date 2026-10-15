@@ -1588,11 +1588,14 @@ func (r *ClientResource) Read(ctx context.Context, req resource.ReadRequest, res
 		resp.Diagnostics.AddError("unexpected response from API. Got an unexpected response body", debugResponse(res.RawResponse))
 		return
 	}
+	prevListOrder := *data // scripts/patch-list-order.py
 	resp.Diagnostics.Append(data.RefreshFromSharedClient(ctx, res.Client)...)
 
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	keepClientListOrder(&prevListOrder, data) // scripts/patch-list-order.py
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

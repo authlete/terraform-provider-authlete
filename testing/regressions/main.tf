@@ -1,15 +1,13 @@
 # ---------------------------------------------------------------------------
 # Regression configuration.
 #
+# Self-contained, with its own state, because the organization's service quota
+# is small and the baseline config in ../main.tf already uses a slot. Run it
+# with ../run.sh regress, which applies this and then asserts the second plan
+# proposes nothing.
+#
 # Every resource here exists to catch one bug that was fixed, by making the bug
-# visible as a plan that is not empty. The assertion is the same for all of
-# them: apply this, then plan again, and nothing should be proposed.
-#
-#   ./run.sh regress
-#
-# That runs apply followed by `plan -detailed-exitcode`, which exits 2 if
-# anything is still proposed. A regression in any of the fixes below shows up
-# as that exit code, naming the attribute that drifted.
+# visible as a plan that is not empty.
 #
 # The `check` blocks assert the things a clean plan cannot: that a value came
 # back in the shape it was written, rather than merely agreeing with itself.
@@ -17,8 +15,31 @@
 # Deliberately absent: supported_scopes. It is a documented limitation, not a
 # fixed bug, and Authlete returns it reordered with server-filled fields, so
 # including it would make the no-drift assertion fail for a known reason and
-# mask everything else. See docs/guides/known-limitations.md.
+# mask everything else. See ../../docs/guides/known-limitations.md.
 # ---------------------------------------------------------------------------
+
+terraform {
+  required_providers {
+    authlete = {
+      source = "authlete/authlete"
+    }
+  }
+}
+
+variable "organization_id" {
+  description = "Authlete organization services are created under."
+  type        = number
+}
+
+variable "name_prefix" {
+  description = "Prefix for created object names, so test artifacts are identifiable."
+  type        = string
+  default     = "tftest"
+}
+
+provider "authlete" {
+  organization_id = var.organization_id
+}
 
 resource "authlete_service" "regressions" {
   service_name = "${var.name_prefix}-regressions"
@@ -81,6 +102,11 @@ resource "authlete_service" "regressions" {
     "EXTERNAL",
     "EMBEDDED",
   ]
+
+  # Not a reordering case. Authlete refuses supported_attachments containing
+  # EXTERNAL unless this contains sha-256 (A039238), so it is here to make the
+  # case above legal.
+  supported_digest_algorithms = ["sha-256"]
 
   supported_claims = [
     "sub",
