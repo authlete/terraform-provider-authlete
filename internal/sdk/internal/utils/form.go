@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/optionalnullable"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/types"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/optionalnullable"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/types"
 )
 
 func populateForm(paramName string, explode bool, objType reflect.Type, objValue reflect.Value, delimiter string, defaultValue *string, allowEmptyValue map[string]struct{}, getFieldName func(reflect.StructField) string) url.Values {

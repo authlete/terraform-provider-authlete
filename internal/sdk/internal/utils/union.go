@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/types"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/types"
 )
 
 // UnionCandidate represents a candidate type during union deserialization

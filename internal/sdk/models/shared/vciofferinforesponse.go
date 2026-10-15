@@ -6,7 +6,7 @@ package shared
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/utils"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/utils"
 )
 
 // VciOfferInfoResponseAction - The result of the `/vci/offer/info` API call.

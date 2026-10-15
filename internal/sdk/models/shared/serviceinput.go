@@ -4,7 +4,7 @@
 package shared
 
 import (
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/utils"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/utils"
 )
 
 type ServiceInput struct {
@@ -27,18 +27,6 @@ type ServiceInput struct {
 	// The maximum number of client applications that a developer can have.
 	//
 	ClientsPerDeveloper *int `json:"clientsPerDeveloper,omitzero" form:"name=clientsPerDeveloper"`
-	// The credentials for social login services (SNS) that are used for
-	// end-user authentication.
-	//
-	SnsCredentials []SnsCredentials `json:"snsCredentials,omitzero" form:"name=snsCredentials,json"`
-	// The `metadata` of the service. The content of the returned array depends on contexts.
-	// The predefined service metadata is listed in the following table.
-	//
-	//   | Key | Description |
-	//   | --- | --- |
-	//   | `clientCount` | The number of client applications which belong to this service.  |
-	//
-	Metadata []Pair `json:"metadata,omitzero" form:"name=metadata,json"`
 	// A Web API endpoint for user authentication which is to be prepared on the service side.
 	//
 	// The endpoint must be implemented if you do not implement the UI at the authorization endpoint
@@ -276,8 +264,9 @@ type ServiceInput struct {
 	// See [RFC 6749 6. Refreshing an Access Token](https://tools.ietf.org/html/rfc6749#section-6), as to how to get a new access token using a refresh token.
 	//
 	RefreshTokenKept *bool `json:"refreshTokenKept,omitzero" form:"name=refreshTokenKept"`
-	// Scopes supported by the service.
+	// The scopes supported by the service.
 	//
+	// Authlete returns this list in an order of its own and fills in fields a configuration naming only the scope does not set, so a plan may offer to rewrite it even when nothing has changed. Applying is harmless and the stored scopes are correct. The sibling lists this affected are compared without regard to order; this one cannot be, because reordering cannot be told apart from an edit to a scope's description.
 	SupportedScopes []Scope `json:"supportedScopes,omitzero" form:"name=supportedScopes,json"`
 	// The flag to indicate whether requests that request no scope are rejected or not.
 	//
@@ -501,13 +490,6 @@ type ServiceInput struct {
 	// server you are using does not support HSM.
 	//
 	HsmEnabled *bool `json:"hsmEnabled,omitzero" form:"name=hsmEnabled"`
-	// The information about keys managed on HSMs (Hardware Security Modules).
-	//
-	// This `hsks` property is output only, meaning that `hsks` in requests to `/api/service/create`
-	// API and `/api/service/update` API do not have any effect. The contents of this property is controlled
-	// only by `/api/hsk/*` APIs.
-	//
-	Hsks []Hsk `json:"hsks,omitzero" form:"name=hsks,json"`
 	// The URL of the grant management endpoint.
 	//
 	GrantManagementEndpoint *string `json:"grantManagementEndpoint,omitzero" form:"name=grantManagementEndpoint"`
@@ -910,20 +892,6 @@ func (s *ServiceInput) GetClientsPerDeveloper() *int {
 		return nil
 	}
 	return s.ClientsPerDeveloper
-}
-
-func (s *ServiceInput) GetSnsCredentials() []SnsCredentials {
-	if s == nil {
-		return nil
-	}
-	return s.SnsCredentials
-}
-
-func (s *ServiceInput) GetMetadata() []Pair {
-	if s == nil {
-		return nil
-	}
-	return s.Metadata
 }
 
 func (s *ServiceInput) GetAuthenticationCallbackEndpoint() *string {
@@ -1547,13 +1515,6 @@ func (s *ServiceInput) GetHsmEnabled() *bool {
 		return nil
 	}
 	return s.HsmEnabled
-}
-
-func (s *ServiceInput) GetHsks() []Hsk {
-	if s == nil {
-		return nil
-	}
-	return s.Hsks
 }
 
 func (s *ServiceInput) GetGrantManagementEndpoint() *string {

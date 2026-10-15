@@ -6,16 +6,22 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/authlete/terraform-provider-authlete/internal/provider/customtypes"
-	tfTypes "github.com/authlete/terraform-provider-authlete/internal/provider/types"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/models/operations"
-	stateupgraders "github.com/authlete/terraform-provider-authlete/internal/stateupgraders"
-	speakeasy_objectvalidators "github.com/authlete/terraform-provider-authlete/internal/validators/objectvalidators"
+	custom_int32planmodifier "github.com/authlete/terraform-provider-authlete/v3/internal/planmodifiers/int32planmodifier"
+	custom_int64planmodifier "github.com/authlete/terraform-provider-authlete/v3/internal/planmodifiers/int64planmodifier"
+	custom_listplanmodifier "github.com/authlete/terraform-provider-authlete/v3/internal/planmodifiers/listplanmodifier"
+	custom_stringplanmodifier "github.com/authlete/terraform-provider-authlete/v3/internal/planmodifiers/stringplanmodifier"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
+	tfTypes "github.com/authlete/terraform-provider-authlete/v3/internal/provider/types"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/models/operations"
+	stateupgraders "github.com/authlete/terraform-provider-authlete/v3/internal/stateupgraders"
+	custom_listvalidators "github.com/authlete/terraform-provider-authlete/v3/internal/validators/listvalidators"
+	speakeasy_objectvalidators "github.com/authlete/terraform-provider-authlete/v3/internal/validators/objectvalidators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -318,12 +324,18 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`The clock skew is taken into consideration when time-related claims in a JWT (e.g. ` + "`" + `exp` + "`" + `, ` + "`" + `iat` + "`" + `, ` + "`" + `nbf` + "`" + `) are verified.`,
 			},
 			"api_key": schema.Int64Attribute{
-				Computed:    true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					custom_int64planmodifier.UseStateForUnknown(),
+				},
 				Description: `The service ID used in Authlete API calls. The value of this property is assigned by Authlete.`,
 			},
 			"api_secret": schema.StringAttribute{
 				Computed:  true,
 				Sensitive: true,
+				PlanModifiers: []planmodifier.String{
+					custom_stringplanmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: `The API secret of this service. This value is assigned by Authlete and ` + "\n" +
 					`is used for service authentication in API calls.`,
 			},
@@ -564,6 +576,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"created_at": schema.Int64Attribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.Int64{
+					custom_int64planmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: `The time at which this service was created. The value is represented as milliseconds since the` + "\n" +
 					`UNIX epoch (` + "`" + `1970-01-01` + "`" + `).`,
 			},
@@ -849,6 +864,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`For instance, when this property is set to an array containing ` + "`" + `FAPI1_ADVANCED` + "`" + ` only, Authlete always` + "\n" +
 					`processes requests to this service based on "Financial-grade API Security Profile 1.0 - Part 2:` + "\n" +
 					`Advanced" if the FAPI feature is enabled in Authlete and the FAPI profile is supported by this service.`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"federation_configuration_duration": schema.Int64Attribute{
 				Computed:    true,
@@ -902,49 +920,38 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"hsks": schema.ListNestedAttribute{
 				Computed: true,
-				Optional: true,
 				NestedObject: schema.NestedAttributeObject{
-					Validators: []validator.Object{
-						speakeasy_objectvalidators.NotNull(),
-					},
 					Attributes: map[string]schema.Attribute{
 						"alg": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 							MarkdownDescription: `The algorithm of the key on the HSM. When the key use is ` + "`" + `"sig"` + "`" + `, the algorithm represents a` + "\n" +
 								`signing algorithm such as ` + "`" + `"ES256"` + "`" + `. When the key use is ` + "`" + `"enc"` + "`" + `, the algorithm represents an` + "\n" +
 								`encryption algorithm such as ` + "`" + `"RSA-OAEP-256"` + "`" + `.`,
 						},
 						"handle": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 							MarkdownDescription: `The handle for the key on the HSM.` + "\n" +
 								`A handle is a base64url-encoded 256-bit random value (43 letters) which is assigned by Authlete on the call of the /api/hsk/create API`,
 						},
 						"hsm_name": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 							MarkdownDescription: `The name of the HSM.` + "\n" +
 								`The identifier for the HSM that sits behind the Authlete server. For example, "google".`,
 						},
 						"kid": schema.StringAttribute{
 							Computed:    true,
-							Optional:    true,
 							Description: `Key ID for the key on the HSM.`,
 						},
 						"kty": schema.StringAttribute{
 							Computed:    true,
-							Optional:    true,
 							Description: `The key type (EC or RSA)`,
 						},
 						"public_key": schema.StringAttribute{
 							Computed:    true,
-							Optional:    true,
 							Description: `The public key that corresponds to the key on the HSM.`,
 						},
 						"use": schema.StringAttribute{
 							Computed: true,
-							Optional: true,
 							MarkdownDescription: `Get the use of the key on the HSM.` + "\n" +
 								`When the key use is "sig" (signature), the private key on the HSM is used to sign data and the corresponding public key is used to verify the signature.` + "\n" +
 								`When the key use is "enc" (encryption), the private key on the HSM is used to decrypt encrypted data which have been encrypted with the corresponding public key`,
@@ -955,7 +962,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`` + "\n" +
 					`This ` + "`" + `hsks` + "`" + ` property is output only, meaning that ` + "`" + `hsks` + "`" + ` in requests to ` + "`" + `/api/service/create` + "`" + `` + "\n" +
 					`API and ` + "`" + `/api/service/update` + "`" + ` API do not have any effect. The contents of this property is controlled` + "\n" +
-					`only by ` + "`" + `/api/hsk/*` + "`" + ` APIs.`,
+					`only by ` + "`" + `/api/hsk/*` + "`" + ` APIs.` + "\n" +
+					`` + "\n" +
+					`Read-only. Hardware security module keys are managed through Authlete's separate HSK API, which this provider does not expose. The service create and update endpoints ignore this field, so a value written here is discarded silently and the plan never settles. What this returns is for reference.`,
 			},
 			"hsm_enabled": schema.BoolAttribute{
 				Computed: true,
@@ -1094,20 +1103,14 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"metadata": schema.ListNestedAttribute{
 				Computed: true,
-				Optional: true,
 				NestedObject: schema.NestedAttributeObject{
-					Validators: []validator.Object{
-						speakeasy_objectvalidators.NotNull(),
-					},
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
 							Computed:    true,
-							Optional:    true,
 							Description: `The key part.`,
 						},
 						"value": schema.StringAttribute{
 							Computed:    true,
-							Optional:    true,
 							Description: `The value part.`,
 						},
 					},
@@ -1117,7 +1120,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`` + "\n" +
 					`  | Key | Description |` + "\n" +
 					`  | --- | --- |` + "\n" +
-					`  | ` + "`" + `clientCount` + "`" + ` | The number of client applications which belong to this service.  |`,
+					`  | ` + "`" + `clientCount` + "`" + ` | The number of client applications which belong to this service.  |` + "\n" +
+					`` + "\n" +
+					`Read-only. Authlete owns these values -- ` + "`" + `clientCount` + "`" + ` changes as clients are added or removed -- and the service create and update endpoints ignore anything written here, including an empty list.`,
 			},
 			"missing_client_id_allowed": schema.BoolAttribute{
 				Computed: true,
@@ -1176,7 +1181,10 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`request is regarded as a FAPI-Part2 request.`,
 			},
 			"number": schema.Int32Attribute{
-				Computed:    true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int32{
+					custom_int32planmodifier.UseStateForUnknown(),
+				},
 				Description: `The sequential number of the service. The value of this property is assigned by Authlete.`,
 			},
 			"oid4vci_version": schema.StringAttribute{
@@ -1390,6 +1398,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"service_owner_number": schema.Int32Attribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.Int32{
+					custom_int32planmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: `The number of the organization that owns this service. This value is ` + "\n" +
 					`assigned by Authlete.`,
 			},
@@ -1411,26 +1422,19 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"sns_credentials": schema.ListNestedAttribute{
 				Computed: true,
-				Optional: true,
 				NestedObject: schema.NestedAttributeObject{
-					Validators: []validator.Object{
-						speakeasy_objectvalidators.NotNull(),
-					},
 					Attributes: map[string]schema.Attribute{
 						"api_key": schema.StringAttribute{
 							Computed:    true,
-							Optional:    true,
 							Description: `API key.`,
 						},
 						"api_secret": schema.StringAttribute{
 							Computed:    true,
-							Optional:    true,
 							Sensitive:   true,
 							Description: `API secret.`,
 						},
 						"sns": schema.StringAttribute{
 							Computed:    true,
-							Optional:    true,
 							Description: `SNS.`,
 						},
 					},
@@ -1447,12 +1451,18 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"supported_attachments": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedAttachments(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Supported attachment types. This property corresponds to the &#123;@code` + "\n" +
 					`attachments_supported&#125; server metadata which was added by the third` + "\n" +
 					`implementer's draft of OpenID Connect for Identity Assurance 1.0.`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_authorization_details_types": schema.ListAttribute{
 				Computed:    true,
@@ -1472,6 +1482,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`` + "\n" +
 					`Backchannel token delivery modes are defined in the specification of [CIBA (Client Initiated` + "\n" +
 					`Backchannel Authentication)](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html).`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_claim_locales": schema.ListAttribute{
 				Computed:    true,
@@ -1485,18 +1498,27 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"supported_claim_types": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedClaimTypes(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Claim types supported by the service. Valid values are listed in Claim Type. Note that Authlete` + "\n" +
 					`currently doesn't provide any API to help implementations for ` + "`" + `AGGREGATED` + "`" + ` and ` + "`" + `DISTRIBUTED` + "`" + `.` + "\n" +
 					`` + "\n" +
 					`The value of this property is used as ` + "`" + `claim_types_supported` + "`" + ` property in the [OpenID Provider` + "\n" +
 					`Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_claims": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedClaims(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Claim names that the service supports. The standard claim names listed in [OpenID Connect Core 1.0,` + "\n" +
 					`5.1. Standard Claim](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims) should` + "\n" +
@@ -1506,6 +1528,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_custom_client_metadata": schema.ListAttribute{
 				Computed:    true,
@@ -1524,12 +1549,18 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`Assurance 1.0.`,
 			},
 			"supported_displays": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedDisplays(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of ` + "`" + `display` + "`" + ` request parameter that service supports.` + "\n" +
 					`` + "\n" +
 					`The value of this property is used as ` + "`" + `display_values_supported` + "`" + ` property in the Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_documents": schema.ListAttribute{
 				Computed:    true,
@@ -1592,13 +1623,19 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `Evidence supported by this service. This corresponds to the ` + "`" + `evidence_supported` + "`" + ` [metadata](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#rfc.section.7).`,
 			},
 			"supported_grant_types": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedGrantTypes(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of ` + "`" + `grant_type` + "`" + ` request parameter that the service supports.` + "\n" +
 					`` + "\n" +
 					`The value of this property is used as ` + "`" + `grant_types_supported property` + "`" + ` in the` + "\n" +
 					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_identity_documents": schema.ListAttribute{
 				Computed:    true,
@@ -1612,28 +1649,46 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional:    true,
 				ElementType: types.StringType,
 				Description: `Client authentication methods supported at the introspection endpoint.`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_prompt_values": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedPromptValues(),
+				},
 				ElementType: types.StringType,
 				Description: `The supported ` + "`" + `prompt` + "`" + ` values.`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_response_types": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedResponseTypes(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of ` + "`" + `response_type` + "`" + ` request parameter that` + "\n" +
 					`the service supports. Valid values are listed in Response Type.` + "\n" +
 					`` + "\n" +
 					`The value of this property is used as ` + "`" + `response_types_supported` + "`" + ` property in the` + "\n" +
 					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_revocation_auth_methods": schema.ListAttribute{
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
 				Description: `Client authentication methods supported at the revocation endpoint.`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_scopes": schema.ListNestedAttribute{
 				Computed: true,
@@ -1704,13 +1759,21 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 						},
 					},
 				},
-				Description: `Scopes supported by the service.`,
+				MarkdownDescription: `The scopes supported by the service.` + "\n" +
+					`` + "\n" +
+					`Authlete returns this list in an order of its own and fills in fields a configuration naming only the scope does not set, so a plan may offer to rewrite it even when nothing has changed. Applying is harmless and the stored scopes are correct. The sibling lists this affected are compared without regard to order; this one cannot be, because reordering cannot be told apart from an edit to a scope's description.`,
 			},
 			"supported_service_profiles": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedServiceProfiles(),
+				},
 				ElementType: types.StringType,
 				Description: `The profiles that this service supports.`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_snses": schema.ListAttribute{
 				Computed:    true,
@@ -1719,13 +1782,19 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`authentication.`,
 			},
 			"supported_token_auth_methods": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedTokenAuthMethods(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `Client authentication methods supported by the token endpoint of the service.` + "\n" +
 					`` + "\n" +
 					`The value of this property is used as ` + "`" + `token_endpoint_auth_methods_supports` + "`" + ` property in the` + "\n" +
 					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
+				},
 			},
 			"supported_trust_frameworks": schema.ListAttribute{
 				Computed:    true,

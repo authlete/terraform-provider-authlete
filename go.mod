@@ -1,4 +1,4 @@
-module github.com/authlete/terraform-provider-authlete
+module github.com/authlete/terraform-provider-authlete/v3
 
 go 1.25.10
 

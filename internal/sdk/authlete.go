@@ -8,12 +8,12 @@ package sdk
 import (
 	"context"
 	"fmt"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/config"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/globals"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/hooks"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/utils"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/models/shared"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/retry"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/config"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/globals"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/hooks"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/utils"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/models/shared"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/retry"
 	"net/http"
 	"time"
 )
@@ -182,9 +182,9 @@ func WithTimeout(timeout time.Duration) SDKOption {
 // New creates a new instance of the SDK with the provided options
 func New(opts ...SDKOption) *Authlete {
 	sdk := &Authlete{
-		SDKVersion: "0.0.16",
+		SDKVersion: "3.0.0-beta",
 		sdkConfiguration: config.SDKConfiguration{
-			UserAgent:  "speakeasy-sdk/terraform 0.0.16 2.932.9 3.0.16 github.com/authlete/terraform-provider-authlete/internal/sdk",
+			UserAgent:  "speakeasy-sdk/terraform 3.0.0-beta 2.932.9 3.0.16 github.com/authlete/terraform-provider-authlete/v3/internal/sdk",
 			Globals:    globals.Globals{},
 			ServerList: ServerList,
 		},

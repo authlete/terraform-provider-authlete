@@ -6,7 +6,7 @@ package hooks
 import (
 	"context"
 	"errors"
-	"github.com/authlete/terraform-provider-authlete/internal/sdk/internal/config"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/config"
 	"net/http"
 )
 
