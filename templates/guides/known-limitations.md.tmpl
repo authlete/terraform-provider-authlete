@@ -63,13 +63,24 @@ file.
 Leaving `jwks` out of your configuration keeps the key out of version control,
 which is worth doing, but it does not keep it out of state.
 
-## Client secrets cannot be rotated in place
+## Client secrets are rotated outside Terraform
 
-There is no Terraform equivalent of rotating a client secret. Authlete's API
-supports it and the provider does not expose it.
+A client secret can be rotated, but not from Terraform. `client_secret` is
+computed, so there is nothing to set, and the provider exposes neither of the
+two API operations that change it.
 
-Rotate in the Authlete console instead. The new secret is read back on the next
-`terraform plan`, so state catches up on its own and nothing needs importing.
+Rotate in the Authlete console instead, and leave your configuration alone.
+Terraform notices on the next plan and proposes nothing:
+
+```
+~ client_secret = (sensitive value)
+```
+
+The plan carries Terraform's standard warning that it "may include actions to
+undo or respond to these changes". It does not here, because the attribute is
+computed: no action is proposed against the client. State catches up on the
+next `terraform apply` or `terraform apply -refresh-only`, since a plan reports
+drift without writing state. Running only plans leaves the notice showing.
 
 Replacing the resource would also produce a new secret, but it changes the
 `client_id` too, which breaks every integration pointing at that client. Do not
