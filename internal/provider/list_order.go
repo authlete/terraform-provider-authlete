@@ -87,7 +87,12 @@ func keepServiceListOrder(prev, cur *ServiceResourceModel) {
 	cur.SupportedTokenAuthMethods = keepOrder(prev.SupportedTokenAuthMethods, cur.SupportedTokenAuthMethods)
 }
 
-// keepClientListOrder does the same for the three client lists.
+// keepClientListOrder does the same for the client lists.
+//
+// requestable_scopes lives inside the extension object rather than at the top
+// level, which is why it was missed when the others were done. Authlete
+// returns it in an order of its own, so ["read","write"] came back as
+// ["write","read"] and the plan showed a diff although nothing had changed.
 func keepClientListOrder(prev, cur *ClientResourceModel) {
 	if prev == nil || cur == nil {
 		return
@@ -95,4 +100,9 @@ func keepClientListOrder(prev, cur *ClientResourceModel) {
 	cur.GrantTypes = keepOrder(prev.GrantTypes, cur.GrantTypes)
 	cur.ResponseModes = keepOrder(prev.ResponseModes, cur.ResponseModes)
 	cur.ResponseTypes = keepOrder(prev.ResponseTypes, cur.ResponseTypes)
+
+	if prev.Extension != nil && cur.Extension != nil {
+		cur.Extension.RequestableScopes = keepOrder(
+			prev.Extension.RequestableScopes, cur.Extension.RequestableScopes)
+	}
 }

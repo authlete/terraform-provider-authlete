@@ -10558,6 +10558,8 @@ components:
               request any scopes. When the value of this parameter is a set with at least one element, it means
               that the set is the set of scopes that the client application is allowed to request.
               </Accordion>
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_requestable_scopes
         requestableScopesEnabled:
           type: boolean
           description: |

@@ -958,6 +958,16 @@ actions:
   # to show. Logic in internal/provider/planmodifiers/unordered_list.go, guarded
   # by TestReorderedListPlansNoChange.
 
+  # requestableScopes sits inside the client's extension object rather than at
+  # the top level, which is why the sweep that found the lists below walked
+  # past it. Authlete returns it in an order of its own, so a configuration
+  # listing the same scopes in a different order showed a diff on every plan.
+  - target: $.components.schemas.client_extension.properties.requestableScopes
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_requestable_scopes
+
   - target: $.components.schemas.service.properties.supportedAttachments
     description: Keep the order already in state when the elements are unchanged
     update:

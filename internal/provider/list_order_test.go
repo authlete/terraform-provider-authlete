@@ -4,6 +4,7 @@ package provider
 import (
 	"testing"
 
+	tfTypes "github.com/authlete/terraform-provider-authlete/v3/internal/provider/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -167,11 +168,13 @@ func TestKeepClientListOrderHoldsEveryReorderedList(t *testing.T) {
 		GrantTypes:    strs("REFRESH_TOKEN", "AUTHORIZATION_CODE"),
 		ResponseModes: strs("FORM_POST", "QUERY"),
 		ResponseTypes: strs("ID_TOKEN", "CODE"),
+		Extension:     &tfTypes.ClientExtension{RequestableScopes: strs("read", "write")},
 	}
 	cur := &ClientResourceModel{
 		GrantTypes:    strs("AUTHORIZATION_CODE", "REFRESH_TOKEN"),
 		ResponseModes: strs("QUERY", "FORM_POST"),
 		ResponseTypes: strs("CODE", "ID_TOKEN"),
+		Extension:     &tfTypes.ClientExtension{RequestableScopes: strs("write", "read")},
 	}
 
 	keepClientListOrder(prev, cur)
@@ -184,5 +187,46 @@ func TestKeepClientListOrderHoldsEveryReorderedList(t *testing.T) {
 	}
 	if joined(cur.ResponseTypes) != "ID_TOKEN,CODE" {
 		t.Errorf("response_types: %s", joined(cur.ResponseTypes))
+	}
+	if joined(cur.Extension.RequestableScopes) != "read,write" {
+		t.Errorf("requestable_scopes: %s", joined(cur.Extension.RequestableScopes))
+	}
+}
+
+// The extension object is a pointer and Authlete does not always return one,
+// so the nil cases have to be safe. A client whose extension appears or
+// disappears between reads must not panic, and must not be given an order
+// from the other side.
+func TestKeepClientListOrderToleratesAMissingExtension(t *testing.T) {
+	for name, tc := range map[string]struct {
+		prev, cur *tfTypes.ClientExtension
+		want      string
+	}{
+		"both absent": {nil, nil, ""},
+		"absent in state, present in the response": {
+			nil, &tfTypes.ClientExtension{RequestableScopes: strs("write", "read")}, "write,read",
+		},
+		"present in state, absent from the response": {
+			&tfTypes.ClientExtension{RequestableScopes: strs("read", "write")}, nil, "",
+		},
+		"a real edit is not held back": {
+			&tfTypes.ClientExtension{RequestableScopes: strs("read", "write")},
+			&tfTypes.ClientExtension{RequestableScopes: strs("read")}, "read",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			prev := &ClientResourceModel{Extension: tc.prev}
+			cur := &ClientResourceModel{Extension: tc.cur}
+
+			keepClientListOrder(prev, cur)
+
+			got := ""
+			if cur.Extension != nil {
+				got = joined(cur.Extension.RequestableScopes)
+			}
+			if got != tc.want {
+				t.Errorf("requestable_scopes = %q, want %q", got, tc.want)
+			}
+		})
 	}
 }

@@ -652,8 +652,11 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 							`too. Authlete chooses the minimum value among the candidates.`,
 					},
 					"requestable_scopes": schema.ListAttribute{
-						Computed:    true,
-						Optional:    true,
+						Computed: true,
+						Optional: true,
+						PlanModifiers: []planmodifier.List{
+							custom_listplanmodifier.KeepOrderRequestableScopes(),
+						},
 						ElementType: types.StringType,
 						MarkdownDescription: `The set of scopes that the client application is allowed to request. This paramter will be one` + "\n" +
 							`of the following.`,
