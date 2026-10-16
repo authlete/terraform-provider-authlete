@@ -183,9 +183,9 @@ contradictions these checks do not catch, and Authlete will store it.
 `jwk_from_pem` and `jwk_from_secret` check more, because they see the key
 rather than a document describing it.
 
-These run against the configuration, so a key set built from a value that is
-not known until apply, a `tls_private_key` reference for instance, is not
-checked at all.
+A key set built from a value that is not known until plan time, a
+`tls_private_key` reference for instance, is checked during the apply instead,
+before anything is sent.
 
 ## Client attributes moved into `extension`
 

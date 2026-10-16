@@ -229,6 +229,15 @@ actions:
         schemaType: customtypes.PublicJWKSType{}
         valueType: customtypes.PublicJWKS
 
+  # The type validates the configuration, which cannot see a value built from
+  # something not created yet. Terraform re-plans during apply with the value
+  # resolved, so the same check runs again there.
+  - target: $.components.schemas.client.properties.jwks
+    description: Refuse a private key even when it is not known until apply
+    update:
+      x-speakeasy-plan-modifiers:
+        - RefusePrivateKeys_jwks
+
   - target: $.components.schemas.service.properties.jwks
     description: Compare the service JWK Set by meaning, not bytes
     update:
