@@ -165,6 +165,7 @@ func (v JWKS) ValidateAttribute(ctx context.Context, req xattr.ValidateAttribute
 	for i, k := range keys {
 		checkAlg(req, resp, i, k)
 		checkUse(req, resp, i, k)
+		checkKty(req, resp, i, k)
 		checkMaterial(req, resp, i, k)
 
 		kid, _ := k["kid"].(string)
@@ -232,6 +233,51 @@ func checkUse(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 				i, use, alg, want),
 		)
 	}
+}
+
+// checkKty refuses a key type Authlete does not store.
+//
+// This is the one place where refusing an unrecognised value is right. An
+// unrecognised alg or use is kept: Authlete stores the key and the field is
+// inert. An unrecognised kty is not. Measured against the live API, the whole
+// key is dropped and nothing is reported:
+//
+//	sent  : {"keys":[{"kty":"BOGUS","kid":"k","use":"sig"}]}
+//	stored: {"keys":[]}
+//
+// so the configuration and the server disagree for ever, which is the failure
+// this validation exists to prevent. The registry is small and has not grown
+// since OKP was added in 2017, and were it to grow, Authlete would drop the
+// new type until it supported it anyway.
+func checkKty(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse, i int, k map[string]any) {
+	kty, _ := k["kty"].(string)
+
+	switch kty {
+	case "RSA", "EC", "OKP", "oct":
+		return
+	}
+
+	if kty == "" {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Key with no kty",
+			fmt.Sprintf("The key at position %d has no kty.\n\n"+
+				"Every key states its type. Authlete drops a key it cannot "+
+				"read without reporting an error, so the key set would be "+
+				"stored without this key and the plan would never settle.", i),
+		)
+		return
+	}
+
+	resp.Diagnostics.AddAttributeError(
+		req.Path,
+		fmt.Sprintf("Unknown key type %q", kty),
+		fmt.Sprintf("The key at position %d has kty %q, which is not one of "+
+			"\"RSA\", \"EC\", \"OKP\" or \"oct\".\n\n"+
+			"Authlete drops a key whose type it cannot read, without reporting "+
+			"an error, so the key set would be stored without this key and the "+
+			"plan would never settle.", i, kty),
+	)
 }
 
 // checkMaterial checks the key material against what the key claims to be.

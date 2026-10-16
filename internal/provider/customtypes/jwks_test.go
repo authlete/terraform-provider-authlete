@@ -164,7 +164,6 @@ func TestUnrecognisedAlgIsAccepted(t *testing.T) {
 	for name, doc := range map[string]string{
 		"no alg at all":                  `{"keys":[{"kty":"RSA","kid":"k","use":"sig"}]}`,
 		"alg this package does not know": `{"keys":[{"kty":"RSA","kid":"k","alg":"SOMETHING-NEW","use":"sig"}]}`,
-		"no kty to check against":        `{"keys":[{"kid":"k","alg":"RS256","use":"sig"}]}`,
 		"EC signing alg with no crv":     `{"keys":[{"kty":"EC","kid":"k","alg":"ES256","use":"sig"}]}`,
 		"HMAC on a symmetric key":        `{"keys":[{"kty":"oct","kid":"k","alg":"HS256","use":"sig","k":"MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY"}]}`,
 		"RSA-OAEP on an RSA key":         `{"keys":[{"kty":"RSA","kid":"k","alg":"RSA-OAEP-256","use":"enc"}]}`,
@@ -281,6 +280,38 @@ func TestValidKeyMaterialIsAccepted(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			if d := validateJWKS(t, doc); d.HasError() {
 				t.Errorf("refused %s: %v", name, d.Errors())
+			}
+		})
+	}
+}
+
+// The one unrecognised value that must be refused rather than kept. Measured:
+// Authlete drops a key whose kty it cannot read and stores {"keys":[]}.
+func TestUnreadableKtyIsRefused(t *testing.T) {
+	for name, doc := range map[string]string{
+		"an unknown kty":   `{"keys":[{"kty":"BOGUS","kid":"k","use":"sig"}]}`,
+		"a misspelled kty": `{"keys":[{"kty":"rsa","kid":"k","use":"sig"}]}`,
+		"no kty at all":    `{"keys":[{"kid":"k","use":"sig"}]}`,
+		"an empty kty":     `{"keys":[{"kty":"","kid":"k","use":"sig"}]}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if d := validateJWKS(t, doc); !d.HasError() {
+				t.Errorf("accepted %s: %s", name, doc)
+			}
+		})
+	}
+}
+
+func TestEveryStoredKtyIsAccepted(t *testing.T) {
+	for name, doc := range map[string]string{
+		"RSA": `{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"sig","n":"AQAB","e":"AQAB"}]}`,
+		"EC":  `{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"ES256","use":"sig","x":"AA","y":"AA"}]}`,
+		"OKP": `{"keys":[{"kty":"OKP","kid":"k","crv":"Ed25519","alg":"EdDSA","use":"sig","x":"AA"}]}`,
+		"oct": `{"keys":[{"kty":"oct","kid":"k","alg":"A128KW","use":"enc","k":"MDEyMzQ1Njc4OWFiY2RlZg"}]}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if d := validateJWKS(t, doc); d.HasError() {
+				t.Errorf("refused a %s key: %v", name, d.Errors())
 			}
 		})
 	}
