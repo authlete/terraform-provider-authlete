@@ -175,9 +175,9 @@ func (r *ClientResourceModel) RefreshFromSharedClient(ctx context.Context, resp 
 			r.IDTokenSignAlg = types.StringNull()
 		}
 		r.InScopeForTokenMigration = types.BoolPointerValue(resp.InScopeForTokenMigration)
-		jwksValuable, jwksDiags := customtypes.JWKSType{}.ValueFromString(ctx, types.StringPointerValue(resp.Jwks))
+		jwksValuable, jwksDiags := customtypes.PublicJWKSType{}.ValueFromString(ctx, types.StringPointerValue(resp.Jwks))
 		diags.Append(jwksDiags...)
-		r.Jwks = jwksValuable.(customtypes.JWKS)
+		r.Jwks = jwksValuable.(customtypes.PublicJWKS)
 		r.JwksURI = types.StringPointerValue(resp.JwksURI)
 		r.Locked = types.BoolPointerValue(resp.Locked)
 		r.LoginURI = types.StringPointerValue(resp.LoginURI)
