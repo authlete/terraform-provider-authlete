@@ -110,9 +110,9 @@ refresh. Either way, use a state backend that encrypts.
 
 ### X25519 needs an external tool
 
-`hashicorp/tls` cannot generate an X25519 key, and nothing else in Terraform
-can. If you used `crv = "X25519"` with `generate = true`, generate the key
-outside Terraform:
+This provider converts an X25519 key into a JWK, but nothing generates the key
+pair: `hashicorp/tls` offers RSA, ECDSA and Ed25519 and no X25519. If you used
+`crv = "X25519"` with `generate = true`, generate the key outside Terraform:
 
 ```bash
 openssl genpkey -algorithm X25519 -out x25519.pem
@@ -146,20 +146,24 @@ provider::authlete::jwk_from_pem(
 
 ### Symmetric keys
 
-1.3.x offered no way to build one: its `alg` list had no `HS256`, and its
-generator covered only RSA, EC and OKP. 3.0 has `jwk_from_secret`:
+1.3.x could hold one, by writing `kty = "oct"` and `k` into a `jwk` block by
+hand, but it could not build one for you: its generator covered RSA, EC and
+OKP only, and `HS256` was not in its list of accepted algorithms. 3.0 has
+`jwk_from_secret`:
 
 ```terraform
 provider::authlete::jwk_from_secret(var.shared_secret, "hmac-1", "HS256", "sig")
 ```
 
-Authlete holds such a key for its own use and leaves it out of the JWK Set
-served to clients.
+Use it on a service. Authlete holds the key for its own use and leaves it out
+of the JWK Set it serves. A client is different: a client's JWK Set holds the
+keys Authlete verifies that client with, so it must be public and asymmetric,
+and a symmetric key sent to one is discarded.
 
-### Keys are now checked before they are sent
+### Some malformed key sets are refused before they are sent
 
 Authlete stores a JWK Set without inspecting it, so 1.3.x would publish a key
-that violated the specification and nothing would object. 3.0 refuses a few
+that violated the specification and nothing would object. 3.0 refuses several
 combinations at plan time:
 
 - an algorithm the key cannot perform, such as `HS256` on an RSA key
@@ -170,6 +174,11 @@ combinations at plan time:
 
 A configuration that hits one of these was already producing a malformed key
 set. Fix the key rather than working around the error.
+
+The list is not exhaustive. A key set assembled by hand can still hold
+contradictions these checks do not catch, and Authlete will store it.
+`jwk_from_pem` and `jwk_from_secret` check more, because they see the key
+rather than a document describing it.
 
 ## Client attributes moved into `extension`
 
@@ -196,9 +205,12 @@ scope does not appear, and every later plan offers to add it again.
 Define the scope on the service first. `requestable_scopes_enabled` must be
 `true` for the restriction to apply at all.
 
-Ordering does not matter. 1.3.x modelled these lists as sets, where order never
-mattered; 3.0 models them as lists and compares them without regard to order, so
-a list that comes back from Authlete rearranged does not show a diff.
+Ordering does not matter for `requestable_scopes`. 1.3.x modelled it as a set,
+where order never mattered; 3.0 models it as a list but compares it without
+regard to order, so a list Authlete returns rearranged does not show a diff.
+
+This is not true of every list. `supported_scopes` on a service is sorted by
+Authlete and does show a diff; see the "Known limitations" guide.
 
 ## What did not change
 
