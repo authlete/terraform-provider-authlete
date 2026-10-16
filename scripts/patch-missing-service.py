@@ -22,6 +22,30 @@ PATHS = [
     "internal/provider/client_resource.go",
 ]
 
+# A data source cannot drop itself from state the way a resource can, because
+# it was never in state. Asking for a service that does not exist is an error;
+# what matters is that the error says so instead of printing a bare 403.
+DATA_SOURCES = [
+    "internal/provider/service_data_source.go",
+    "internal/provider/client_data_source.go",
+]
+
+DS_BEFORE = """	if res.StatusCode != 200 {
+		resp.Diagnostics.AddError(fmt.Sprintf("unexpected response from API. Got an unexpected response code %v", res.StatusCode), debugResponse(res.RawResponse))
+		return
+	}
+"""
+DS_AFTER = """	if serviceIsGone(res.RawResponse) { // scripts/patch-missing-service.py
+		summary, detail := serviceGoneMessage(fmt.Sprintf("%v", request.ServiceID))
+		resp.Diagnostics.AddError(summary, detail)
+		return
+	}
+	if res.StatusCode != 200 {
+		resp.Diagnostics.AddError(fmt.Sprintf("unexpected response from API. Got an unexpected response code %v", res.StatusCode), debugResponse(res.RawResponse))
+		return
+	}
+"""
+
 # Read: 404 already removes the resource; 403 + A458203 means the same thing.
 READ_BEFORE = """	if res.StatusCode == 404 {
 		resp.State.RemoveResource(ctx)
@@ -68,6 +92,22 @@ def main():
     check = "--check" in sys.argv
     failed = False
     sites = 0
+
+    for path in DATA_SOURCES:
+        src = open(path).read()
+        if DS_AFTER in src:
+            sites += 1
+            continue
+        if DS_BEFORE not in src:
+            print(f"{path}: neither the patched nor the original form was found", file=sys.stderr)
+            failed = True
+            continue
+        if check:
+            print(f"{path}: a missing service is still reported as a bare 403", file=sys.stderr)
+            failed = True
+            continue
+        open(path, "w").write(src.replace(DS_BEFORE, DS_AFTER, 1))
+        sites += 1
 
     for path in PATHS:
         src = open(path).read()

@@ -70,3 +70,24 @@ func TestServiceIsGoneLeavesTheBodyReadable(t *testing.T) {
 		t.Errorf("body is %q, want it unchanged as %q", rest, body)
 	}
 }
+
+// TestServiceGoneMessage checks the diagnostic a data source raises. A data
+// source cannot drop itself from state, so the error is the whole of what a
+// practitioner gets, and it has to say which service and what to check.
+func TestServiceGoneMessage(t *testing.T) {
+	summary, detail := serviceGoneMessage("3528451425913156")
+
+	if !strings.Contains(summary, "3528451425913156") {
+		t.Errorf("summary does not name the service: %q", summary)
+	}
+	for _, want := range []string{"deleted", "organization", "cluster", "server_url"} {
+		if !strings.Contains(detail, want) {
+			t.Errorf("detail does not mention %q, so a reader is left guessing:\n%s", want, detail)
+		}
+	}
+	// The wrong cluster is the cause people do not think of, since the id is
+	// real and the token works.
+	if !strings.Contains(detail, "jp.authlete.com") {
+		t.Error("detail does not give the wrong-cluster case a concrete shape")
+	}
+}

@@ -26,6 +26,7 @@ package provider
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/http/httputil"
 )
@@ -47,4 +48,23 @@ func serviceIsGone(res *http.Response) bool {
 		return false
 	}
 	return bytes.Contains(dump, []byte(serviceNotFoundCode))
+}
+
+// serviceGoneMessage is the diagnostic a data source raises instead of
+// reporting a bare 403. A data source cannot drop itself from state the way a
+// resource can, since it was never in state; the right outcome is an error, so
+// what matters here is that the error says what is wrong.
+//
+// The summary names the service, because a configuration that reads several
+// has no other way to tell which one is missing.
+func serviceGoneMessage(id string) (summary, detail string) {
+	return fmt.Sprintf("Service %s does not exist", id),
+		"Authlete reports no service with this id.\n\n" +
+			"It may have been deleted, or the id may belong to another " +
+			"organization or another cluster: a service id is unique to the " +
+			"cluster that issued it, so one created on us.authlete.com is not " +
+			"found on jp.authlete.com.\n\n" +
+			"Check the id against the Management Console, and check that " +
+			"server_url and AUTHLETE_SERVER_URL name the cluster the service " +
+			"lives on."
 }
