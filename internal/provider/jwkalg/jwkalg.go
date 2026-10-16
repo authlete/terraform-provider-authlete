@@ -40,6 +40,47 @@ func SigAlg(crv string) (string, bool) {
 	return "", false
 }
 
+// okpCurve pairs each OKP algorithm with the curve that performs it. Ed25519
+// signs and X25519 performs key agreement, and neither can do the other's job,
+// so an OKP kty alone does not say an algorithm is possible.
+var okpCurve = map[string]string{
+	"EdDSA":          "Ed25519",
+	"ECDH-ES":        "X25519",
+	"ECDH-ES+A128KW": "X25519",
+	"ECDH-ES+A192KW": "X25519",
+	"ECDH-ES+A256KW": "X25519",
+}
+
+// OKPCurve returns the curve an algorithm needs when the key is an OKP key.
+// The second result is false for an algorithm that is not an OKP one, and for
+// ECDH-ES on an EC key the caller never reaches this, since kty decides first.
+func OKPCurve(alg string) (string, bool) {
+	crv, ok := okpCurve[alg]
+	return crv, ok
+}
+
+// curveBytes gives the length, in octets, of each coordinate on a curve.
+//
+// RFC 7518 section 6.2.1.2 requires x and y to be the full size of the curve,
+// left padded with zeros, so a shorter value is not a smaller number but a
+// malformed key. P-521 is 66 rather than 65 because its field is 521 bits.
+// RFC 8037 fixes the Edwards curves at 32.
+var curveBytes = map[string]int{
+	"P-256":   32,
+	"P-384":   48,
+	"P-521":   66,
+	"Ed25519": 32,
+	"X25519":  32,
+}
+
+// CurveBytes returns the octet length of a coordinate on a curve. The second
+// result is false for a curve this package does not know, which is left alone
+// rather than guessed at.
+func CurveBytes(crv string) (int, bool) {
+	n, ok := curveBytes[crv]
+	return n, ok
+}
+
 // KeyType returns the kty an algorithm requires, for the algorithms that
 // require exactly one. The second result is false for an algorithm this
 // package does not constrain.
@@ -48,7 +89,7 @@ func KeyType(alg string) (string, bool) {
 	case strings.HasPrefix(alg, "RS"), strings.HasPrefix(alg, "PS"),
 		alg == "RSA1_5", strings.HasPrefix(alg, "RSA-OAEP"):
 		return "RSA", true
-	case strings.HasPrefix(alg, "ES"), strings.HasPrefix(alg, "ECDH-ES"):
+	case strings.HasPrefix(alg, "ES"):
 		return "EC", true
 	case alg == "EdDSA":
 		return "OKP", true
@@ -72,6 +113,49 @@ func Purpose(alg string) (string, bool) {
 		return "sig", true
 	}
 	return "", false
+}
+
+// octKeyBytes gives the exact key length, in bytes, that an algorithm needs
+// from a symmetric key. RFC 7518 fixes these: AES key wrap takes a key the
+// size of its AES variant, and sections 4.4 and 4.7 make that exact rather
+// than a minimum.
+var octKeyBytes = map[string]int{
+	"A128KW": 16, "A192KW": 24, "A256KW": 32,
+	"A128GCMKW": 16, "A192GCMKW": 24, "A256GCMKW": 32,
+}
+
+// octKeyMinBytes gives the smallest key an algorithm will accept. RFC 7518
+// section 3.2 requires an HMAC key at least as long as the hash output, and
+// says nothing about an upper bound.
+var octKeyMinBytes = map[string]int{
+	"HS256": 32, "HS384": 48, "HS512": 64,
+}
+
+// OctKeySize returns the length in bytes a symmetric key must have for an
+// algorithm, and whether that length is exact or a minimum. The third result
+// is false for an algorithm with no fixed requirement, such as "dir", where
+// the size follows from the content encryption algorithm instead.
+func OctKeySize(alg string) (size int, exact bool, known bool) {
+	if n, ok := octKeyBytes[alg]; ok {
+		return n, true, true
+	}
+	if n, ok := octKeyMinBytes[alg]; ok {
+		return n, false, true
+	}
+	return 0, false, false
+}
+
+// OctAlgs returns the algorithms a symmetric key can perform for a given use.
+func OctAlgs(use string) []string {
+	if use == "enc" {
+		return []string{
+			"dir",
+			"A128KW", "A192KW", "A256KW",
+			"A128GCMKW", "A192GCMKW", "A256GCMKW",
+			"PBES2-HS256+A128KW", "PBES2-HS384+A192KW", "PBES2-HS512+A256KW",
+		}
+	}
+	return []string{"HS256", "HS384", "HS512"}
 }
 
 // IsHMAC reports whether alg is a symmetric HMAC algorithm. Publishing a

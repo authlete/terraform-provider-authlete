@@ -12,6 +12,8 @@ package customtypes
 
 import (
 	"context"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -154,20 +156,20 @@ func (v JWKS) ValidateAttribute(ctx context.Context, req xattr.ValidateAttribute
 		return
 	}
 
-	var doc struct {
-		Keys []map[string]any `json:"keys"`
-	}
-	// Anything that does not parse is left alone. Reporting it here would
-	// duplicate the error the server gives, and a JWK Set may legitimately
-	// arrive in a shape this struct does not model.
-	if err := json.Unmarshal([]byte(v.ValueString()), &doc); err != nil {
+	keys, problem := jwkSetKeys(v.ValueString())
+	if problem != nil {
+		resp.Diagnostics.AddAttributeError(req.Path, problem.summary, problem.detail)
 		return
 	}
 
-	seen := make(map[string]int, len(doc.Keys))
-	for i, k := range doc.Keys {
+	seen := make(map[string]int, len(keys))
+	for i, k := range keys {
 		checkAlg(req, resp, i, k)
 		checkUse(req, resp, i, k)
+		checkKty(req, resp, i, k)
+		checkMaterial(req, resp, i, k)
+		checkCoordinates(req, resp, i, k)
+		checkX5C(req, resp, i, k)
 
 		kid, _ := k["kid"].(string)
 		if strings.TrimSpace(kid) == "" {
@@ -236,6 +238,256 @@ func checkUse(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 	}
 }
 
+// checkKty refuses a key type Authlete does not store.
+//
+// This is the one place where refusing an unrecognised value is right. An
+// unrecognised alg or use is kept: Authlete stores the key and the field is
+// inert. An unrecognised kty is not. Measured against the live API, the whole
+// key is dropped and nothing is reported:
+//
+//	sent  : {"keys":[{"kty":"BOGUS","kid":"k","use":"sig"}]}
+//	stored: {"keys":[]}
+//
+// so the configuration and the server disagree for ever, which is the failure
+// this validation exists to prevent. The registry is small and has not grown
+// since OKP was added in 2017, and were it to grow, Authlete would drop the
+// new type until it supported it anyway.
+func checkKty(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse, i int, k map[string]any) {
+	kty, _ := k["kty"].(string)
+
+	switch kty {
+	case "RSA", "EC", "OKP", "oct":
+		return
+	}
+
+	if kty == "" {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Key with no kty",
+			fmt.Sprintf("The key at position %d has no kty.\n\n"+
+				"Every key states its type. Authlete drops a key it cannot "+
+				"read without reporting an error, so the key set would be "+
+				"stored without this key and the plan would never settle.", i),
+		)
+		return
+	}
+
+	resp.Diagnostics.AddAttributeError(
+		req.Path,
+		fmt.Sprintf("Unknown key type %q", kty),
+		fmt.Sprintf("The key at position %d has kty %q, which is not one of "+
+			"\"RSA\", \"EC\", \"OKP\" or \"oct\".\n\n"+
+			"Authlete drops a key whose type it cannot read, without reporting "+
+			"an error, so the key set would be stored without this key and the "+
+			"plan would never settle.", i, kty),
+	)
+}
+
+// checkMaterial checks the key material against what the key claims to be.
+//
+// The checks above compare metadata with metadata: alg against kty, crv and
+// use. They say nothing about whether the members describing the key are
+// present or the right size, which is the half jwk_from_pem and
+// jwk_from_secret get for free by holding the key itself. A hand-written set
+// reaches neither function.
+func checkMaterial(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse, i int, k map[string]any) {
+	kty, _ := k["kty"].(string)
+	alg, _ := k["alg"].(string)
+
+	// An algorithm for a shared secret on a key that is not one, the mirror of
+	// the HMAC check above: A128KW wraps with a symmetric key and an RSA key
+	// cannot perform it.
+	if kty != "" && kty != "oct" {
+		if _, _, known := jwkalg.OctKeySize(alg); known && !jwkalg.IsHMAC(alg) {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				fmt.Sprintf("alg %q on %s %s key", alg, article(kty), kty),
+				fmt.Sprintf("The key at position %d is %s %s key, but alg %q needs a "+
+					"shared secret.\n\n"+
+					"AES key wrap is symmetric. Use an algorithm the key can "+
+					"perform, or publish the key as kty \"oct\".", i, article(kty), kty, alg),
+			)
+			return
+		}
+	}
+
+	if kty != "oct" {
+		return
+	}
+
+	// RFC 7518 section 6.4.1: an oct key carries its value in "k". Without it
+	// the key is a description of nothing, and Authlete stores it happily.
+	raw, present := k["k"].(string)
+	if !present || raw == "" {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Symmetric key with no k",
+			fmt.Sprintf("The key at position %d has kty \"oct\" but no k member.\n\n"+
+				"A symmetric key is its k value. Build one with jwk_from_secret, "+
+				"which encodes a secret correctly.", i),
+		)
+		return
+	}
+
+	// base64url without padding, per RFC 7515 appendix C.
+	decoded, err := base64.RawURLEncoding.DecodeString(raw)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"k is not base64url",
+			fmt.Sprintf("The key at position %d has a k member that is not "+
+				"unpadded base64url: %s.\n\n"+
+				"Terraform has no base64urlencode, so a hand-written k is "+
+				"commonly standard base64 by mistake. jwk_from_secret encodes "+
+				"it correctly.", i, err),
+		)
+		return
+	}
+
+	size, exact, known := jwkalg.OctKeySize(alg)
+	if !known {
+		return
+	}
+	switch {
+	case exact && len(decoded) != size:
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			fmt.Sprintf("Key of the wrong size for %q", alg),
+			fmt.Sprintf("The key at position %d is %d bytes, but alg %q needs "+
+				"exactly %d.\n\n"+
+				"AES key wrap takes a key the size of its AES variant.",
+				i, len(decoded), alg, size),
+		)
+	case !exact && len(decoded) < size:
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			fmt.Sprintf("Key too short for %q", alg),
+			fmt.Sprintf("The key at position %d is %d bytes, but alg %q needs at "+
+				"least %d.\n\n"+
+				"RFC 7518 section 3.2 requires an HMAC key at least as long as "+
+				"the hash output.", i, len(decoded), alg, size),
+		)
+	}
+}
+
+// checkCoordinates checks that a curve key's coordinates are the size the
+// curve requires.
+//
+// RFC 7518 section 6.2.1.2 requires x and y to be the full width of the curve,
+// left padded with zeros, so a short value is a malformed key rather than a
+// smaller number. Authlete refuses one, but with the same generic reply it
+// gives every malformed set, naming neither the key nor the member.
+func checkCoordinates(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse, i int, k map[string]any) {
+	kty, _ := k["kty"].(string)
+	if kty != "EC" && kty != "OKP" {
+		return
+	}
+
+	crv, _ := k["crv"].(string)
+	want, known := jwkalg.CurveBytes(crv)
+	if !known {
+		return
+	}
+
+	// y is absent on an OKP key, and d only on a private one, so each is
+	// checked when present rather than required.
+	for _, member := range []string{"x", "y", "d"} {
+		raw, present := k[member].(string)
+		if !present || raw == "" {
+			continue
+		}
+
+		decoded, err := base64.RawURLEncoding.DecodeString(raw)
+		if err != nil {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				fmt.Sprintf("%s is not base64url", member),
+				fmt.Sprintf("The key at position %d has a %q member that is not "+
+					"unpadded base64url: %s.", i, member, err),
+			)
+			return
+		}
+
+		if len(decoded) != want {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				fmt.Sprintf("%s is the wrong size for %s", member, crv),
+				fmt.Sprintf("The key at position %d has a %q member of %d bytes, "+
+					"but %s requires %d.\n\n"+
+					"RFC 7518 requires each coordinate to be the full width of the "+
+					"curve, left padded with zeros, so a shorter value is a "+
+					"malformed key rather than a smaller number. jwk_from_pem pads "+
+					"them correctly.", i, member, len(decoded), crv, want),
+			)
+			return
+		}
+	}
+}
+
+// checkX5C checks that a certificate chain holds certificates.
+//
+// RFC 7517 section 4.7 makes x5c an array of standard base64 DER
+// certificates, not base64url, which is the usual mistake. Authlete refuses a
+// malformed one with the same generic reply as any other bad set.
+func checkX5C(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse, i int, k map[string]any) {
+	raw, present := k["x5c"]
+	if !present {
+		return
+	}
+
+	chain, ok := raw.([]any)
+	if !ok {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"x5c is not an array",
+			fmt.Sprintf("The key at position %d has an x5c member that is not an "+
+				"array of certificates.", i),
+		)
+		return
+	}
+
+	for j, el := range chain {
+		entry, ok := el.(string)
+		if !ok {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"x5c holds something that is not a certificate",
+				fmt.Sprintf("The entry at position %d of x5c on the key at position "+
+					"%d is not a string.", j, i),
+			)
+			return
+		}
+
+		// Standard base64, per RFC 7517 section 4.7. base64url is the usual
+		// mistake, and it fails here on "-" and "_".
+		der, err := base64.StdEncoding.DecodeString(entry)
+		if err != nil {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"x5c entry is not base64",
+				fmt.Sprintf("The entry at position %d of x5c on the key at position "+
+					"%d is not standard base64: %s.\n\n"+
+					"x5c uses standard base64, not the base64url the rest of a JWK "+
+					"uses. jwk_from_pem encodes it correctly when given a "+
+					"certificate.", j, i, err),
+			)
+			return
+		}
+
+		if _, err := x509.ParseCertificate(der); err != nil {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"x5c entry is not a certificate",
+				fmt.Sprintf("The entry at position %d of x5c on the key at position "+
+					"%d decodes, but not to a certificate: %s.\n\n"+
+					"Each entry is a DER certificate. Pass the PEM to jwk_from_pem "+
+					"rather than assembling the chain by hand.", j, i, err),
+			)
+			return
+		}
+	}
+}
+
 // article picks the indefinite article for a kty, so the diagnostics read as
 // English rather than "a RSA key".
 func article(kty string) string {
@@ -244,6 +496,73 @@ func article(kty string) string {
 		return "an"
 	}
 	return "a"
+}
+
+// malformed describes a document that is not a JWK Set at all.
+type malformed struct{ summary, detail string }
+
+// jwkSetKeys reads the keys out of a JWK Set, or says why the document is not
+// one.
+//
+// This used to skip anything that did not parse, on the reasoning that the
+// server would report it and that a JWK Set might legitimately take a shape
+// this code does not model. Measuring the server disproved both halves. Every
+// malformed shape gets the same reply, which names neither the problem nor
+// the key:
+//
+//	{"keys":["abc"]}       400 A031212 The value of 'jwks' failed to be parsed as a JWK Set.
+//	{"keys":"not a list"}  400 A031212 The value of 'jwks' failed to be parsed as a JWK Set.
+//	{"nope":1}             400 A031212 The value of 'jwks' failed to be parsed as a JWK Set.
+//	{}                     400 A031212 The value of 'jwks' failed to be parsed as a JWK Set.
+//
+// and the shape is fixed: RFC 7517 section 5 defines a JWK Set as a JSON
+// object with a "keys" member holding an array of JWK objects. Members beyond
+// that are allowed, in the set and in each key, and both are accepted here and
+// by Authlete. An empty array is a valid set and is accepted by both.
+func jwkSetKeys(doc string) ([]map[string]any, *malformed) {
+	const fix = "\n\nBuild the keys with jwk_from_pem or jwk_from_secret and " +
+		"assemble the set with jsonencode({ keys = [...] })."
+
+	var top map[string]json.RawMessage
+	if err := json.Unmarshal([]byte(doc), &top); err != nil {
+		return nil, &malformed{
+			"JWK Set is not a JSON object",
+			"The value is not a JSON object: " + err.Error() + "." + fix,
+		}
+	}
+
+	raw, present := top["keys"]
+	if !present {
+		return nil, &malformed{
+			"JWK Set has no keys member",
+			"A JWK Set is a JSON object with a \"keys\" member holding an array " +
+				"of keys. This object has none, so it holds no keys at all." + fix,
+		}
+	}
+
+	var list []json.RawMessage
+	if err := json.Unmarshal(raw, &list); err != nil {
+		return nil, &malformed{
+			"keys is not an array",
+			"The \"keys\" member must hold an array of keys, and this one does " +
+				"not: " + err.Error() + "." + fix,
+		}
+	}
+
+	keys := make([]map[string]any, 0, len(list))
+	for i, el := range list {
+		var k map[string]any
+		if err := json.Unmarshal(el, &k); err != nil {
+			return nil, &malformed{
+				fmt.Sprintf("Key at position %d is not an object", i),
+				fmt.Sprintf("Every entry in \"keys\" must be a key, which is a JSON "+
+					"object. The entry at position %d is not: %s.%s", i, err, fix),
+			}
+		}
+		keys = append(keys, k)
+	}
+
+	return keys, nil
 }
 
 // checkAlg refuses an alg the key cannot possibly perform.
@@ -301,6 +620,21 @@ func checkAlg(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 				i, kty, alg, want),
 		)
 		return
+	}
+
+	// Ed25519 signs and X25519 performs key agreement. Both are OKP, so the
+	// kty check above passes either way and the curve has to be checked too.
+	if kty == "OKP" && crv != "" {
+		if want, known := jwkalg.OKPCurve(alg); known && crv != want {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				fmt.Sprintf("alg %q on curve %q", alg, crv),
+				fmt.Sprintf("The key at position %d is on curve %q, but alg %q needs %q.\n\n"+
+					"Ed25519 signs and X25519 performs key agreement, and neither "+
+					"can do the other's job.", i, crv, alg, want),
+			)
+			return
+		}
 	}
 
 	// RFC 7518 section 3.1 pairs each ECDSA algorithm with one curve, and no

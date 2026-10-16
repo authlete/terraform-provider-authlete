@@ -2,6 +2,7 @@
 package functions
 
 import (
+	"crypto/ecdh"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
@@ -483,5 +484,64 @@ func TestCertificateMustHoldTheKey(t *testing.T) {
 	certA := selfSigned(t, "same.example.com", keyA)
 	if _, err := jwkFromPEM(encodePEM(t, "PRIVATE KEY", derA)+encodePEM(t, "CERTIFICATE", certA.Raw), "k1", "RS256", "sig"); err != nil {
 		t.Errorf("refused a matching key and certificate: %v", err)
+	}
+}
+
+// X25519 is key agreement only. hashicorp/tls cannot generate one, so the key
+// comes from outside Terraform and is read with file(); that makes the
+// function the only way to turn it into a JWK.
+func TestX25519(t *testing.T) {
+	priv, err := ecdh.X25519().GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	der, err := x509.MarshalPKCS8PrivateKey(priv)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	jwk, err := jwkFromPEM(encodePEM(t, "PRIVATE KEY", der), "k1", "ECDH-ES", "enc")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if jwk["kty"] != "OKP" || jwk["crv"] != "X25519" {
+		t.Fatalf("got kty=%v crv=%v, want OKP/X25519", jwk["kty"], jwk["crv"])
+	}
+	if got := decodeB64u(t, jwk["x"].(string)); string(got) != string(priv.PublicKey().Bytes()) {
+		t.Error("public key does not round-trip")
+	}
+	if got := decodeB64u(t, jwk["d"].(string)); string(got) != string(priv.Bytes()) {
+		t.Error("private key does not round-trip")
+	}
+}
+
+func TestX25519PublicKeyOmitsThePrivatePart(t *testing.T) {
+	priv, _ := ecdh.X25519().GenerateKey(rand.Reader)
+	der, err := x509.MarshalPKIXPublicKey(priv.PublicKey())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	jwk, err := jwkFromPEM(encodePEM(t, "PUBLIC KEY", der), "k1", "ECDH-ES", "enc")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, present := jwk["d"]; present {
+		t.Error("a public key produced a d member")
+	}
+}
+
+// The mirror of the Ed25519 rule. Refusing this is the point of the alg check:
+// a key published for an operation it cannot perform.
+func TestX25519CannotSign(t *testing.T) {
+	priv, _ := ecdh.X25519().GenerateKey(rand.Reader)
+	der, _ := x509.MarshalPKCS8PrivateKey(priv)
+
+	_, err := jwkFromPEM(encodePEM(t, "PRIVATE KEY", der), "k1", "EdDSA", "sig")
+	if err == nil {
+		t.Fatal("accepted EdDSA on an X25519 key, which cannot sign")
+	}
+	if !strings.Contains(err.Error(), "cannot sign") {
+		t.Errorf("error does not say why: %s", err)
 	}
 }

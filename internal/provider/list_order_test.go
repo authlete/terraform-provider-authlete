@@ -4,6 +4,7 @@ package provider
 import (
 	"testing"
 
+	tfTypes "github.com/authlete/terraform-provider-authlete/v3/internal/provider/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -167,11 +168,13 @@ func TestKeepClientListOrderHoldsEveryReorderedList(t *testing.T) {
 		GrantTypes:    strs("REFRESH_TOKEN", "AUTHORIZATION_CODE"),
 		ResponseModes: strs("FORM_POST", "QUERY"),
 		ResponseTypes: strs("ID_TOKEN", "CODE"),
+		Extension:     &tfTypes.ClientExtension{RequestableScopes: strs("read", "write")},
 	}
 	cur := &ClientResourceModel{
 		GrantTypes:    strs("AUTHORIZATION_CODE", "REFRESH_TOKEN"),
 		ResponseModes: strs("QUERY", "FORM_POST"),
 		ResponseTypes: strs("CODE", "ID_TOKEN"),
+		Extension:     &tfTypes.ClientExtension{RequestableScopes: strs("write", "read")},
 	}
 
 	keepClientListOrder(prev, cur)
@@ -185,4 +188,132 @@ func TestKeepClientListOrderHoldsEveryReorderedList(t *testing.T) {
 	if joined(cur.ResponseTypes) != "ID_TOKEN,CODE" {
 		t.Errorf("response_types: %s", joined(cur.ResponseTypes))
 	}
+	if joined(cur.Extension.RequestableScopes) != "read,write" {
+		t.Errorf("requestable_scopes: %s", joined(cur.Extension.RequestableScopes))
+	}
+}
+
+// The extension object is a pointer and Authlete does not always return one,
+// so the nil cases have to be safe. A client whose extension appears or
+// disappears between reads must not panic, and must not be given an order
+// from the other side.
+func TestKeepClientListOrderToleratesAMissingExtension(t *testing.T) {
+	for name, tc := range map[string]struct {
+		prev, cur *tfTypes.ClientExtension
+		want      string
+	}{
+		"both absent": {nil, nil, ""},
+		"absent in state, present in the response": {
+			nil, &tfTypes.ClientExtension{RequestableScopes: strs("write", "read")}, "write,read",
+		},
+		"present in state, absent from the response": {
+			&tfTypes.ClientExtension{RequestableScopes: strs("read", "write")}, nil, "",
+		},
+		"a real edit is not held back": {
+			&tfTypes.ClientExtension{RequestableScopes: strs("read", "write")},
+			&tfTypes.ClientExtension{RequestableScopes: strs("read")}, "read",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			prev := &ClientResourceModel{Extension: tc.prev}
+			cur := &ClientResourceModel{Extension: tc.cur}
+
+			keepClientListOrder(prev, cur)
+
+			got := ""
+			if cur.Extension != nil {
+				got = joined(cur.Extension.RequestableScopes)
+			}
+			if got != tc.want {
+				t.Errorf("requestable_scopes = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+// supported_scopes is a list of objects, so it gets its own rule: reorder by
+// name, never replace content. Authlete sorts this list alphabetically.
+func TestKeepScopeOrder(t *testing.T) {
+	scope := func(name, desc string) tfTypes.Scope {
+		return tfTypes.Scope{
+			Name:        types.StringValue(name),
+			Description: types.StringValue(desc),
+		}
+	}
+	names := func(got []tfTypes.Scope) string {
+		out := ""
+		for i, s := range got {
+			if i > 0 {
+				out += ","
+			}
+			out += s.Name.ValueString()
+		}
+		return out
+	}
+
+	t.Run("the stored order is restored", func(t *testing.T) {
+		prev := []tfTypes.Scope{scope("zeta", ""), scope("alpha", ""), scope("mike", "")}
+		next := []tfTypes.Scope{scope("alpha", ""), scope("mike", ""), scope("zeta", "")}
+
+		if got := names(keepScopeOrder(prev, next)); got != "zeta,alpha,mike" {
+			t.Errorf("order = %s, want zeta,alpha,mike", got)
+		}
+	})
+
+	// The reason keepOrder could not be reused. Reordering must not put the
+	// configuration back, or an edit Authlete accepted would vanish.
+	t.Run("content comes from the response, not from state", func(t *testing.T) {
+		prev := []tfTypes.Scope{scope("alpha", "old")}
+		next := []tfTypes.Scope{scope("alpha", "new")}
+
+		got := keepScopeOrder(prev, next)
+		if got[0].Description.ValueString() != "new" {
+			t.Errorf("description = %q, want the one the server returned",
+				got[0].Description.ValueString())
+		}
+	})
+
+	t.Run("an added or removed scope takes the response order", func(t *testing.T) {
+		prev := []tfTypes.Scope{scope("zeta", ""), scope("alpha", "")}
+		for name, next := range map[string][]tfTypes.Scope{
+			"added":   {scope("alpha", ""), scope("beta", ""), scope("zeta", "")},
+			"removed": {scope("alpha", "")},
+			"renamed": {scope("alpha", ""), scope("omega", "")},
+		} {
+			t.Run(name, func(t *testing.T) {
+				got := keepScopeOrder(prev, next)
+				if names(got) != names(next) {
+					t.Errorf("order = %s, want the response order %s", names(got), names(next))
+				}
+			})
+		}
+	})
+
+	t.Run("no prior state takes the response", func(t *testing.T) {
+		next := []tfTypes.Scope{scope("alpha", "")}
+		if names(keepScopeOrder(nil, next)) != "alpha" {
+			t.Error("a first read should take what the API returned")
+		}
+	})
+
+	// A null name gives nothing to match on, so holding an order would risk
+	// pairing the wrong elements.
+	t.Run("a null name is not comparable", func(t *testing.T) {
+		prev := []tfTypes.Scope{scope("zeta", ""), {Name: types.StringNull()}}
+		next := []tfTypes.Scope{{Name: types.StringNull()}, scope("zeta", "")}
+
+		if names(keepScopeOrder(prev, next)) != names(next) {
+			t.Error("a list with a null name should be left as the API returned it")
+		}
+	})
+
+	t.Run("a duplicate name is not comparable", func(t *testing.T) {
+		prev := []tfTypes.Scope{scope("a", ""), scope("a", "")}
+		next := []tfTypes.Scope{scope("a", "x"), scope("a", "y")}
+
+		got := keepScopeOrder(prev, next)
+		if len(got) != 2 || got[0].Description.ValueString() != "x" {
+			t.Error("duplicates should be left as the API returned them")
+		}
+	})
 }

@@ -216,14 +216,18 @@ actions:
   # first apply. Measured against the live API: one such difference cascaded
   # into 214 attributes showing as "known after apply". Comparing by JSON
   # meaning instead removes the phantom diff entirely.
+  # A client's set gets a stricter type than a service's. Authlete edits what it
+  # stores for a client rather than refusing it: a private key loses d, p, q,
+  # dp, dq and qi, and a symmetric key is dropped entirely, both silently. The
+  # configuration and the server then disagree for ever.
   - target: $.components.schemas.client.properties.jwks
-    description: Compare the client JWK Set by meaning, not bytes
+    description: Compare the client JWK Set by meaning, and require public keys
     update:
       x-speakeasy-terraform-custom-type:
         imports:
           - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
-        schemaType: customtypes.JWKSType{}
-        valueType: customtypes.JWKS
+        schemaType: customtypes.PublicJWKSType{}
+        valueType: customtypes.PublicJWKS
 
   - target: $.components.schemas.service.properties.jwks
     description: Compare the service JWK Set by meaning, not bytes
@@ -879,6 +883,24 @@ actions:
       x-speakeasy-plan-validators:
         - ValidEnumValues
 
+  - target: $.components.schemas.service.properties.fapiModes
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_service_fapi_modes
+
+  - target: $.components.schemas.service.properties.supportedClientRegistrationTypes
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_supported_client_registration_types
+
+  - target: $.components.schemas.client.properties.fapiModes
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_client_fapi_modes
+
   - target: $.components.schemas.service.properties.supportedIntrospectionAuthMethods
     description: Reject element values Authlete does not accept
     update:
@@ -957,6 +979,51 @@ actions:
   # whenever the configuration holds the same elements, so the plan has nothing
   # to show. Logic in internal/provider/planmodifiers/unordered_list.go, guarded
   # by TestReorderedListPlansNoChange.
+
+  # requestableScopes sits inside the client's extension object rather than at
+  # the top level, which is why the sweep that found the lists below walked
+  # past it. Authlete returns it in an order of its own, so a configuration
+  # listing the same scopes in a different order showed a diff on every plan.
+  - target: $.components.schemas.client_extension.properties.requestableScopes
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_requestable_scopes
+
+  # supportedScopes is a list of objects, not strings, so it gets a modifier
+  # that matches on name. Replacing the configuration with what is stored, as
+  # the lists below do, would discard an edit to a scope's description.
+  - target: $.components.schemas.service.properties.supportedScopes
+    description: Keep the order already in state when the same scopes are configured
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrderByName_supported_scopes
+
+  # Found by sweeping every list on the service rather than waiting to be
+  # bitten: Authlete returns enum lists in its own declaration order, and
+  # these three were missed when the others were done. Measured, each one
+  # comes back rearranged:
+  #
+  #   supportedIntrospectionAuthMethods       POST,NONE,BASIC -> NONE,BASIC,POST
+  #   supportedRevocationAuthMethods          POST,NONE,BASIC -> NONE,BASIC,POST
+  #   supportedBackchannelTokenDeliveryModes  PUSH,POLL,PING  -> POLL,PING,PUSH
+  - target: $.components.schemas.service.properties.supportedIntrospectionAuthMethods
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_supported_introspection_auth_methods
+
+  - target: $.components.schemas.service.properties.supportedRevocationAuthMethods
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_supported_revocation_auth_methods
+
+  - target: $.components.schemas.service.properties.supportedBackchannelTokenDeliveryModes
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_supported_backchannel_token_delivery_modes
 
   - target: $.components.schemas.service.properties.supportedAttachments
     description: Keep the order already in state when the elements are unchanged

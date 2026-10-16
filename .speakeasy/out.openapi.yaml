@@ -10558,6 +10558,8 @@ components:
               request any scopes. When the value of this parameter is a set with at least one element, it means
               that the set is the set of scopes that the client application is allowed to request.
               </Accordion>
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_requestable_scopes
         requestableScopesEnabled:
           type: boolean
           description: |
@@ -11046,8 +11048,8 @@ components:
           x-speakeasy-terraform-custom-type:
             imports:
               - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
-            schemaType: customtypes.JWKSType{}
-            valueType: customtypes.JWKS
+            schemaType: customtypes.PublicJWKSType{}
+            valueType: customtypes.PublicJWKS
         userInfoSignAlg:
           nullable: true
           $ref: '#/components/schemas/jws_alg'
@@ -11418,6 +11420,8 @@ components:
               Part 2: Advanced" if the FAPI feature is enabled in Authlete, the FAPI profile is supported by
               the service, and the FAPI modes for the service are set to `null`.
               </Accordion>
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_client_fapi_modes
           x-speakeasy-plan-validators:
             - ValidEnumValues
         responseModes:
@@ -12063,6 +12067,8 @@ components:
             Client authentication methods supported at the revocation endpoint.
           x-speakeasy-plan-validators:
             - ValidEnumValues
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_revocation_auth_methods
         introspectionEndpoint:
           type: string
           description: The URI of the introspection endpoint.
@@ -12080,6 +12086,8 @@ components:
             $ref: '#/components/schemas/client_auth_method'
           x-speakeasy-plan-validators:
             - ValidEnumValues
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_introspection_auth_methods
         pushedAuthReqEndpoint:
           type: string
           description: |
@@ -12280,6 +12288,8 @@ components:
 
               The value of this property is used as `scopes_supported` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
               </Accordion>
+          x-speakeasy-plan-modifiers:
+            - KeepOrderByName_supported_scopes
         scopeRequired:
           type: boolean
           description: |
@@ -12577,6 +12587,8 @@ components:
             Backchannel Authentication)](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html).
           x-speakeasy-plan-validators:
             - ValidEnumValues
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_backchannel_token_delivery_modes
         backchannelAuthReqIdDuration:
           type: integer
           format: int32
@@ -13215,6 +13227,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/client_registration_type'
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_client_registration_types
           x-speakeasy-plan-validators:
             - ValidEnumValues
         tokenExchangeByIdentifiableClientsOnly:
@@ -13383,6 +13397,8 @@ components:
             For instance, when this property is set to an array containing `FAPI1_ADVANCED` only, Authlete always
             processes requests to this service based on "Financial-grade API Security Profile 1.0 - Part 2:
             Advanced" if the FAPI feature is enabled in Authlete and the FAPI profile is supported by this service.
+          x-speakeasy-plan-modifiers:
+            - KeepOrder_service_fapi_modes
           x-speakeasy-plan-validators:
             - ValidEnumValues
         credentialDuration:

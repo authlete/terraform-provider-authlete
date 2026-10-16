@@ -41,6 +41,9 @@ terraform:
     - function: authletefunctions.NewJWKFromPEMFunction
       importAlias: authletefunctions
       importLocation: github.com/authlete/terraform-provider-authlete/v3/internal/provider/functions
+    - function: authletefunctions.NewJWKFromSecretFunction
+      importAlias: authletefunctions
+      importLocation: github.com/authlete/terraform-provider-authlete/v3/internal/provider/functions
   additionalListResources: []
   additionalProviderAttributes:
     httpHeaders: http_headers

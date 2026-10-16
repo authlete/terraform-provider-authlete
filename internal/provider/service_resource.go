@@ -840,8 +840,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`` + "`" + `error_uri` + "`" + ` response parameter in error responses.`,
 			},
 			"fapi_modes": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderServiceFapiModes(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `FAPI modes for this service.` + "\n" +
 					`` + "\n" +
@@ -1465,8 +1468,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`Rich Authorization Requests" (RAR) for details.`,
 			},
 			"supported_backchannel_token_delivery_modes": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedBackchannelTokenDeliveryModes(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `The supported backchannel token delivery modes. This property corresponds to the ` + "`" + `backchannel_token_delivery_modes_supported` + "`" + `` + "\n" +
 					`metadata.` + "\n" +
@@ -1516,8 +1522,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`be supported. The following is the list of standard claims.`,
 			},
 			"supported_client_registration_types": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedClientRegistrationTypes(),
+				},
 				ElementType: types.StringType,
 				Validators: []validator.List{
 					custom_listvalidators.ValidEnumValues(),
@@ -1636,8 +1645,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`[metadata](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#rfc.section.7).`,
 			},
 			"supported_introspection_auth_methods": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedIntrospectionAuthMethods(),
+				},
 				ElementType: types.StringType,
 				Description: `Client authentication methods supported at the introspection endpoint.`,
 				Validators: []validator.List{
@@ -1673,8 +1685,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				},
 			},
 			"supported_revocation_auth_methods": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedRevocationAuthMethods(),
+				},
 				ElementType: types.StringType,
 				Description: `Client authentication methods supported at the revocation endpoint.`,
 				Validators: []validator.List{
@@ -1684,6 +1699,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"supported_scopes": schema.ListNestedAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderByNameSupportedScopes(),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Validators: []validator.Object{
 						speakeasy_objectvalidators.NotNull(),

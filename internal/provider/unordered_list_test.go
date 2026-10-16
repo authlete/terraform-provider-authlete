@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/authlete/terraform-provider-authlete/v3/internal/provider/planmodifiers"
+	"github.com/authlete/terraform-provider-authlete/v3/internal/provider/validators"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -179,5 +180,52 @@ func TestReorderingListsCarryTheModifier(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// TestEnumListsHoldTheirOrder is a sweep rather than a list of known cases.
+//
+// Authlete returns an enum list in its own declaration order, not the order it
+// was sent. Terraform compares lists by position, so any such list without a
+// KeepOrder plan modifier shows a change on every plan and drags the
+// resource's computed attributes in with it.
+//
+// Three were missed when the others were done, because each had been found by
+// being bitten by it rather than by looking:
+//
+//	supported_introspection_auth_methods       POST,NONE,BASIC -> NONE,BASIC,POST
+//	supported_revocation_auth_methods          POST,NONE,BASIC -> NONE,BASIC,POST
+//	supported_backchannel_token_delivery_modes PUSH,POLL,PING  -> POLL,PING,PUSH
+//
+// This asserts the rule instead of the instances, so a new enum list arriving
+// from the spec fails here rather than in someone's plan. The modifier is
+// harmless on a list Authlete happens not to reorder: it only holds state when
+// the configuration lists the same elements.
+func TestEnumListsHoldTheirOrder(t *testing.T) {
+	for name, res := range map[string]resource.Resource{
+		"authlete_service": NewServiceResource(),
+		"authlete_client":  NewClientResource(),
+	} {
+		attrs := resourceSchema(t, res).Attributes
+		for attrName := range validators.EnumLists {
+			attr, ok := attrs[attrName]
+			if !ok {
+				continue // the table covers both resources
+			}
+			list, ok := attr.(schema.ListAttribute)
+			if !ok || !list.Optional {
+				continue // read-only lists are never written, so order cannot diff
+			}
+			if len(list.PlanModifiers) == 0 {
+				t.Errorf("%s.%s does not hold its order.\n\n"+
+					"Authlete returns enum lists in its own order, so a configuration "+
+					"listing the same values differently shows a change on every plan "+
+					"and never settles.\n\nAdd an x-speakeasy-plan-modifiers entry naming "+
+					"KeepOrder_%s for this property in .speakeasy/terraform_overlay.yaml, "+
+					"then run scripts/fill-keep-order-stubs.py and add the matching line "+
+					"to keepServiceListOrder or keepClientListOrder.",
+					name, attrName, attrName)
+			}
+		}
 	}
 }

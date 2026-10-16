@@ -31,6 +31,7 @@ package functions
 import (
 	"context"
 	"crypto"
+	"crypto/ecdh"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
@@ -64,7 +65,7 @@ func (f *JWKFromPEMFunction) Metadata(_ context.Context, _ function.MetadataRequ
 func (f *JWKFromPEMFunction) Definition(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
 	resp.Definition = function.Definition{
 		Summary: "Convert a PEM-encoded key or certificate into a JWK",
-		MarkdownDescription: "Converts a PEM-encoded RSA, ECDSA or Ed25519 key into a JWK, returned as a JSON string.\n\n" +
+		MarkdownDescription: "Converts a PEM-encoded RSA, ECDSA, Ed25519 or X25519 key into a JWK, returned as a JSON string.\n\n" +
 			"Pass a **private** key PEM for a service's signing keys, or a **public** key PEM for a client's " +
 			"published keys — the output contains exactly what the input holds.\n\n" +
 			"Assemble a JWK Set with `jsonencode`:\n\n" +
@@ -100,7 +101,7 @@ func (f *JWKFromPEMFunction) Definition(_ context.Context, _ function.Definition
 			},
 			function.StringParameter{
 				Name:                "alg",
-				MarkdownDescription: "Algorithm this key is for, such as `RS256`, `ES256` or `EdDSA`.",
+				MarkdownDescription: "Algorithm this key is for, such as `RS256`, `ES256`, `EdDSA` or `ECDH-ES`.",
 			},
 			function.StringParameter{
 				Name:                "use",
@@ -332,9 +333,29 @@ func keyToJWK(key any) (map[string]string, error) {
 
 	case ed25519.PublicKey:
 		return map[string]string{"kty": "OKP", "crv": "Ed25519", "x": b64u(k)}, nil
+
+	// Go hands back an *ecdh.PrivateKey for X25519 and for the NIST curves
+	// alike, but x509 only produces one for X25519: a NIST key parses as
+	// *ecdsa.PrivateKey and is handled above. The curve is checked anyway
+	// rather than assumed.
+	case *ecdh.PrivateKey:
+		if k.Curve() != ecdh.X25519() {
+			return nil, fmt.Errorf("unsupported ECDH curve; X25519 is supported")
+		}
+		return map[string]string{
+			"kty": "OKP", "crv": "X25519",
+			"x": b64u(k.PublicKey().Bytes()),
+			"d": b64u(k.Bytes()),
+		}, nil
+
+	case *ecdh.PublicKey:
+		if k.Curve() != ecdh.X25519() {
+			return nil, fmt.Errorf("unsupported ECDH curve; X25519 is supported")
+		}
+		return map[string]string{"kty": "OKP", "crv": "X25519", "x": b64u(k.Bytes())}, nil
 	}
 
-	return nil, fmt.Errorf("unsupported key type %T; RSA, ECDSA and Ed25519 are supported", key)
+	return nil, fmt.Errorf("unsupported key type %T; RSA, ECDSA, Ed25519 and X25519 are supported", key)
 }
 
 func rsaPublicJWK(k *rsa.PublicKey) map[string]string {
@@ -433,8 +454,24 @@ func algsFor(key any, use string) ([]string, string) {
 			return nil, "an Ed25519 key, which signs and cannot encrypt"
 		}
 		return []string{"EdDSA"}, "an Ed25519 key"
+
+	// X25519 is the mirror of Ed25519: key agreement only, never signing.
+	case *ecdh.PrivateKey:
+		return algsForECDH(k.Curve(), use)
+	case *ecdh.PublicKey:
+		return algsForECDH(k.Curve(), use)
 	}
 	return nil, "this key"
+}
+
+func algsForECDH(curve ecdh.Curve, use string) ([]string, string) {
+	if curve != ecdh.X25519() {
+		return nil, "a key on an unsupported ECDH curve"
+	}
+	if use == "sig" {
+		return nil, "an X25519 key, which performs key agreement and cannot sign"
+	}
+	return []string{"ECDH-ES", "ECDH-ES+A128KW", "ECDH-ES+A192KW", "ECDH-ES+A256KW"}, "an X25519 key"
 }
 
 func validateAlg(key any, alg, use string) error {
@@ -484,6 +521,8 @@ func certMatchesKey(key any, cert *x509.Certificate) error {
 		pub = &k.PublicKey
 	case ed25519.PrivateKey:
 		pub = k.Public()
+	case *ecdh.PrivateKey:
+		pub = k.PublicKey()
 	default:
 		pub = key
 	}
