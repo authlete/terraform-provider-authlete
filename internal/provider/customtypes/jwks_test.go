@@ -95,3 +95,46 @@ func TestUnparseableIsLeftAlone(t *testing.T) {
 		}
 	}
 }
+
+// The set-level half of the algorithm confusion check. jwk_from_pem already
+// refuses these, but a JWK Set written by hand never goes through it.
+func TestImpossibleAlgIsRefused(t *testing.T) {
+	for name, doc := range map[string]string{
+		"HMAC alg on an RSA key": `{"keys":[{"kty":"RSA","kid":"k","alg":"HS256","use":"sig"}]}`,
+		"HMAC alg on an EC key":  `{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"HS256","use":"sig"}]}`,
+		"alg none":               `{"keys":[{"kty":"RSA","kid":"k","alg":"none","use":"sig"}]}`,
+		"RSA alg on an EC key":   `{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"RS256","use":"sig"}]}`,
+		"EC alg on an RSA key":   `{"keys":[{"kty":"RSA","kid":"k","alg":"ES256","use":"sig"}]}`,
+		"EdDSA on an RSA key":    `{"keys":[{"kty":"RSA","kid":"k","alg":"EdDSA","use":"sig"}]}`,
+		"ES256 on P-384":         `{"keys":[{"kty":"EC","kid":"k","crv":"P-384","alg":"ES256","use":"sig"}]}`,
+		"ES512 on P-256":         `{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"ES512","use":"sig"}]}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if d := validateJWKS(t, doc); !d.HasError() {
+				t.Errorf("accepted %s: %s", name, doc)
+			}
+		})
+	}
+}
+
+// Only impossible combinations are refused. An algorithm this provider has not
+// been taught is not an error: the registry is extensible, and rejecting one
+// would break a working configuration the day Authlete supports it.
+func TestUnrecognisedAlgIsAccepted(t *testing.T) {
+	for name, doc := range map[string]string{
+		"no alg at all":                  `{"keys":[{"kty":"RSA","kid":"k","use":"sig"}]}`,
+		"alg this package does not know": `{"keys":[{"kty":"RSA","kid":"k","alg":"SOMETHING-NEW","use":"sig"}]}`,
+		"no kty to check against":        `{"keys":[{"kid":"k","alg":"RS256","use":"sig"}]}`,
+		"EC signing alg with no crv":     `{"keys":[{"kty":"EC","kid":"k","alg":"ES256","use":"sig"}]}`,
+		"HMAC on a symmetric key":        `{"keys":[{"kty":"oct","kid":"k","alg":"HS256","use":"sig"}]}`,
+		"RSA-OAEP on an RSA key":         `{"keys":[{"kty":"RSA","kid":"k","alg":"RSA-OAEP-256","use":"enc"}]}`,
+		"ECDH-ES on an EC key":           `{"keys":[{"kty":"EC","kid":"k","crv":"P-521","alg":"ECDH-ES","use":"enc"}]}`,
+		"EdDSA on an OKP key":            `{"keys":[{"kty":"OKP","kid":"k","crv":"Ed25519","alg":"EdDSA","use":"sig"}]}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if d := validateJWKS(t, doc); d.HasError() {
+				t.Errorf("refused %s: %v", name, d.Errors())
+			}
+		})
+	}
+}
