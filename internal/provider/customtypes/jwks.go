@@ -167,6 +167,7 @@ func (v JWKS) ValidateAttribute(ctx context.Context, req xattr.ValidateAttribute
 	seen := make(map[string]int, len(doc.Keys))
 	for i, k := range doc.Keys {
 		checkAlg(req, resp, i, k)
+		checkUse(req, resp, i, k)
 
 		kid, _ := k["kid"].(string)
 		if strings.TrimSpace(kid) == "" {
@@ -191,6 +192,47 @@ func (v JWKS) ValidateAttribute(ctx context.Context, req xattr.ValidateAttribute
 			continue
 		}
 		seen[kid] = i
+	}
+}
+
+// checkUse refuses a use the key cannot have, which jwk_from_pem already
+// refuses for the keys it builds.
+//
+// Unlike alg, this is not a judgement call about an extensible registry.
+// Authlete acts on "sig" and "enc" and nothing else, so a third value means
+// the key is never selected. Verified against the live API: a key with use
+// "bogus" is stored, published in the JWK Set, and accepted as
+// access_token_signature_key_id, with no complaint anywhere.
+func checkUse(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse, i int, k map[string]any) {
+	use, _ := k["use"].(string)
+
+	// use is optional in RFC 7517. A key without one is usable for both.
+	if use == "" {
+		return
+	}
+
+	if use != "sig" && use != "enc" {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			fmt.Sprintf("Unknown use %q", use),
+			fmt.Sprintf("The key at position %d has use %q.\n\n"+
+				"It must be \"sig\", for signing, or \"enc\", for encryption. "+
+				"Authlete acts on those two and nothing else, so a key with any "+
+				"other use is published but never selected.", i, use),
+		)
+		return
+	}
+
+	// An algorithm that only signs on a key declared for encryption, or the
+	// reverse. Both halves are present and they contradict each other.
+	alg, _ := k["alg"].(string)
+	if want, known := jwkalg.Purpose(alg); known && want != use {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			fmt.Sprintf("alg %q with use %q", alg, use),
+			fmt.Sprintf("The key at position %d has use %q, but alg %q is for %q.",
+				i, use, alg, want),
+		)
 	}
 }
 

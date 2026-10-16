@@ -138,3 +138,37 @@ func TestUnrecognisedAlgIsAccepted(t *testing.T) {
 		})
 	}
 }
+
+// jwk_from_pem refuses these; a hand-written set went through unchecked until
+// the same check was added here.
+func TestImpossibleUseIsRefused(t *testing.T) {
+	for name, doc := range map[string]string{
+		"unknown use":                             `{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"bogus"}]}`,
+		"use that is not lowercase":               `{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"SIG"}]}`,
+		"signing alg declared for encryption":     `{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"enc"}]}`,
+		"key management alg declared for signing": `{"keys":[{"kty":"RSA","kid":"k","alg":"RSA-OAEP-256","use":"sig"}]}`,
+		"ECDH-ES declared for signing":            `{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"ECDH-ES","use":"sig"}]}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if d := validateJWKS(t, doc); !d.HasError() {
+				t.Errorf("accepted %s: %s", name, doc)
+			}
+		})
+	}
+}
+
+func TestValidUseIsAccepted(t *testing.T) {
+	for name, doc := range map[string]string{
+		"no use at all":                    `{"keys":[{"kty":"RSA","kid":"k","alg":"RS256"}]}`,
+		"sig with a signing alg":           `{"keys":[{"kty":"RSA","kid":"k","alg":"PS512","use":"sig"}]}`,
+		"enc with a key management alg":    `{"keys":[{"kty":"RSA","kid":"k","alg":"RSA-OAEP","use":"enc"}]}`,
+		"use with no alg to contradict":    `{"keys":[{"kty":"RSA","kid":"k","use":"enc"}]}`,
+		"unrecognised alg with either use": `{"keys":[{"kty":"RSA","kid":"k","alg":"SOMETHING-NEW","use":"enc"}]}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if d := validateJWKS(t, doc); d.HasError() {
+				t.Errorf("refused %s: %v", name, d.Errors())
+			}
+		})
+	}
+}
