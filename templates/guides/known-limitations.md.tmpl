@@ -40,10 +40,25 @@ may therefore offer to rewrite the list when nothing has changed. Applying is
 harmless and the stored scopes are correct.
 
 The other lists this used to affect, `supported_grant_types`,
-`supported_response_types` and ten more, are now compared without regard to
+`supported_response_types` and eleven more, are now compared without regard to
 order and no longer diff. `supported_scopes` cannot be, because a reordering
 cannot be told apart from an edit to a scope's description, and silently
 discarding such an edit would be worse than the diff.
+
+## Private keys are held in Terraform state
+
+A service's `jwks` is one string attribute, and Terraform stores a string
+attribute in state whole. Any private key in that key set is therefore in your
+state file, whether you built it with `jwk_from_pem`, pasted it in, or never
+mentioned it at all: `jwks` is computed, so a refresh reads back whatever
+Authlete holds.
+
+Use a state backend that encrypts at rest. The attribute is marked sensitive,
+so it does not appear in plan output, but that governs the console and not the
+file.
+
+Leaving `jwks` out of your configuration keeps the key out of version control,
+which is worth doing, but it does not keep it out of state.
 
 ## Client secrets cannot be rotated in place
 
@@ -75,6 +90,28 @@ catches people out. The one exception is the mutually exclusive certificate
 subject types, `tls_client_auth_subject_dn` and the four
 `tls_client_auth_san_*` attributes: Authlete accepts exactly one, so naming a
 different one clears the previous one for you.
+
+## Requestable scopes the service does not define are discarded
+
+A client's `requestable_scopes` is filtered to the scopes the parent service
+lists in `supported_scopes`. Anything else is dropped without an error: the
+apply succeeds, the scope does not appear, and every later plan offers to add
+it again.
+
+```terraform
+requestable_scopes = ["read", "admin"]   # service defines only "read"
+```
+
+leaves `["read"]` stored, and `admin` comes back as a diff for ever.
+
+Define the scope on the service first. Note also that
+`requestable_scopes_enabled` has to be `true` for the restriction to apply at
+all. Authlete documents that with it `false` the client may request any scope
+the service supports, whatever the list holds.
+
+This is Authlete's behaviour rather than the provider's, and it was the same in
+1.3.x. The provider cannot check it in advance when the service is managed
+somewhere else.
 
 ## Undeclared custom metadata keys are discarded
 
