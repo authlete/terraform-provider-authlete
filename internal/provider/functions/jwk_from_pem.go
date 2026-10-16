@@ -46,6 +46,8 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/authlete/terraform-provider-authlete/v3/internal/provider/jwkalg"
+
 	"github.com/hashicorp/terraform-plugin-framework/function"
 )
 
@@ -82,7 +84,10 @@ func (f *JWKFromPEMFunction) Definition(_ context.Context, _ function.Definition
 			"    \"${file(\"server_key.pem\")}${file(\"server_cert.pem\")}\",\n" +
 			"    \"signing-key-1\", \"RS256\", \"sig\"))]\n" +
 			"})\n" +
-			"```",
+			"```\n\n" +
+			"A certificate's validity dates are not checked. An expired or not-yet-valid certificate is " +
+			"published as given, because a key set may legitimately carry one during a rotation and Authlete " +
+			"accepts it.",
 		Parameters: []function.Parameter{
 			function.StringParameter{
 				Name: "pem_key",
@@ -340,17 +345,23 @@ func rsaPublicJWK(k *rsa.PublicKey) map[string]string {
 	}
 }
 
-func ecPublicJWK(k *ecdsa.PublicKey) (map[string]string, error) {
-	var crv string
-	switch k.Curve {
+// curveName gives the JWK name of a curve, which is not the name Go uses.
+func curveName(c elliptic.Curve) (string, error) {
+	switch c {
 	case elliptic.P256():
-		crv = "P-256"
+		return "P-256", nil
 	case elliptic.P384():
-		crv = "P-384"
+		return "P-384", nil
 	case elliptic.P521():
-		crv = "P-521"
-	default:
-		return nil, fmt.Errorf("unsupported curve %s; P-256, P-384 and P-521 are supported", k.Curve.Params().Name)
+		return "P-521", nil
+	}
+	return "", fmt.Errorf("unsupported curve %s; P-256, P-384 and P-521 are supported", c.Params().Name)
+}
+
+func ecPublicJWK(k *ecdsa.PublicKey) (map[string]string, error) {
+	crv, err := curveName(k.Curve)
+	if err != nil {
+		return nil, err
 	}
 
 	size := (k.Curve.Params().BitSize + 7) / 8
@@ -408,15 +419,12 @@ func algsFor(key any, use string) ([]string, string) {
 			return []string{"ECDH-ES", "ECDH-ES+A128KW", "ECDH-ES+A192KW", "ECDH-ES+A256KW"},
 				"an EC key on " + k.Curve.Params().Name
 		}
-		// Signing is curve specific: RFC 7518 pairs ES256 with P-256, ES384
-		// with P-384 and ES512 with P-521, and no other combination is valid.
-		switch k.Curve {
-		case elliptic.P256():
-			return []string{"ES256"}, "an EC key on P-256"
-		case elliptic.P384():
-			return []string{"ES384"}, "an EC key on P-384"
-		case elliptic.P521():
-			return []string{"ES512"}, "an EC key on P-521"
+		// Signing is curve specific, and the pairing lives in jwkalg so that
+		// this and the jwks validator cannot disagree about it.
+		if crv, err := curveName(k.Curve); err == nil {
+			if alg, ok := jwkalg.SigAlg(crv); ok {
+				return []string{alg}, "an EC key on " + crv
+			}
 		}
 		return nil, "an EC key on an unsupported curve"
 
@@ -446,7 +454,7 @@ func validateAlg(key any, alg, use string) error {
 		//lint:ignore ST1005 user-facing diagnostic
 		return errors.New("alg is \"none\".\n\n" +
 			"That means an unsigned token and must never be published in a key set.")
-	case strings.HasPrefix(alg, "HS"):
+	case jwkalg.IsHMAC(alg):
 		//lint:ignore ST1005 user-facing diagnostic
 		return fmt.Errorf("alg %q is an HMAC algorithm, but this is %s.\n\n"+
 			"HMAC uses a shared secret, not a public and private pair. Publishing "+

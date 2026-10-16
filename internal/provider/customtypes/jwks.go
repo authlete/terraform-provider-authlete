@@ -17,6 +17,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/authlete/terraform-provider-authlete/v3/internal/provider/jwkalg"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -165,6 +166,9 @@ func (v JWKS) ValidateAttribute(ctx context.Context, req xattr.ValidateAttribute
 
 	seen := make(map[string]int, len(doc.Keys))
 	for i, k := range doc.Keys {
+		checkAlg(req, resp, i, k)
+		checkUse(req, resp, i, k)
+
 		kid, _ := k["kid"].(string)
 		if strings.TrimSpace(kid) == "" {
 			resp.Diagnostics.AddAttributeError(
@@ -188,5 +192,128 @@ func (v JWKS) ValidateAttribute(ctx context.Context, req xattr.ValidateAttribute
 			continue
 		}
 		seen[kid] = i
+	}
+}
+
+// checkUse refuses a use the key cannot have, which jwk_from_pem already
+// refuses for the keys it builds.
+//
+// Unlike alg, this is not a judgement call about an extensible registry.
+// Authlete acts on "sig" and "enc" and nothing else, so a third value means
+// the key is never selected. Verified against the live API: a key with use
+// "bogus" is stored, published in the JWK Set, and accepted as
+// access_token_signature_key_id, with no complaint anywhere.
+func checkUse(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse, i int, k map[string]any) {
+	use, _ := k["use"].(string)
+
+	// use is optional in RFC 7517. A key without one is usable for both.
+	if use == "" {
+		return
+	}
+
+	if use != "sig" && use != "enc" {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			fmt.Sprintf("Unknown use %q", use),
+			fmt.Sprintf("The key at position %d has use %q.\n\n"+
+				"It must be \"sig\", for signing, or \"enc\", for encryption. "+
+				"Authlete acts on those two and nothing else, so a key with any "+
+				"other use is published but never selected.", i, use),
+		)
+		return
+	}
+
+	// An algorithm that only signs on a key declared for encryption, or the
+	// reverse. Both halves are present and they contradict each other.
+	alg, _ := k["alg"].(string)
+	if want, known := jwkalg.Purpose(alg); known && want != use {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			fmt.Sprintf("alg %q with use %q", alg, use),
+			fmt.Sprintf("The key at position %d has use %q, but alg %q is for %q.",
+				i, use, alg, want),
+		)
+	}
+}
+
+// article picks the indefinite article for a kty, so the diagnostics read as
+// English rather than "a RSA key".
+func article(kty string) string {
+	switch kty {
+	case "RSA", "EC":
+		return "an"
+	}
+	return "a"
+}
+
+// checkAlg refuses an alg the key cannot possibly perform.
+//
+// jwk_from_pem already checks this against the parsed key, but it is optional:
+// a JWK Set can be written by hand or pasted from elsewhere, and Authlete
+// stores the string without looking at it. This is the same check made from
+// the kty and crv members instead.
+//
+// Only impossible combinations are refused, never merely unrecognised ones.
+// The algorithm registry is extensible, and a validator that rejected
+// everything it had not been taught would break a working configuration the
+// day Authlete supported something new. That is also why this is narrower than
+// the function, which knows what it just produced and can be exact.
+func checkAlg(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse, i int, k map[string]any) {
+	alg, _ := k["alg"].(string)
+	kty, _ := k["kty"].(string)
+	crv, _ := k["crv"].(string)
+
+	// alg is optional in RFC 7517, so an absent one is not an error here.
+	if alg == "" {
+		return
+	}
+
+	if alg == "none" {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			`alg "none" in a published key`,
+			fmt.Sprintf("The key at position %d has alg \"none\".\n\n"+
+				"That names an unsigned token and must never appear in a "+
+				"published key set.", i),
+		)
+		return
+	}
+
+	if jwkalg.IsHMAC(alg) && jwkalg.IsAsymmetric(kty) {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			fmt.Sprintf("HMAC alg %q on %s %s key", alg, article(kty), kty),
+			fmt.Sprintf("The key at position %d is %s %s key published with alg %q.\n\n"+
+				"HMAC uses a shared secret, not a public and private pair. "+
+				"Publishing a public key under an HMAC algorithm is what an "+
+				"algorithm confusion attack looks like: a verifier that trusts "+
+				"the published alg could treat the public key as the HMAC "+
+				"secret.", i, article(kty), kty, alg),
+		)
+		return
+	}
+
+	if want, known := jwkalg.KeyType(alg); known && kty != "" && kty != want {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			fmt.Sprintf("alg %q on %s %s key", alg, article(kty), kty),
+			fmt.Sprintf("The key at position %d has kty %q, but alg %q requires %q.",
+				i, kty, alg, want),
+		)
+		return
+	}
+
+	// RFC 7518 section 3.1 pairs each ECDSA algorithm with one curve, and no
+	// other combination is valid. A missing crv is left alone; the server
+	// rejects that document for its own reasons.
+	if want, known := jwkalg.SigCurve(alg); known && crv != "" && crv != want {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			fmt.Sprintf("alg %q on curve %q", alg, crv),
+			fmt.Sprintf("The key at position %d is on curve %q, but alg %q is "+
+				"defined only for %q.\n\n"+
+				"RFC 7518 pairs each ECDSA algorithm with a single curve.",
+				i, crv, alg, want),
+		)
 	}
 }
