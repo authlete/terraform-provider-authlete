@@ -7,12 +7,16 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha1"
+	"crypto/sha256"
 	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/base64"
 	"encoding/pem"
 	"math/big"
 	"strings"
 	"testing"
+	"time"
 )
 
 func encodePEM(t *testing.T, typ string, der []byte) string {
@@ -20,8 +24,14 @@ func encodePEM(t *testing.T, typ string, der []byte) string {
 	return string(pem.EncodeToMemory(&pem.Block{Type: typ, Bytes: der}))
 }
 
-func decodeB64u(t *testing.T, s string) []byte {
+// decodeB64u takes any because a JWK field is typed any now, x5c being a list
+// while everything else is a string.
+func decodeB64u(t *testing.T, v any) []byte {
 	t.Helper()
+	s, ok := v.(string)
+	if !ok {
+		t.Fatalf("value is %T, want a string", v)
+	}
 	b, err := base64.RawURLEncoding.DecodeString(s)
 	if err != nil {
 		t.Fatalf("value is not unpadded base64url: %q", s)
@@ -188,5 +198,170 @@ func TestDeterministic(t *testing.T) {
 		if second[k] != v {
 			t.Fatalf("field %q differs between calls", k)
 		}
+	}
+}
+
+// --- certificates ------------------------------------------------------------
+
+// selfSigned mints a throwaway certificate so these tests need no fixture
+// files that could drift from what they claim to contain.
+func selfSigned(t *testing.T, cn string, key *rsa.PrivateKey) *x509.Certificate {
+	t.Helper()
+	tmpl := &x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		Subject:      pkix.Name{CommonName: cn},
+		NotBefore:    time.Now().Add(-time.Hour),
+		NotAfter:     time.Now().Add(24 * time.Hour),
+	}
+	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &key.PublicKey, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cert, err := x509.ParseCertificate(der)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return cert
+}
+
+func strs(t *testing.T, v any) []string {
+	t.Helper()
+	got, ok := v.([]string)
+	if !ok {
+		t.Fatalf("value is %T, want []string", v)
+	}
+	return got
+}
+
+// TestCertificateAloneSuppliesThePublicKey covers a client publishing its
+// certificate: there is no private key in the input, so the key has to come
+// from the certificate itself.
+func TestCertificateAloneSuppliesThePublicKey(t *testing.T) {
+	key, _ := rsa.GenerateKey(rand.Reader, 2048)
+	cert := selfSigned(t, "client.example.com", key)
+
+	jwk, err := jwkFromPEM(encodePEM(t, "CERTIFICATE", cert.Raw), "c1", "RS256", "sig")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if jwk["kty"] != "RSA" {
+		t.Errorf("kty is %v, want RSA", jwk["kty"])
+	}
+	if _, private := jwk["d"]; private {
+		t.Error("a certificate holds no private key, but d is present")
+	}
+	chain := strs(t, jwk["x5c"])
+	if len(chain) != 1 {
+		t.Fatalf("x5c has %d entries, want 1", len(chain))
+	}
+	// RFC 7517 section 4.7: standard base64 of the DER, not base64url.
+	der, err := base64.StdEncoding.DecodeString(chain[0])
+	if err != nil {
+		t.Fatalf("x5c is not standard base64: %v", err)
+	}
+	if string(der) != string(cert.Raw) {
+		t.Error("x5c does not round-trip to the certificate")
+	}
+	sum := sha256.Sum256(cert.Raw)
+	if jwk["x5t#S256"] != base64.RawURLEncoding.EncodeToString(sum[:]) {
+		t.Error("x5t#S256 does not match the certificate")
+	}
+}
+
+// TestKeyWithCertificateKeepsThePrivateKey covers a service signing key: the
+// private key must survive, with the chain published beside it.
+func TestKeyWithCertificateKeepsThePrivateKey(t *testing.T) {
+	key, _ := rsa.GenerateKey(rand.Reader, 2048)
+	cert := selfSigned(t, "as.example.com", key)
+	der, _ := x509.MarshalPKCS8PrivateKey(key)
+
+	combined := encodePEM(t, "PRIVATE KEY", der) + encodePEM(t, "CERTIFICATE", cert.Raw)
+
+	jwk, err := jwkFromPEM(combined, "s1", "RS256", "sig")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, private := jwk["d"]; !private {
+		t.Error("the private key was dropped when a certificate was present")
+	}
+	if len(strs(t, jwk["x5c"])) != 1 {
+		t.Error("the certificate was dropped when a key was present")
+	}
+}
+
+// TestChainIsLeafFirst matters because a verifier walks x5c in order.
+func TestChainIsLeafFirst(t *testing.T) {
+	key, _ := rsa.GenerateKey(rand.Reader, 2048)
+	leaf := selfSigned(t, "leaf.example.com", key)
+	issuer := selfSigned(t, "issuer.example.com", key)
+
+	jwk, err := jwkFromPEM(
+		encodePEM(t, "CERTIFICATE", leaf.Raw)+encodePEM(t, "CERTIFICATE", issuer.Raw),
+		"c1", "RS256", "sig")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	chain := strs(t, jwk["x5c"])
+	if len(chain) != 2 {
+		t.Fatalf("x5c has %d entries, want 2", len(chain))
+	}
+	if chain[0] != base64.StdEncoding.EncodeToString(leaf.Raw) {
+		t.Error("x5c does not start with the leaf")
+	}
+}
+
+// TestNoCertificateLeavesX5COut keeps the output clean for the common case.
+func TestNoCertificateLeavesX5COut(t *testing.T) {
+	key, _ := rsa.GenerateKey(rand.Reader, 2048)
+	der, _ := x509.MarshalPKCS8PrivateKey(key)
+
+	jwk, err := jwkFromPEM(encodePEM(t, "PRIVATE KEY", der), "k1", "RS256", "sig")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, present := jwk["x5c"]; present {
+		t.Error("x5c is present for an input with no certificate")
+	}
+	if _, present := jwk["x5t#S256"]; present {
+		t.Error("x5t#S256 is present for an input with no certificate")
+	}
+}
+
+func TestTwoKeysAreRefused(t *testing.T) {
+	a, _ := rsa.GenerateKey(rand.Reader, 2048)
+	b, _ := rsa.GenerateKey(rand.Reader, 2048)
+	derA, _ := x509.MarshalPKCS8PrivateKey(a)
+	derB, _ := x509.MarshalPKCS8PrivateKey(b)
+
+	_, err := jwkFromPEM(encodePEM(t, "PRIVATE KEY", derA)+encodePEM(t, "PRIVATE KEY", derB), "k1", "RS256", "sig")
+	if err == nil {
+		t.Fatal("two keys were accepted; which one the JWK describes would be ambiguous")
+	}
+	if !strings.Contains(err.Error(), "more than one key") {
+		t.Errorf("error does not say what is wrong: %v", err)
+	}
+}
+
+// TestBothThumbprintsArePresent guards parity with the 1.3.x provider, which
+// emitted x5t as well as x5t#S256. Anyone matching on x5t would otherwise see
+// it disappear.
+func TestBothThumbprintsArePresent(t *testing.T) {
+	key, _ := rsa.GenerateKey(rand.Reader, 2048)
+	cert := selfSigned(t, "thumb.example.com", key)
+
+	jwk, err := jwkFromPEM(encodePEM(t, "CERTIFICATE", cert.Raw), "c1", "RS256", "sig")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sha1Sum := sha1.Sum(cert.Raw)
+	if jwk["x5t"] != base64.RawURLEncoding.EncodeToString(sha1Sum[:]) {
+		t.Error("x5t is missing or does not match the certificate")
+	}
+	sum := sha256.Sum256(cert.Raw)
+	if jwk["x5t#S256"] != base64.RawURLEncoding.EncodeToString(sum[:]) {
+		t.Error("x5t#S256 is missing or does not match the certificate")
 	}
 }

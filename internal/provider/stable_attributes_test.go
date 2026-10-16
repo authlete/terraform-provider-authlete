@@ -26,7 +26,9 @@ import (
 // rotation. modified_at is deliberately absent -- it changes on every update by
 // definition, and marking it stable would hide that.
 var stableAcrossUpdates = map[string][]string{
-	"authlete_service": {"api_key", "api_secret", "created_at", "number", "service_owner_number"},
+	// api_secret is absent: Authlete 3.0 never returns it, so the overlay
+	// ignores the property and the attribute no longer exists.
+	"authlete_service": {"api_key", "created_at", "number", "service_owner_number"},
 	"authlete_client":  {"client_id", "client_secret", "created_at", "number", "service_number"},
 }
 

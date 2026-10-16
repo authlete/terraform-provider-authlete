@@ -57,8 +57,6 @@ See [RFC 6749 (OAuth 2.0), 7.1. Access Token Types](https://tools.ietf.org/html/
 - `allowable_clock_skew` (Number) The allowable clock skew between the server and clients in seconds.
 
 The clock skew is taken into consideration when time-related claims in a JWT (e.g. `exp`, `iat`, `nbf`) are verified.
-- `api_secret` (String, Sensitive) The API secret of this service. This value is assigned by Authlete and 
-is used for service authentication in API calls.
 - `attestation_challenge_time_window` (Number) The time window of attestation challenges in seconds. This is used for
 OAuth 2.0 Attestation-Based Client Authentication.
 - `attributes` (Attributes List) The attributes of this service. (see [below for nested schema](#nestedatt--attributes))

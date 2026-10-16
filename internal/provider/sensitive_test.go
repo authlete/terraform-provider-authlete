@@ -31,7 +31,9 @@ import (
 // overlay property that marks it.
 var mustConceal = map[string]map[string]string{
 	"authlete_service": {
-		"api_secret":                         "apiSecret",
+		// api_secret is deliberately absent. Authlete 3.0 never returns it, so
+		// the overlay ignores the property and the attribute no longer exists;
+		// there is nothing to conceal. See terraform_overlay.yaml.
 		"jwks":                               "jwks",
 		"federation_jwks":                    "federationJwks",
 		"credential_jwks":                    "credentialJwks",

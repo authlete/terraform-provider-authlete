@@ -413,6 +413,21 @@ actions:
     update:
       x-speakeasy-terraform-ignore: true
 
+  # Authlete 2.x authenticated API calls with an apiKey and apiSecret pair.
+  # 3.0 uses an Organization Token or a Service Access Token, and no endpoint
+  # returns apiSecret any more: a create response carries 107 fields and a get
+  # 109, and it is in neither. The description still declares it, so the
+  # generated attribute exists, shows as "(sensitive value)" in every plan, and
+  # then resolves to null. That is a secret a practitioner will go looking for
+  # and never find.
+  #
+  # The specification should drop it; ignoring it here keeps it out of the
+  # schema meanwhile.
+  - target: $.components.schemas.service.properties.apiSecret
+    description: Never returned by Authlete 3.0, so it would always read as null
+    update:
+      x-speakeasy-terraform-ignore: true
+
   # ---------- Provider-level configuration ----------
   # Declaring these as globals makes Speakeasy generate both the provider
   # attribute and the model struct field, which removes two of the three hand

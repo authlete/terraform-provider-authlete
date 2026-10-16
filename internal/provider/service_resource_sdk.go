@@ -28,7 +28,6 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		r.AccessTokenType = types.StringPointerValue(resp.AccessTokenType)
 		r.AllowableClockSkew = types.Int32PointerValue(typeconvert.IntPointerToInt32Pointer(resp.AllowableClockSkew))
 		r.APIKey = types.Int64PointerValue(resp.APIKey)
-		r.APISecret = types.StringPointerValue(resp.APISecret)
 		r.AttestationChallengeTimeWindow = types.Int64PointerValue(resp.AttestationChallengeTimeWindow)
 		r.Attributes = []tfTypes.Pair{}
 

@@ -34,6 +34,8 @@ import (
 	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rsa"
+	"crypto/sha1"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
@@ -56,7 +58,7 @@ func (f *JWKFromPEMFunction) Metadata(_ context.Context, _ function.MetadataRequ
 
 func (f *JWKFromPEMFunction) Definition(_ context.Context, _ function.DefinitionRequest, resp *function.DefinitionResponse) {
 	resp.Definition = function.Definition{
-		Summary: "Convert a PEM-encoded key into a JWK",
+		Summary: "Convert a PEM-encoded key or certificate into a JWK",
 		MarkdownDescription: "Converts a PEM-encoded RSA, ECDSA or Ed25519 key into a JWK, returned as a JSON string.\n\n" +
 			"Pass a **private** key PEM for a service's signing keys, or a **public** key PEM for a client's " +
 			"published keys — the output contains exactly what the input holds.\n\n" +
@@ -66,11 +68,23 @@ func (f *JWKFromPEMFunction) Definition(_ context.Context, _ function.Definition
 			"  keys = [jsondecode(provider::authlete::jwk_from_pem(\n" +
 			"    tls_private_key.signing.private_key_pem, \"signing-key-1\", \"RS256\", \"sig\"))]\n" +
 			"})\n" +
+			"```\n\n" +
+			"### Certificates\n\n" +
+			"The input may also hold certificates. Each one is added to `x5c`, leaf first, and the " +
+			"SHA-1 and SHA-256 thumbprints are added as `x5t` and `x5t#S256`. A certificate on its own supplies the public " +
+			"key; concatenate the private key with it to publish the chain alongside a signing key.\n\n" +
+			"```terraform\n" +
+			"jwks = jsonencode({\n" +
+			"  keys = [jsondecode(provider::authlete::jwk_from_pem(\n" +
+			"    \"${file(\"server_key.pem\")}${file(\"server_cert.pem\")}\",\n" +
+			"    \"signing-key-1\", \"RS256\", \"sig\"))]\n" +
+			"})\n" +
 			"```",
 		Parameters: []function.Parameter{
 			function.StringParameter{
-				Name:                "pem_key",
-				MarkdownDescription: "PEM-encoded key. PKCS#1, PKCS#8, SEC1 and PKIX public keys are all accepted.",
+				Name: "pem_key",
+				MarkdownDescription: "PEM-encoded key, certificate, or a key concatenated with its certificate chain. " +
+					"PKCS#1, PKCS#8, SEC1 and PKIX public keys are all accepted.",
 			},
 			function.StringParameter{
 				Name:                "kid",
@@ -130,30 +144,110 @@ func padded(i *big.Int, size int) string {
 	return b64u(out)
 }
 
-func jwkFromPEM(pemKey, kid, alg, use string) (map[string]string, error) {
-	block, _ := pem.Decode([]byte(pemKey))
-	if block == nil {
-		return nil, fmt.Errorf("jwk_from_pem: pem_key is not PEM-encoded; expected a block such as %q or %q",
-			"-----BEGIN PRIVATE KEY-----", "-----BEGIN PUBLIC KEY-----")
-	}
-
-	key, err := parsePEMBlock(block)
-	if err != nil {
-		return nil, fmt.Errorf("jwk_from_pem: could not parse %q block: %w", block.Type, err)
-	}
-
-	jwk, err := keyToJWK(key)
+// jwkFromPEM reads every block in the input, not only the first, because a
+// certificate chain is several blocks and a key is commonly concatenated with
+// the certificate it belongs to.
+//
+// The return type is map[string]any rather than map[string]string because x5c
+// is an array. Everything else is a string, so the converters below still
+// produce map[string]string and are widened here.
+func jwkFromPEM(pemKey, kid, alg, use string) (map[string]any, error) {
+	key, certs, err := parsePEM(pemKey)
 	if err != nil {
 		return nil, fmt.Errorf("jwk_from_pem: %w", err)
 	}
 
+	// A certificate carries its own public key. When the input is a
+	// certificate alone, that is the key; when a private key is present too,
+	// the private key wins, since it holds strictly more.
+	if key == nil && len(certs) > 0 {
+		key = certs[0].PublicKey
+	}
+	if key == nil {
+		return nil, fmt.Errorf("jwk_from_pem: pem_key holds no key or certificate")
+	}
+
+	fields, err := keyToJWK(key)
+	if err != nil {
+		return nil, fmt.Errorf("jwk_from_pem: %w", err)
+	}
+
+	jwk := make(map[string]any, len(fields)+5)
+	for k, v := range fields {
+		jwk[k] = v
+	}
 	jwk["kid"] = kid
 	jwk["alg"] = alg
 	jwk["use"] = use
+
+	if len(certs) > 0 {
+		// RFC 7517 section 4.7: x5c is standard base64 of the DER, not
+		// base64url, and the chain is leaf first.
+		chain := make([]string, 0, len(certs))
+		for _, c := range certs {
+			chain = append(chain, base64.StdEncoding.EncodeToString(c.Raw))
+		}
+		jwk["x5c"] = chain
+
+		// Thumbprints of the leaf, base64url of the DER's digest. Supplying
+		// them saves a verifier recomputing them, and some deployments expect
+		// them to be present.
+		//
+		// x5t is SHA-1. It is weak as a signature hash, but here it only
+		// identifies a certificate, RFC 7517 section 4.8 still defines it, and
+		// the 1.3.x provider emitted it, so omitting it would be a regression
+		// for anyone matching on it. x5t#S256 is the one to rely on.
+		sha1Sum := sha1.Sum(certs[0].Raw)
+		jwk["x5t"] = b64u(sha1Sum[:])
+
+		sum := sha256.Sum256(certs[0].Raw)
+		jwk["x5t#S256"] = b64u(sum[:])
+	}
+
 	return jwk, nil
 }
 
-func parsePEMBlock(block *pem.Block) (any, error) {
+// parsePEM walks the PEM blocks, returning at most one key and every
+// certificate found, in the order they appear.
+func parsePEM(pemKey string) (any, []*x509.Certificate, error) {
+	var (
+		key   any
+		certs []*x509.Certificate
+		rest  = []byte(pemKey)
+		seen  int
+	)
+
+	for {
+		var block *pem.Block
+		block, rest = pem.Decode(rest)
+		if block == nil {
+			break
+		}
+		seen++
+
+		if cert, err := x509.ParseCertificate(block.Bytes); err == nil {
+			certs = append(certs, cert)
+			continue
+		}
+
+		k, err := parseKeyBlock(block)
+		if err != nil {
+			return nil, nil, fmt.Errorf("could not parse %q block: %w", block.Type, err)
+		}
+		if key != nil {
+			return nil, nil, fmt.Errorf("pem_key holds more than one key; supply one key, optionally with its certificate chain")
+		}
+		key = k
+	}
+
+	if seen == 0 {
+		return nil, nil, fmt.Errorf("pem_key is not PEM-encoded; expected a block such as %q, %q or %q",
+			"-----BEGIN PRIVATE KEY-----", "-----BEGIN PUBLIC KEY-----", "-----BEGIN CERTIFICATE-----")
+	}
+	return key, certs, nil
+}
+
+func parseKeyBlock(block *pem.Block) (any, error) {
 	// Try each form rather than trusting the block label, which is not always
 	// accurate in keys produced by other tools.
 	if k, err := x509.ParsePKCS8PrivateKey(block.Bytes); err == nil {
