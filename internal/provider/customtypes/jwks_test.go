@@ -126,7 +126,7 @@ func TestUnrecognisedAlgIsAccepted(t *testing.T) {
 		"alg this package does not know": `{"keys":[{"kty":"RSA","kid":"k","alg":"SOMETHING-NEW","use":"sig"}]}`,
 		"no kty to check against":        `{"keys":[{"kid":"k","alg":"RS256","use":"sig"}]}`,
 		"EC signing alg with no crv":     `{"keys":[{"kty":"EC","kid":"k","alg":"ES256","use":"sig"}]}`,
-		"HMAC on a symmetric key":        `{"keys":[{"kty":"oct","kid":"k","alg":"HS256","use":"sig"}]}`,
+		"HMAC on a symmetric key":        `{"keys":[{"kty":"oct","kid":"k","alg":"HS256","use":"sig","k":"MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY"}]}`,
 		"RSA-OAEP on an RSA key":         `{"keys":[{"kty":"RSA","kid":"k","alg":"RSA-OAEP-256","use":"enc"}]}`,
 		"ECDH-ES on an EC key":           `{"keys":[{"kty":"EC","kid":"k","crv":"P-521","alg":"ECDH-ES","use":"enc"}]}`,
 		"EdDSA on an OKP key":            `{"keys":[{"kty":"OKP","kid":"k","crv":"Ed25519","alg":"EdDSA","use":"sig"}]}`,
@@ -195,6 +195,52 @@ func TestOKPCurveMustMatchTheAlg(t *testing.T) {
 			}
 			if !tc.ok && !d.HasError() {
 				t.Errorf("accepted an impossible pairing: %s", tc.doc)
+			}
+		})
+	}
+}
+
+// The gaps review found after the metadata checks landed: those compared alg
+// with kty and crv, and said nothing about the members describing the key.
+func TestKeyMaterialIsChecked(t *testing.T) {
+	for name, doc := range map[string]string{
+		// 15 bytes, where A128KW needs exactly 16.
+		"a key too short for A128KW": `{"keys":[{"kty":"oct","kid":"k","alg":"A128KW","use":"enc","k":"MDEyMzQ1Njc4OWFiY2Rl"}]}`,
+		// 32 bytes, where A128KW needs exactly 16. Longer is not better here.
+		"a key too long for A128KW": `{"keys":[{"kty":"oct","kid":"k","alg":"A128KW","use":"enc","k":"MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY"}]}`,
+		// 16 bytes, where HS256 needs at least 32.
+		"a key too short for HS256":       `{"keys":[{"kty":"oct","kid":"k","alg":"HS256","use":"sig","k":"MDEyMzQ1Njc4OWFiY2RlZg"}]}`,
+		"a symmetric key with no k":       `{"keys":[{"kty":"oct","kid":"k","alg":"HS256","use":"sig"}]}`,
+		"a symmetric key with an empty k": `{"keys":[{"kty":"oct","kid":"k","alg":"HS256","use":"sig","k":""}]}`,
+		// Terraform has no base64urlencode, so this is the likely mistake.
+		"a k in standard base64":     `{"keys":[{"kty":"oct","kid":"k","alg":"HS256","use":"sig","k":"MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="}]}`,
+		"AES key wrap on an RSA key": `{"keys":[{"kty":"RSA","kid":"k","alg":"A128KW","use":"enc","n":"AQAB","e":"AQAB"}]}`,
+		"AES key wrap on an EC key":  `{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"A256GCMKW","use":"enc","x":"AA","y":"AA"}]}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if d := validateJWKS(t, doc); !d.HasError() {
+				t.Errorf("accepted %s: %s", name, doc)
+			}
+		})
+	}
+}
+
+func TestValidKeyMaterialIsAccepted(t *testing.T) {
+	for name, doc := range map[string]string{
+		"HS256 with 32 bytes":  `{"keys":[{"kty":"oct","kid":"k","alg":"HS256","use":"sig","k":"MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY"}]}`,
+		"HS256 with 64 bytes":  `{"keys":[{"kty":"oct","kid":"k","alg":"HS256","use":"sig","k":"MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWYwMTIzNDU2Nzg5YWJjZGVmMDEyMzQ1Njc4OWFiY2RlZg"}]}`,
+		"A128KW with 16 bytes": `{"keys":[{"kty":"oct","kid":"k","alg":"A128KW","use":"enc","k":"MDEyMzQ1Njc4OWFiY2RlZg"}]}`,
+		// "dir" takes its size from the content encryption algorithm, which is
+		// not in the key, so there is nothing to check against.
+		"dir with any length": `{"keys":[{"kty":"oct","kid":"k","alg":"dir","use":"enc","k":"MDEyMw"}]}`,
+		// An algorithm with no fixed key size leaves the length alone.
+		"an unrecognised alg": `{"keys":[{"kty":"oct","kid":"k","alg":"SOMETHING-NEW","use":"sig","k":"MDEyMw"}]}`,
+		// An asymmetric key is not measured against the oct table.
+		"RSA with RS256": `{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"sig","n":"AQAB","e":"AQAB"}]}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if d := validateJWKS(t, doc); d.HasError() {
+				t.Errorf("refused %s: %v", name, d.Errors())
 			}
 		})
 	}

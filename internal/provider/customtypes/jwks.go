@@ -12,6 +12,7 @@ package customtypes
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -168,6 +169,7 @@ func (v JWKS) ValidateAttribute(ctx context.Context, req xattr.ValidateAttribute
 	for i, k := range doc.Keys {
 		checkAlg(req, resp, i, k)
 		checkUse(req, resp, i, k)
+		checkMaterial(req, resp, i, k)
 
 		kid, _ := k["kid"].(string)
 		if strings.TrimSpace(kid) == "" {
@@ -232,6 +234,93 @@ func checkUse(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 			fmt.Sprintf("alg %q with use %q", alg, use),
 			fmt.Sprintf("The key at position %d has use %q, but alg %q is for %q.",
 				i, use, alg, want),
+		)
+	}
+}
+
+// checkMaterial checks the key material against what the key claims to be.
+//
+// The checks above compare metadata with metadata: alg against kty, crv and
+// use. They say nothing about whether the members describing the key are
+// present or the right size, which is the half jwk_from_pem and
+// jwk_from_secret get for free by holding the key itself. A hand-written set
+// reaches neither function.
+func checkMaterial(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse, i int, k map[string]any) {
+	kty, _ := k["kty"].(string)
+	alg, _ := k["alg"].(string)
+
+	// An algorithm for a shared secret on a key that is not one, the mirror of
+	// the HMAC check above: A128KW wraps with a symmetric key and an RSA key
+	// cannot perform it.
+	if kty != "" && kty != "oct" {
+		if _, _, known := jwkalg.OctKeySize(alg); known && !jwkalg.IsHMAC(alg) {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				fmt.Sprintf("alg %q on %s %s key", alg, article(kty), kty),
+				fmt.Sprintf("The key at position %d is %s %s key, but alg %q needs a "+
+					"shared secret.\n\n"+
+					"AES key wrap is symmetric. Use an algorithm the key can "+
+					"perform, or publish the key as kty \"oct\".", i, article(kty), kty, alg),
+			)
+			return
+		}
+	}
+
+	if kty != "oct" {
+		return
+	}
+
+	// RFC 7518 section 6.4.1: an oct key carries its value in "k". Without it
+	// the key is a description of nothing, and Authlete stores it happily.
+	raw, present := k["k"].(string)
+	if !present || raw == "" {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Symmetric key with no k",
+			fmt.Sprintf("The key at position %d has kty \"oct\" but no k member.\n\n"+
+				"A symmetric key is its k value. Build one with jwk_from_secret, "+
+				"which encodes a secret correctly.", i),
+		)
+		return
+	}
+
+	// base64url without padding, per RFC 7515 appendix C.
+	decoded, err := base64.RawURLEncoding.DecodeString(raw)
+	if err != nil {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"k is not base64url",
+			fmt.Sprintf("The key at position %d has a k member that is not "+
+				"unpadded base64url: %s.\n\n"+
+				"Terraform has no base64urlencode, so a hand-written k is "+
+				"commonly standard base64 by mistake. jwk_from_secret encodes "+
+				"it correctly.", i, err),
+		)
+		return
+	}
+
+	size, exact, known := jwkalg.OctKeySize(alg)
+	if !known {
+		return
+	}
+	switch {
+	case exact && len(decoded) != size:
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			fmt.Sprintf("Key of the wrong size for %q", alg),
+			fmt.Sprintf("The key at position %d is %d bytes, but alg %q needs "+
+				"exactly %d.\n\n"+
+				"AES key wrap takes a key the size of its AES variant.",
+				i, len(decoded), alg, size),
+		)
+	case !exact && len(decoded) < size:
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			fmt.Sprintf("Key too short for %q", alg),
+			fmt.Sprintf("The key at position %d is %d bytes, but alg %q needs at "+
+				"least %d.\n\n"+
+				"RFC 7518 section 3.2 requires an HMAC key at least as long as "+
+				"the hash output.", i, len(decoded), alg, size),
 		)
 	}
 }

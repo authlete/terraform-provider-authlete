@@ -171,6 +171,9 @@ combinations at plan time:
 - an ECDSA algorithm on the wrong curve, such as `ES256` on P-384
 - two keys sharing a `kid`, or a key without one
 - a `use` that is neither `sig` nor `enc`
+- a symmetric key with no `k`, or one the wrong size for its algorithm
+- a private or symmetric key in a *client's* key set, which Authlete edits
+  silently rather than refusing
 
 A configuration that hits one of these was already producing a malformed key
 set. Fix the key rather than working around the error.
@@ -179,6 +182,10 @@ The list is not exhaustive. A key set assembled by hand can still hold
 contradictions these checks do not catch, and Authlete will store it.
 `jwk_from_pem` and `jwk_from_secret` check more, because they see the key
 rather than a document describing it.
+
+These run against the configuration, so a key set built from a value that is
+not known until apply, a `tls_private_key` reference for instance, is not
+checked at all.
 
 ## Client attributes moved into `extension`
 

@@ -43,12 +43,19 @@ func TestClientRefusesAPrivateKey(t *testing.T) {
 
 // Measured: a symmetric key sent to a client is stored as {"keys":[]}.
 func TestClientRefusesASymmetricKey(t *testing.T) {
-	d := validatePublicJWKS(t, `{"keys":[{"kty":"oct","kid":"k","alg":"HS256","use":"sig","k":"c2VjcmV0"}]}`)
+	d := validatePublicJWKS(t,
+		`{"keys":[{"kty":"oct","kid":"k","alg":"HS256","use":"sig","k":"MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY"}]}`)
 	if !d.HasError() {
 		t.Fatal("accepted a symmetric key, which Authlete discards without saying so")
 	}
-	if !strings.Contains(d.Errors()[0].Summary(), "Symmetric") {
-		t.Errorf("unexpected error: %s", d.Errors()[0].Summary())
+	var found bool
+	for _, e := range d.Errors() {
+		if strings.Contains(e.Summary(), "Symmetric key in a client") {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("no error about the key being symmetric: %v", d.Errors())
 	}
 }
 
