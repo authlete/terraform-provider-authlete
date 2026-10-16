@@ -107,10 +107,22 @@ requestable_scopes = ["read", "admin"]   # service defines only "read"
 
 leaves `["read"]` stored, and `admin` comes back as a diff for ever.
 
-Define the scope on the service first. Note also that
-`requestable_scopes_enabled` has to be `true` for the restriction to apply at
-all. Authlete documents that with it `false` the client may request any scope
-the service supports, whatever the list holds.
+Define the scope on the service first.
+
+`requestable_scopes_enabled` has to be `true` for the list to restrict
+anything. Measured against a live token request, for a client whose
+`requestable_scopes` is `["read"]` and a service defining `read`, `write` and
+`admin`:
+
+| `requestable_scopes_enabled` | asked for | granted |
+|---|---|---|
+| `true` | `read write admin` | `read` |
+| `false` | `read write admin` | `read write admin` |
+
+So the list is inert while the flag is `false`, and a client left that way is
+not restricted at all. The service's `supported_scopes` still bounds it either
+way: asking for a scope the service does not define grants nothing for that
+scope, whatever the flag says.
 
 This is Authlete's behaviour rather than the provider's, and it was the same in
 1.3.x. The provider cannot check it in advance when the service is managed
