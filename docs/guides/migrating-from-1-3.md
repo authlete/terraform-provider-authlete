@@ -172,6 +172,8 @@ combinations at plan time:
 - two keys sharing a `kid`, or a key without one
 - a `use` that is neither `sig` nor `enc`
 - a symmetric key with no `k`, or one the wrong size for its algorithm
+- a key type Authlete cannot read, which it drops silently
+- a document that is not a JWK Set at all
 - a private or symmetric key in a *client's* key set, which Authlete edits
   silently rather than refusing
 

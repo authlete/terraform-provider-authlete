@@ -13,8 +13,9 @@ correctly.
 
 ## Plans show many attributes as "known after apply"
 
-Change one attribute on a service or a client and the plan shows roughly 180
-others as `(known after apply)`:
+Change one attribute on a service or a client and the plan shows most of the
+others as `(known after apply)`. Measured on a service: 178 of them for a
+single rename.
 
 ```
 ~ service_name = "example" -> "example-renamed"
@@ -32,18 +33,20 @@ dragged into the change: identifiers, timestamps and secrets are stable, so a
 module consuming a client secret plans nothing when the service is edited. The
 plan output is simply verbose.
 
-## Scope descriptions are filled in by Authlete
+## Scope order is not the order you wrote
 
-`supported_scopes` comes back from Authlete with fields set that a
-configuration naming only the scope does not set, `default_entry` among them. A
-plan may therefore offer to fill those in on the first apply after adding a
-scope. Applying is harmless and the stored scopes are correct.
+Authlete sorts `supported_scopes` alphabetically, so what it stores is not the
+order in your configuration:
 
-Ordering no longer causes a diff. Authlete sorts this list alphabetically, so a
-configuration listing scopes in any other order used to show a change on every
-plan, and dragged roughly 180 computed attributes into the plan with it. The
-stored order is now held, matched on scope name, so an edit to a description
-still shows as the change it is while a reordering shows nothing.
+```
+configured: zeta, alpha, mike, beta
+stored:     alpha, beta, mike, zeta
+```
+
+This no longer causes a diff. The configured order is held in state, matched
+on scope name, so a reordering shows nothing while an edit to a description
+still shows as the change it is. It is worth knowing only because the Authlete
+console lists the scopes in its own order rather than yours.
 
 ## Private keys are held in Terraform state
 
@@ -118,17 +121,11 @@ somewhere else.
 Authlete keeps only the keys declared in the parent service's
 `supported_custom_client_metadata`. A key set on a client that the service does
 not declare is dropped: the apply succeeds, the key does not appear, and every
-later plan offers to add it again.
+later plan offers to add it again. Measured, sending both at once:
+
+```
+sent:   {"declared_key":"kept","undeclared_key":"dropped"}
+stored: {"declared_key":"kept"}
+```
 
 Declare the key on the service before setting it on a client.
-
-## Generated configuration for a client plans a follow-up change
-
-`terraform plan -generate-config-out=generated.tf` works for both resources, and
-for a client the plan afterwards shows an in-place update rather than nothing to
-do.
-
-The generated file is correct and complete. Some client fields are owned by
-Authlete, `client_source` and `automatically_registered` among them, and cannot
-appear in configuration, so Terraform reports them as not yet known. This is the
-same behaviour as the first item on this page.
