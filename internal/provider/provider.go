@@ -244,6 +244,7 @@ func (p *AuthleteProvider) Configure(ctx context.Context, req provider.Configure
 func (p *AuthleteProvider) Functions(_ context.Context) []func() function.Function {
 	return []func() function.Function{
 		authletefunctions.NewJWKFromPEMFunction,
+		authletefunctions.NewJWKFromSecretFunction,
 	}
 }
 
