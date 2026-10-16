@@ -3,6 +3,10 @@ package customtypes
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"strings"
 	"testing"
 )
 
@@ -34,5 +38,60 @@ func TestJWKSSemanticEquals(t *testing.T) {
 				t.Errorf("semantic equality = %v, want %v", got, tc.want)
 			}
 		})
+	}
+}
+
+func validateJWKS(t *testing.T, doc string) diag.Diagnostics {
+	t.Helper()
+	var resp xattr.ValidateAttributeResponse
+	NewJWKSValue(doc).ValidateAttribute(context.Background(),
+		xattr.ValidateAttributeRequest{Path: path.Root("jwks")}, &resp)
+	return resp.Diagnostics
+}
+
+// TestDuplicateKidIsRefused covers what jwk_from_pem cannot see: that function
+// is handed one key and knows nothing about the others in the set.
+func TestDuplicateKidIsRefused(t *testing.T) {
+	d := validateJWKS(t, `{"keys":[
+		{"kty":"RSA","kid":"dup","alg":"RS256","use":"sig"},
+		{"kty":"EC","kid":"dup","alg":"ES256","use":"sig"}
+	]}`)
+	if !d.HasError() {
+		t.Fatal("accepted two keys sharing a kid; which one Authlete picks would be undefined")
+	}
+	if !strings.Contains(d.Errors()[0].Summary(), "dup") {
+		t.Errorf("error does not name the kid: %s", d.Errors()[0].Summary())
+	}
+}
+
+func TestKeyWithoutKidIsRefused(t *testing.T) {
+	for _, doc := range []string{
+		`{"keys":[{"kty":"RSA","alg":"RS256","use":"sig"}]}`,
+		`{"keys":[{"kty":"RSA","kid":"","alg":"RS256","use":"sig"}]}`,
+		`{"keys":[{"kty":"RSA","kid":"   ","alg":"RS256","use":"sig"}]}`,
+	} {
+		if d := validateJWKS(t, doc); !d.HasError() {
+			t.Errorf("accepted a key with no usable kid: %s", doc)
+		}
+	}
+}
+
+func TestDistinctKidsAreAccepted(t *testing.T) {
+	d := validateJWKS(t, `{"keys":[
+		{"kty":"RSA","kid":"rsa1","alg":"RS256","use":"sig"},
+		{"kty":"EC","kid":"ec1","alg":"ES256","use":"sig"}
+	]}`)
+	if d.HasError() {
+		t.Errorf("refused a valid set: %v", d.Errors())
+	}
+}
+
+// TestUnparseableIsLeftAlone keeps this check from duplicating the server's
+// own error, and from rejecting a shape it does not model.
+func TestUnparseableIsLeftAlone(t *testing.T) {
+	for _, doc := range []string{"not json", `{"keys":"not a list"}`, `{}`} {
+		if d := validateJWKS(t, doc); d.HasError() {
+			t.Errorf("reported an error for %q, which this check should leave to the server: %v", doc, d.Errors())
+		}
 	}
 }

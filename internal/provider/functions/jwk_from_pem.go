@@ -30,6 +30,7 @@ package functions
 
 import (
 	"context"
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
@@ -40,8 +41,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/function"
 )
@@ -165,6 +168,25 @@ func jwkFromPEM(pemKey, kid, alg, use string) (map[string]any, error) {
 	}
 	if key == nil {
 		return nil, fmt.Errorf("jwk_from_pem: pem_key holds no key or certificate")
+	}
+
+	// A certificate that does not hold the key is almost always the wrong file
+	// pair. Authlete rejects the result with "failed to be parsed as a JWK
+	// Set", which does not say that.
+	if len(certs) > 0 {
+		if err := certMatchesKey(key, certs[0]); err != nil {
+			return nil, fmt.Errorf("jwk_from_pem: %w", err)
+		}
+	}
+
+	if err := validateKid(kid); err != nil {
+		return nil, fmt.Errorf("jwk_from_pem: %w", err)
+	}
+	if err := validateUse(use); err != nil {
+		return nil, fmt.Errorf("jwk_from_pem: %w", err)
+	}
+	if err := validateAlg(key, alg, use); err != nil {
+		return nil, fmt.Errorf("jwk_from_pem: %w", err)
 	}
 
 	fields, err := keyToJWK(key)
@@ -338,4 +360,136 @@ func ecPublicJWK(k *ecdsa.PublicKey) (map[string]string, error) {
 		"x":   padded(k.X, size),
 		"y":   padded(k.Y, size),
 	}, nil
+}
+
+// --- validation --------------------------------------------------------------
+//
+// A JWK Set is an opaque string to Authlete, so nothing downstream checks that
+// the fields agree with the key. A key published with an algorithm it cannot
+// perform is a specification violation, and the shape of an algorithm
+// confusion attack: a verifier that trusts the published alg could be led to
+// treat an RSA public key as an HMAC secret. Mainstream libraries refuse that
+// today, which is why this is caught here rather than left to them.
+
+func validateKid(kid string) error {
+	if strings.TrimSpace(kid) == "" {
+		//lint:ignore ST1005 user-facing diagnostic
+		return errors.New("kid is empty.\n\n" +
+			"Authlete selects a key by its kid, so every key needs one and no " +
+			"two keys in a set may share it.")
+	}
+	return nil
+}
+
+func validateUse(use string) error {
+	switch use {
+	case "sig", "enc":
+		return nil
+	}
+	//lint:ignore ST1005 user-facing diagnostic
+	return fmt.Errorf("use is %q.\n\nIt must be \"sig\", for signing, or \"enc\", for encryption.", use)
+}
+
+// algsFor returns the algorithms a key can actually perform for a given use.
+func algsFor(key any, use string) ([]string, string) {
+	switch k := key.(type) {
+	case *rsa.PrivateKey:
+		return algsFor(&k.PublicKey, use)
+	case *rsa.PublicKey:
+		if use == "enc" {
+			return []string{"RSA1_5", "RSA-OAEP", "RSA-OAEP-256", "RSA-OAEP-384", "RSA-OAEP-512"}, "an RSA key"
+		}
+		return []string{"RS256", "RS384", "RS512", "PS256", "PS384", "PS512"}, "an RSA key"
+
+	case *ecdsa.PrivateKey:
+		return algsFor(&k.PublicKey, use)
+	case *ecdsa.PublicKey:
+		if use == "enc" {
+			return []string{"ECDH-ES", "ECDH-ES+A128KW", "ECDH-ES+A192KW", "ECDH-ES+A256KW"},
+				"an EC key on " + k.Curve.Params().Name
+		}
+		// Signing is curve specific: RFC 7518 pairs ES256 with P-256, ES384
+		// with P-384 and ES512 with P-521, and no other combination is valid.
+		switch k.Curve {
+		case elliptic.P256():
+			return []string{"ES256"}, "an EC key on P-256"
+		case elliptic.P384():
+			return []string{"ES384"}, "an EC key on P-384"
+		case elliptic.P521():
+			return []string{"ES512"}, "an EC key on P-521"
+		}
+		return nil, "an EC key on an unsupported curve"
+
+	case ed25519.PrivateKey, ed25519.PublicKey:
+		if use == "enc" {
+			return nil, "an Ed25519 key, which signs and cannot encrypt"
+		}
+		return []string{"EdDSA"}, "an Ed25519 key"
+	}
+	return nil, "this key"
+}
+
+func validateAlg(key any, alg, use string) error {
+	allowed, describe := algsFor(key, use)
+	for _, a := range allowed {
+		if alg == a {
+			return nil
+		}
+	}
+
+	switch {
+	case alg == "":
+		//lint:ignore ST1005 user-facing diagnostic
+		return fmt.Errorf("alg is empty.\n\nFor %s used for %q it must be one of: %s.",
+			describe, use, strings.Join(allowed, ", "))
+	case alg == "none":
+		//lint:ignore ST1005 user-facing diagnostic
+		return errors.New("alg is \"none\".\n\n" +
+			"That means an unsigned token and must never be published in a key set.")
+	case strings.HasPrefix(alg, "HS"):
+		//lint:ignore ST1005 user-facing diagnostic
+		return fmt.Errorf("alg %q is an HMAC algorithm, but this is %s.\n\n"+
+			"HMAC uses a shared secret, not a public and private pair. Publishing "+
+			"a public key under an HMAC algorithm is what an algorithm confusion "+
+			"attack looks like: a verifier that trusts the published alg could "+
+			"treat the public key as the HMAC secret.\n\n"+
+			"Use one of: %s.", alg, describe, strings.Join(allowed, ", "))
+	case len(allowed) == 0:
+		//lint:ignore ST1005 user-facing diagnostic
+		return fmt.Errorf("alg %q cannot be used, because this is %s.", alg, describe)
+	}
+	//lint:ignore ST1005 user-facing diagnostic
+	return fmt.Errorf("alg %q does not match the key.\n\nFor %s used for %q it must be one of: %s.",
+		alg, describe, use, strings.Join(allowed, ", "))
+}
+
+// certMatchesKey reports whether the certificate holds the public half of the
+// key, so a mismatched pair is named here rather than refused by the server.
+func certMatchesKey(key any, cert *x509.Certificate) error {
+	type publicer interface{ Equal(x crypto.PublicKey) bool }
+
+	var pub crypto.PublicKey
+	switch k := key.(type) {
+	case *rsa.PrivateKey:
+		pub = &k.PublicKey
+	case *ecdsa.PrivateKey:
+		pub = &k.PublicKey
+	case ed25519.PrivateKey:
+		pub = k.Public()
+	default:
+		pub = key
+	}
+
+	p, ok := pub.(publicer)
+	if !ok {
+		return nil
+	}
+	if p.Equal(cert.PublicKey) {
+		return nil
+	}
+	//lint:ignore ST1005 user-facing diagnostic
+	return errors.New("the certificate does not hold this key.\n\n" +
+		"The certificate and the key are a mismatched pair, so the JWK would " +
+		"publish a certificate for a different key. Check that the two files " +
+		"belong together.")
 }
