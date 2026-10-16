@@ -172,3 +172,30 @@ func TestValidUseIsAccepted(t *testing.T) {
 		})
 	}
 }
+
+// Ed25519 and X25519 are both OKP, so kty alone does not settle whether an
+// algorithm is possible and the curve has to be checked too.
+func TestOKPCurveMustMatchTheAlg(t *testing.T) {
+	for name, tc := range map[string]struct {
+		doc string
+		ok  bool
+	}{
+		"EdDSA on Ed25519":                       {`{"keys":[{"kty":"OKP","kid":"k","crv":"Ed25519","alg":"EdDSA","use":"sig"}]}`, true},
+		"ECDH-ES on X25519":                      {`{"keys":[{"kty":"OKP","kid":"k","crv":"X25519","alg":"ECDH-ES","use":"enc"}]}`, true},
+		"ECDH-ES+A256KW on X25519":               {`{"keys":[{"kty":"OKP","kid":"k","crv":"X25519","alg":"ECDH-ES+A256KW","use":"enc"}]}`, true},
+		"EdDSA on X25519, which cannot sign":     {`{"keys":[{"kty":"OKP","kid":"k","crv":"X25519","alg":"EdDSA","use":"sig"}]}`, false},
+		"ECDH-ES on Ed25519, which cannot agree": {`{"keys":[{"kty":"OKP","kid":"k","crv":"Ed25519","alg":"ECDH-ES","use":"enc"}]}`, false},
+		// ECDH-ES is valid on an EC key too, so kty decides before the curve.
+		"ECDH-ES on an EC curve": {`{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"ECDH-ES","use":"enc"}]}`, true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			d := validateJWKS(t, tc.doc)
+			if tc.ok && d.HasError() {
+				t.Errorf("refused a valid key: %v", d.Errors())
+			}
+			if !tc.ok && !d.HasError() {
+				t.Errorf("accepted an impossible pairing: %s", tc.doc)
+			}
+		})
+	}
+}

@@ -303,6 +303,21 @@ func checkAlg(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 		return
 	}
 
+	// Ed25519 signs and X25519 performs key agreement. Both are OKP, so the
+	// kty check above passes either way and the curve has to be checked too.
+	if kty == "OKP" && crv != "" {
+		if want, known := jwkalg.OKPCurve(alg); known && crv != want {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				fmt.Sprintf("alg %q on curve %q", alg, crv),
+				fmt.Sprintf("The key at position %d is on curve %q, but alg %q needs %q.\n\n"+
+					"Ed25519 signs and X25519 performs key agreement, and neither "+
+					"can do the other's job.", i, crv, alg, want),
+			)
+			return
+		}
+	}
+
 	// RFC 7518 section 3.1 pairs each ECDSA algorithm with one curve, and no
 	// other combination is valid. A missing crv is left alone; the server
 	// rejects that document for its own reasons.
