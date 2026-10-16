@@ -678,8 +678,11 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				},
 			},
 			"fapi_modes": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderClientFapiModes(),
+				},
 				ElementType: types.StringType,
 				Description: `The FAPI modes for this client.`,
 				Validators: []validator.List{

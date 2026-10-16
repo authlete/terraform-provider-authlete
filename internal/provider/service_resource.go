@@ -841,8 +841,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`` + "`" + `error_uri` + "`" + ` response parameter in error responses.`,
 			},
 			"fapi_modes": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderServiceFapiModes(),
+				},
 				ElementType: types.StringType,
 				MarkdownDescription: `FAPI modes for this service.` + "\n" +
 					`` + "\n" +
@@ -1520,8 +1523,11 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`be supported. The following is the list of standard claims.`,
 			},
 			"supported_client_registration_types": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.List{
+					custom_listplanmodifier.KeepOrderSupportedClientRegistrationTypes(),
+				},
 				ElementType: types.StringType,
 				Validators: []validator.List{
 					custom_listvalidators.ValidEnumValues(),
