@@ -74,6 +74,12 @@ jobs:
       - name: Check list order is preserved on read
         run: python3 scripts/patch-list-order.py --check
 
+      # Authlete answers a request for a missing service with 403, not 404, so
+      # the generated code treated a service deleted outside Terraform as an
+      # error. Every plan then failed until someone ran `terraform state rm`.
+      - name: Check a missing service is treated as gone
+        run: python3 scripts/patch-missing-service.py --check
+
       - name: Build
         run: go build ./...
 
