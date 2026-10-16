@@ -93,7 +93,7 @@ type ClientResourceModel struct {
 	IDTokenEncryptionEnc                        types.String             `tfsdk:"id_token_encryption_enc"`
 	IDTokenSignAlg                              types.String             `tfsdk:"id_token_sign_alg"`
 	InScopeForTokenMigration                    types.Bool               `tfsdk:"in_scope_for_token_migration"`
-	Jwks                                        customtypes.JWKS         `tfsdk:"jwks"`
+	Jwks                                        customtypes.PublicJWKS   `tfsdk:"jwks"`
 	JwksURI                                     types.String             `tfsdk:"jwks_uri"`
 	Locked                                      types.Bool               `tfsdk:"locked"`
 	LoginURI                                    types.String             `tfsdk:"login_uri"`
@@ -796,7 +796,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					`operations.`,
 			},
 			"jwks": schema.StringAttribute{
-				CustomType: customtypes.JWKSType{},
+				CustomType: customtypes.PublicJWKSType{},
 				Computed:   true,
 				Optional:   true,
 				MarkdownDescription: `The content of the JWK Set of the client application.` + "\n" +

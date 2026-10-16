@@ -11048,8 +11048,8 @@ components:
           x-speakeasy-terraform-custom-type:
             imports:
               - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
-            schemaType: customtypes.JWKSType{}
-            valueType: customtypes.JWKS
+            schemaType: customtypes.PublicJWKSType{}
+            valueType: customtypes.PublicJWKS
         userInfoSignAlg:
           nullable: true
           $ref: '#/components/schemas/jws_alg'
