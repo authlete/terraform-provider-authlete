@@ -102,14 +102,18 @@ func TestRSAPublicKeyOmitsPrivateParts(t *testing.T) {
 }
 
 func TestECCurvesAreNamedCorrectly(t *testing.T) {
+	// RFC 7518 pairs each curve with one algorithm, so the alg travels with
+	// the curve here; ES256 on P-384 is not a valid combination and is now
+	// refused.
 	for _, tc := range []struct {
 		curve elliptic.Curve
 		crv   string
+		alg   string
 		size  int
 	}{
-		{elliptic.P256(), "P-256", 32},
-		{elliptic.P384(), "P-384", 48},
-		{elliptic.P521(), "P-521", 66},
+		{elliptic.P256(), "P-256", "ES256", 32},
+		{elliptic.P384(), "P-384", "ES384", 48},
+		{elliptic.P521(), "P-521", "ES512", 66},
 	} {
 		key, err := ecdsa.GenerateKey(tc.curve, rand.Reader)
 		if err != nil {
@@ -117,7 +121,7 @@ func TestECCurvesAreNamedCorrectly(t *testing.T) {
 		}
 		der, _ := x509.MarshalPKCS8PrivateKey(key)
 
-		jwk, err := jwkFromPEM(encodePEM(t, "PRIVATE KEY", der), "k1", "ES256", "sig")
+		jwk, err := jwkFromPEM(encodePEM(t, "PRIVATE KEY", der), "k1", tc.alg, "sig")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -363,5 +367,121 @@ func TestBothThumbprintsArePresent(t *testing.T) {
 	sum := sha256.Sum256(cert.Raw)
 	if jwk["x5t#S256"] != base64.RawURLEncoding.EncodeToString(sum[:]) {
 		t.Error("x5t#S256 is missing or does not match the certificate")
+	}
+}
+
+// --- validation --------------------------------------------------------------
+
+func rsaPEM(t *testing.T) string {
+	t.Helper()
+	k, _ := rsa.GenerateKey(rand.Reader, 2048)
+	der, _ := x509.MarshalPKCS8PrivateKey(k)
+	return encodePEM(t, "PRIVATE KEY", der)
+}
+
+func ecPEM(t *testing.T, c elliptic.Curve) string {
+	t.Helper()
+	k, _ := ecdsa.GenerateKey(c, rand.Reader)
+	der, _ := x509.MarshalPKCS8PrivateKey(k)
+	return encodePEM(t, "PRIVATE KEY", der)
+}
+
+// TestAlgMustMatchTheKey is the security-relevant one. A key set is an opaque
+// string to Authlete, so nothing downstream checks that alg agrees with the
+// key, and a public key published under an HMAC algorithm is the shape of an
+// algorithm confusion attack.
+func TestAlgMustMatchTheKey(t *testing.T) {
+	ed25519PEM := func() string {
+		_, priv, _ := ed25519.GenerateKey(rand.Reader)
+		der, _ := x509.MarshalPKCS8PrivateKey(priv)
+		return encodePEM(t, "PRIVATE KEY", der)
+	}()
+
+	for _, tc := range []struct {
+		name, pem, alg, use, wants string
+	}{
+		{"HMAC on an RSA key", rsaPEM(t), "HS256", "sig", "algorithm confusion"},
+		{"unsigned", rsaPEM(t), "none", "sig", "unsigned token"},
+		{"empty", rsaPEM(t), "", "sig", "alg is empty"},
+		{"RSA algorithm on an EC key", ecPEM(t, elliptic.P256()), "RS256", "sig", "does not match"},
+		{"wrong curve for the algorithm", ecPEM(t, elliptic.P384()), "ES256", "sig", "P-384"},
+		{"signing algorithm for encryption", rsaPEM(t), "RS256", "enc", "does not match"},
+		{"Ed25519 cannot encrypt", ed25519PEM, "EdDSA", "enc", "cannot encrypt"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := jwkFromPEM(tc.pem, "k1", tc.alg, tc.use)
+			if err == nil {
+				t.Fatalf("accepted %s with use %q, which the key cannot perform", tc.alg, tc.use)
+			}
+			if !strings.Contains(err.Error(), tc.wants) {
+				t.Errorf("error does not explain the problem.\nwant it to mention %q\ngot: %v", tc.wants, err)
+			}
+		})
+	}
+}
+
+func TestValidCombinationsStillWork(t *testing.T) {
+	_, ed, _ := ed25519.GenerateKey(rand.Reader)
+	edDER, _ := x509.MarshalPKCS8PrivateKey(ed)
+
+	for _, tc := range []struct{ name, pem, alg, use string }{
+		{"RSA signing", rsaPEM(t), "RS256", "sig"},
+		{"RSA PSS signing", rsaPEM(t), "PS512", "sig"},
+		{"RSA key encryption", rsaPEM(t), "RSA-OAEP-256", "enc"},
+		{"P-256 signing", ecPEM(t, elliptic.P256()), "ES256", "sig"},
+		{"P-521 signing", ecPEM(t, elliptic.P521()), "ES512", "sig"},
+		{"EC key agreement", ecPEM(t, elliptic.P256()), "ECDH-ES+A128KW", "enc"},
+		{"Ed25519 signing", encodePEM(t, "PRIVATE KEY", edDER), "EdDSA", "sig"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if _, err := jwkFromPEM(tc.pem, "k1", tc.alg, tc.use); err != nil {
+				t.Errorf("refused a valid combination: %v", err)
+			}
+		})
+	}
+}
+
+func TestKidIsRequired(t *testing.T) {
+	for _, kid := range []string{"", "   "} {
+		_, err := jwkFromPEM(rsaPEM(t), kid, "RS256", "sig")
+		if err == nil {
+			t.Fatalf("accepted kid %q; Authlete selects keys by kid", kid)
+		}
+		if !strings.Contains(err.Error(), "kid") {
+			t.Errorf("error does not name kid: %v", err)
+		}
+	}
+}
+
+func TestUseMustBeSigOrEnc(t *testing.T) {
+	_, err := jwkFromPEM(rsaPEM(t), "k1", "RS256", "bogus")
+	if err == nil {
+		t.Fatal("accepted an unknown use")
+	}
+	if !strings.Contains(err.Error(), "sig") || !strings.Contains(err.Error(), "enc") {
+		t.Errorf("error does not say what is allowed: %v", err)
+	}
+}
+
+// TestCertificateMustHoldTheKey catches a mismatched pair locally. The server
+// refuses it with "failed to be parsed as a JWK Set", which does not say why.
+func TestCertificateMustHoldTheKey(t *testing.T) {
+	keyA, _ := rsa.GenerateKey(rand.Reader, 2048)
+	keyB, _ := rsa.GenerateKey(rand.Reader, 2048)
+	certB := selfSigned(t, "other.example.com", keyB)
+	derA, _ := x509.MarshalPKCS8PrivateKey(keyA)
+
+	_, err := jwkFromPEM(encodePEM(t, "PRIVATE KEY", derA)+encodePEM(t, "CERTIFICATE", certB.Raw), "k1", "RS256", "sig")
+	if err == nil {
+		t.Fatal("accepted a certificate that does not hold the key")
+	}
+	if !strings.Contains(err.Error(), "does not hold this key") {
+		t.Errorf("error does not name the problem: %v", err)
+	}
+
+	// The matching pair must still work.
+	certA := selfSigned(t, "same.example.com", keyA)
+	if _, err := jwkFromPEM(encodePEM(t, "PRIVATE KEY", derA)+encodePEM(t, "CERTIFICATE", certA.Raw), "k1", "RS256", "sig"); err != nil {
+		t.Errorf("refused a matching key and certificate: %v", err)
 	}
 }

@@ -15,8 +15,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -25,7 +27,8 @@ import (
 // --- type -------------------------------------------------------------------
 
 var (
-	_ basetypes.StringTypable = (*JWKSType)(nil)
+	_ basetypes.StringTypable     = (*JWKSType)(nil)
+	_ xattr.ValidateableAttribute = (*JWKS)(nil)
 )
 
 // JWKSType is a string type whose values compare by JSON meaning.
@@ -133,4 +136,57 @@ func NewJWKSNull() JWKS {
 
 func NewJWKSUnknown() JWKS {
 	return JWKS{StringValue: basetypes.NewStringUnknown()}
+}
+
+// --- validation -------------------------------------------------------------
+
+// ValidateAttribute checks the set as a whole, which is the part jwk_from_pem
+// cannot: that function sees one key and has no idea what the others look
+// like. Authlete selects a key by its kid, so a set with two keys sharing one,
+// or a key with none, makes the choice ambiguous and the set is stored anyway,
+// since Authlete treats it as an opaque string.
+//
+// Only configuration is validated. A value read back from Authlete never
+// reaches here, so a set that predates this check does not start failing.
+func (v JWKS) ValidateAttribute(ctx context.Context, req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse) {
+	if v.IsNull() || v.IsUnknown() {
+		return
+	}
+
+	var doc struct {
+		Keys []map[string]any `json:"keys"`
+	}
+	// Anything that does not parse is left alone. Reporting it here would
+	// duplicate the error the server gives, and a JWK Set may legitimately
+	// arrive in a shape this struct does not model.
+	if err := json.Unmarshal([]byte(v.ValueString()), &doc); err != nil {
+		return
+	}
+
+	seen := make(map[string]int, len(doc.Keys))
+	for i, k := range doc.Keys {
+		kid, _ := k["kid"].(string)
+		if strings.TrimSpace(kid) == "" {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Key without a kid",
+				fmt.Sprintf("The key at position %d has no kid.\n\n"+
+					"Authlete selects a key by its kid, so a key without one "+
+					"cannot be named by access_token_signature_key_id or any "+
+					"of the other key id attributes.", i),
+			)
+			continue
+		}
+		if first, dup := seen[kid]; dup {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				fmt.Sprintf("Duplicate kid %q", kid),
+				fmt.Sprintf("The keys at positions %d and %d share the kid %q.\n\n"+
+					"Authlete selects a key by its kid, so which of the two is "+
+					"used would be undefined. Give each key its own.", first, i, kid),
+			)
+			continue
+		}
+		seen[kid] = i
+	}
 }
