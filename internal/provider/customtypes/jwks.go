@@ -12,6 +12,7 @@ package customtypes
 
 import (
 	"context"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -167,6 +168,8 @@ func (v JWKS) ValidateAttribute(ctx context.Context, req xattr.ValidateAttribute
 		checkUse(req, resp, i, k)
 		checkKty(req, resp, i, k)
 		checkMaterial(req, resp, i, k)
+		checkCoordinates(req, resp, i, k)
+		checkX5C(req, resp, i, k)
 
 		kid, _ := k["kid"].(string)
 		if strings.TrimSpace(kid) == "" {
@@ -364,6 +367,124 @@ func checkMaterial(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttri
 				"RFC 7518 section 3.2 requires an HMAC key at least as long as "+
 				"the hash output.", i, len(decoded), alg, size),
 		)
+	}
+}
+
+// checkCoordinates checks that a curve key's coordinates are the size the
+// curve requires.
+//
+// RFC 7518 section 6.2.1.2 requires x and y to be the full width of the curve,
+// left padded with zeros, so a short value is a malformed key rather than a
+// smaller number. Authlete refuses one, but with the same generic reply it
+// gives every malformed set, naming neither the key nor the member.
+func checkCoordinates(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse, i int, k map[string]any) {
+	kty, _ := k["kty"].(string)
+	if kty != "EC" && kty != "OKP" {
+		return
+	}
+
+	crv, _ := k["crv"].(string)
+	want, known := jwkalg.CurveBytes(crv)
+	if !known {
+		return
+	}
+
+	// y is absent on an OKP key, and d only on a private one, so each is
+	// checked when present rather than required.
+	for _, member := range []string{"x", "y", "d"} {
+		raw, present := k[member].(string)
+		if !present || raw == "" {
+			continue
+		}
+
+		decoded, err := base64.RawURLEncoding.DecodeString(raw)
+		if err != nil {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				fmt.Sprintf("%s is not base64url", member),
+				fmt.Sprintf("The key at position %d has a %q member that is not "+
+					"unpadded base64url: %s.", i, member, err),
+			)
+			return
+		}
+
+		if len(decoded) != want {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				fmt.Sprintf("%s is the wrong size for %s", member, crv),
+				fmt.Sprintf("The key at position %d has a %q member of %d bytes, "+
+					"but %s requires %d.\n\n"+
+					"RFC 7518 requires each coordinate to be the full width of the "+
+					"curve, left padded with zeros, so a shorter value is a "+
+					"malformed key rather than a smaller number. jwk_from_pem pads "+
+					"them correctly.", i, member, len(decoded), crv, want),
+			)
+			return
+		}
+	}
+}
+
+// checkX5C checks that a certificate chain holds certificates.
+//
+// RFC 7517 section 4.7 makes x5c an array of standard base64 DER
+// certificates, not base64url, which is the usual mistake. Authlete refuses a
+// malformed one with the same generic reply as any other bad set.
+func checkX5C(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse, i int, k map[string]any) {
+	raw, present := k["x5c"]
+	if !present {
+		return
+	}
+
+	chain, ok := raw.([]any)
+	if !ok {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"x5c is not an array",
+			fmt.Sprintf("The key at position %d has an x5c member that is not an "+
+				"array of certificates.", i),
+		)
+		return
+	}
+
+	for j, el := range chain {
+		entry, ok := el.(string)
+		if !ok {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"x5c holds something that is not a certificate",
+				fmt.Sprintf("The entry at position %d of x5c on the key at position "+
+					"%d is not a string.", j, i),
+			)
+			return
+		}
+
+		// Standard base64, per RFC 7517 section 4.7. base64url is the usual
+		// mistake, and it fails here on "-" and "_".
+		der, err := base64.StdEncoding.DecodeString(entry)
+		if err != nil {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"x5c entry is not base64",
+				fmt.Sprintf("The entry at position %d of x5c on the key at position "+
+					"%d is not standard base64: %s.\n\n"+
+					"x5c uses standard base64, not the base64url the rest of a JWK "+
+					"uses. jwk_from_pem encodes it correctly when given a "+
+					"certificate.", j, i, err),
+			)
+			return
+		}
+
+		if _, err := x509.ParseCertificate(der); err != nil {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"x5c entry is not a certificate",
+				fmt.Sprintf("The entry at position %d of x5c on the key at position "+
+					"%d decodes, but not to a certificate: %s.\n\n"+
+					"Each entry is a DER certificate. Pass the PEM to jwk_from_pem "+
+					"rather than assembling the chain by hand.", j, i, err),
+			)
+			return
+		}
 	}
 }
 

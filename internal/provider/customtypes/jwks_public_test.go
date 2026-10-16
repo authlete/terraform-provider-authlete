@@ -62,8 +62,8 @@ func TestClientRefusesASymmetricKey(t *testing.T) {
 func TestClientAcceptsPublicKeys(t *testing.T) {
 	for name, doc := range map[string]string{
 		"RSA":     `{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"sig","n":"AQAB","e":"AQAB"}]}`,
-		"EC":      `{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"ES256","use":"sig","x":"AA","y":"AA"}]}`,
-		"Ed25519": `{"keys":[{"kty":"OKP","kid":"k","crv":"Ed25519","alg":"EdDSA","use":"sig","x":"AA"}]}`,
+		"EC":      `{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"ES256","use":"sig","x":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","y":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}]}`,
+		"Ed25519": `{"keys":[{"kty":"OKP","kid":"k","crv":"Ed25519","alg":"EdDSA","use":"sig","x":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}]}`,
 		// An empty private member is what the server itself returns for some
 		// documents; it carries no key material, so it is not an error.
 		"an empty d member": `{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"sig","n":"AQAB","e":"AQAB","d":""}]}`,

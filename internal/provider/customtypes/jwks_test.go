@@ -254,7 +254,7 @@ func TestKeyMaterialIsChecked(t *testing.T) {
 		// Terraform has no base64urlencode, so this is the likely mistake.
 		"a k in standard base64":     `{"keys":[{"kty":"oct","kid":"k","alg":"HS256","use":"sig","k":"MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="}]}`,
 		"AES key wrap on an RSA key": `{"keys":[{"kty":"RSA","kid":"k","alg":"A128KW","use":"enc","n":"AQAB","e":"AQAB"}]}`,
-		"AES key wrap on an EC key":  `{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"A256GCMKW","use":"enc","x":"AA","y":"AA"}]}`,
+		"AES key wrap on an EC key":  `{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"A256GCMKW","use":"enc","x":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","y":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}]}`,
 	} {
 		t.Run(name, func(t *testing.T) {
 			if d := validateJWKS(t, doc); !d.HasError() {
@@ -305,13 +305,83 @@ func TestUnreadableKtyIsRefused(t *testing.T) {
 func TestEveryStoredKtyIsAccepted(t *testing.T) {
 	for name, doc := range map[string]string{
 		"RSA": `{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"sig","n":"AQAB","e":"AQAB"}]}`,
-		"EC":  `{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"ES256","use":"sig","x":"AA","y":"AA"}]}`,
-		"OKP": `{"keys":[{"kty":"OKP","kid":"k","crv":"Ed25519","alg":"EdDSA","use":"sig","x":"AA"}]}`,
+		"EC":  `{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"ES256","use":"sig","x":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","y":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}]}`,
+		"OKP": `{"keys":[{"kty":"OKP","kid":"k","crv":"Ed25519","alg":"EdDSA","use":"sig","x":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}]}`,
 		"oct": `{"keys":[{"kty":"oct","kid":"k","alg":"A128KW","use":"enc","k":"MDEyMzQ1Njc4OWFiY2RlZg"}]}`,
 	} {
 		t.Run(name, func(t *testing.T) {
 			if d := validateJWKS(t, doc); d.HasError() {
 				t.Errorf("refused a %s key: %v", name, d.Errors())
+			}
+		})
+	}
+}
+
+// Both of these reach Authlete as the same generic 400 that names neither the
+// key nor the member, so each is named here instead.
+func TestCurveCoordinatesAreChecked(t *testing.T) {
+	const c32 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+	const c48 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+
+	for name, tc := range map[string]struct {
+		doc string
+		ok  bool
+	}{
+		"P-256 with full coordinates": {`{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"ES256","use":"sig","x":"` + c32 + `","y":"` + c32 + `"}]}`, true},
+		"P-256 with a short x":        {`{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"ES256","use":"sig","x":"AA","y":"` + c32 + `"}]}`, false},
+		"P-256 with a short y":        {`{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"ES256","use":"sig","x":"` + c32 + `","y":"AA"}]}`, false},
+		"P-256 carrying P-384 sizes":  {`{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"ES256","use":"sig","x":"` + c48 + `","y":"` + c48 + `"}]}`, false},
+		"P-384 with full coordinates": {`{"keys":[{"kty":"EC","kid":"k","crv":"P-384","alg":"ES384","use":"sig","x":"` + c48 + `","y":"` + c48 + `"}]}`, true},
+		"Ed25519 with a full x":       {`{"keys":[{"kty":"OKP","kid":"k","crv":"Ed25519","alg":"EdDSA","use":"sig","x":"` + c32 + `"}]}`, true},
+		"Ed25519 with a short x":      {`{"keys":[{"kty":"OKP","kid":"k","crv":"Ed25519","alg":"EdDSA","use":"sig","x":"AA"}]}`, false},
+		"a short private d":           {`{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"ES256","use":"sig","x":"` + c32 + `","y":"` + c32 + `","d":"AA"}]}`, false},
+		"x in standard base64":        {`{"keys":[{"kty":"EC","kid":"k","crv":"P-256","alg":"ES256","use":"sig","x":"++++","y":"` + c32 + `"}]}`, false},
+		// A curve this provider does not know is left alone rather than guessed at.
+		"an unknown curve": {`{"keys":[{"kty":"EC","kid":"k","crv":"secp256k1","alg":"ES256K","use":"sig","x":"AA","y":"AA"}]}`, true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			d := validateJWKS(t, tc.doc)
+			if tc.ok && d.HasError() {
+				t.Errorf("refused a valid key: %v", d.Errors())
+			}
+			if !tc.ok && !d.HasError() {
+				t.Errorf("accepted a malformed key: %s", tc.doc)
+			}
+		})
+	}
+}
+
+func TestX5CIsChecked(t *testing.T) {
+	// A real certificate, so the valid case proves the parse rather than
+	// skipping it. Generated once with openssl and pasted as the DER would
+	// appear in x5c: standard base64, no line breaks.
+	// A real certificate, generated with openssl and pasted as x5c carries
+	// it: standard base64 of the DER, no line breaks. An earlier version of
+	// this test used a hand-typed string, which decoded but did not parse.
+	const cert = "MIIBcjCCARmgAwIBAgIUHcAJ0Ku13S4fMLzr/JgdrQEfPycwCgYIKoZIzj0EAwIwDzENMAsGA1UEAwwEdGVzdDAeFw0yNjEwMTYxMTIxNDFaFw0zNjEwMTMxMTIxNDFaMA8xDTALBgNVBAMMBHRlc3QwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAATuSyfv6B2+yD4hsIswjDU1khZn1eC5PN2RTLrx4dMUc1XVeo+cV7y0rvStPZbi6xDx7bfk2wmrmWOela5rh40fo1MwUTAdBgNVHQ4EFgQU/0JdQtvZ+ZcSF9y363ai7hwFBzYwHwYDVR0jBBgwFoAU/0JdQtvZ+ZcSF9y363ai7hwFBzYwDwYDVR0TAQH/BAUwAwEB/zAKBggqhkjOPQQDAgNHADBEAiBo8zYiCAnDtc0NzYARxsovDw3QiG+Og3uyFwPjGuTkHAIgWN1+0wZFeugC7r44D69DcuD1GT2raPc/eaydeCRBLMU="
+
+	for name, tc := range map[string]struct {
+		doc string
+		ok  bool
+	}{
+		"not base64": {`{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"sig","n":"AQAB","e":"AQAB","x5c":["not-base64-!!"]}]}`, false},
+		// base64url instead of standard base64 is the usual mistake, because
+		// every other member of a JWK uses base64url.
+		"base64url instead of base64": {`{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"sig","n":"AQAB","e":"AQAB","x5c":["a-b_c"]}]}`, false},
+		"base64 of something else":    {`{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"sig","n":"AQAB","e":"AQAB","x5c":["aGVsbG8="]}]}`, false},
+		"not an array":                {`{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"sig","n":"AQAB","e":"AQAB","x5c":"one"}]}`, false},
+		"an entry that is a number":   {`{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"sig","n":"AQAB","e":"AQAB","x5c":[1]}]}`, false},
+		"no x5c at all":               {`{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"sig","n":"AQAB","e":"AQAB"}]}`, true},
+		"an empty chain":              {`{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"sig","n":"AQAB","e":"AQAB","x5c":[]}]}`, true},
+		"a real certificate":          {`{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"sig","n":"AQAB","e":"AQAB","x5c":["` + cert + `"]}]}`, true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			d := validateJWKS(t, tc.doc)
+			if tc.ok && d.HasError() {
+				t.Errorf("refused a valid chain: %v", d.Errors())
+			}
+			if !tc.ok && !d.HasError() {
+				t.Errorf("accepted a malformed chain: %s", tc.doc)
 			}
 		})
 	}

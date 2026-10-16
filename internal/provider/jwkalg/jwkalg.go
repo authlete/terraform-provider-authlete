@@ -59,6 +59,28 @@ func OKPCurve(alg string) (string, bool) {
 	return crv, ok
 }
 
+// curveBytes gives the length, in octets, of each coordinate on a curve.
+//
+// RFC 7518 section 6.2.1.2 requires x and y to be the full size of the curve,
+// left padded with zeros, so a shorter value is not a smaller number but a
+// malformed key. P-521 is 66 rather than 65 because its field is 521 bits.
+// RFC 8037 fixes the Edwards curves at 32.
+var curveBytes = map[string]int{
+	"P-256":   32,
+	"P-384":   48,
+	"P-521":   66,
+	"Ed25519": 32,
+	"X25519":  32,
+}
+
+// CurveBytes returns the octet length of a coordinate on a curve. The second
+// result is false for a curve this package does not know, which is left alone
+// rather than guessed at.
+func CurveBytes(crv string) (int, bool) {
+	n, ok := curveBytes[crv]
+	return n, ok
+}
+
 // KeyType returns the kty an algorithm requires, for the algorithms that
 // require exactly one. The second result is false for an algorithm this
 // package does not constrain.
