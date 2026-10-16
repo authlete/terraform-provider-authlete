@@ -1,0 +1,1 @@
+terraform import authlete_service.my_authlete_service 0
