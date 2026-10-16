@@ -184,8 +184,8 @@ contradictions these checks do not catch, and Authlete will store it.
 rather than a document describing it.
 
 A key set built from a value that is not known until plan time, a
-`tls_private_key` reference for instance, is checked during the apply instead,
-before anything is sent.
+`tls_private_key` reference for instance, is checked during the apply rather
+than during the plan, but it is still checked before anything is sent.
 
 ## Client attributes moved into `extension`
 

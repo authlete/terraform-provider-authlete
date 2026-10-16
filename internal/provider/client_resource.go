@@ -799,9 +799,6 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				CustomType: customtypes.PublicJWKSType{},
 				Computed:   true,
 				Optional:   true,
-				PlanModifiers: []planmodifier.String{
-					custom_stringplanmodifier.RefusePrivateKeysJwks(),
-				},
 				MarkdownDescription: `The content of the JWK Set of the client application.` + "\n" +
 					`The format is described in` + "\n" +
 					`[JSON Web Key (JWK), 5. JWK Set Format](https://datatracker.ietf.org/doc/html/rfc7517#section-5).` + "\n" +

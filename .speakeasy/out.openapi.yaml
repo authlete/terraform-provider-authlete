@@ -11050,8 +11050,6 @@ components:
               - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
             schemaType: customtypes.PublicJWKSType{}
             valueType: customtypes.PublicJWKS
-          x-speakeasy-plan-modifiers:
-            - RefusePrivateKeys_jwks
         userInfoSignAlg:
           nullable: true
           $ref: '#/components/schemas/jws_alg'
