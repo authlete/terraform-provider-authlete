@@ -883,6 +883,24 @@ actions:
       x-speakeasy-plan-validators:
         - ValidEnumValues
 
+  - target: $.components.schemas.service.properties.fapiModes
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_service_fapi_modes
+
+  - target: $.components.schemas.service.properties.supportedClientRegistrationTypes
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_supported_client_registration_types
+
+  - target: $.components.schemas.client.properties.fapiModes
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_client_fapi_modes
+
   - target: $.components.schemas.service.properties.supportedIntrospectionAuthMethods
     description: Reject element values Authlete does not accept
     update:
@@ -980,6 +998,32 @@ actions:
     update:
       x-speakeasy-plan-modifiers:
         - KeepOrderByName_supported_scopes
+
+  # Found by sweeping every list on the service rather than waiting to be
+  # bitten: Authlete returns enum lists in its own declaration order, and
+  # these three were missed when the others were done. Measured, each one
+  # comes back rearranged:
+  #
+  #   supportedIntrospectionAuthMethods       POST,NONE,BASIC -> NONE,BASIC,POST
+  #   supportedRevocationAuthMethods          POST,NONE,BASIC -> NONE,BASIC,POST
+  #   supportedBackchannelTokenDeliveryModes  PUSH,POLL,PING  -> POLL,PING,PUSH
+  - target: $.components.schemas.service.properties.supportedIntrospectionAuthMethods
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_supported_introspection_auth_methods
+
+  - target: $.components.schemas.service.properties.supportedRevocationAuthMethods
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_supported_revocation_auth_methods
+
+  - target: $.components.schemas.service.properties.supportedBackchannelTokenDeliveryModes
+    description: Keep the order already in state when the elements are unchanged
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrder_supported_backchannel_token_delivery_modes
 
   - target: $.components.schemas.service.properties.supportedAttachments
     description: Keep the order already in state when the elements are unchanged

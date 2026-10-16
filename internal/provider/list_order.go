@@ -86,6 +86,11 @@ func keepServiceListOrder(prev, cur *ServiceResourceModel) {
 	cur.SupportedResponseTypes = keepOrder(prev.SupportedResponseTypes, cur.SupportedResponseTypes)
 	cur.SupportedServiceProfiles = keepOrder(prev.SupportedServiceProfiles, cur.SupportedServiceProfiles)
 	cur.SupportedTokenAuthMethods = keepOrder(prev.SupportedTokenAuthMethods, cur.SupportedTokenAuthMethods)
+	cur.SupportedIntrospectionAuthMethods = keepOrder(prev.SupportedIntrospectionAuthMethods, cur.SupportedIntrospectionAuthMethods)
+	cur.SupportedRevocationAuthMethods = keepOrder(prev.SupportedRevocationAuthMethods, cur.SupportedRevocationAuthMethods)
+	cur.SupportedBackchannelTokenDeliveryModes = keepOrder(prev.SupportedBackchannelTokenDeliveryModes, cur.SupportedBackchannelTokenDeliveryModes)
+	cur.SupportedClientRegistrationTypes = keepOrder(prev.SupportedClientRegistrationTypes, cur.SupportedClientRegistrationTypes)
+	cur.FapiModes = keepOrder(prev.FapiModes, cur.FapiModes)
 	cur.SupportedScopes = keepScopeOrder(prev.SupportedScopes, cur.SupportedScopes)
 }
 
@@ -144,6 +149,7 @@ func keepClientListOrder(prev, cur *ClientResourceModel) {
 	cur.GrantTypes = keepOrder(prev.GrantTypes, cur.GrantTypes)
 	cur.ResponseModes = keepOrder(prev.ResponseModes, cur.ResponseModes)
 	cur.ResponseTypes = keepOrder(prev.ResponseTypes, cur.ResponseTypes)
+	cur.FapiModes = keepOrder(prev.FapiModes, cur.FapiModes)
 
 	if prev.Extension != nil && cur.Extension != nil {
 		cur.Extension.RequestableScopes = keepOrder(
