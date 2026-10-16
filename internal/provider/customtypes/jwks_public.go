@@ -25,7 +25,6 @@ package customtypes
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -125,14 +124,14 @@ func (v PublicJWKS) ValidateAttribute(ctx context.Context, req xattr.ValidateAtt
 		return
 	}
 
-	var doc struct {
-		Keys []map[string]any `json:"keys"`
-	}
-	if err := json.Unmarshal([]byte(v.ValueString()), &doc); err != nil {
+	// A document that is not a JWK Set has already been reported by the
+	// shared checks above, so this says nothing further about it.
+	keys, problem := jwkSetKeys(v.ValueString())
+	if problem != nil {
 		return
 	}
 
-	for i, k := range doc.Keys {
+	for i, k := range keys {
 		kty, _ := k["kty"].(string)
 
 		if kty == "oct" {

@@ -155,18 +155,14 @@ func (v JWKS) ValidateAttribute(ctx context.Context, req xattr.ValidateAttribute
 		return
 	}
 
-	var doc struct {
-		Keys []map[string]any `json:"keys"`
-	}
-	// Anything that does not parse is left alone. Reporting it here would
-	// duplicate the error the server gives, and a JWK Set may legitimately
-	// arrive in a shape this struct does not model.
-	if err := json.Unmarshal([]byte(v.ValueString()), &doc); err != nil {
+	keys, problem := jwkSetKeys(v.ValueString())
+	if problem != nil {
+		resp.Diagnostics.AddAttributeError(req.Path, problem.summary, problem.detail)
 		return
 	}
 
-	seen := make(map[string]int, len(doc.Keys))
-	for i, k := range doc.Keys {
+	seen := make(map[string]int, len(keys))
+	for i, k := range keys {
 		checkAlg(req, resp, i, k)
 		checkUse(req, resp, i, k)
 		checkMaterial(req, resp, i, k)
@@ -333,6 +329,73 @@ func article(kty string) string {
 		return "an"
 	}
 	return "a"
+}
+
+// malformed describes a document that is not a JWK Set at all.
+type malformed struct{ summary, detail string }
+
+// jwkSetKeys reads the keys out of a JWK Set, or says why the document is not
+// one.
+//
+// This used to skip anything that did not parse, on the reasoning that the
+// server would report it and that a JWK Set might legitimately take a shape
+// this code does not model. Measuring the server disproved both halves. Every
+// malformed shape gets the same reply, which names neither the problem nor
+// the key:
+//
+//	{"keys":["abc"]}       400 A031212 The value of 'jwks' failed to be parsed as a JWK Set.
+//	{"keys":"not a list"}  400 A031212 The value of 'jwks' failed to be parsed as a JWK Set.
+//	{"nope":1}             400 A031212 The value of 'jwks' failed to be parsed as a JWK Set.
+//	{}                     400 A031212 The value of 'jwks' failed to be parsed as a JWK Set.
+//
+// and the shape is fixed: RFC 7517 section 5 defines a JWK Set as a JSON
+// object with a "keys" member holding an array of JWK objects. Members beyond
+// that are allowed, in the set and in each key, and both are accepted here and
+// by Authlete. An empty array is a valid set and is accepted by both.
+func jwkSetKeys(doc string) ([]map[string]any, *malformed) {
+	const fix = "\n\nBuild the keys with jwk_from_pem or jwk_from_secret and " +
+		"assemble the set with jsonencode({ keys = [...] })."
+
+	var top map[string]json.RawMessage
+	if err := json.Unmarshal([]byte(doc), &top); err != nil {
+		return nil, &malformed{
+			"JWK Set is not a JSON object",
+			"The value is not a JSON object: " + err.Error() + "." + fix,
+		}
+	}
+
+	raw, present := top["keys"]
+	if !present {
+		return nil, &malformed{
+			"JWK Set has no keys member",
+			"A JWK Set is a JSON object with a \"keys\" member holding an array " +
+				"of keys. This object has none, so it holds no keys at all." + fix,
+		}
+	}
+
+	var list []json.RawMessage
+	if err := json.Unmarshal(raw, &list); err != nil {
+		return nil, &malformed{
+			"keys is not an array",
+			"The \"keys\" member must hold an array of keys, and this one does " +
+				"not: " + err.Error() + "." + fix,
+		}
+	}
+
+	keys := make([]map[string]any, 0, len(list))
+	for i, el := range list {
+		var k map[string]any
+		if err := json.Unmarshal(el, &k); err != nil {
+			return nil, &malformed{
+				fmt.Sprintf("Key at position %d is not an object", i),
+				fmt.Sprintf("Every entry in \"keys\" must be a key, which is a JSON "+
+					"object. The entry at position %d is not: %s.%s", i, err, fix),
+			}
+		}
+		keys = append(keys, k)
+	}
+
+	return keys, nil
 }
 
 // checkAlg refuses an alg the key cannot possibly perform.

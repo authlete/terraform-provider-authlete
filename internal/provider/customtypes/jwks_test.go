@@ -86,13 +86,53 @@ func TestDistinctKidsAreAccepted(t *testing.T) {
 	}
 }
 
-// TestUnparseableIsLeftAlone keeps this check from duplicating the server's
-// own error, and from rejecting a shape it does not model.
-func TestUnparseableIsLeftAlone(t *testing.T) {
-	for _, doc := range []string{"not json", `{"keys":"not a list"}`, `{}`} {
-		if d := validateJWKS(t, doc); d.HasError() {
-			t.Errorf("reported an error for %q, which this check should leave to the server: %v", doc, d.Errors())
-		}
+// Every one of these reaches Authlete as the same reply, which names neither
+// the problem nor the key:
+//
+//	400 A031212 The value of 'jwks' failed to be parsed as a JWK Set.
+//
+// so each is named here instead. This replaces a test that asserted the
+// opposite, on the reasoning that the server would say something useful.
+func TestMalformedSetsAreNamed(t *testing.T) {
+	for name, tc := range map[string]struct{ doc, wants string }{
+		"not JSON at all":      {`not json`, "not a JSON object"},
+		"a JSON array":         {`[{"kty":"RSA"}]`, "not a JSON object"},
+		"a bare string":        {`"keys"`, "not a JSON object"},
+		"an empty string":      {``, "not a JSON object"},
+		"no keys member":       {`{}`, "no keys member"},
+		"a different member":   {`{"nope":1}`, "no keys member"},
+		"keys is a string":     {`{"keys":"not a list"}`, "not an array"},
+		"keys is an object":    {`{"keys":{"a":1}}`, "not an array"},
+		"an entry is a string": {`{"keys":["abc"]}`, "position 0 is not an object"},
+		"an entry is a number": {`{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"sig"},123]}`, "position 1 is not an object"},
+		"an entry is an array": {`{"keys":[[]]}`, "position 0 is not an object"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			d := validateJWKS(t, tc.doc)
+			if !d.HasError() {
+				t.Fatalf("accepted a document that is not a JWK Set: %s", tc.doc)
+			}
+			joined := d.Errors()[0].Summary() + " " + d.Errors()[0].Detail()
+			if !strings.Contains(joined, tc.wants) {
+				t.Errorf("error does not say what is wrong, wanted %q: %s", tc.wants, joined)
+			}
+		})
+	}
+}
+
+// The shapes Authlete accepts, which must keep working. Verified against the
+// live API: both return 200.
+func TestValidSetShapesAreAccepted(t *testing.T) {
+	for name, doc := range map[string]string{
+		"an empty keys array":   `{"keys":[]}`,
+		"a member beside keys":  `{"keys":[],"extra":"allowed"}`,
+		"a member inside a key": `{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"sig","n":"AQAB","e":"AQAB","x5u":"https://example.com/c.pem"}]}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if d := validateJWKS(t, doc); d.HasError() {
+				t.Errorf("refused a valid JWK Set: %v", d.Errors())
+			}
+		})
 	}
 }
 
