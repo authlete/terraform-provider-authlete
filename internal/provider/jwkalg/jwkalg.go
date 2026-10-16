@@ -56,6 +56,24 @@ func KeyType(alg string) (string, bool) {
 	return "", false
 }
 
+// Purpose returns whether an algorithm signs or encrypts, for the algorithms
+// where that is fixed. The second result is false for an algorithm this
+// package does not constrain.
+//
+// The key management cases are tested first because "RSA1_5" and "RSA-OAEP"
+// both begin with "RS", which would otherwise read as a signing algorithm.
+func Purpose(alg string) (string, bool) {
+	switch {
+	case alg == "RSA1_5", strings.HasPrefix(alg, "RSA-OAEP"), strings.HasPrefix(alg, "ECDH-ES"):
+		return "enc", true
+	case strings.HasPrefix(alg, "RS"), strings.HasPrefix(alg, "PS"),
+		strings.HasPrefix(alg, "ES"), strings.HasPrefix(alg, "HS"),
+		alg == "EdDSA":
+		return "sig", true
+	}
+	return "", false
+}
+
 // IsHMAC reports whether alg is a symmetric HMAC algorithm. Publishing a
 // public key under one is the shape of an algorithm confusion attack: a
 // verifier that trusts the published alg could be led to treat the public key
