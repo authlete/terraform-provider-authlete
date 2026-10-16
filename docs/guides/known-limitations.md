@@ -32,18 +32,18 @@ dragged into the change: identifiers, timestamps and secrets are stable, so a
 module consuming a client secret plans nothing when the service is edited. The
 plan output is simply verbose.
 
-## Scope order is not preserved
+## Scope descriptions are filled in by Authlete
 
-`supported_scopes` comes back from Authlete in an order of its own, and with
-fields filled in that a configuration naming only the scope does not set. A plan
-may therefore offer to rewrite the list when nothing has changed. Applying is
-harmless and the stored scopes are correct.
+`supported_scopes` comes back from Authlete with fields set that a
+configuration naming only the scope does not set, `default_entry` among them. A
+plan may therefore offer to fill those in on the first apply after adding a
+scope. Applying is harmless and the stored scopes are correct.
 
-The other lists this used to affect, `supported_grant_types`,
-`supported_response_types` and eleven more, are now compared without regard to
-order and no longer diff. `supported_scopes` cannot be, because a reordering
-cannot be told apart from an edit to a scope's description, and silently
-discarding such an edit would be worse than the diff.
+Ordering no longer causes a diff. Authlete sorts this list alphabetically, so a
+configuration listing scopes in any other order used to show a change on every
+plan, and dragged roughly 180 computed attributes into the plan with it. The
+stored order is now held, matched on scope name, so an edit to a description
+still shows as the change it is while a reordering shows nothing.
 
 ## Private keys are held in Terraform state
 

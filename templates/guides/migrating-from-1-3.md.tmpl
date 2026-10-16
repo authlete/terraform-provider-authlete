@@ -209,8 +209,9 @@ Ordering does not matter for `requestable_scopes`. 1.3.x modelled it as a set,
 where order never mattered; 3.0 models it as a list but compares it without
 regard to order, so a list Authlete returns rearranged does not show a diff.
 
-This is not true of every list. `supported_scopes` on a service is sorted by
-Authlete and does show a diff; see the "Known limitations" guide.
+`supported_scopes` on a service is sorted by Authlete and is held the same way,
+matched on scope name rather than on the whole entry, so an edit to a
+description is still a change.
 
 ## What did not change
 

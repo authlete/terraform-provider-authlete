@@ -19,6 +19,7 @@ package provider
 import (
 	"sort"
 
+	tfTypes "github.com/authlete/terraform-provider-authlete/v3/internal/provider/types"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -85,6 +86,49 @@ func keepServiceListOrder(prev, cur *ServiceResourceModel) {
 	cur.SupportedResponseTypes = keepOrder(prev.SupportedResponseTypes, cur.SupportedResponseTypes)
 	cur.SupportedServiceProfiles = keepOrder(prev.SupportedServiceProfiles, cur.SupportedServiceProfiles)
 	cur.SupportedTokenAuthMethods = keepOrder(prev.SupportedTokenAuthMethods, cur.SupportedTokenAuthMethods)
+	cur.SupportedScopes = keepScopeOrder(prev.SupportedScopes, cur.SupportedScopes)
+}
+
+// keepScopeOrder puts the stored scopes back in the order state already held,
+// matching on name.
+//
+// supported_scopes is a list of objects rather than strings, so keepOrder does
+// not apply: the elements cannot be compared whole, because Authlete fills in
+// default_entry on a scope the configuration named and nothing else. Matching
+// on name instead reorders without touching content, so an edit to a
+// description still reaches state and still shows as a change.
+//
+// Authlete sorts this list alphabetically. Measured: zeta, alpha, mike, beta
+// comes back as alpha, beta, mike, zeta.
+func keepScopeOrder(prev, next []tfTypes.Scope) []tfTypes.Scope {
+	if len(prev) == 0 || len(prev) != len(next) {
+		return next
+	}
+
+	byName := make(map[string]tfTypes.Scope, len(next))
+	for _, s := range next {
+		if s.Name.IsNull() || s.Name.IsUnknown() {
+			return next
+		}
+		if _, dup := byName[s.Name.ValueString()]; dup {
+			return next
+		}
+		byName[s.Name.ValueString()] = s
+	}
+
+	out := make([]tfTypes.Scope, 0, len(prev))
+	for _, s := range prev {
+		if s.Name.IsNull() || s.Name.IsUnknown() {
+			return next
+		}
+		got, present := byName[s.Name.ValueString()]
+		if !present {
+			// A scope was added or removed, so there is no order to keep.
+			return next
+		}
+		out = append(out, got)
+	}
+	return out
 }
 
 // keepClientListOrder does the same for the client lists.

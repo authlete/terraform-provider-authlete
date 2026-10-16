@@ -12282,6 +12282,8 @@ components:
 
               The value of this property is used as `scopes_supported` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
               </Accordion>
+          x-speakeasy-plan-modifiers:
+            - KeepOrderByName_supported_scopes
         scopeRequired:
           type: boolean
           description: |

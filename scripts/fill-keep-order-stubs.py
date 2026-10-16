@@ -6,9 +6,14 @@ with a body that raises "TODO: implement". It does not overwrite the file
 afterwards, so the body below survives regeneration. This script puts it back if
 a stub is ever regenerated from scratch, and is idempotent otherwise.
 
-The logic itself lives in internal/provider/planmodifiers/unordered_list.go;
-these are thin delegates, one per attribute, because that is the shape Speakeasy
-generates.
+The logic itself lives in internal/provider/planmodifiers/; these are thin
+delegates, one per attribute, because that is the shape Speakeasy generates.
+
+Two bodies. A stub named keep_order_by_name_* belongs to a list of objects and
+delegates to the modifier that matches elements on their name attribute;
+anything else is a list of strings and delegates to the whole-element one.
+Filling a list of objects with the string body would compile and then discard
+edits, so the distinction is made here rather than left to whoever reruns this.
 """
 import glob
 import os
@@ -54,6 +59,46 @@ func {F}() planmodifier.List {{
 }}
 '''
 
+BY_NAME_TEMPLATE = '''package listplanmodifier
+
+import (
+	"context"
+
+	authletepm "github.com/authlete/terraform-provider-authlete/v3/internal/provider/planmodifiers"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+)
+
+var _ planmodifier.List = {T}{{}}
+
+// {T} keeps the order already in state
+// when the configuration describes the same entries, matched on name.
+//
+// Body hand-written; Speakeasy generates this file once and does not overwrite
+// it. The logic lives in
+// internal/provider/planmodifiers/unordered_object_list.go.
+type {T} struct{{}}
+
+// Description describes the plan modification in plain text formatting.
+func (v {T}) Description(ctx context.Context) string {{
+	return authletepm.KeepOrderByKeyWhenSatisfied("name").Description(ctx)
+}}
+
+// MarkdownDescription describes the plan modification in Markdown formatting.
+func (v {T}) MarkdownDescription(ctx context.Context) string {{
+	return v.Description(ctx)
+}}
+
+// PlanModifyList performs the plan modification.
+func (v {T}) PlanModifyList(ctx context.Context, req planmodifier.ListRequest, resp *planmodifier.ListResponse) {{
+	authletepm.KeepOrderByKeyWhenSatisfied("name").PlanModifyList(ctx, req, resp)
+}}
+
+func {F}() planmodifier.List {{
+	return {T}{{}}
+}}
+'''
+
 DIR = "internal/planmodifiers/listplanmodifier"
 check = "--check" in sys.argv
 
@@ -83,7 +128,8 @@ for path in todo:
     src = open(path).read()
     T = re.search(r"var _ planmodifier\.List = (\w+)\{\}", src).group(1)
     F = re.search(r"func (\w+)\(\) planmodifier\.List", src).group(1)
-    open(path, "w").write(TEMPLATE.format(T=T, F=F))
+    body = BY_NAME_TEMPLATE if os.path.basename(path).startswith("keep_order_by_name_") else TEMPLATE
+    open(path, "w").write(body.format(T=T, F=F))
 
 print(f"filled {len(todo)} of {len(stubs)} stubs" if todo
       else f"ok: all {len(stubs)} stubs already implemented")

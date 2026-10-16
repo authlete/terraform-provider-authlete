@@ -230,3 +230,90 @@ func TestKeepClientListOrderToleratesAMissingExtension(t *testing.T) {
 		})
 	}
 }
+
+// supported_scopes is a list of objects, so it gets its own rule: reorder by
+// name, never replace content. Authlete sorts this list alphabetically.
+func TestKeepScopeOrder(t *testing.T) {
+	scope := func(name, desc string) tfTypes.Scope {
+		return tfTypes.Scope{
+			Name:        types.StringValue(name),
+			Description: types.StringValue(desc),
+		}
+	}
+	names := func(got []tfTypes.Scope) string {
+		out := ""
+		for i, s := range got {
+			if i > 0 {
+				out += ","
+			}
+			out += s.Name.ValueString()
+		}
+		return out
+	}
+
+	t.Run("the stored order is restored", func(t *testing.T) {
+		prev := []tfTypes.Scope{scope("zeta", ""), scope("alpha", ""), scope("mike", "")}
+		next := []tfTypes.Scope{scope("alpha", ""), scope("mike", ""), scope("zeta", "")}
+
+		if got := names(keepScopeOrder(prev, next)); got != "zeta,alpha,mike" {
+			t.Errorf("order = %s, want zeta,alpha,mike", got)
+		}
+	})
+
+	// The reason keepOrder could not be reused. Reordering must not put the
+	// configuration back, or an edit Authlete accepted would vanish.
+	t.Run("content comes from the response, not from state", func(t *testing.T) {
+		prev := []tfTypes.Scope{scope("alpha", "old")}
+		next := []tfTypes.Scope{scope("alpha", "new")}
+
+		got := keepScopeOrder(prev, next)
+		if got[0].Description.ValueString() != "new" {
+			t.Errorf("description = %q, want the one the server returned",
+				got[0].Description.ValueString())
+		}
+	})
+
+	t.Run("an added or removed scope takes the response order", func(t *testing.T) {
+		prev := []tfTypes.Scope{scope("zeta", ""), scope("alpha", "")}
+		for name, next := range map[string][]tfTypes.Scope{
+			"added":   {scope("alpha", ""), scope("beta", ""), scope("zeta", "")},
+			"removed": {scope("alpha", "")},
+			"renamed": {scope("alpha", ""), scope("omega", "")},
+		} {
+			t.Run(name, func(t *testing.T) {
+				got := keepScopeOrder(prev, next)
+				if names(got) != names(next) {
+					t.Errorf("order = %s, want the response order %s", names(got), names(next))
+				}
+			})
+		}
+	})
+
+	t.Run("no prior state takes the response", func(t *testing.T) {
+		next := []tfTypes.Scope{scope("alpha", "")}
+		if names(keepScopeOrder(nil, next)) != "alpha" {
+			t.Error("a first read should take what the API returned")
+		}
+	})
+
+	// A null name gives nothing to match on, so holding an order would risk
+	// pairing the wrong elements.
+	t.Run("a null name is not comparable", func(t *testing.T) {
+		prev := []tfTypes.Scope{scope("zeta", ""), {Name: types.StringNull()}}
+		next := []tfTypes.Scope{{Name: types.StringNull()}, scope("zeta", "")}
+
+		if names(keepScopeOrder(prev, next)) != names(next) {
+			t.Error("a list with a null name should be left as the API returned it")
+		}
+	})
+
+	t.Run("a duplicate name is not comparable", func(t *testing.T) {
+		prev := []tfTypes.Scope{scope("a", ""), scope("a", "")}
+		next := []tfTypes.Scope{scope("a", "x"), scope("a", "y")}
+
+		got := keepScopeOrder(prev, next)
+		if len(got) != 2 || got[0].Description.ValueString() != "x" {
+			t.Error("duplicates should be left as the API returned them")
+		}
+	})
+}

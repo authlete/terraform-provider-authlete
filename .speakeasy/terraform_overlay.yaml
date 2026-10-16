@@ -972,6 +972,15 @@ actions:
       x-speakeasy-plan-modifiers:
         - KeepOrder_requestable_scopes
 
+  # supportedScopes is a list of objects, not strings, so it gets a modifier
+  # that matches on name. Replacing the configuration with what is stored, as
+  # the lists below do, would discard an edit to a scope's description.
+  - target: $.components.schemas.service.properties.supportedScopes
+    description: Keep the order already in state when the same scopes are configured
+    update:
+      x-speakeasy-plan-modifiers:
+        - KeepOrderByName_supported_scopes
+
   - target: $.components.schemas.service.properties.supportedAttachments
     description: Keep the order already in state when the elements are unchanged
     update:
