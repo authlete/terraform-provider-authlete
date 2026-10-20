@@ -29,6 +29,33 @@ MODE="${1:-plan}"
 # against OpenTofu instead.
 TF="${TF_BIN:-terraform}"
 
+# An X25519 key for the service's JWK Set. hashicorp/tls cannot generate one,
+# so the key comes from openssl, exactly as the migration guide tells a user to
+# make it. The openssl macOS ships is LibreSSL, which has no X25519, so this is
+# allowed to fail: main.tf treats an empty path as "one key fewer" rather than
+# as an error, and the run says which happened.
+#
+# Gitignored through *.pem, so the key never reaches the repository.
+ensure_x25519_key() {
+  local out="$TESTING_DIR/x25519.pem"
+
+  if [[ -s "$out" ]]; then
+    X25519_PEM="$out"
+    return
+  fi
+  if openssl genpkey -algorithm X25519 -out "$out" 2>/dev/null; then
+    say "Generated an X25519 key for the service's JWK Set."
+    X25519_PEM="$out"
+    return
+  fi
+
+  rm -f "$out"
+  X25519_PEM=""
+  warn "openssl cannot generate X25519 here, so that key is left out of the run.
+  The macOS system openssl is LibreSSL, which does not support it. Install a
+  real OpenSSL and put it ahead on PATH to cover the X25519 path too."
+}
+
 say()  { printf '\n\033[1;34m==>\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33mwarning:\033[0m %s\n' "$*" >&2; }
 die()  { printf '\033[1;31merror:\033[0m %s\n' "$*" >&2; exit 1; }
@@ -174,10 +201,14 @@ case "$MODE" in
     say "Provider loaded and configuration is valid."
     ;;
   plan)
+    ensure_x25519_key
+    STATE_ARGS+=(-var "x25519_pem_file=$X25519_PEM")
     say "$TF plan"
     "$TF" plan "${STATE_ARGS[@]}"
     ;;
   apply)
+    ensure_x25519_key
+    STATE_ARGS+=(-var "x25519_pem_file=$X25519_PEM")
     cat <<EOF
 
   This creates real objects in the Authlete organization the token belongs to:

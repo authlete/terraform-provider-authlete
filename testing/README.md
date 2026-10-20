@@ -88,6 +88,48 @@ a token; everything else runs offline.
 | 15 | globals had no description | `provider_contract_test.go` |
 | 20 | no token gave a bare 401 per resource | `negative/no-token` |
 
+## Keys
+
+`main.tf` carries four keys on the service, so an apply exercises every input
+`jwk_from_pem` and `jwk_from_secret` accept, not just a plain RSA key:
+
+| key | what it covers |
+|---|---|
+| `tftest-service-key` | a plain RSA signing key |
+| `tftest-service-cert-key` | a key with its certificate, so `x5c`, `x5t` and `x5t#S256` are produced |
+| `tftest-service-hmac` | a shared secret through `jwk_from_secret` |
+| `tftest-service-x25519` | an X25519 key for `ECDH-ES` |
+
+The X25519 key comes from `openssl genpkey -algorithm X25519`, which `run.sh`
+runs before a plan or apply. `hashicorp/tls` cannot generate one, and the
+openssl macOS ships is LibreSSL, which has no X25519 either. When it cannot be
+generated the run says so and carries three keys instead of four, rather than
+failing.
+
+Measured after an apply, which is what the guides promise:
+
+```
+  tftest-service-key        kty=RSA  alg=RS256    x5c=no   x5t=no
+  tftest-service-cert-key   kty=RSA  alg=RS256    x5c=yes  x5t=yes
+  tftest-service-hmac       kty=oct  alg=HS256    x5c=no   x5t=no
+  tftest-service-x25519     kty=OKP  alg=ECDH-ES  x5c=no   x5t=no
+
+  served: tftest-service-key, tftest-service-cert-key, tftest-service-x25519
+```
+
+The symmetric key is stored and deliberately not served, which is the behaviour
+the documentation describes.
+
+The five key refusals live under `negative/`, and need no token:
+
+| case | what it refuses |
+|---|---|
+| `key-alg-mismatch` | an algorithm the key cannot perform, `HS256` on RSA |
+| `misspelled-kty` | `kty = "rsa"`, which Authlete accepts and silently drops |
+| `client-private-key` | a private key in a client's set, which Authlete strips |
+| `duplicate-kid` | two keys sharing a `kid` |
+| `short-secret` | a shared secret too short for `HS256` |
+
 Not guarded here, and why:
 
 | # | Problem | Why not |
