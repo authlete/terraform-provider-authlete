@@ -38,8 +38,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
-	"net/http/httputil"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
@@ -65,8 +65,7 @@ var clientNotFoundCodes = []string{"A001212", "A001214"}
 // hostKey is where the host that last answered for this resource is kept.
 const hostKey = "authlete_host"
 
-// body returns the response body without consuming it. DumpResponse restores
-// what it reads, so a caller can still put the response in a diagnostic.
+// body returns the response body without consuming it for later callers.
 func body(res *http.Response) []byte {
 	if res == nil {
 		return nil
@@ -77,11 +76,30 @@ func body(res *http.Response) []byte {
 	if raw := capturedBody(res); raw != nil {
 		return raw
 	}
-	dump, err := httputil.DumpResponse(res, true)
+	if res.Body == nil {
+		return nil
+	}
+	raw, err := io.ReadAll(io.LimitReader(res.Body, maxCapturedBody))
+	res.Body.Close()
+	res.Body = io.NopCloser(bytes.NewReader(raw))
 	if err != nil {
 		return nil
 	}
-	return dump
+	return raw
+}
+
+// Only exact fields in an Authlete JSON error identify a deletion. A marker
+// mentioned in an HTML page, a different error's message, or a longer code
+// is not proof that the resource is gone.
+func deletionProblem(res *http.Response) (code, message string) {
+	var problem struct {
+		ResultCode string `json:"resultCode"`
+		Error      string `json:"error"`
+	}
+	if err := json.Unmarshal(body(res), &problem); err != nil {
+		return "", ""
+	}
+	return problem.ResultCode, problem.Error
 }
 
 // serviceIsGone reports whether a response says this service does not exist,
@@ -91,12 +109,13 @@ func serviceIsGone(res *http.Response) bool {
 	if res == nil {
 		return false
 	}
+	code, message := deletionProblem(res)
 	switch res.StatusCode {
 	case http.StatusForbidden:
-		return bytes.Contains(body(res), []byte(serviceNotFoundCode))
+		return code == serviceNotFoundCode
 	case http.StatusNotFound:
 		// Only the IdP's remove endpoint answers this way.
-		return bytes.Contains(body(res), []byte(serviceRemoveNotFound))
+		return message == serviceRemoveNotFound
 	}
 	return false
 }
@@ -107,9 +126,9 @@ func clientIsGone(res *http.Response) bool {
 	if res == nil || res.StatusCode != http.StatusNotFound {
 		return false
 	}
-	b := body(res)
+	resultCode, _ := deletionProblem(res)
 	for _, code := range clientNotFoundCodes {
-		if bytes.Contains(b, []byte(code)) {
+		if resultCode == code {
 			return true
 		}
 	}

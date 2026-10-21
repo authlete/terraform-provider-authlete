@@ -100,12 +100,17 @@ func TestServiceGoneMessage(t *testing.T) {
 // or a typo in server_url all return a 404, usually with HTML.
 func TestA404AloneIsNotProofOfAnythingGone(t *testing.T) {
 	for name, body := range map[string]string{
-		"an nginx error page":   "<html><head><title>404 Not Found</title></head><body>nginx</body></html>",
-		"an empty body":         "",
-		"an unrelated result":   `{"resultCode":"A999999","resultMessage":"[A999999] something else"}`,
-		"a json error object":   `{"error":"not_found"}`,
-		"plain text":            "Not Found",
-		"a different not-found": `{"error":"Client is not found"}`,
+		"an nginx error page":              "<html><head><title>404 Not Found</title></head><body>nginx</body></html>",
+		"an empty body":                    "",
+		"an unrelated result":              `{"resultCode":"A999999","resultMessage":"[A999999] something else"}`,
+		"a json error object":              `{"error":"not_found"}`,
+		"plain text":                       "Not Found",
+		"a different not-found":            `{"error":"Client is not found"}`,
+		"html quoting the service message": `<html>Service is not found</html>`,
+		"html quoting a client code":       `<html>A001214</html>`,
+		"code in an unrelated message":     `{"resultCode":"OTHER","resultMessage":"A001212"}`,
+		"a longer code":                    `{"resultCode":"A0012120"}`,
+		"a longer service error":           `{"error":"Service is not found in this proxy"}`,
 	} {
 		t.Run(name, func(t *testing.T) {
 			if serviceIsGone(response(http.StatusNotFound, body)) {
@@ -163,9 +168,10 @@ func TestTheBodiesThatDoMeanGone(t *testing.T) {
 // the resource then would plan a second service beside one that still exists.
 func TestA403WithoutTheCodeIsNotGone(t *testing.T) {
 	for name, body := range map[string]string{
-		"insufficient rights": `{"resultCode":"A457101","resultMessage":"[A457101] access token does not have sufficient access."}`,
-		"an html forbidden":   "<html>403 Forbidden</html>",
-		"empty":               "",
+		"insufficient rights":    `{"resultCode":"A457101","resultMessage":"[A457101] access token does not have sufficient access."}`,
+		"an html forbidden":      "<html>403 Forbidden</html>",
+		"empty":                  "",
+		"code only in a message": `{"resultCode":"OTHER","resultMessage":"A458203"}`,
 	} {
 		t.Run(name, func(t *testing.T) {
 			if serviceIsGone(response(http.StatusForbidden, body)) {
