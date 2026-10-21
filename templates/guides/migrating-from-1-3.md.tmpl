@@ -333,35 +333,38 @@ So this surfaces immediately rather than silently. Remove them from your
 configuration; the values still read back, so anything referring to them keeps
 working.
 
-On a client:
+These nine were settable on a client in 1.3.17:
 
 ```
-automatically_registered        dynamically_registered
-client_id_alias_enabled         explicitly_registered
-client_registration_types       metadata_document_expires_at
-client_source                   metadata_document_updated_at
-developer                       organization_name
-discovered_by_metadata_document signed_jwks_uri
-                                trust_anchor_id
-                                trust_chain_expires_at
+client_id                  developer
+client_id_alias_enabled    dynamically_registered
+client_secret              modified_at
+created_at                 registration_access_token_hash
+derived_sector_identifier
 ```
 
-On a service:
+And these eleven on a service:
 
 ```
-client_id_alias_enabled                      metadata
-created_at                                   sns
-developer_authentication_callback_api_secret sns_credentials
-direct_introspection_endpoint_enabled        supported_acrs
-direct_revocation_endpoint_enabled           supported_snses
-direct_user_info_endpoint_enabled            hsks
-key, kty, use                                hsm_name
+client_id_alias_enabled                       direct_jwks_endpoint_enabled
+developer_authentication_callback_api_key     direct_revocation_endpoint_enabled
+developer_authentication_callback_api_secret  direct_token_endpoint_enabled
+developer_authentication_callback_endpoint    direct_user_info_endpoint_enabled
+direct_authorization_endpoint_enabled         supported_acrs
+direct_introspection_endpoint_enabled
 ```
 
-`developer` is the one most 1.3.x client configurations carry, because the
-examples of the day set it. `client_id_alias_enabled` is deprecated and always
-true. The `direct_*` flags report whether an endpoint is reachable directly and
-were never settable in a way that did anything.
+Both lists are the intersection of what v1.3.17's schema accepted and what 3.0
+marks read-only, taken from the two schemas rather than written by hand.
+
+`developer` is the one most configurations carry: 1.3.x required it on
+Authlete 2.x and rejected an empty value. `client_id_alias_enabled` is
+deprecated and always true. `supported_acrs` is the one worth noticing, since
+it is an ordinary setting rather than an identifier or a flag.
+
+Other attributes are read-only in 3.0 too, but those did not exist in 1.3.17,
+so nothing you are migrating can be setting them. The resource pages list them
+under "Read-Only".
 
 ## What did not change
 
