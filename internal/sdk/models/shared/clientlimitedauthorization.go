@@ -49,78 +49,64 @@ type ClientLimitedAuthorization struct {
 	// The sequential number of the client. The value of this property is assigned by Authlete.
 	//
 	Number *int `json:"number,omitzero"`
-	// The name of the client application. This property corresponds to `client_name` in
-	// [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
+	// The name of the client application. This property corresponds to `client_name` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
 	//
 	ClientName *string `json:"clientName,omitzero"`
-	// Client names with language tags. If the client application has different names for different
-	// languages, this property can be used to register the names.
+	// Client names with language tags. If the client application has different names for different languages, this property can be used to register the names.
 	//
 	ClientNames []TaggedValue `json:"clientNames,omitzero"`
 	// The description about the client application.
 	Description *string `json:"description,omitzero"`
-	// Descriptions about the client application with language tags. If the client application has different
-	// descriptions for different languages, this property can be used to register the descriptions.
+	// Descriptions about the client application with language tags. If the client application has different descriptions for different languages, this property can be used to register the descriptions.
 	//
 	Descriptions []TaggedValue `json:"descriptions,omitzero"`
 	// The client identifier used in Authlete API calls. The value of this property is assigned by Authlete.
 	ClientID *int64 `json:"clientId,omitzero"`
-	// The value of the client's `client_id` property used in OAuth and OpenID Connect calls. By
-	// default, this is a string version of the `clientId` property.
+	// The value of the client's `client_id` property used in OAuth and OpenID Connect calls. By default, this is a string version of the `clientId` property.
 	//
 	ClientIDAlias *string `json:"clientIdAlias,omitzero"`
 	// Deprecated. Always set to `true`.
 	ClientIDAliasEnabled *bool `json:"clientIdAliasEnabled,omitzero"`
-	// The client type, either `CONFIDENTIAL` or `PUBLIC`. See [RFC 6749, 2.1. Client Types](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1)
-	// for details.
+	// The client type, either `CONFIDENTIAL` or `PUBLIC`. See [RFC 6749, 2.1. Client Types](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1) for details.
 	//
 	ClientType *ClientType `json:"clientType,omitzero"`
 	// The URL pointing to the logo image of the client application.
 	//
-	// This property corresponds to `logo_uri` in [OpenID Connect Dynamic Client Registration 1.0, 2.
-	// Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
+	// This property corresponds to `logo_uri` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
 	//
 	LogoURI *string `json:"logoUri,omitzero"`
-	// Logo image URLs with language tags. If the client application has different logo images for
-	// different languages, this property can be used to register URLs of the images.
+	// Logo image URLs with language tags. If the client application has different logo images for different languages, this property can be used to register URLs of the images.
 	//
 	LogoUris []TaggedValue `json:"logoUris,omitzero"`
 	// The URL pointing to the "Terms Of Service" page.
 	//
-	// This property corresponds to `tos_uri` in
-	// [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
+	// This property corresponds to `tos_uri` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
 	//
 	TosURI *string `json:"tosUri,omitzero"`
 	// URLs of "Terms Of Service" pages with language tags.
 	//
-	// If the client application has different "Terms Of Service" pages for different languages,
-	// this property can be used to register the URLs.
+	// If the client application has different "Terms Of Service" pages for different languages, this property can be used to register the URLs.
 	//
 	TosUris []TaggedValue `json:"tosUris,omitzero"`
 	// The URL pointing to the page which describes the policy as to how end-user's profile data is used.
 	//
-	// This property corresponds to `policy_uri` in
-	// [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
+	// This property corresponds to `policy_uri` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
 	//
 	PolicyURI *string `json:"policyUri,omitzero"`
-	// URLs of policy pages with language tags.
-	// If the client application has different policy pages for different languages, this property can be used to register the URLs.
+	// URLs of policy pages with language tags. If the client application has different policy pages for different languages, this property can be used to register the URLs.
 	//
 	PolicyUris []TaggedValue `json:"policyUris,omitzero"`
-	// The sequential number of the service of the client application. The value of this property is
-	// assigned by Authlete.
+	// The sequential number of the service of the client application. The value of this property is assigned by Authlete.
 	//
 	ServiceNumber *int `json:"serviceNumber,omitzero"`
 	// The default maximum authentication age in seconds. This value is used when an authorization request from the client application does not have `max_age` request parameter.
 	//
-	// This property corresponds to `default_max_age` in
-	// [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
+	// This property corresponds to `default_max_age` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
 	//
 	DefaultMaxAge *int `json:"defaultMaxAge,omitzero"`
 	// The flag to indicate whether this client requires `auth_time` claim to be embedded in the ID token.
 	//
-	// This property corresponds to `require_auth_time` in
-	// [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
+	// This property corresponds to `require_auth_time` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
 	//
 	AuthTimeRequired *bool `json:"authTimeRequired,omitzero"`
 	// The time at which this client was created. The value is represented as milliseconds since the UNIX epoch (1970-01-01).
@@ -130,43 +116,32 @@ type ClientLimitedAuthorization struct {
 	// The flag to indicate whether this client use TLS client certificate bound access tokens.
 	//
 	TLSClientCertificateBoundAccessTokens *bool `json:"tlsClientCertificateBoundAccessTokens,omitzero"`
-	// The boolean flag to indicate whether a user code is required when this client makes a backchannel
-	// authentication request.
+	// The boolean flag to indicate whether a user code is required when this client makes a backchannel authentication request.
 	//
 	// This property corresponds to the `backchannel_user_code_parameter` metadata.
 	//
 	BcUserCodeRequired *bool `json:"bcUserCodeRequired,omitzero"`
-	// The flag indicating whether the client requires that a `sid` (session ID)
-	// claim be included in the logout token sent to `backchannelLogoutUri`.
+	// The flag indicating whether the client requires that a `sid` (session ID) claim be included in the logout token sent to `backchannelLogoutUri`.
 	//
 	BackchannelLogoutSessionRequired *bool `json:"backchannelLogoutSessionRequired,omitzero"`
-	// The flag to indicate whether this client has been registered dynamically.
-	// For more details, see [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
+	// The flag to indicate whether this client has been registered dynamically. For more details, see [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
 	//
 	DynamicallyRegistered *bool `json:"dynamicallyRegistered,omitzero"`
-	// The flag to indicate whether this client is required to use the pushed authorization request endpoint.
-	// This property corresponds to the `require_pushed_authorization_requests` client metadata defined
-	// in "OAuth 2.0 Pushed Authorization Requests".
+	// The flag to indicate whether this client is required to use the pushed authorization request endpoint. This property corresponds to the `require_pushed_authorization_requests` client metadata defined in "OAuth 2.0 Pushed Authorization Requests".
 	//
 	ParRequired *bool `json:"parRequired,omitzero"`
-	// The flag to indicate whether authorization requests from this client are always required to
-	// utilize a request object by using either `request` or `request_uri` request parameter.
+	// The flag to indicate whether authorization requests from this client are always required to utilize a request object by using either `request` or `request_uri` request parameter.
 	//
-	// If this flag is set to `true` and the service's `traditionalRequestObjectProcessingApplied` is
-	// set to `false`, authorization requests from this client are processed as if `require_signed_request_object`
-	// client metadata of this client is `true`. The metadata is defined in "JAR (JWT Secured Authorization Request)".
+	// If this flag is set to `true` and the service's `traditionalRequestObjectProcessingApplied` is set to `false`, authorization requests from this client are processed as if `require_signed_request_object` client metadata of this client is `true`. The metadata is defined in "JAR (JWT Secured Authorization Request)".
 	//
 	RequestObjectRequired *bool `json:"requestObjectRequired,omitzero"`
-	// The flag indicating whether encryption of request object is required when the request object
-	// is passed through the front channel.
+	// The flag indicating whether encryption of request object is required when the request object is passed through the front channel.
 	//
 	FrontChannelRequestObjectEncryptionRequired *bool `json:"frontChannelRequestObjectEncryptionRequired,omitzero"`
-	// The flag indicating whether the JWE alg of encrypted request object must match the `request_object_encryption_alg`
-	// client metadata.
+	// The flag indicating whether the JWE alg of encrypted request object must match the `request_object_encryption_alg` client metadata.
 	//
 	RequestObjectEncryptionAlgMatchRequired *bool `json:"requestObjectEncryptionAlgMatchRequired,omitzero"`
-	// The flag indicating whether the JWE enc of encrypted request object must match the `request_object_encryption_enc`
-	// client metadata.
+	// The flag indicating whether the JWE enc of encrypted request object must match the `request_object_encryption_enc` client metadata.
 	//
 	RequestObjectEncryptionEncMatchRequired *bool `json:"requestObjectEncryptionEncMatchRequired,omitzero"`
 	// If `Enabled` is selected, an attempt to issue a new access token invalidates existing access tokens that are associated with the same combination of subject and client.
@@ -185,9 +160,7 @@ type ClientLimitedAuthorization struct {
 	PkceRequired *bool `json:"pkceRequired,omitzero"`
 	// The flag to indicate whether `S256` is always required as the code challenge method whenever [PKCE (RFC 7636)](https://tools.ietf.org/html/rfc7636) is used.
 	//
-	// If this flag is set to `true`, `code_challenge_method=S256` must be included in the authorization request
-	// whenever it includes the `code_challenge` request parameter.
-	// Neither omission of the `code_challenge_method` request parameter nor use of plain (`code_challenge_method=plain`) is allowed.
+	// If this flag is set to `true`, `code_challenge_method=S256` must be included in the authorization request whenever it includes the `code_challenge` request parameter. Neither omission of the `code_challenge_method` request parameter nor use of plain (`code_challenge_method=plain`) is allowed.
 	//
 	PkceS256Required *bool `json:"pkceS256Required,omitzero"`
 	// The flag indicating whether this service signs responses from the resource server.
@@ -201,33 +174,27 @@ type ClientLimitedAuthorization struct {
 	Locked *bool `json:"locked,omitzero"`
 	// The flag indicating whether the client intends to prefer mutual TLS endpoints over non-MTLS endpoints.
 	//
-	// This property corresponds to the `use_mtls_endpoint_aliases` client metadata that is defined in
-	// [FAPI 2.0 Security Profile, 8.1.1. use_mtls_endpoint_aliases](https://openid.bitbucket.io/fapi/fapi-2_0-security-profile.html#section-8.1.1).
+	// This property corresponds to the `use_mtls_endpoint_aliases` client metadata that is defined in [FAPI 2.0 Security Profile, 8.1.1. use_mtls_endpoint_aliases](https://openid.bitbucket.io/fapi/fapi-2_0-security-profile.html#section-8.1.1).
 	//
 	MtlsEndpointAliasesUsed *bool `json:"mtlsEndpointAliasesUsed,omitzero"`
-	// The flag indicating whether this client is in scope for token migration
-	// operations.
+	// The flag indicating whether this client is in scope for token migration operations.
 	//
 	InScopeForTokenMigration *bool `json:"inScopeForTokenMigration,omitzero"`
-	// the expiration time of the trust chain that was used when this client was registered or updated by the mechanism
-	// defined in OpenID Connect Federation 1.0. The value is represented as milliseconds elapsed since the Unix epoch (1970-01-01).
+	// the expiration time of the trust chain that was used when this client was registered or updated by the mechanism defined in OpenID Connect Federation 1.0. The value is represented as milliseconds elapsed since the Unix epoch (1970-01-01).
 	//
 	TrustChainExpiresAt *int64 `json:"trustChainExpiresAt,omitzero"`
 	// the time at which the trust chain was updated by the mechanism defined in OpenID Connect Federation 1.0
 	//
 	TrustChainUpdatedAt *int64 `json:"trustChainUpdatedAt,omitzero"`
-	// The flag indicating whether this client was registered by the
-	// "automatic" client registration of OIDC Federation.
+	// The flag indicating whether this client was registered by the "automatic" client registration of OIDC Federation.
 	//
 	AutomaticallyRegistered *bool `json:"automaticallyRegistered,omitzero"`
-	// The flag indicating whether this client was registered by the
-	// "explicit" client registration of OIDC Federation.
+	// The flag indicating whether this client was registered by the "explicit" client registration of OIDC Federation.
 	//
 	ExplicitlyRegistered *bool `json:"explicitlyRegistered,omitzero"`
 	// True if credential responses to this client must be always encrypted.
 	CredentialResponseEncryptionRequired *bool `json:"credentialResponseEncryptionRequired,omitzero"`
-	// Location of the Client ID Metadata Document that was used for this client.
-	// This property is set when client metadata was retrieved via the OAuth Client ID Metadata Document (CIMD) mechanism.
+	// Location of the Client ID Metadata Document that was used for this client. This property is set when client metadata was retrieved via the OAuth Client ID Metadata Document (CIMD) mechanism.
 	//
 	MetadataDocumentLocation *string `json:"metadataDocumentLocation,omitzero"`
 	// Expiration time of the metadata document (UNIX time in milliseconds).

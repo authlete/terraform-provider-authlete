@@ -11,6 +11,11 @@ type VciSingleIssueRequest struct {
 	// The access token that came along with the credential request.
 	AccessToken *string                  `json:"accessToken,omitzero"`
 	Order       *CredentialIssuanceOrder `json:"order,omitzero"`
+	// Set to `true` to signal that the credential issuer is declining to issue the requested credential. When set, the response will contain `"error":"credential_request_denied"` and the action in the response will be `BAD_REQUEST`.
+	//
+	Denied *bool `json:"denied,omitzero"`
+	// The minimum polling interval in seconds for deferred credential issuance.
+	Interval *int64 `json:"interval,omitzero"`
 }
 
 func (v VciSingleIssueRequest) MarshalJSON() ([]byte, error) {
@@ -36,4 +41,18 @@ func (v *VciSingleIssueRequest) GetOrder() *CredentialIssuanceOrder {
 		return nil
 	}
 	return v.Order
+}
+
+func (v *VciSingleIssueRequest) GetDenied() *bool {
+	if v == nil {
+		return nil
+	}
+	return v.Denied
+}
+
+func (v *VciSingleIssueRequest) GetInterval() *int64 {
+	if v == nil {
+		return nil
+	}
+	return v.Interval
 }

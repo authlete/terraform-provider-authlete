@@ -7,9 +7,7 @@ import (
 	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/utils"
 )
 
-// AuthzDetails - The authorization details. This represents the value of the `authorization_details`
-// request parameter in the preceding device authorization request which is defined in
-// "OAuth 2.0 Rich Authorization Requests".
+// AuthzDetails - The authorization details. This represents the value of the `authorization_details` request parameter in the preceding device authorization request which is defined in "OAuth 2.0 Rich Authorization Requests".
 type AuthzDetails struct {
 	// Elements of this authorization details.
 	//

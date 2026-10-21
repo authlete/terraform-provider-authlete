@@ -11,30 +11,25 @@ type ClientLimited struct {
 	// The sequential number of the client. The value of this property is assigned by Authlete.
 	//
 	Number *int `json:"number,omitzero"`
-	// The name of the client application. This property corresponds to `client_name` in
-	// [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
+	// The name of the client application. This property corresponds to `client_name` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
 	//
 	ClientName *string `json:"clientName,omitzero"`
-	// Client names with language tags. If the client application has different names for different
-	// languages, this property can be used to register the names.
+	// Client names with language tags. If the client application has different names for different languages, this property can be used to register the names.
 	//
 	ClientNames []TaggedValue `json:"clientNames,omitzero"`
 	// The description about the client application.
 	Description *string `json:"description,omitzero"`
-	// Descriptions about the client application with language tags. If the client application has different
-	// descriptions for different languages, this property can be used to register the descriptions.
+	// Descriptions about the client application with language tags. If the client application has different descriptions for different languages, this property can be used to register the descriptions.
 	//
 	Descriptions []TaggedValue `json:"descriptions,omitzero"`
 	// The client identifier used in Authlete API calls. The value of this property is assigned by Authlete.
 	ClientID *int64 `json:"clientId,omitzero"`
-	// The value of the client's `client_id` property used in OAuth and OpenID Connect calls. By
-	// default, this is a string version of the `clientId` property.
+	// The value of the client's `client_id` property used in OAuth and OpenID Connect calls. By default, this is a string version of the `clientId` property.
 	//
 	ClientIDAlias *string `json:"clientIdAlias,omitzero"`
 	// Deprecated. Always set to `true`.
 	ClientIDAliasEnabled *bool `json:"clientIdAliasEnabled,omitzero"`
-	// The client type, either `CONFIDENTIAL` or `PUBLIC`. See [RFC 6749, 2.1. Client Types](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1)
-	// for details.
+	// The client type, either `CONFIDENTIAL` or `PUBLIC`. See [RFC 6749, 2.1. Client Types](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1) for details.
 	//
 	ClientType *ClientType `json:"clientType,omitzero"`
 }

@@ -57,12 +57,10 @@ type GMResponse struct {
 	ResultMessage *string `json:"resultMessage,omitzero"`
 	// The next action that the authorization server implementation should take.
 	Action *GMResponseAction `json:"action,omitzero"`
-	// The content that the authorization server implementation is to return to the client application.
-	// Its format varies depending on the value of `action` parameter.
+	// The content that the authorization server implementation is to return to the client application. Its format varies depending on the value of `action` parameter.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
-	// Get the expected nonce value for DPoP proof JWT, which should be used
-	// as the value of the `DPoP-Nonce` HTTP header.
+	// Get the expected nonce value for DPoP proof JWT, which should be used as the value of the `DPoP-Nonce` HTTP header.
 	//
 	DpopNonce *string `json:"dpopNonce,omitzero"`
 }

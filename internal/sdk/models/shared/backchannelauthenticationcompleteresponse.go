@@ -47,34 +47,26 @@ type BackchannelAuthenticationCompleteResponse struct {
 	// The next action that the authorization server implementation should take.
 	//
 	Action *BackchannelAuthenticationCompleteResponseAction `json:"action,omitzero"`
-	// The content that the authorization server implementation is to return to the client
-	// application. Its format varies depending on the value of `action` parameter.
+	// The content that the authorization server implementation is to return to the client application. Its format varies depending on the value of `action` parameter.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
-	// The client ID of the client application that has made the backchannel authentication
-	// request.
+	// The client ID of the client application that has made the backchannel authentication request.
 	//
 	ClientID *int64 `json:"clientId,omitzero"`
-	// The client ID alias of the client application that has made the backchannel authentication
-	// request.
+	// The client ID alias of the client application that has made the backchannel authentication request.
 	//
 	ClientIDAlias *string `json:"clientIdAlias,omitzero"`
-	// `true` if the value of the client_id request parameter included in the backchannel
-	// authentication request is the client ID alias. `false` if the value is the original
-	// numeric client ID.
+	// `true` if the value of the client_id request parameter included in the backchannel authentication request is the client ID alias. `false` if the value is the original numeric client ID.
 	//
 	ClientIDAliasUsed *bool `json:"clientIdAliasUsed,omitzero"`
 	// The name of the client application which has made the backchannel authentication request.
 	//
 	ClientName   *string       `json:"clientName,omitzero"`
 	DeliveryMode *DeliveryMode `json:"deliveryMode,omitzero"`
-	// The client notification endpoint to which a notification needs to be sent. This corresponds
-	// to the `client_notification_endpoint` metadata of the client application.
+	// The client notification endpoint to which a notification needs to be sent. This corresponds to the `client_notification_endpoint` metadata of the client application.
 	//
 	ClientNotificationEndpoint *string `json:"clientNotificationEndpoint,omitzero"`
-	// The client notification token which needs to be embedded as a Bearer token in the Authorization
-	// header in the notification. This is the value of the `client_notification_token` request
-	// parameter included in the backchannel authentication request.
+	// The client notification token which needs to be embedded as a Bearer token in the Authorization header in the notification. This is the value of the `client_notification_token` request parameter included in the backchannel authentication request.
 	//
 	ClientNotificationToken *string `json:"clientNotificationToken,omitzero"`
 	// The newly issued authentication request ID.
@@ -101,14 +93,10 @@ type BackchannelAuthenticationCompleteResponse struct {
 	// The issued access token in JWT format.
 	//
 	JwtAccessToken *string `json:"jwtAccessToken,omitzero"`
-	// The resources specified by the `resource` request parameters or by the `resource` property
-	// in the request object. If both are given, the values in the request object should be
-	// set. See "Resource Indicators for OAuth 2.0" for details.
+	// The resources specified by the `resource` request parameters or by the `resource` property in the request object. If both are given, the values in the request object should be set. See "Resource Indicators for OAuth 2.0" for details.
 	//
 	Resources []string `json:"resources,omitzero"`
-	// The authorization details. This represents the value of the `authorization_details`
-	// request parameter in the preceding device authorization request which is defined in
-	// "OAuth 2.0 Rich Authorization Requests".
+	// The authorization details. This represents the value of the `authorization_details` request parameter in the preceding device authorization request which is defined in "OAuth 2.0 Rich Authorization Requests".
 	//
 	AuthorizationDetails *AuthzDetails `json:"authorizationDetails,omitzero"`
 	// The attributes of this service that the client application belongs to.
@@ -119,9 +107,7 @@ type BackchannelAuthenticationCompleteResponse struct {
 	ClientAttributes []Pair `json:"clientAttributes,omitzero"`
 	// the value of the `grant_id` request parameter of the device authorization request.
 	//
-	// The `grant_id` request parameter is defined in
-	// [Grant Management for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html)
-	// , which is supported by Authlete 2.3 and newer versions.
+	// The `grant_id` request parameter is defined in [Grant Management for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html) , which is supported by Authlete 2.3 and newer versions.
 	//
 	GrantID *string `json:"grantId,omitzero"`
 	// The entity ID of the client.
@@ -140,8 +126,7 @@ type BackchannelAuthenticationCompleteResponse struct {
 	// When `true`, the client metadata was retrieved via the CIMD mechanism rather than from the Authlete database.
 	//
 	MetadataDocumentUsed *bool `json:"metadataDocumentUsed,omitzero"`
-	// the claims that the user has consented for the client application
-	// to know.
+	// the claims that the user has consented for the client application to know.
 	//
 	ConsentedClaims []string `json:"consentedClaims,omitzero"`
 }

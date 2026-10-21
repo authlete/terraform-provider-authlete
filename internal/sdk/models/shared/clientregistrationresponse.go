@@ -59,8 +59,7 @@ type ClientRegistrationResponse struct {
 	// The next action that the authorization server implementation should take.
 	//
 	Action *ClientRegistrationResponseAction `json:"action,omitzero"`
-	// The content that the authorization server implementation is to return to the client application.
-	// Its format varies depending on the value of `action` parameter.
+	// The content that the authorization server implementation is to return to the client application. Its format varies depending on the value of `action` parameter.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
 	Client          *Client `json:"client,omitzero"`

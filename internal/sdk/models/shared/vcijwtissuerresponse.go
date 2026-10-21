@@ -8,9 +8,7 @@ import (
 	"fmt"
 )
 
-// VciJwtissuerResponseAction - The next action that the implementation of the JWT issuer metadata
-// endpoint (`/.well-known/jwt-issuer`) should take after getting
-// a response from Authlete's `/vci/jwtissuer` API.
+// VciJwtissuerResponseAction - The next action that the implementation of the JWT issuer metadata endpoint (`/.well-known/jwt-issuer`) should take after getting a response from Authlete's `/vci/jwtissuer` API.
 type VciJwtissuerResponseAction string
 
 const (
@@ -45,13 +43,10 @@ type VciJwtissuerResponse struct {
 	ResultCode *string `json:"resultCode,omitzero"`
 	// A short message which explains the result of the API call.
 	ResultMessage *string `json:"resultMessage,omitzero"`
-	// The next action that the implementation of the JWT issuer metadata
-	// endpoint (`/.well-known/jwt-issuer`) should take after getting
-	// a response from Authlete's `/vci/jwtissuer` API.
+	// The next action that the implementation of the JWT issuer metadata endpoint (`/.well-known/jwt-issuer`) should take after getting a response from Authlete's `/vci/jwtissuer` API.
 	//
 	Action *VciJwtissuerResponseAction `json:"action,omitzero"`
-	// Get the content that the implementation of the credential issuer
-	// metadata endpoint should use when it constructs a response.
+	// Get the content that the implementation of the credential issuer metadata endpoint should use when it constructs a response.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
 }

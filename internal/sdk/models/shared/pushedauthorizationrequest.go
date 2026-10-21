@@ -10,8 +10,7 @@ import (
 type PushedAuthorizationRequest struct {
 	// The pushed authorization request body received from the client application.
 	//
-	// The value of parameters is the entire entity body (which is formatted in `application/x-www-form-urlencoded`) of the request from
-	// the client application.
+	// The value of parameters is the entire entity body (which is formatted in `application/x-www-form-urlencoded`) of the request from the client application.
 	//
 	Parameters string `json:"parameters" form:"name=parameters"`
 	// The client ID extracted from `Authorization` header of the pushed request from the client application.
@@ -34,18 +33,13 @@ type PushedAuthorizationRequest struct {
 	// HTTP URL base (for DPoP validation).
 	//
 	Htu *string `json:"htu,omitzero" form:"name=htu"`
-	// The value of the `OAuth-Client-Attestation` HTTP header, which is defined in the specification
-	// of [OAuth 2.0 Attestation-Based Client Authentication](https://datatracker.ietf.org/doc/draft-ietf-oauth-attestation-based-client-auth/).
+	// The value of the `OAuth-Client-Attestation` HTTP header, which is defined in the specification of [OAuth 2.0 Attestation-Based Client Authentication](https://datatracker.ietf.org/doc/draft-ietf-oauth-attestation-based-client-auth/).
 	//
 	OauthClientAttestation *string `json:"oauthClientAttestation,omitzero" form:"name=oauthClientAttestation"`
-	// The value of the `OAuth-Client-Attestation-PoP` HTTP header, which is defined in the specification
-	// of [OAuth 2.0 Attestation-Based Client Authentication](https://datatracker.ietf.org/doc/draft-ietf-oauth-attestation-based-client-auth/).
+	// The value of the `OAuth-Client-Attestation-PoP` HTTP header, which is defined in the specification of [OAuth 2.0 Attestation-Based Client Authentication](https://datatracker.ietf.org/doc/draft-ietf-oauth-attestation-based-client-auth/).
 	//
 	OauthClientAttestationPop *string `json:"oauthClientAttestationPop,omitzero" form:"name=oauthClientAttestationPop"`
-	// The flag indicating whether to require the DPoP proof JWT to include the `nonce` claim. Even if
-	// the service's `dpopNonceRequired` property is `false`, calling the `/pushed_auth_req` API with
-	// this `dpopNonceRequired` parameter `true` will force the Authlete API to check whether the DPoP
-	// proof JWT includes the expected `nonce` value.
+	// The flag indicating whether to require the DPoP proof JWT to include the `nonce` claim. Even if the service's `dpopNonceRequired` property is `false`, calling the `/pushed_auth_req` API with this `dpopNonceRequired` parameter `true` will force the Authlete API to check whether the DPoP proof JWT includes the expected `nonce` value.
 	//
 	DpopNonceRequired *bool `json:"dpopNonceRequired,omitzero" form:"name=dpopNonceRequired"`
 }

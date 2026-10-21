@@ -14,8 +14,7 @@ type ClientGetListResponse struct {
 	// End index (exclusive) of the result set of the query.
 	//
 	End *int `json:"end,omitzero"`
-	// Total number of clients that belong to the service. This doesn't mean the number of clients
-	// contained in the response.
+	// Total number of clients that belong to the service. This doesn't mean the number of clients contained in the response.
 	//
 	TotalCount *int `json:"totalCount,omitzero"`
 	// An array of clients.

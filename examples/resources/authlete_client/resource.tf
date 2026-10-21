@@ -140,9 +140,6 @@ resource "authlete_client" "my_client" {
       value = "...my_value..."
     }
   ]
-  trust_chain = [
-    "..."
-  ]
   user_info_encryption_alg = "A192KW"
   user_info_encryption_enc = "A192GCM"
   user_info_sign_alg       = "NONE"

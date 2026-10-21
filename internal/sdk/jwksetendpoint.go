@@ -33,14 +33,9 @@ func newJWKSetEndpoint(rootSDK *Authlete, sdkConfig config.SDKConfiguration, hoo
 }
 
 // ServiceJwksGetAPI - Get JWK Set
-// This API gathers JWK Set information for a service so that its client applications can verify
-// signatures by the service and encrypt their requests to the service.
+// This API gathers JWK Set information for a service so that its client applications can verify signatures by the service and encrypt their requests to the service.
 //
-// This API is supposed to be called from within the implementation of the jwk set endpoint of the
-// service where the service that supports OpenID Connect must expose its JWK Set information so that
-// client applications can verify signatures by the service and encrypt their requests to the service.
-// The URI of the endpoint can be found as the value of `jwks_uri` in [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
-// if the service supports [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html).
+// This API is supposed to be called from within the implementation of the jwk set endpoint of the service where the service that supports OpenID Connect must expose its JWK Set information so that client applications can verify signatures by the service and encrypt their requests to the service. The URI of the endpoint can be found as the value of `jwks_uri` in [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata) if the service supports [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html).
 func (s *JWKSetEndpoint) ServiceJwksGetAPI(ctx context.Context, request operations.ServiceJwksGetAPIRequest, opts ...operations.Option) (*operations.ServiceJwksGetAPIResponse, error) {
 	o := operations.Options{}
 	supportedOptions := []string{

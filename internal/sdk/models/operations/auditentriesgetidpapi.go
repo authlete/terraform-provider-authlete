@@ -25,23 +25,16 @@ type AuditEntriesGetIdpAPIRequest struct {
 	After *time.Time `queryParam:"style=form,explode=true,name=after"`
 	// Return logs before this timestamp (ISO 8601).
 	Before *time.Time `queryParam:"style=form,explode=true,name=before"`
-	// Filter by event type (e.g. `service.create`, `security.login`, `client.create`).
-	// Can be specified multiple times. The set of available event types is environment-specific
-	// and includes server-side types; retrieve the full list from the `/api/audit/types` endpoint.
+	// Filter by event type (e.g. `service.create`, `security.login`, `client.create`). Can be specified multiple times. The set of available event types is environment-specific and includes server-side types; retrieve the full list from the `/api/audit/types` endpoint.
 	//
 	Types []string `queryParam:"style=form,explode=true,name=types"`
-	// The organization to retrieve audit logs for. Not required when authenticating with an
-	// organization token — the token's own organization is used, and a differing value is
-	// rejected. Required for user access tokens, unless the user is an Authlete administrator
-	// (administrators may omit it to query across all organizations).
+	// The organization to retrieve audit logs for. Not required when authenticating with an organization token — the token's own organization is used, and a differing value is rejected. Required for user access tokens, unless the user is an Authlete administrator (administrators may omit it to query across all organizations).
 	//
 	OrganizationID *int64 `queryParam:"style=form,explode=true,name=organizationId"`
-	// The maximum number of entries to return per page. Values outside the allowed range are
-	// clamped; the effective value is echoed back in the response.
+	// The maximum number of entries to return per page. Values outside the allowed range are clamped; the effective value is echoed back in the response.
 	//
 	Limit *int64 `default:"100" queryParam:"style=form,explode=true,name=limit"`
-	// An opaque cursor returned as `nextCursor` by a previous response. When provided, it takes
-	// precedence over the `before` parameter.
+	// An opaque cursor returned as `nextCursor` by a previous response. When provided, it takes precedence over the `before` parameter.
 	//
 	Cursor *string `queryParam:"style=form,explode=true,name=cursor"`
 }

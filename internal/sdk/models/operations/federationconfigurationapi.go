@@ -10,11 +10,7 @@ import (
 )
 
 type FederationConfigurationAPIRequestBody struct {
-	// The entity types for which the entity configuration is requested.
-	// When omitted or empty, it defaults to `OPENID_PROVIDER` only
-	// (backward compatibility). Unsupported entity types are ignored.
-	// `OPENID_CREDENTIAL_ISSUER` requires the Verifiable Credentials
-	// feature (Authlete 3.0+).
+	// The entity types for which the entity configuration is requested. When omitted or empty, it defaults to `OPENID_PROVIDER` only (backward compatibility). Unsupported entity types are ignored. `OPENID_CREDENTIAL_ISSUER` requires the Verifiable Credentials feature (Authlete 3.0+).
 	//
 	EntityTypes []shared.EntityType `json:"entityTypes,omitzero"`
 }

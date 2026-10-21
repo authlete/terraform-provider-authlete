@@ -80,8 +80,7 @@ func (p *AuthleteProvider) Schema(ctx context.Context, req provider.SchemaReques
 				Optional: true,
 			},
 			"bearer": schema.StringAttribute{
-				MarkdownDescription: `Authenticate every request with a **Service Access Token** or **Organization Token**.` + "\n" +
-					`Set the token value in the ` + "`" + `Authorization: Bearer <token>` + "`" + ` header.` + "\n" +
+				MarkdownDescription: `Authenticate every request with a **Service Access Token** or **Organization Token**. Set the token value in the ` + "`" + `Authorization: Bearer <token>` + "`" + ` header.` + "\n" +
 					`` + "\n" +
 					`**Service Access Token**: Scoped to a single service. Use when automating service-level configuration or runtime flows.` + "\n" +
 					`` + "\n" +
@@ -128,6 +127,80 @@ func (p *AuthleteProvider) Schema(ctx context.Context, req provider.SchemaReques
 				Optional:    true,
 			},
 		},
+		MarkdownDescription: `Authlete API: Welcome to the **Authlete API documentation**. Authlete is an **API-first service** where every aspect of the platform is configurable via API. This documentation will help you authenticate and integrate with Authlete to build powerful OAuth 2.0 and OpenID Connect servers.` + "\n" +
+			`` + "\n" +
+			`At a high level, the Authlete API is grouped into two categories:` + "\n" +
+			`` + "\n" +
+			`- **Management APIs**: Enable you to manage services and clients.` + "\n" +
+			`- **Runtime APIs**: Allow you to build your own Authorization Servers or Verifiable Credential (VC) issuers.` + "\n" +
+			`` + "\n" +
+			`## 🌐 API Servers` + "\n" +
+			`` + "\n" +
+			`Authlete is a global service with clusters available in multiple regions across the world:` + "\n" +
+			`` + "\n" +
+			`- 🇺🇸 **US**: ` + "`" + `https://us.authlete.com` + "`" + `` + "\n" +
+			`- 🇯🇵 **Japan**: ` + "`" + `https://jp.authlete.com` + "`" + `` + "\n" +
+			`- 🇪🇺 **Europe**: ` + "`" + `https://eu.authlete.com` + "`" + `` + "\n" +
+			`- 🇧🇷 **Brazil**: ` + "`" + `https://br.authlete.com` + "`" + `` + "\n" +
+			`` + "\n" +
+			`Our customers can host their data in the region that best meets their requirements.` + "\n" +
+			`` + "\n" +
+			`## 🔑 Authentication` + "\n" +
+			`` + "\n" +
+			`All API endpoints are secured using **Bearer token authentication**. You must include an access token in every request:` + "\n" +
+			`` + "\n" +
+			`` + "```" + `` + "\n" +
+			`Authorization: Bearer YOUR_ACCESS_TOKEN` + "\n" +
+			`` + "```" + `` + "\n" +
+			`` + "\n" +
+			`### Getting Your Access Token` + "\n" +
+			`` + "\n" +
+			`Authlete supports two types of access tokens:` + "\n" +
+			`` + "\n" +
+			`**Service Access Token** - Scoped to a single service (authorization server instance)` + "\n" +
+			`` + "\n" +
+			`1. Log in to [Authlete Console](https://console.authlete.com)` + "\n" +
+			`2. Navigate to your service → **Settings** → **Access Tokens**` + "\n" +
+			`3. Click **Create Token** and select permissions (e.g., ` + "`" + `service.read` + "`" + `, ` + "`" + `client.write` + "`" + `)` + "\n" +
+			`4. Copy the generated token` + "\n" +
+			`` + "\n" +
+			`**Organization Token** - Scoped to your entire organization` + "\n" +
+			`` + "\n" +
+			`1. Log in to [Authlete Console](https://console.authlete.com)` + "\n" +
+			`2. Navigate to **Organization Settings** → **Access Tokens**` + "\n" +
+			`3. Click **Create Token** and select org-level permissions` + "\n" +
+			`4. Copy the generated token` + "\n" +
+			`` + "\n" +
+			`> ⚠️ **Important Note**: Tokens inherit the permissions of the account that creates them. Service tokens can only access their specific service, while organization tokens can access all services within your org.` + "\n" +
+			`` + "\n" +
+			`### Token Security Best Practices` + "\n" +
+			`` + "\n" +
+			`- **Never commit tokens to version control** - Store in environment variables or secure secret managers` + "\n" +
+			`- **Rotate regularly** - Generate new tokens periodically and revoke old ones` + "\n" +
+			`- **Scope appropriately** - Request only the permissions your application needs` + "\n" +
+			`- **Revoke unused tokens** - Delete tokens you're no longer using from the console` + "\n" +
+			`` + "\n" +
+			`### Quick Test` + "\n" +
+			`` + "\n" +
+			`Verify your token works with a simple API call:` + "\n" +
+			`` + "\n" +
+			`` + "```" + `bash` + "\n" +
+			`curl -X GET https://us.authlete.com/api/service/get/list \` + "\n" +
+			`  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"` + "\n" +
+			`` + "```" + `` + "\n" +
+			`` + "\n" +
+			`## 🎓 Tutorials` + "\n" +
+			`` + "\n" +
+			`If you're new to Authlete or want to see sample implementations, these resources will help you get started:` + "\n" +
+			`` + "\n" +
+			`- [Getting Started with Authlete](https://www.authlete.com/developers/getting_started/)` + "\n" +
+			`- [From Sign-Up to the First API Request](https://www.authlete.com/developers/tutorial/signup/)` + "\n" +
+			`` + "\n" +
+			`## 🛠 Contact Us` + "\n" +
+			`` + "\n" +
+			`If you have any questions or need assistance, our team is here to help:` + "\n" +
+			`` + "\n" +
+			`- [Contact Page](https://www.authlete.com/contact/)`,
 	}
 }
 

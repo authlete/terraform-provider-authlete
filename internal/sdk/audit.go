@@ -36,8 +36,7 @@ func newAudit(rootSDK *Authlete, sdkConfig config.SDKConfiguration, hooks *hooks
 }
 
 // Get Audit Logs
-// Retrieve audit logs as a cursor-paginated list. Results can be filtered by time range, event type,
-// and organization.
+// Retrieve audit logs as a cursor-paginated list. Results can be filtered by time range, event type, and organization.
 func (s *Audit) Get(ctx context.Context, request operations.AuditEntriesGetIdpAPIRequest, opts ...operations.Option) (*operations.AuditEntriesGetIdpAPIResponse, error) {
 	o := operations.Options{}
 	supportedOptions := []string{
@@ -331,12 +330,9 @@ func (s *Audit) Get(ctx context.Context, request operations.AuditEntriesGetIdpAP
 // GetTypes - Get Audit Log Event Types
 // Returns the list of available audit log event types for this environment.
 //
-// Accessible with a user access token or an organization token that has the
-// `view_audit_log` permission (e.g. a token created with the `admin` or
-// `audit_reader` preset).
+// Accessible with a user access token or an organization token that has the `view_audit_log` permission (e.g. a token created with the `admin` or `audit_reader` preset).
 //
-// This endpoint is hosted on the Authlete IdP server (`https://login.authlete.com`),
-// not on the regional API clusters.
+// This endpoint is hosted on the Authlete IdP server (`https://login.authlete.com`), not on the regional API clusters.
 func (s *Audit) GetTypes(ctx context.Context, opts ...operations.Option) (*operations.AuditTypesGetIdpAPIResponse, error) {
 	o := operations.Options{}
 	supportedOptions := []string{

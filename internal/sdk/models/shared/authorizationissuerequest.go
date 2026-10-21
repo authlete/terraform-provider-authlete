@@ -19,34 +19,27 @@ type AuthorizationIssueRequest struct {
 	AuthTime *int64 `json:"authTime,omitzero" form:"name=authTime"`
 	// The Authentication Context Class Reference performed for the end-user authentication.
 	Acr *string `json:"acr,omitzero" form:"name=acr"`
-	// The claims of the end-user (= pieces of information about the end-user) in JSON format.
-	// See [OpenID Connect Core 1.0, 5.1. Standard Claims](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims) for details about the format.
+	// The claims of the end-user (= pieces of information about the end-user) in JSON format. See [OpenID Connect Core 1.0, 5.1. Standard Claims](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims) for details about the format.
 	//
 	Claims *string `json:"claims,omitzero" form:"name=claims"`
 	// Extra properties to associate with an access token and/or an authorization code.
 	Properties []Property `json:"properties,omitzero" form:"name=properties,json"`
-	// Scopes to associate with an access token and/or an authorization code.
-	// If a non-empty string array is given, it replaces the scopes specified by the original authorization request.
+	// Scopes to associate with an access token and/or an authorization code. If a non-empty string array is given, it replaces the scopes specified by the original authorization request.
 	//
 	Scopes []string `json:"scopes,omitzero" form:"name=scopes"`
-	// The value of the `sub` claim to embed in an ID token. If this request parameter is `null` or empty,
-	// the value of the `subject` request parameter is used as the value of the `sub` claim.
+	// The value of the `sub` claim to embed in an ID token. If this request parameter is `null` or empty, the value of the `subject` request parameter is used as the value of the `sub` claim.
 	//
 	Sub *string `json:"sub,omitzero" form:"name=sub"`
-	// JSON that represents additional JWS header parameters for ID tokens that may be issued based on
-	// the authorization request.
+	// JSON that represents additional JWS header parameters for ID tokens that may be issued based on the authorization request.
 	//
 	IdtHeaderParams *string `json:"idtHeaderParams,omitzero" form:"name=idtHeaderParams"`
 	// Claim key-value pairs that are used to compute transformed claims.
 	//
 	ClaimsForTx *string `json:"claimsForTx,omitzero" form:"name=claimsForTx"`
-	// the claims that the user has consented for the client application
-	// to know.
+	// the claims that the user has consented for the client application to know.
 	//
 	ConsentedClaims []string `json:"consentedClaims,omitzero" form:"name=consentedClaims"`
-	// The authorization details. This represents the value of the `authorization_details`
-	// request parameter in the preceding device authorization request which is defined in
-	// "OAuth 2.0 Rich Authorization Requests".
+	// The authorization details. This represents the value of the `authorization_details` request parameter in the preceding device authorization request which is defined in "OAuth 2.0 Rich Authorization Requests".
 	//
 	AuthorizationDetails *AuthzDetails `json:"authorizationDetails,omitzero" form:"name=authorizationDetails,json"`
 	// Additional claims that are added to the payload part of the JWT access token.
@@ -55,18 +48,12 @@ type AuthorizationIssueRequest struct {
 	// The representation of an access token that may be issued as a result of the Authlete API call.
 	//
 	AccessToken *string `json:"accessToken,omitzero" form:"name=accessToken"`
-	// The duration (in seconds) of the access token that may be issued as a result of the Authlete
-	// API call.
+	// The duration (in seconds) of the access token that may be issued as a result of the Authlete API call.
 	//
-	// When this request parameter holds a positive integer, it is used as the duration of the access
-	// token in. In other cases, this request parameter is ignored.
+	// When this request parameter holds a positive integer, it is used as the duration of the access token in. In other cases, this request parameter is ignored.
 	//
 	AccessTokenDuration *int64 `json:"accessTokenDuration,omitzero" form:"name=accessTokenDuration"`
-	// The session ID of the user's authentication session. The specified value will be embedded in the
-	// ID token as the value of the `sid` claim. This parameter needs to be provided only if you want
-	// to support the [OpenID Connect Native SSO for Mobile Apps 1.0](https://openid.net/specs/openid-connect-native-sso-1_0.html)
-	// specification (a.k.a. "Native SSO"). To enable support for the Native SSO specification, the
-	// `nativeSsoSupported` property of your service must be set to `true`.
+	// The session ID of the user's authentication session. The specified value will be embedded in the ID token as the value of the `sid` claim. This parameter needs to be provided only if you want to support the [OpenID Connect Native SSO for Mobile Apps 1.0](https://openid.net/specs/openid-connect-native-sso-1_0.html) specification (a.k.a. "Native SSO"). To enable support for the Native SSO specification, the `nativeSsoSupported` property of your service must be set to `true`.
 	//
 	SessionID *string `json:"sessionId,omitzero" form:"name=sessionId"`
 	// The type of the `aud` claim of the ID token being issued. Valid values are as follows.

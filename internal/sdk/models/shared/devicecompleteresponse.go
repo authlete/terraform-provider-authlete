@@ -53,8 +53,7 @@ type DeviceCompleteResponse struct {
 	// The next action that the authorization server implementation should take.
 	//
 	Action *DeviceCompleteResponseAction `json:"action,omitzero"`
-	// the claims that the user has consented for the client application
-	// to know.
+	// the claims that the user has consented for the client application to know.
 	//
 	ConsentedClaims []string `json:"consentedClaims,omitzero"`
 }

@@ -16,22 +16,16 @@ type ClientAuthorizationDeleteResponse struct {
 	ServiceAPIKey *int64 `json:"serviceApiKey,omitzero"`
 	// Get the client ID.
 	ClientID *int64 `json:"clientId,omitzero"`
-	// Get the subject (= unique identifier) of the user
-	// who has granted authorization to the client.
+	// Get the subject (= unique identifier) of the user who has granted authorization to the client.
 	//
 	Subject *string `json:"subject,omitzero"`
-	// Get the scopes granted to the client application by the last
-	// authorization process by the user (who is identified by the
-	// subject).
+	// Get the scopes granted to the client application by the last authorization process by the user (who is identified by the subject).
 	//
 	LatestGrantedScopes []string `json:"latestGrantedScopes,omitzero"`
-	// Get the scopes granted to the client application by all the
-	// past authorization processes. Note that revoked scopes are
-	// not included.
+	// Get the scopes granted to the client application by all the past authorization processes. Note that revoked scopes are not included.
 	//
 	MergedGrantedScopes []string `json:"mergedGrantedScopes,omitzero"`
-	// Get the timestamp in milliseconds since Unix epoch
-	// at which this record was modified.
+	// Get the timestamp in milliseconds since Unix epoch at which this record was modified.
 	//
 	ModifiedAt *int64 `json:"modifiedAt,omitzero"`
 }

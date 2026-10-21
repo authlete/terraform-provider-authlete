@@ -4,45 +4,23 @@
 package shared
 
 type IdtokenReissueRequest struct {
-	// The value of this parameter should be (a) the value of the
-	// "`jwtAccessToken`" parameter in a response from the
-	// `/auth/token` API when the value is available, or (b)
-	// the value of the "`accessToken`" parameter in the
-	// response from the `/auth/token` API when the value of
-	// the "`jwtAccessToken`" parameter is not available.
+	// The value of this parameter should be (a) the value of the "`jwtAccessToken`" parameter in a response from the `/auth/token` API when the value is available, or (b) the value of the "`accessToken`" parameter in the response from the `/auth/token` API when the value of the "`jwtAccessToken`" parameter is not available.
 	//
 	AccessToken string `json:"accessToken"`
-	// The value of this parameter should be the value of the
-	// "`refreshToken`" parameter in a response from the
-	// `/auth/token` API.
+	// The value of this parameter should be the value of the "`refreshToken`" parameter in a response from the `/auth/token` API.
 	//
-	RefreshToken string `json:"refreshToken"`
-	// The value that should be used as the value of the "`sub`"
-	// claim of the ID token.
-	// This parameter is optional. When omitted, the value of the subject
-	// associated with the access token is used.
+	RefreshToken *string `json:"refreshToken,omitzero"`
+	// The value that should be used as the value of the "`sub`" claim of the ID token. This parameter is optional. When omitted, the value of the subject associated with the access token is used.
 	//
 	Sub *string `json:"sub,omitzero"`
-	// Additional claims that should be embedded in the payload part of
-	// the ID token. The format is a JSON object.
-	// This parameter is optional.
+	// Additional claims that should be embedded in the payload part of the ID token. The format is a JSON object. This parameter is optional.
 	//
 	Claims *string `json:"claims,omitzero"`
-	// Additional parameters that should be embedded in the JWS header of
-	// the ID token. The format is a JSON object.
-	// This parameter is optional.
+	// Additional parameters that should be embedded in the JWS header of the ID token. The format is a JSON object. This parameter is optional.
 	//
 	IdtHeaderParams *string `json:"idtHeaderParams,omitzero"`
-	// The type of the "`aud`" claim of the ID token being issued.
-	// Valid values of this parameter are as follows.
-	// > | Value | Description |
-	// > | --- | --- |
-	// > | "`array`" | The type of the `aud` claim becomes an array of strings. |
-	// > | "`string`" | The type of the `aud` claim becomes a single string. |
-	// This parameter is optional, and the default value on omission is
-	// "`array`".
-	// This parameter takes precedence over the `idTokenAudType` property
-	// of &#123;@link Service&#125; (cf. &#123;@link Service#getIdTokenAudType()&#125;).
+	// The type of the "`aud`" claim of the ID token being issued. Valid values of this parameter are as follows.
+	// > | Value | Description | | --- | --- | | "`array`" | The type of the `aud` claim becomes an array of strings. | | "`string`" | The type of the `aud` claim becomes a single string. | This parameter is optional, and the default value on omission is "`array`". This parameter takes precedence over the `idTokenAudType` property of &#123;@link Service&#125; (cf. &#123;@link Service#getIdTokenAudType()&#125;).
 	//
 	IDTokenAudType *string `json:"idTokenAudType,omitzero"`
 }
@@ -54,9 +32,9 @@ func (i *IdtokenReissueRequest) GetAccessToken() string {
 	return i.AccessToken
 }
 
-func (i *IdtokenReissueRequest) GetRefreshToken() string {
+func (i *IdtokenReissueRequest) GetRefreshToken() *string {
 	if i == nil {
-		return ""
+		return nil
 	}
 	return i.RefreshToken
 }

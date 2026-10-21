@@ -8,8 +8,7 @@ import (
 	"fmt"
 )
 
-// VciSingleIssueResponseAction - The next action that the implementation of the credential endpoint
-// should take.
+// VciSingleIssueResponseAction - The next action that the implementation of the credential endpoint should take.
 type VciSingleIssueResponseAction string
 
 const (
@@ -62,12 +61,10 @@ type VciSingleIssueResponse struct {
 	ResultCode *string `json:"resultCode,omitzero"`
 	// A short message which explains the result of the API call.
 	ResultMessage *string `json:"resultMessage,omitzero"`
-	// The next action that the implementation of the credential endpoint
-	// should take.
+	// The next action that the implementation of the credential endpoint should take.
 	//
 	Action *VciSingleIssueResponseAction `json:"action,omitzero"`
-	// The content of the response that the implementation of the credential
-	// endpoint should return.
+	// The content of the response that the implementation of the credential endpoint should return.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
 	// The issued transaction ID.

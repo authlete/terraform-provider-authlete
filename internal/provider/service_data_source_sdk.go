@@ -30,22 +30,30 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		r.AllowableClockSkew = types.Int32PointerValue(typeconvert.IntPointerToInt32Pointer(resp.AllowableClockSkew))
 		r.APIKey = types.Int64PointerValue(resp.APIKey)
 		r.AttestationChallengeTimeWindow = types.Int64PointerValue(resp.AttestationChallengeTimeWindow)
-		r.Attributes = []tfTypes.Pair{}
+		if resp.Attributes != nil {
+			r.Attributes = []tfTypes.Pair{}
 
-		for _, attributesItem := range resp.Attributes {
-			var attributes tfTypes.Pair
+			for _, attributesItem := range resp.Attributes {
+				var attributes tfTypes.Pair
 
-			attributes.Key = types.StringPointerValue(attributesItem.Key)
-			attributes.Value = types.StringPointerValue(attributesItem.Value)
+				attributes.Key = types.StringPointerValue(attributesItem.Key)
+				attributes.Value = types.StringPointerValue(attributesItem.Value)
 
-			r.Attributes = append(r.Attributes, attributes)
+				r.Attributes = append(r.Attributes, attributes)
+			}
+		} else {
+			r.Attributes = nil
 		}
 		r.AuthenticationCallbackAPIKey = types.StringPointerValue(resp.AuthenticationCallbackAPIKey)
 		r.AuthenticationCallbackAPISecret = types.StringPointerValue(resp.AuthenticationCallbackAPISecret)
 		r.AuthenticationCallbackEndpoint = types.StringPointerValue(resp.AuthenticationCallbackEndpoint)
-		r.AuthorityHints = make([]types.String, 0, len(resp.AuthorityHints))
-		for _, v := range resp.AuthorityHints {
-			r.AuthorityHints = append(r.AuthorityHints, types.StringValue(v))
+		if resp.AuthorityHints != nil {
+			r.AuthorityHints = make([]types.String, 0, len(resp.AuthorityHints))
+			for _, v := range resp.AuthorityHints {
+				r.AuthorityHints = append(r.AuthorityHints, types.StringValue(v))
+			}
+		} else {
+			r.AuthorityHints = nil
 		}
 		r.AuthorizationCodeDuration = types.Int64PointerValue(resp.AuthorizationCodeDuration)
 		r.AuthorizationEndpoint = types.StringPointerValue(resp.AuthorizationEndpoint)
@@ -58,9 +66,14 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		r.BackchannelLogoutSupported = types.BoolPointerValue(resp.BackchannelLogoutSupported)
 		r.BackchannelPollingInterval = types.Int32PointerValue(typeconvert.IntPointerToInt32Pointer(resp.BackchannelPollingInterval))
 		r.BackchannelUserCodeParameterSupported = types.BoolPointerValue(resp.BackchannelUserCodeParameterSupported)
-		r.CimdAllowlist = make([]types.String, 0, len(resp.CimdAllowlist))
-		for _, v := range resp.CimdAllowlist {
-			r.CimdAllowlist = append(r.CimdAllowlist, types.StringValue(v))
+		r.ChallengeEndpoint = types.StringPointerValue(resp.ChallengeEndpoint)
+		if resp.CimdAllowlist != nil {
+			r.CimdAllowlist = make([]types.String, 0, len(resp.CimdAllowlist))
+			for _, v := range resp.CimdAllowlist {
+				r.CimdAllowlist = append(r.CimdAllowlist, types.StringValue(v))
+			}
+		} else {
+			r.CimdAllowlist = nil
 		}
 		r.CimdAllowlistEnabled = types.BoolPointerValue(resp.CimdAllowlistEnabled)
 		r.CimdAlwaysRetrieved = types.BoolPointerValue(resp.CimdAlwaysRetrieved)
@@ -70,9 +83,13 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		r.CimdQueryPermitted = types.BoolPointerValue(resp.CimdQueryPermitted)
 		r.ClaimShortcutRestrictive = types.BoolPointerValue(resp.ClaimShortcutRestrictive)
 		r.ClientAssertionAudRestrictedToIssuer = types.BoolPointerValue(resp.ClientAssertionAudRestrictedToIssuer)
-		r.ClientAttesterRoots = make([]types.String, 0, len(resp.ClientAttesterRoots))
-		for _, v := range resp.ClientAttesterRoots {
-			r.ClientAttesterRoots = append(r.ClientAttesterRoots, types.StringValue(v))
+		if resp.ClientAttesterRoots != nil {
+			r.ClientAttesterRoots = make([]types.String, 0, len(resp.ClientAttesterRoots))
+			for _, v := range resp.ClientAttesterRoots {
+				r.ClientAttesterRoots = append(r.ClientAttesterRoots, types.StringValue(v))
+			}
+		} else {
+			r.ClientAttesterRoots = nil
 		}
 		r.ClientAttesterRootsEnabled = types.BoolPointerValue(resp.ClientAttesterRootsEnabled)
 		r.ClientAttesterRootsOnly = types.BoolPointerValue(resp.ClientAttesterRootsOnly)
@@ -121,6 +138,21 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		r.DeveloperAuthenticationCallbackAPIKey = types.StringPointerValue(resp.DeveloperAuthenticationCallbackAPIKey)
 		r.DeveloperAuthenticationCallbackAPISecret = types.StringPointerValue(resp.DeveloperAuthenticationCallbackAPISecret)
 		r.DeveloperAuthenticationCallbackEndpoint = types.StringPointerValue(resp.DeveloperAuthenticationCallbackEndpoint)
+		if resp.DeveloperSnsCredentials != nil {
+			r.DeveloperSnsCredentials = []tfTypes.SnsCredentials{}
+
+			for _, developerSnsCredentialsItem := range resp.DeveloperSnsCredentials {
+				var developerSnsCredentials tfTypes.SnsCredentials
+
+				developerSnsCredentials.APIKey = types.StringPointerValue(developerSnsCredentialsItem.APIKey)
+				developerSnsCredentials.APISecret = types.StringPointerValue(developerSnsCredentialsItem.APISecret)
+				developerSnsCredentials.Sns = types.StringPointerValue(developerSnsCredentialsItem.Sns)
+
+				r.DeveloperSnsCredentials = append(r.DeveloperSnsCredentials, developerSnsCredentials)
+			}
+		} else {
+			r.DeveloperSnsCredentials = nil
+		}
 		r.DeviceAuthorizationEndpoint = types.StringPointerValue(resp.DeviceAuthorizationEndpoint)
 		r.DeviceFlowCodeDuration = types.Int32PointerValue(typeconvert.IntPointerToInt32Pointer(resp.DeviceFlowCodeDuration))
 		r.DeviceFlowPollingInterval = types.Int32PointerValue(typeconvert.IntPointerToInt32Pointer(resp.DeviceFlowPollingInterval))
@@ -138,9 +170,13 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		r.EndSessionEndpoint = types.StringPointerValue(resp.EndSessionEndpoint)
 		r.ErrorDescriptionOmitted = types.BoolPointerValue(resp.ErrorDescriptionOmitted)
 		r.ErrorURIOmitted = types.BoolPointerValue(resp.ErrorURIOmitted)
-		r.FapiModes = make([]types.String, 0, len(resp.FapiModes))
-		for _, v := range resp.FapiModes {
-			r.FapiModes = append(r.FapiModes, types.StringValue(string(v)))
+		if resp.FapiModes != nil {
+			r.FapiModes = make([]types.String, 0, len(resp.FapiModes))
+			for _, v := range resp.FapiModes {
+				r.FapiModes = append(r.FapiModes, types.StringValue(string(v)))
+			}
+		} else {
+			r.FapiModes = nil
 		}
 		r.FederationConfigurationDuration = types.Int64PointerValue(resp.FederationConfigurationDuration)
 		r.FederationEnabled = types.BoolPointerValue(resp.FederationEnabled)
@@ -152,24 +188,30 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		r.FrontChannelRequestObjectEncryptionRequired = types.BoolPointerValue(resp.FrontChannelRequestObjectEncryptionRequired)
 		r.GrantManagementActionRequired = types.BoolPointerValue(resp.GrantManagementActionRequired)
 		r.GrantManagementEndpoint = types.StringPointerValue(resp.GrantManagementEndpoint)
-		r.Hsks = []tfTypes.Hsk{}
+		r.HaipVersion = types.StringPointerValue(resp.HaipVersion)
+		if resp.Hsks != nil {
+			r.Hsks = []tfTypes.Hsk{}
 
-		for _, hsksItem := range resp.Hsks {
-			var hsks tfTypes.Hsk
+			for _, hsksItem := range resp.Hsks {
+				var hsks tfTypes.Hsk
 
-			hsks.Alg = types.StringPointerValue(hsksItem.Alg)
-			hsks.Handle = types.StringPointerValue(hsksItem.Handle)
-			hsks.HsmName = types.StringPointerValue(hsksItem.HsmName)
-			hsks.Kid = types.StringPointerValue(hsksItem.Kid)
-			hsks.Kty = types.StringPointerValue(hsksItem.Kty)
-			hsks.PublicKey = types.StringPointerValue(hsksItem.PublicKey)
-			hsks.Use = types.StringPointerValue(hsksItem.Use)
+				hsks.Alg = types.StringPointerValue(hsksItem.Alg)
+				hsks.Handle = types.StringPointerValue(hsksItem.Handle)
+				hsks.HsmName = types.StringPointerValue(hsksItem.HsmName)
+				hsks.Kid = types.StringPointerValue(hsksItem.Kid)
+				hsks.Kty = types.StringPointerValue(hsksItem.Kty)
+				hsks.PublicKey = types.StringPointerValue(hsksItem.PublicKey)
+				hsks.Use = types.StringPointerValue(hsksItem.Use)
 
-			r.Hsks = append(r.Hsks, hsks)
+				r.Hsks = append(r.Hsks, hsks)
+			}
+		} else {
+			r.Hsks = nil
 		}
 		r.HsmEnabled = types.BoolPointerValue(resp.HsmEnabled)
 		r.HTTPAliasProhibited = types.BoolPointerValue(resp.HTTPAliasProhibited)
 		r.IDTokenAudType = types.StringPointerValue(resp.IDTokenAudType)
+		r.IDTokenDroppedOnIssueWithoutOpenid = types.BoolPointerValue(resp.IDTokenDroppedOnIssueWithoutOpenid)
 		r.IDTokenDuration = types.Int64PointerValue(resp.IDTokenDuration)
 		r.IDTokenReissuable = types.BoolPointerValue(resp.IDTokenReissuable)
 		r.IDTokenSignatureKeyID = types.StringPointerValue(resp.IDTokenSignatureKeyID)
@@ -184,34 +226,46 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		r.JwtGrantByIdentifiableClientsOnly = types.BoolPointerValue(resp.JwtGrantByIdentifiableClientsOnly)
 		r.JwtGrantEncryptedJwtRejected = types.BoolPointerValue(resp.JwtGrantEncryptedJwtRejected)
 		r.JwtGrantUnsignedJwtRejected = types.BoolPointerValue(resp.JwtGrantUnsignedJwtRejected)
-		r.KeyAttesterRoots = make([]types.String, 0, len(resp.KeyAttesterRoots))
-		for _, v := range resp.KeyAttesterRoots {
-			r.KeyAttesterRoots = append(r.KeyAttesterRoots, types.StringValue(v))
+		if resp.KeyAttesterRoots != nil {
+			r.KeyAttesterRoots = make([]types.String, 0, len(resp.KeyAttesterRoots))
+			for _, v := range resp.KeyAttesterRoots {
+				r.KeyAttesterRoots = append(r.KeyAttesterRoots, types.StringValue(v))
+			}
+		} else {
+			r.KeyAttesterRoots = nil
 		}
 		r.KeyAttesterRootsEnabled = types.BoolPointerValue(resp.KeyAttesterRootsEnabled)
 		r.KeyAttesterRootsOnly = types.BoolPointerValue(resp.KeyAttesterRootsOnly)
 		r.LoopbackRedirectionURIVariable = types.BoolPointerValue(resp.LoopbackRedirectionURIVariable)
-		r.Metadata = []tfTypes.Pair{}
+		if resp.Metadata != nil {
+			r.Metadata = []tfTypes.Pair{}
 
-		for _, metadataItem := range resp.Metadata {
-			var metadata tfTypes.Pair
+			for _, metadataItem := range resp.Metadata {
+				var metadata tfTypes.Pair
 
-			metadata.Key = types.StringPointerValue(metadataItem.Key)
-			metadata.Value = types.StringPointerValue(metadataItem.Value)
+				metadata.Key = types.StringPointerValue(metadataItem.Key)
+				metadata.Value = types.StringPointerValue(metadataItem.Value)
 
-			r.Metadata = append(r.Metadata, metadata)
+				r.Metadata = append(r.Metadata, metadata)
+			}
+		} else {
+			r.Metadata = nil
 		}
 		r.MissingClientIDAllowed = types.BoolPointerValue(resp.MissingClientIDAllowed)
 		r.ModifiedAt = types.Int64PointerValue(resp.ModifiedAt)
-		r.MtlsEndpointAliases = []tfTypes.NamedURI{}
+		if resp.MtlsEndpointAliases != nil {
+			r.MtlsEndpointAliases = []tfTypes.NamedURI{}
 
-		for _, mtlsEndpointAliasesItem := range resp.MtlsEndpointAliases {
-			var mtlsEndpointAliases tfTypes.NamedURI
+			for _, mtlsEndpointAliasesItem := range resp.MtlsEndpointAliases {
+				var mtlsEndpointAliases tfTypes.NamedURI
 
-			mtlsEndpointAliases.Name = types.StringPointerValue(mtlsEndpointAliasesItem.Name)
-			mtlsEndpointAliases.URI = types.StringPointerValue(mtlsEndpointAliasesItem.URI)
+				mtlsEndpointAliases.Name = types.StringPointerValue(mtlsEndpointAliasesItem.Name)
+				mtlsEndpointAliases.URI = types.StringPointerValue(mtlsEndpointAliasesItem.URI)
 
-			r.MtlsEndpointAliases = append(r.MtlsEndpointAliases, mtlsEndpointAliases)
+				r.MtlsEndpointAliases = append(r.MtlsEndpointAliases, mtlsEndpointAliases)
+			}
+		} else {
+			r.MtlsEndpointAliases = nil
 		}
 		r.MutualTLSValidatePkiCertChain = types.BoolPointerValue(resp.MutualTLSValidatePkiCertChain)
 		r.NativeSsoSupported = types.BoolPointerValue(resp.NativeSsoSupported)
@@ -248,40 +302,68 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		r.ServiceOwnerNumber = types.Int32PointerValue(typeconvert.IntPointerToInt32Pointer(resp.ServiceOwnerNumber))
 		r.SignedJwksURI = types.StringPointerValue(resp.SignedJwksURI)
 		r.SingleAccessTokenPerSubject = types.BoolPointerValue(resp.SingleAccessTokenPerSubject)
-		r.SnsCredentials = []tfTypes.SnsCredentials{}
+		if resp.SnsCredentials != nil {
+			r.SnsCredentials = []tfTypes.SnsCredentials{}
 
-		for _, snsCredentialsItem := range resp.SnsCredentials {
-			var snsCredentials tfTypes.SnsCredentials
+			for _, snsCredentialsItem := range resp.SnsCredentials {
+				var snsCredentials tfTypes.SnsCredentials
 
-			snsCredentials.APIKey = types.StringPointerValue(snsCredentialsItem.APIKey)
-			snsCredentials.APISecret = types.StringPointerValue(snsCredentialsItem.APISecret)
-			snsCredentials.Sns = types.StringPointerValue(snsCredentialsItem.Sns)
+				snsCredentials.APIKey = types.StringPointerValue(snsCredentialsItem.APIKey)
+				snsCredentials.APISecret = types.StringPointerValue(snsCredentialsItem.APISecret)
+				snsCredentials.Sns = types.StringPointerValue(snsCredentialsItem.Sns)
 
-			r.SnsCredentials = append(r.SnsCredentials, snsCredentials)
+				r.SnsCredentials = append(r.SnsCredentials, snsCredentials)
+			}
+		} else {
+			r.SnsCredentials = nil
 		}
-		r.SupportedAcrs = make([]types.String, 0, len(resp.SupportedAcrs))
-		for _, v := range resp.SupportedAcrs {
-			r.SupportedAcrs = append(r.SupportedAcrs, types.StringValue(v))
+		if resp.SupportedAcrs != nil {
+			r.SupportedAcrs = make([]types.String, 0, len(resp.SupportedAcrs))
+			for _, v := range resp.SupportedAcrs {
+				r.SupportedAcrs = append(r.SupportedAcrs, types.StringValue(v))
+			}
+		} else {
+			r.SupportedAcrs = nil
 		}
-		r.SupportedAttachments = make([]types.String, 0, len(resp.SupportedAttachments))
-		for _, v := range resp.SupportedAttachments {
-			r.SupportedAttachments = append(r.SupportedAttachments, types.StringValue(string(v)))
+		if resp.SupportedAttachments != nil {
+			r.SupportedAttachments = make([]types.String, 0, len(resp.SupportedAttachments))
+			for _, v := range resp.SupportedAttachments {
+				r.SupportedAttachments = append(r.SupportedAttachments, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedAttachments = nil
 		}
-		r.SupportedAuthorizationDetailsTypes = make([]types.String, 0, len(resp.SupportedAuthorizationDetailsTypes))
-		for _, v := range resp.SupportedAuthorizationDetailsTypes {
-			r.SupportedAuthorizationDetailsTypes = append(r.SupportedAuthorizationDetailsTypes, types.StringValue(v))
+		if resp.SupportedAuthorizationDetailsTypes != nil {
+			r.SupportedAuthorizationDetailsTypes = make([]types.String, 0, len(resp.SupportedAuthorizationDetailsTypes))
+			for _, v := range resp.SupportedAuthorizationDetailsTypes {
+				r.SupportedAuthorizationDetailsTypes = append(r.SupportedAuthorizationDetailsTypes, types.StringValue(v))
+			}
+		} else {
+			r.SupportedAuthorizationDetailsTypes = nil
 		}
-		r.SupportedBackchannelTokenDeliveryModes = make([]types.String, 0, len(resp.SupportedBackchannelTokenDeliveryModes))
-		for _, v := range resp.SupportedBackchannelTokenDeliveryModes {
-			r.SupportedBackchannelTokenDeliveryModes = append(r.SupportedBackchannelTokenDeliveryModes, types.StringValue(string(v)))
+		if resp.SupportedBackchannelTokenDeliveryModes != nil {
+			r.SupportedBackchannelTokenDeliveryModes = make([]types.String, 0, len(resp.SupportedBackchannelTokenDeliveryModes))
+			for _, v := range resp.SupportedBackchannelTokenDeliveryModes {
+				r.SupportedBackchannelTokenDeliveryModes = append(r.SupportedBackchannelTokenDeliveryModes, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedBackchannelTokenDeliveryModes = nil
 		}
-		r.SupportedClaimLocales = make([]types.String, 0, len(resp.SupportedClaimLocales))
-		for _, v := range resp.SupportedClaimLocales {
-			r.SupportedClaimLocales = append(r.SupportedClaimLocales, types.StringValue(v))
+		if resp.SupportedClaimLocales != nil {
+			r.SupportedClaimLocales = make([]types.String, 0, len(resp.SupportedClaimLocales))
+			for _, v := range resp.SupportedClaimLocales {
+				r.SupportedClaimLocales = append(r.SupportedClaimLocales, types.StringValue(v))
+			}
+		} else {
+			r.SupportedClaimLocales = nil
 		}
-		r.SupportedClaims = make([]types.String, 0, len(resp.SupportedClaims))
-		for _, v := range resp.SupportedClaims {
-			r.SupportedClaims = append(r.SupportedClaims, types.StringValue(v))
+		if resp.SupportedClaims != nil {
+			r.SupportedClaims = make([]types.String, 0, len(resp.SupportedClaims))
+			for _, v := range resp.SupportedClaims {
+				r.SupportedClaims = append(r.SupportedClaims, types.StringValue(v))
+			}
+		} else {
+			r.SupportedClaims = nil
 		}
 		if resp.SupportedClaimTypes != nil {
 			r.SupportedClaimTypes = make([]types.String, 0, len(resp.SupportedClaimTypes))
@@ -291,17 +373,37 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		} else {
 			r.SupportedClaimTypes = nil
 		}
-		r.SupportedClientRegistrationTypes = make([]types.String, 0, len(resp.SupportedClientRegistrationTypes))
-		for _, v := range resp.SupportedClientRegistrationTypes {
-			r.SupportedClientRegistrationTypes = append(r.SupportedClientRegistrationTypes, types.StringValue(string(v)))
+		if resp.SupportedClientRegistrationTypes != nil {
+			r.SupportedClientRegistrationTypes = make([]types.String, 0, len(resp.SupportedClientRegistrationTypes))
+			for _, v := range resp.SupportedClientRegistrationTypes {
+				r.SupportedClientRegistrationTypes = append(r.SupportedClientRegistrationTypes, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedClientRegistrationTypes = nil
 		}
-		r.SupportedCustomClientMetadata = make([]types.String, 0, len(resp.SupportedCustomClientMetadata))
-		for _, v := range resp.SupportedCustomClientMetadata {
-			r.SupportedCustomClientMetadata = append(r.SupportedCustomClientMetadata, types.StringValue(v))
+		if resp.SupportedCustomClientMetadata != nil {
+			r.SupportedCustomClientMetadata = make([]types.String, 0, len(resp.SupportedCustomClientMetadata))
+			for _, v := range resp.SupportedCustomClientMetadata {
+				r.SupportedCustomClientMetadata = append(r.SupportedCustomClientMetadata, types.StringValue(v))
+			}
+		} else {
+			r.SupportedCustomClientMetadata = nil
 		}
-		r.SupportedDigestAlgorithms = make([]types.String, 0, len(resp.SupportedDigestAlgorithms))
-		for _, v := range resp.SupportedDigestAlgorithms {
-			r.SupportedDigestAlgorithms = append(r.SupportedDigestAlgorithms, types.StringValue(v))
+		if resp.SupportedDeveloperSnses != nil {
+			r.SupportedDeveloperSnses = make([]types.String, 0, len(resp.SupportedDeveloperSnses))
+			for _, v := range resp.SupportedDeveloperSnses {
+				r.SupportedDeveloperSnses = append(r.SupportedDeveloperSnses, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedDeveloperSnses = nil
+		}
+		if resp.SupportedDigestAlgorithms != nil {
+			r.SupportedDigestAlgorithms = make([]types.String, 0, len(resp.SupportedDigestAlgorithms))
+			for _, v := range resp.SupportedDigestAlgorithms {
+				r.SupportedDigestAlgorithms = append(r.SupportedDigestAlgorithms, types.StringValue(v))
+			}
+		} else {
+			r.SupportedDigestAlgorithms = nil
 		}
 		if resp.SupportedDisplays != nil {
 			r.SupportedDisplays = make([]types.String, 0, len(resp.SupportedDisplays))
@@ -311,33 +413,61 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		} else {
 			r.SupportedDisplays = nil
 		}
-		r.SupportedDocuments = make([]types.String, 0, len(resp.SupportedDocuments))
-		for _, v := range resp.SupportedDocuments {
-			r.SupportedDocuments = append(r.SupportedDocuments, types.StringValue(v))
+		if resp.SupportedDocuments != nil {
+			r.SupportedDocuments = make([]types.String, 0, len(resp.SupportedDocuments))
+			for _, v := range resp.SupportedDocuments {
+				r.SupportedDocuments = append(r.SupportedDocuments, types.StringValue(v))
+			}
+		} else {
+			r.SupportedDocuments = nil
 		}
-		r.SupportedDocumentsCheckMethods = make([]types.String, 0, len(resp.SupportedDocumentsCheckMethods))
-		for _, v := range resp.SupportedDocumentsCheckMethods {
-			r.SupportedDocumentsCheckMethods = append(r.SupportedDocumentsCheckMethods, types.StringValue(v))
+		if resp.SupportedDocumentsCheckMethods != nil {
+			r.SupportedDocumentsCheckMethods = make([]types.String, 0, len(resp.SupportedDocumentsCheckMethods))
+			for _, v := range resp.SupportedDocumentsCheckMethods {
+				r.SupportedDocumentsCheckMethods = append(r.SupportedDocumentsCheckMethods, types.StringValue(v))
+			}
+		} else {
+			r.SupportedDocumentsCheckMethods = nil
 		}
-		r.SupportedDocumentsMethods = make([]types.String, 0, len(resp.SupportedDocumentsMethods))
-		for _, v := range resp.SupportedDocumentsMethods {
-			r.SupportedDocumentsMethods = append(r.SupportedDocumentsMethods, types.StringValue(v))
+		if resp.SupportedDocumentsMethods != nil {
+			r.SupportedDocumentsMethods = make([]types.String, 0, len(resp.SupportedDocumentsMethods))
+			for _, v := range resp.SupportedDocumentsMethods {
+				r.SupportedDocumentsMethods = append(r.SupportedDocumentsMethods, types.StringValue(v))
+			}
+		} else {
+			r.SupportedDocumentsMethods = nil
 		}
-		r.SupportedDocumentsValidationMethods = make([]types.String, 0, len(resp.SupportedDocumentsValidationMethods))
-		for _, v := range resp.SupportedDocumentsValidationMethods {
-			r.SupportedDocumentsValidationMethods = append(r.SupportedDocumentsValidationMethods, types.StringValue(v))
+		if resp.SupportedDocumentsValidationMethods != nil {
+			r.SupportedDocumentsValidationMethods = make([]types.String, 0, len(resp.SupportedDocumentsValidationMethods))
+			for _, v := range resp.SupportedDocumentsValidationMethods {
+				r.SupportedDocumentsValidationMethods = append(r.SupportedDocumentsValidationMethods, types.StringValue(v))
+			}
+		} else {
+			r.SupportedDocumentsValidationMethods = nil
 		}
-		r.SupportedDocumentsVerificationMethods = make([]types.String, 0, len(resp.SupportedDocumentsVerificationMethods))
-		for _, v := range resp.SupportedDocumentsVerificationMethods {
-			r.SupportedDocumentsVerificationMethods = append(r.SupportedDocumentsVerificationMethods, types.StringValue(v))
+		if resp.SupportedDocumentsVerificationMethods != nil {
+			r.SupportedDocumentsVerificationMethods = make([]types.String, 0, len(resp.SupportedDocumentsVerificationMethods))
+			for _, v := range resp.SupportedDocumentsVerificationMethods {
+				r.SupportedDocumentsVerificationMethods = append(r.SupportedDocumentsVerificationMethods, types.StringValue(v))
+			}
+		} else {
+			r.SupportedDocumentsVerificationMethods = nil
 		}
-		r.SupportedElectronicRecords = make([]types.String, 0, len(resp.SupportedElectronicRecords))
-		for _, v := range resp.SupportedElectronicRecords {
-			r.SupportedElectronicRecords = append(r.SupportedElectronicRecords, types.StringValue(v))
+		if resp.SupportedElectronicRecords != nil {
+			r.SupportedElectronicRecords = make([]types.String, 0, len(resp.SupportedElectronicRecords))
+			for _, v := range resp.SupportedElectronicRecords {
+				r.SupportedElectronicRecords = append(r.SupportedElectronicRecords, types.StringValue(v))
+			}
+		} else {
+			r.SupportedElectronicRecords = nil
 		}
-		r.SupportedEvidence = make([]types.String, 0, len(resp.SupportedEvidence))
-		for _, v := range resp.SupportedEvidence {
-			r.SupportedEvidence = append(r.SupportedEvidence, types.StringValue(v))
+		if resp.SupportedEvidence != nil {
+			r.SupportedEvidence = make([]types.String, 0, len(resp.SupportedEvidence))
+			for _, v := range resp.SupportedEvidence {
+				r.SupportedEvidence = append(r.SupportedEvidence, types.StringValue(v))
+			}
+		} else {
+			r.SupportedEvidence = nil
 		}
 		if resp.SupportedGrantTypes != nil {
 			r.SupportedGrantTypes = make([]types.String, 0, len(resp.SupportedGrantTypes))
@@ -347,13 +477,21 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		} else {
 			r.SupportedGrantTypes = nil
 		}
-		r.SupportedIdentityDocuments = make([]types.String, 0, len(resp.SupportedIdentityDocuments))
-		for _, v := range resp.SupportedIdentityDocuments {
-			r.SupportedIdentityDocuments = append(r.SupportedIdentityDocuments, types.StringValue(v))
+		if resp.SupportedIdentityDocuments != nil {
+			r.SupportedIdentityDocuments = make([]types.String, 0, len(resp.SupportedIdentityDocuments))
+			for _, v := range resp.SupportedIdentityDocuments {
+				r.SupportedIdentityDocuments = append(r.SupportedIdentityDocuments, types.StringValue(v))
+			}
+		} else {
+			r.SupportedIdentityDocuments = nil
 		}
-		r.SupportedIntrospectionAuthMethods = make([]types.String, 0, len(resp.SupportedIntrospectionAuthMethods))
-		for _, v := range resp.SupportedIntrospectionAuthMethods {
-			r.SupportedIntrospectionAuthMethods = append(r.SupportedIntrospectionAuthMethods, types.StringValue(string(v)))
+		if resp.SupportedIntrospectionAuthMethods != nil {
+			r.SupportedIntrospectionAuthMethods = make([]types.String, 0, len(resp.SupportedIntrospectionAuthMethods))
+			for _, v := range resp.SupportedIntrospectionAuthMethods {
+				r.SupportedIntrospectionAuthMethods = append(r.SupportedIntrospectionAuthMethods, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedIntrospectionAuthMethods = nil
 		}
 		if resp.SupportedPromptValues != nil {
 			r.SupportedPromptValues = make([]types.String, 0, len(resp.SupportedPromptValues))
@@ -371,48 +509,68 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		} else {
 			r.SupportedResponseTypes = nil
 		}
-		r.SupportedRevocationAuthMethods = make([]types.String, 0, len(resp.SupportedRevocationAuthMethods))
-		for _, v := range resp.SupportedRevocationAuthMethods {
-			r.SupportedRevocationAuthMethods = append(r.SupportedRevocationAuthMethods, types.StringValue(string(v)))
-		}
-		r.SupportedScopes = []tfTypes.Scope{}
-
-		for _, supportedScopesItem := range resp.SupportedScopes {
-			var supportedScopes tfTypes.Scope
-
-			supportedScopes.Attributes = []tfTypes.Pair{}
-
-			for _, attributesItem1 := range supportedScopesItem.Attributes {
-				var attributes1 tfTypes.Pair
-
-				attributes1.Key = types.StringPointerValue(attributesItem1.Key)
-				attributes1.Value = types.StringPointerValue(attributesItem1.Value)
-
-				supportedScopes.Attributes = append(supportedScopes.Attributes, attributes1)
+		if resp.SupportedRevocationAuthMethods != nil {
+			r.SupportedRevocationAuthMethods = make([]types.String, 0, len(resp.SupportedRevocationAuthMethods))
+			for _, v := range resp.SupportedRevocationAuthMethods {
+				r.SupportedRevocationAuthMethods = append(r.SupportedRevocationAuthMethods, types.StringValue(string(v)))
 			}
-			supportedScopes.DefaultEntry = types.BoolPointerValue(supportedScopesItem.DefaultEntry)
-			supportedScopes.Description = types.StringPointerValue(supportedScopesItem.Description)
-			supportedScopes.Descriptions = []tfTypes.TaggedValue{}
+		} else {
+			r.SupportedRevocationAuthMethods = nil
+		}
+		if resp.SupportedScopes != nil {
+			r.SupportedScopes = []tfTypes.Scope{}
 
-			for _, descriptionsItem := range supportedScopesItem.Descriptions {
-				var descriptions tfTypes.TaggedValue
+			for _, supportedScopesItem := range resp.SupportedScopes {
+				var supportedScopes tfTypes.Scope
 
-				descriptions.Tag = types.StringPointerValue(descriptionsItem.Tag)
-				descriptions.Value = types.StringPointerValue(descriptionsItem.Value)
+				if supportedScopesItem.Attributes != nil {
+					supportedScopes.Attributes = []tfTypes.Pair{}
 
-				supportedScopes.Descriptions = append(supportedScopes.Descriptions, descriptions)
+					for _, attributesItem1 := range supportedScopesItem.Attributes {
+						var attributes1 tfTypes.Pair
+
+						attributes1.Key = types.StringPointerValue(attributesItem1.Key)
+						attributes1.Value = types.StringPointerValue(attributesItem1.Value)
+
+						supportedScopes.Attributes = append(supportedScopes.Attributes, attributes1)
+					}
+				} else {
+					supportedScopes.Attributes = nil
+				}
+				supportedScopes.DefaultEntry = types.BoolPointerValue(supportedScopesItem.DefaultEntry)
+				supportedScopes.Description = types.StringPointerValue(supportedScopesItem.Description)
+				supportedScopes.Descriptions = []tfTypes.TaggedValue{}
+
+				for _, descriptionsItem := range supportedScopesItem.Descriptions {
+					var descriptions tfTypes.TaggedValue
+
+					descriptions.Tag = types.StringPointerValue(descriptionsItem.Tag)
+					descriptions.Value = types.StringPointerValue(descriptionsItem.Value)
+
+					supportedScopes.Descriptions = append(supportedScopes.Descriptions, descriptions)
+				}
+				supportedScopes.Name = types.StringPointerValue(supportedScopesItem.Name)
+
+				r.SupportedScopes = append(r.SupportedScopes, supportedScopes)
 			}
-			supportedScopes.Name = types.StringPointerValue(supportedScopesItem.Name)
-
-			r.SupportedScopes = append(r.SupportedScopes, supportedScopes)
+		} else {
+			r.SupportedScopes = nil
 		}
-		r.SupportedServiceProfiles = make([]types.String, 0, len(resp.SupportedServiceProfiles))
-		for _, v := range resp.SupportedServiceProfiles {
-			r.SupportedServiceProfiles = append(r.SupportedServiceProfiles, types.StringValue(string(v)))
+		if resp.SupportedServiceProfiles != nil {
+			r.SupportedServiceProfiles = make([]types.String, 0, len(resp.SupportedServiceProfiles))
+			for _, v := range resp.SupportedServiceProfiles {
+				r.SupportedServiceProfiles = append(r.SupportedServiceProfiles, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedServiceProfiles = nil
 		}
-		r.SupportedSnses = make([]types.String, 0, len(resp.SupportedSnses))
-		for _, v := range resp.SupportedSnses {
-			r.SupportedSnses = append(r.SupportedSnses, types.StringValue(string(v)))
+		if resp.SupportedSnses != nil {
+			r.SupportedSnses = make([]types.String, 0, len(resp.SupportedSnses))
+			for _, v := range resp.SupportedSnses {
+				r.SupportedSnses = append(r.SupportedSnses, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedSnses = nil
 		}
 		if resp.SupportedTokenAuthMethods != nil {
 			r.SupportedTokenAuthMethods = make([]types.String, 0, len(resp.SupportedTokenAuthMethods))
@@ -422,21 +580,37 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		} else {
 			r.SupportedTokenAuthMethods = nil
 		}
-		r.SupportedTrustFrameworks = make([]types.String, 0, len(resp.SupportedTrustFrameworks))
-		for _, v := range resp.SupportedTrustFrameworks {
-			r.SupportedTrustFrameworks = append(r.SupportedTrustFrameworks, types.StringValue(v))
+		if resp.SupportedTrustFrameworks != nil {
+			r.SupportedTrustFrameworks = make([]types.String, 0, len(resp.SupportedTrustFrameworks))
+			for _, v := range resp.SupportedTrustFrameworks {
+				r.SupportedTrustFrameworks = append(r.SupportedTrustFrameworks, types.StringValue(v))
+			}
+		} else {
+			r.SupportedTrustFrameworks = nil
 		}
-		r.SupportedUILocales = make([]types.String, 0, len(resp.SupportedUILocales))
-		for _, v := range resp.SupportedUILocales {
-			r.SupportedUILocales = append(r.SupportedUILocales, types.StringValue(v))
+		if resp.SupportedUILocales != nil {
+			r.SupportedUILocales = make([]types.String, 0, len(resp.SupportedUILocales))
+			for _, v := range resp.SupportedUILocales {
+				r.SupportedUILocales = append(r.SupportedUILocales, types.StringValue(v))
+			}
+		} else {
+			r.SupportedUILocales = nil
 		}
-		r.SupportedVerificationMethods = make([]types.String, 0, len(resp.SupportedVerificationMethods))
-		for _, v := range resp.SupportedVerificationMethods {
-			r.SupportedVerificationMethods = append(r.SupportedVerificationMethods, types.StringValue(v))
+		if resp.SupportedVerificationMethods != nil {
+			r.SupportedVerificationMethods = make([]types.String, 0, len(resp.SupportedVerificationMethods))
+			for _, v := range resp.SupportedVerificationMethods {
+				r.SupportedVerificationMethods = append(r.SupportedVerificationMethods, types.StringValue(v))
+			}
+		} else {
+			r.SupportedVerificationMethods = nil
 		}
-		r.SupportedVerifiedClaims = make([]types.String, 0, len(resp.SupportedVerifiedClaims))
-		for _, v := range resp.SupportedVerifiedClaims {
-			r.SupportedVerifiedClaims = append(r.SupportedVerifiedClaims, types.StringValue(v))
+		if resp.SupportedVerifiedClaims != nil {
+			r.SupportedVerifiedClaims = make([]types.String, 0, len(resp.SupportedVerifiedClaims))
+			for _, v := range resp.SupportedVerifiedClaims {
+				r.SupportedVerifiedClaims = append(r.SupportedVerifiedClaims, types.StringValue(v))
+			}
+		} else {
+			r.SupportedVerifiedClaims = nil
 		}
 		r.TLSClientCertificateBoundAccessTokens = types.BoolPointerValue(resp.TLSClientCertificateBoundAccessTokens)
 		r.TokenBatchNotificationEndpoint = types.StringPointerValue(resp.TokenBatchNotificationEndpoint)
@@ -449,19 +623,27 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		r.TokenExpirationLinked = types.BoolPointerValue(resp.TokenExpirationLinked)
 		r.TosURI = types.StringPointerValue(resp.TosURI)
 		r.TraditionalRequestObjectProcessingApplied = types.BoolPointerValue(resp.TraditionalRequestObjectProcessingApplied)
-		r.TrustAnchors = []tfTypes.TrustAnchor{}
+		if resp.TrustAnchors != nil {
+			r.TrustAnchors = []tfTypes.TrustAnchor{}
 
-		for _, trustAnchorsItem := range resp.TrustAnchors {
-			var trustAnchors tfTypes.TrustAnchor
+			for _, trustAnchorsItem := range resp.TrustAnchors {
+				var trustAnchors tfTypes.TrustAnchor
 
-			trustAnchors.EntityID = types.StringPointerValue(trustAnchorsItem.EntityID)
-			trustAnchors.Jwks = types.StringPointerValue(trustAnchorsItem.Jwks)
+				trustAnchors.EntityID = types.StringPointerValue(trustAnchorsItem.EntityID)
+				trustAnchors.Jwks = types.StringPointerValue(trustAnchorsItem.Jwks)
 
-			r.TrustAnchors = append(r.TrustAnchors, trustAnchors)
+				r.TrustAnchors = append(r.TrustAnchors, trustAnchors)
+			}
+		} else {
+			r.TrustAnchors = nil
 		}
-		r.TrustedRootCertificates = make([]types.String, 0, len(resp.TrustedRootCertificates))
-		for _, v := range resp.TrustedRootCertificates {
-			r.TrustedRootCertificates = append(r.TrustedRootCertificates, types.StringValue(v))
+		if resp.TrustedRootCertificates != nil {
+			r.TrustedRootCertificates = make([]types.String, 0, len(resp.TrustedRootCertificates))
+			for _, v := range resp.TrustedRootCertificates {
+				r.TrustedRootCertificates = append(r.TrustedRootCertificates, types.StringValue(v))
+			}
+		} else {
+			r.TrustedRootCertificates = nil
 		}
 		r.UnauthorizedOnClientConfigSupported = types.BoolPointerValue(resp.UnauthorizedOnClientConfigSupported)
 		if resp.UserCodeCharset != nil {

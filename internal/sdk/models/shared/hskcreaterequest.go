@@ -7,25 +7,18 @@ type HskCreateRequest struct {
 	// The key type (EC or RSA)
 	//
 	Kty *string `json:"kty,omitzero" form:"name=kty"`
-	// The key on the HSM.
-	// When the key use is "sig" (signature), the private key on the HSM is used to sign data and the corresponding public key is used to verify the signature.
-	// When the key use is "enc" (encryption), the private key on the HSM is used to decrypt encrypted data which have been encrypted with the corresponding public key
+	// The key on the HSM. When the key use is "sig" (signature), the private key on the HSM is used to sign data and the corresponding public key is used to verify the signature. When the key use is "enc" (encryption), the private key on the HSM is used to decrypt encrypted data which have been encrypted with the corresponding public key
 	//
 	Use *string `json:"use,omitzero" form:"name=use"`
 	// Key ID for the key on the HSM.
 	//
 	Kid *string `json:"kid,omitzero" form:"name=kid"`
-	// The name of the HSM.
-	// The identifier for the HSM that sits behind the Authlete server. For example, "google".
+	// The name of the HSM. The identifier for the HSM that sits behind the Authlete server. For example, "google".
 	//
 	HsmName *string `json:"hsmName,omitzero" form:"name=hsmName"`
-	// The algorithm of the key on the HSM. When the key use is `"sig"`, the algorithm represents a signing
-	// algorithm such as `"ES256"`. When the key use is `"enc"`, the algorithm represents an encryption
-	// algorithm such as `"RSA-OAEP-256"`.
+	// The algorithm of the key on the HSM. When the key use is `"sig"`, the algorithm represents a signing algorithm such as `"ES256"`. When the key use is `"enc"`, the algorithm represents an encryption algorithm such as `"RSA-OAEP-256"`.
 	//
-	// It is rare that HSMs support all the algorithms listed in [RFC 7518 JSON Web Algorithms (JWA)](https://www.rfc-editor.org/rfc/rfc7518.html).
-	// When the specified algorithm is not supported by the HSM, the request to the `/hsk/create` API
-	// fails.
+	// It is rare that HSMs support all the algorithms listed in [RFC 7518 JSON Web Algorithms (JWA)](https://www.rfc-editor.org/rfc/rfc7518.html). When the specified algorithm is not supported by the HSM, the request to the `/hsk/create` API fails.
 	//
 	Alg *string `json:"alg,omitzero" form:"name=alg"`
 }

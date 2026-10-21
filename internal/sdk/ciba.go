@@ -17,6 +17,7 @@ import (
 	"net/http"
 )
 
+// Ciba - API endpoints for implementing Client-Initiated Backchannel Authentication (CIBA).
 type Ciba struct {
 	rootSDK          *Authlete
 	sdkConfiguration config.SDKConfiguration
@@ -31,11 +32,9 @@ func newCiba(rootSDK *Authlete, sdkConfig config.SDKConfiguration, hooks *hooks.
 	}
 }
 
-// ProcessAuthentication - Process Backchannel Authentication Request
-// This API parses request parameters of a [backchannel authentication request](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#auth_request)
-// and returns necessary data for the authorization server implementation to process the backchannel
-// authentication request further.
-func (s *Ciba) ProcessAuthentication(ctx context.Context, request operations.BackchannelAuthenticationAPIRequest, opts ...operations.Option) (*operations.BackchannelAuthenticationAPIResponse, error) {
+// BackchannelAuthenticationAPI - Process Backchannel Authentication Request
+// This API parses request parameters of a [backchannel authentication request](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#auth_request) and returns necessary data for the authorization server implementation to process the backchannel authentication request further.
+func (s *Ciba) BackchannelAuthenticationAPI(ctx context.Context, request operations.BackchannelAuthenticationAPIRequest, opts ...operations.Option) (*operations.BackchannelAuthenticationAPIResponse, error) {
 	o := operations.Options{}
 	supportedOptions := []string{
 		operations.SupportedOptionRetries,
@@ -308,10 +307,9 @@ func (s *Ciba) ProcessAuthentication(ctx context.Context, request operations.Bac
 
 }
 
-// IssueResponse - Issue Backchannel Authentication Response
-// This API prepares JSON that contains an `auth_req_id`. The JSON should be used as the response body
-// of the response which is returned to the client from the [backchannel authentication endpoint](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#auth_backchannel_endpoint)
-func (s *Ciba) IssueResponse(ctx context.Context, request operations.BackchannelAuthenticationIssueAPIRequest, opts ...operations.Option) (*operations.BackchannelAuthenticationIssueAPIResponse, error) {
+// BackchannelAuthenticationIssueAPI - Issue Backchannel Authentication Response
+// This API prepares JSON that contains an `auth_req_id`. The JSON should be used as the response body of the response which is returned to the client from the [backchannel authentication endpoint](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#auth_backchannel_endpoint)
+func (s *Ciba) BackchannelAuthenticationIssueAPI(ctx context.Context, request operations.BackchannelAuthenticationIssueAPIRequest, opts ...operations.Option) (*operations.BackchannelAuthenticationIssueAPIResponse, error) {
 	o := operations.Options{}
 	supportedOptions := []string{
 		operations.SupportedOptionRetries,
@@ -584,10 +582,9 @@ func (s *Ciba) IssueResponse(ctx context.Context, request operations.Backchannel
 
 }
 
-// FailRequest - Fail Backchannel Authentication Request
-// The API prepares JSON that contains an error. The JSON should be used as the response body of the
-// response which is returned to the client from the [backchannel authentication endpoint](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#auth_backchannel_endpoint).
-func (s *Ciba) FailRequest(ctx context.Context, request operations.BackchannelAuthenticationFailAPIRequest, opts ...operations.Option) (*operations.BackchannelAuthenticationFailAPIResponse, error) {
+// BackchannelAuthenticationFailAPI - Fail Backchannel Authentication Request
+// The API prepares JSON that contains an error. The JSON should be used as the response body of the response which is returned to the client from the [backchannel authentication endpoint](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html#auth_backchannel_endpoint).
+func (s *Ciba) BackchannelAuthenticationFailAPI(ctx context.Context, request operations.BackchannelAuthenticationFailAPIRequest, opts ...operations.Option) (*operations.BackchannelAuthenticationFailAPIResponse, error) {
 	o := operations.Options{}
 	supportedOptions := []string{
 		operations.SupportedOptionRetries,
@@ -860,11 +857,9 @@ func (s *Ciba) FailRequest(ctx context.Context, request operations.BackchannelAu
 
 }
 
-// CompleteRequest - Complete Backchannel Authentication
-// This API returns information about what action the authorization server should take after it receives
-// the result of end-user's decision about whether the end-user has approved or rejected a client application's
-// request on the authentication device.
-func (s *Ciba) CompleteRequest(ctx context.Context, request operations.BackchannelAuthenticationCompleteAPIRequest, opts ...operations.Option) (*operations.BackchannelAuthenticationCompleteAPIResponse, error) {
+// BackchannelAuthenticationCompleteAPI - Complete Backchannel Authentication
+// This API returns information about what action the authorization server should take after it receives the result of end-user's decision about whether the end-user has approved or rejected a client application's request on the authentication device.
+func (s *Ciba) BackchannelAuthenticationCompleteAPI(ctx context.Context, request operations.BackchannelAuthenticationCompleteAPIRequest, opts ...operations.Option) (*operations.BackchannelAuthenticationCompleteAPIResponse, error) {
 	o := operations.Options{}
 	supportedOptions := []string{
 		operations.SupportedOptionRetries,

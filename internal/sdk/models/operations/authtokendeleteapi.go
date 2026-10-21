@@ -12,8 +12,7 @@ import (
 type AuthTokenDeleteAPIRequest struct {
 	// A service ID.
 	ServiceID string `pathParam:"style=simple,explode=false,name=serviceId"`
-	// The identifier of an existing access token. The identifier is the value of the access token
-	// or the value of the hash of the access token.
+	// The identifier of an existing access token. The identifier is the value of the access token or the value of the hash of the access token.
 	//
 	AccessTokenIdentifier string `pathParam:"style=simple,explode=false,name=accessTokenIdentifier"`
 }

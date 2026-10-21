@@ -8,16 +8,13 @@ import (
 )
 
 type ServiceGetListResponse struct {
-	// Start index (inclusive) of the result set. The default value is 0. Must not be a negative
-	// number.
+	// Start index (inclusive) of the result set. The default value is 0. Must not be a negative number.
 	//
 	Start *int `json:"start,omitzero"`
-	// Start index (inclusive) of the result set. The default value is 0. Must not be a negative
-	// number.
+	// Start index (inclusive) of the result set. The default value is 0. Must not be a negative number.
 	//
 	End *int `json:"end,omitzero"`
-	// Total number of services owned by the service owner. This doesn't mean the number of services
-	// contained in the response.
+	// Total number of services owned by the service owner. This doesn't mean the number of services contained in the response.
 	//
 	TotalCount *int `json:"totalCount,omitzero"`
 	// An array of services.

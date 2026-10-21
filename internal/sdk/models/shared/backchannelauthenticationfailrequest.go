@@ -8,9 +8,7 @@ import (
 	"fmt"
 )
 
-// BackchannelAuthenticationFailRequestReason - The reason of the failure of the backchannel authentication request. This request parameter is
-// not mandatory but optional. However, giving this parameter is recommended. If omitted, `SERVER_ERROR`
-// is used as a reason.
+// BackchannelAuthenticationFailRequestReason - The reason of the failure of the backchannel authentication request. This request parameter is not mandatory but optional. However, giving this parameter is recommended. If omitted, `SERVER_ERROR` is used as a reason.
 type BackchannelAuthenticationFailRequestReason string
 
 const (
@@ -59,23 +57,16 @@ func (e *BackchannelAuthenticationFailRequestReason) UnmarshalJSON(data []byte) 
 }
 
 type BackchannelAuthenticationFailRequest struct {
-	// The ticket which should be deleted on a call of Authlete's `/backchannel/authentication/fail` API.
-	// This request parameter is not mandatory but optional. If this request parameter is given and the
-	// ticket belongs to the service, the specified ticket is deleted from the database. Giving this
-	// parameter is recommended to clean up the storage area for the service.
+	// The ticket which should be deleted on a call of Authlete's `/backchannel/authentication/fail` API. This request parameter is not mandatory but optional. If this request parameter is given and the ticket belongs to the service, the specified ticket is deleted from the database. Giving this parameter is recommended to clean up the storage area for the service.
 	//
 	Ticket string `json:"ticket" form:"name=ticket"`
-	// The reason of the failure of the backchannel authentication request. This request parameter is
-	// not mandatory but optional. However, giving this parameter is recommended. If omitted, `SERVER_ERROR`
-	// is used as a reason.
+	// The reason of the failure of the backchannel authentication request. This request parameter is not mandatory but optional. However, giving this parameter is recommended. If omitted, `SERVER_ERROR` is used as a reason.
 	//
 	Reason BackchannelAuthenticationFailRequestReason `json:"reason" form:"name=reason"`
-	// The description of the error. This corresponds to the `error_description` property in the response
-	// to the client.
+	// The description of the error. This corresponds to the `error_description` property in the response to the client.
 	//
 	ErrorDescription *string `json:"errorDescription,omitzero" form:"name=errorDescription"`
-	// The URI of a document which describes the error in detail. If this optional request parameter
-	// is given, its value is used as the value of the `error_uri` property.
+	// The URI of a document which describes the error in detail. If this optional request parameter is given, its value is used as the value of the `error_uri` property.
 	//
 	ErrorURI *string `json:"errorUri,omitzero" form:"name=errorUri"`
 }

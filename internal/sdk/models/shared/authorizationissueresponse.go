@@ -49,36 +49,29 @@ type AuthorizationIssueResponse struct {
 	ResultMessage *string `json:"resultMessage,omitzero"`
 	// The next action that the authorization server implementation should take.
 	Action *AuthorizationIssueResponseAction `json:"action,omitzero"`
-	// The content that the authorization server implementation is to return to the client application.
-	// Its format varies depending on the value of `action` parameter.
+	// The content that the authorization server implementation is to return to the client application. Its format varies depending on the value of `action` parameter.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
-	// The newly issued access token. Note that an access token is issued from an authorization endpoint only
-	// when `response_type` contains token.
+	// The newly issued access token. Note that an access token is issued from an authorization endpoint only when `response_type` contains token.
 	//
 	AccessToken *string `json:"accessToken,omitzero"`
-	// The datetime at which the newly issued access token will expire. The value is represented in milliseconds
-	// since the Unix epoch (1970-01-01).
+	// The datetime at which the newly issued access token will expire. The value is represented in milliseconds since the Unix epoch (1970-01-01).
 	//
 	AccessTokenExpiresAt *int64 `json:"accessTokenExpiresAt,omitzero"`
 	// The duration of the newly issued access token in seconds.
 	//
 	AccessTokenDuration *int64 `json:"accessTokenDuration,omitzero"`
-	// The newly issued ID token. Note that an ID token is issued from an authorization endpoint only
-	// when `response_type` contains `id_token`.
+	// The newly issued ID token. Note that an ID token is issued from an authorization endpoint only when `response_type` contains `id_token`.
 	//
 	IDToken *string `json:"idToken,omitzero"`
-	// The newly issued authorization code. Note that an authorization code is issued only
-	// when `response_type` contains code.
+	// The newly issued authorization code. Note that an authorization code is issued only when `response_type` contains code.
 	//
 	AuthorizationCode *string `json:"authorizationCode,omitzero"`
-	// The newly issued access token in JWT format. If the service is not configured to issue JWT-based access tokens,
-	// this property is always set to `null`.
+	// The newly issued access token in JWT format. If the service is not configured to issue JWT-based access tokens, this property is always set to `null`.
 	//
 	JwtAccessToken *string                  `json:"jwtAccessToken,omitzero"`
 	TicketInfo     *AuthorizationTicketInfo `json:"ticketInfo,omitzero"`
-	// the claims that the user has consented for the client application
-	// to know.
+	// the claims that the user has consented for the client application to know.
 	//
 	ConsentedClaims []string `json:"consentedClaims,omitzero"`
 }

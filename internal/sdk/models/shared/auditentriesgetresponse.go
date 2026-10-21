@@ -8,16 +8,13 @@ import (
 )
 
 type AuditEntriesGetResponse struct {
-	// The audit log entries on this page, in reverse chronological order. Entries sharing the
-	// same timestamp are never split across pages, so a page may contain more than `limit` entries.
+	// The audit log entries on this page, in reverse chronological order. Entries sharing the same timestamp are never split across pages, so a page may contain more than `limit` entries.
 	//
 	Entries []AuditLogEntry `json:"entries,omitzero"`
-	// An opaque cursor pointing at the next page. Pass this value as the `cursor` parameter of the
-	// next request to fetch the following page. Absent or `null` on the last page.
+	// An opaque cursor pointing at the next page. Pass this value as the `cursor` parameter of the next request to fetch the following page. Absent or `null` on the last page.
 	//
 	NextCursor *string `json:"nextCursor,omitzero"`
-	// The effective page size limit applied to this response. May differ from the requested `limit`
-	// if the requested value was outside the allowed range.
+	// The effective page size limit applied to this response. May differ from the requested `limit` if the requested value was outside the allowed range.
 	//
 	Limit *int64 `json:"limit,omitzero"`
 }

@@ -8,8 +8,7 @@ import (
 	"fmt"
 )
 
-// VciDeferredIssueResponseAction - The next action that the implementation of the deferred credential
-// endpoint should take.
+// VciDeferredIssueResponseAction - The next action that the implementation of the deferred credential endpoint should take.
 type VciDeferredIssueResponseAction string
 
 const (
@@ -47,12 +46,10 @@ type VciDeferredIssueResponse struct {
 	ResultCode *string `json:"resultCode,omitzero"`
 	// A short message which explains the result of the API call.
 	ResultMessage *string `json:"resultMessage,omitzero"`
-	// The next action that the implementation of the deferred credential
-	// endpoint should take.
+	// The next action that the implementation of the deferred credential endpoint should take.
 	//
 	Action *VciDeferredIssueResponseAction `json:"action,omitzero"`
-	// The content of the response that the implementation of the deferred
-	// credential endpoint should return.
+	// The content of the response that the implementation of the deferred credential endpoint should return.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
 }
