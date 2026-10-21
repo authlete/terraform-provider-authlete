@@ -1958,11 +1958,12 @@ func (r *ServiceResource) Read(ctx context.Context, req resource.ReadRequest, re
 		resp.Diagnostics.AddError("unexpected response from API", fmt.Sprintf("%v", res))
 		return
 	}
-	if res.StatusCode == 404 {
-		resp.State.RemoveResource(ctx)
-		return
-	}
 	if serviceIsGone(res.RawResponse) { // scripts/patch-missing-service.py
+		if was := movedHost(ctx, req.Private, res.RawResponse); was != "" {
+			summary, detail := goneElsewhereMessage(was, responseHost(res.RawResponse))
+			resp.Diagnostics.AddError(summary, detail)
+			return
+		}
 		resp.State.RemoveResource(ctx)
 		return
 	}
@@ -1970,6 +1971,7 @@ func (r *ServiceResource) Read(ctx context.Context, req resource.ReadRequest, re
 		resp.Diagnostics.AddError(fmt.Sprintf("unexpected response from API. Got an unexpected response code %v", res.StatusCode), debugResponse(res.RawResponse))
 		return
 	}
+	rememberHost(ctx, resp.Private, res.RawResponse) // scripts/patch-missing-service.py
 	if !(res.Service != nil) {
 		resp.Diagnostics.AddError("unexpected response from API. Got an unexpected response body", debugResponse(res.RawResponse))
 		return
@@ -2091,10 +2093,10 @@ func (r *ServiceResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 	switch res.StatusCode {
-	case 204, 404:
+	case 204: // scripts/patch-missing-service.py
 		break
 	default:
-		if serviceIsGone(res.RawResponse) { // scripts/patch-missing-service.py
+		if serviceIsGone(res.RawResponse) {
 			break // already gone, so there is nothing to delete
 		}
 		resp.Diagnostics.AddError(fmt.Sprintf("unexpected response from API. Got an unexpected response code %v", res.StatusCode), debugResponse(res.RawResponse))

@@ -91,3 +91,83 @@ func TestServiceGoneMessage(t *testing.T) {
 		t.Error("detail does not give the wrong-cluster case a concrete shape")
 	}
 }
+
+// The bug these guard: the generated code treated any 404 as "this is gone",
+// and Terraform's answer to gone is to recreate. A proxy, a maintenance page
+// or a typo in server_url all return a 404, usually with HTML.
+func TestA404AloneIsNotProofOfAnythingGone(t *testing.T) {
+	for name, body := range map[string]string{
+		"an nginx error page":   "<html><head><title>404 Not Found</title></head><body>nginx</body></html>",
+		"an empty body":         "",
+		"an unrelated result":   `{"resultCode":"A999999","resultMessage":"[A999999] something else"}`,
+		"a json error object":   `{"error":"not_found"}`,
+		"plain text":            "Not Found",
+		"a different not-found": `{"error":"Client is not found"}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if serviceIsGone(response(http.StatusNotFound, body)) {
+				t.Error("treated as a deleted service, which would recreate it and orphan the original")
+			}
+			if clientIsGone(response(http.StatusNotFound, body)) {
+				t.Error("treated as a deleted client, which would recreate it")
+			}
+		})
+	}
+}
+
+// What Authlete actually says when something is really gone, per endpoint.
+func TestTheBodiesThatDoMeanGone(t *testing.T) {
+	for name, tc := range map[string]struct {
+		status  int
+		body    string
+		service bool
+		client  bool
+	}{
+		"service read, server": {
+			http.StatusForbidden,
+			`{"resultCode":"A458203","resultMessage":"[A458203] (/service/get/) Service not found: entity is null."}`,
+			true, false,
+		},
+		"service delete, IdP": {
+			http.StatusNotFound, `{"error":"Service is not found"}`, true, false,
+		},
+		"client read": {
+			http.StatusNotFound,
+			`{"resultCode":"A001212","resultMessage":"[A001212] /client/get/{clientId}, The client (ID = 1) does not exist."}`,
+			false, true,
+		},
+		"client delete": {
+			http.StatusNotFound, `{"resultCode":"A001214","resultMessage":"[A001214] no such client"}`, false, true,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if got := serviceIsGone(response(tc.status, tc.body)); got != tc.service {
+				t.Errorf("serviceIsGone = %v, want %v", got, tc.service)
+			}
+			if got := clientIsGone(response(tc.status, tc.body)); got != tc.client {
+				t.Errorf("clientIsGone = %v, want %v", got, tc.client)
+			}
+			// A client's path carries the service id, so either answer means
+			// the client is no longer there.
+			if !clientOrServiceIsGone(response(tc.status, tc.body)) {
+				t.Error("clientOrServiceIsGone should accept both")
+			}
+		})
+	}
+}
+
+// A 403 that is not A458203 is a permission problem, not a deletion. Dropping
+// the resource then would plan a second service beside one that still exists.
+func TestA403WithoutTheCodeIsNotGone(t *testing.T) {
+	for name, body := range map[string]string{
+		"insufficient rights": `{"resultCode":"A457101","resultMessage":"[A457101] access token does not have sufficient access."}`,
+		"an html forbidden":   "<html>403 Forbidden</html>",
+		"empty":               "",
+	} {
+		t.Run(name, func(t *testing.T) {
+			if serviceIsGone(response(http.StatusForbidden, body)) {
+				t.Error("a permission failure was read as a deletion")
+			}
+		})
+	}
+}
