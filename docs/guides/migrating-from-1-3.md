@@ -76,6 +76,7 @@ jwk {
   alg      = "RS256"
   use      = "sig"
   generate = true
+  key_size = 2048
 }
 ```
 
@@ -150,9 +151,24 @@ A 1.3.x service usually holds several keys: one or more that `generate = true`
 produced, plus any you supplied as PEM. Writing a `jwks` with only the new key
 deletes the rest.
 
-Read the current set out of state and add to it rather than replacing it:
+First update the provider and rename your configuration for 3.0, leaving the
+service's `jwks` unset while you preserve the existing keys. Save a refresh:
 
 ```shell
+terraform apply -refresh-only
+terraform plan
+```
+
+The refresh reads the existing keys from Authlete and saves state in the new
+schema. Review the refresh before approving it, then expect the plan to show
+no infrastructure changes. A normal `plan` alone does not save the upgraded
+state; exporting it before this step can fail with a schema-version error.
+
+Read the current set out of the refreshed state and add to it rather than
+replacing it:
+
+```shell
+umask 077
 terraform show -json | jq -r '
   .values.root_module.resources[]
   | select(.address == "authlete_service.example")
@@ -185,10 +201,13 @@ write it beside the configuration before Terraform runs.
 If that is more handling than you want, rotate instead of carrying the keys
 over. Generate fresh keys with `tls_private_key`, set `jwks` to those alone,
 and update whichever `*_signature_key_id` attributes name the old ones.
-Nothing is written to a file and nothing has to reach CI. It is a real
-rotation though: setting `jwks` replaces the whole set, so the old keys are
-removed from Authlete, and anything holding a token signed by one of them is
-affected until it fetches the key set again.
+No exported key file is required, but the generated private keys still live
+in Terraform state. It is a real rotation though: setting `jwks` replaces the
+whole set, so the old keys are removed from Authlete. Existing tokens signed
+by those keys stop verifying once a verifier no longer has them cached;
+fetching the new set cannot restore a removed key. To avoid interrupting
+verification, keep the old keys alongside the new ones until the tokens
+signed by the old keys have expired.
 
 Either way, check afterwards that every `*_signature_key_id` on the service
 still names a `kid` that exists in `jwks`. Authlete does not check this, and a
