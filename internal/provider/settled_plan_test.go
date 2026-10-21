@@ -7,6 +7,37 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+func TestImportedKeySetFormattingDoesNotPlanAnUpdate(t *testing.T) {
+	for _, name := range []string{"jwks", "federation_jwks", "credential_jwks"} {
+		t.Run(name, func(t *testing.T) {
+			types := map[string]tftypes.Type{name: tftypes.String, "computed": tftypes.String}
+			state := obj(types, map[string]tftypes.Value{
+				name:       tftypes.NewValue(tftypes.String, `{ "keys": [{"kty":"RSA","kid":"old"}] }`),
+				"computed": tftypes.NewValue(tftypes.String, "assigned"),
+			})
+			for label, tc := range map[string]struct {
+				doc  string
+				want bool
+			}{
+				"formatting only":    {`{"keys":[{"kid":"old","kty":"RSA"}]}`, true},
+				"rotated key":        {`{"keys":[{"kid":"new","kty":"RSA"}]}`, false},
+				"removed key":        {`{"keys":[]}`, false},
+				"malformed document": {`invalid`, false},
+			} {
+				t.Run(label, func(t *testing.T) {
+					plan := obj(types, map[string]tftypes.Value{
+						name:       tftypes.NewValue(tftypes.String, tc.doc),
+						"computed": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+					})
+					if got := onlyUnknownsDiffer(plan, state); got != tc.want {
+						t.Fatalf("same plan = %v, want %v", got, tc.want)
+					}
+				})
+			}
+		})
+	}
+}
+
 func obj(fields map[string]tftypes.Type, values map[string]tftypes.Value) tftypes.Value {
 	return tftypes.NewValue(tftypes.Object{AttributeTypes: fields}, values)
 }

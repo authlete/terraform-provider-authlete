@@ -33,6 +33,7 @@ package provider
 import (
 	"context"
 
+	"github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -141,7 +142,18 @@ func onlyUnknownsDiffer(plan, state tftypes.Value) bool {
 		}
 		for name, pv := range p {
 			sv, ok := s[name]
-			if !ok || !onlyUnknownsDiffer(pv, sv) {
+			if !ok {
+				return false
+			}
+			// Import has no configured spelling of a JWK Set to preserve, so
+			// state initially contains Authlete's JSON formatting. Semantic
+			// equality on the custom type handles refresh, but does not make
+			// raw planned strings equal during planning. Use the same JSON
+			// comparison here before deciding that the import changed a key.
+			if (name == "jwks" || name == "federation_jwks" || name == "credential_jwks") && equivalentKeySets(pv, sv) {
+				continue
+			}
+			if !onlyUnknownsDiffer(pv, sv) {
 				return false
 			}
 		}
@@ -168,4 +180,18 @@ func onlyUnknownsDiffer(plan, state tftypes.Value) bool {
 	default:
 		return plan.Equal(state)
 	}
+}
+
+func equivalentKeySets(plan, state tftypes.Value) bool {
+	if !plan.IsKnown() || !state.IsKnown() || plan.IsNull() || state.IsNull() {
+		return false
+	}
+	var planned, stored string
+	if plan.As(&planned) != nil || state.As(&stored) != nil {
+		return false
+	}
+	same, diags := customtypes.NewJWKSValue(stored).StringSemanticEquals(
+		context.Background(), customtypes.NewJWKSValue(planned),
+	)
+	return !diags.HasError() && same
 }
