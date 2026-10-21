@@ -97,6 +97,21 @@ READ_AFTER = '''	if GONE(res.RawResponse) { MARK
     "\tif !(res.PAYLOAD != nil) {",
     "\trememberHost(ctx, resp.Private, res.RawResponse) " + MARK + "\n\tif !(res.PAYLOAD != nil) {")
 
+# Create records where the resource lives, so a resource created and then
+# looked for on another host is protected before any refresh has been saved.
+# A plan does not save state, so with this on Read alone the review's own
+# repro -- apply, change server_url, plan -- was still unguarded.
+#
+# The anchor is the whole Create block including the call, because Create and
+# Read end with the same status and payload checks. Anchoring on that tail
+# alone matched the already-patched Read and silently did nothing.
+#
+# The host recorded is the configured server_url, stamped on every response by
+# the body-capturing transport, not the host that answered. Service Create is
+# answered by the IdP, and recording that gave login.authlete.com.
+CREATE = {'internal/provider/service_resource.go': ['\tres, err := r.client.Service.Create(ctx, *request, createOptions...)\n\tif err != nil {\n\t\tresp.Diagnostics.AddError("failure to invoke API", err.Error())\n\t\tif res != nil && res.RawResponse != nil {\n\t\t\tresp.Diagnostics.AddError("unexpected http request/response", debugResponse(res.RawResponse))\n\t\t}\n\t\treturn\n\t}\n\tif res == nil {\n\t\tresp.Diagnostics.AddError("unexpected response from API", fmt.Sprintf("%v", res))\n\t\treturn\n\t}\n\tif res.StatusCode != 200 {\n\t\tresp.Diagnostics.AddError(fmt.Sprintf("unexpected response from API. Got an unexpected response code %v", res.StatusCode), debugResponse(res.RawResponse))\n\t\treturn\n\t}\n\tif !(res.Service != nil) {', '\tres, err := r.client.Service.Create(ctx, *request, createOptions...)\n\tif err != nil {\n\t\tresp.Diagnostics.AddError("failure to invoke API", err.Error())\n\t\tif res != nil && res.RawResponse != nil {\n\t\t\tresp.Diagnostics.AddError("unexpected http request/response", debugResponse(res.RawResponse))\n\t\t}\n\t\treturn\n\t}\n\tif res == nil {\n\t\tresp.Diagnostics.AddError("unexpected response from API", fmt.Sprintf("%v", res))\n\t\treturn\n\t}\n\tif res.StatusCode != 200 {\n\t\tresp.Diagnostics.AddError(fmt.Sprintf("unexpected response from API. Got an unexpected response code %v", res.StatusCode), debugResponse(res.RawResponse))\n\t\treturn\n\t}\n\trememberHost(ctx, resp.Private, res.RawResponse) // scripts/patch-missing-service.py\n\tif !(res.Service != nil) {'], 'internal/provider/client_resource.go': ['\tres, err := r.client.ClientManagement.ClientCreateAPI(ctx, *request)\n\tif err != nil {\n\t\tresp.Diagnostics.AddError("failure to invoke API", err.Error())\n\t\tif res != nil && res.RawResponse != nil {\n\t\t\tresp.Diagnostics.AddError("unexpected http request/response", debugResponse(res.RawResponse))\n\t\t}\n\t\treturn\n\t}\n\tif res == nil {\n\t\tresp.Diagnostics.AddError("unexpected response from API", fmt.Sprintf("%v", res))\n\t\treturn\n\t}\n\tswitch res.StatusCode {\n\tcase 200, 201:\n\t\tbreak\n\tdefault:\n\t\tresp.Diagnostics.AddError(fmt.Sprintf("unexpected response from API. Got an unexpected response code %v", res.StatusCode), debugResponse(res.RawResponse))\n\t\treturn\n\t}\n\tif !(res.Client != nil) {', '\tres, err := r.client.ClientManagement.ClientCreateAPI(ctx, *request)\n\tif err != nil {\n\t\tresp.Diagnostics.AddError("failure to invoke API", err.Error())\n\t\tif res != nil && res.RawResponse != nil {\n\t\t\tresp.Diagnostics.AddError("unexpected http request/response", debugResponse(res.RawResponse))\n\t\t}\n\t\treturn\n\t}\n\tif res == nil {\n\t\tresp.Diagnostics.AddError("unexpected response from API", fmt.Sprintf("%v", res))\n\t\treturn\n\t}\n\tswitch res.StatusCode {\n\tcase 200, 201:\n\t\tbreak\n\tdefault:\n\t\tresp.Diagnostics.AddError(fmt.Sprintf("unexpected response from API. Got an unexpected response code %v", res.StatusCode), debugResponse(res.RawResponse))\n\t\treturn\n\t}\n\trememberHost(ctx, resp.Private, res.RawResponse) // scripts/patch-missing-service.py\n\tif !(res.Client != nil) {']}
+
+
 DELETE_PRISTINE = '''	switch res.StatusCode {
 	case 204, 404:
 		break
@@ -113,6 +128,22 @@ DELETE_V1 = '''	switch res.StatusCode {
 # 204 is a delete. Anything else is only a success if the body says the object
 # was already missing; a bare 404 from a proxy is not.
 DELETE_AFTER = '''	switch res.StatusCode {
+	case 204: MARK
+		break
+	default:
+		if GONE(res.RawResponse) {
+			if was := movedHost(ctx, req.Private, res.RawResponse); was != "" {
+				summary, detail := goneElsewhereMessage(was, responseHost(res.RawResponse))
+				resp.Diagnostics.AddError(summary, detail)
+				return
+			}
+			break // already gone, so there is nothing to delete
+		}
+'''.replace("MARK", MARK)
+
+# The same, as the version before the host check left it, so reapplying over
+# an already-patched tree is a no-op rather than a failure.
+DELETE_V2 = '''	switch res.StatusCode {
 	case 204: MARK
 		break
 	default:
@@ -181,9 +212,14 @@ def main():
             fill(READ_AFTER, gone, payload), check, missing)
         sites += ok
 
+        before_create, after_create = CREATE[path]
+        out, ok = apply_one(
+            out, "Create", [before_create], after_create, check, missing)
+        sites += ok
+
         out, ok = apply_one(
             out, "Delete",
-            [DELETE_V1, DELETE_PRISTINE],
+            [fill(DELETE_V2, gone, payload), DELETE_V1, DELETE_PRISTINE],
             fill(DELETE_AFTER, gone, payload), check, missing)
         sites += ok
 

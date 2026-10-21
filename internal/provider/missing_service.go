@@ -70,6 +70,12 @@ func body(res *http.Response) []byte {
 	if res == nil {
 		return nil
 	}
+	// What the transport kept, if it saw this response. The SDK calls
+	// DrainBody on a 404, which is exactly the Delete path, so by the time
+	// anything here looks there is nothing left to read. See captured_body.go.
+	if raw := capturedBody(res); raw != nil {
+		return raw
+	}
 	dump, err := httputil.DumpResponse(res, true)
 	if err != nil {
 		return nil
@@ -116,17 +122,18 @@ func clientOrServiceIsGone(res *http.Response) bool {
 	return clientIsGone(res) || serviceIsGone(res)
 }
 
-// responseHost is the host that answered, which is what "where this resource
-// lives" means in practice.
+// responseHost is the host a resource lives on: the configured server_url,
+// not whichever host happened to answer. Creating a service answers from the
+// IdP while the service itself lives on server_url, so the two differ exactly
+// where getting it wrong is most expensive. See captured_body.go.
 func responseHost(res *http.Response) string {
-	if res == nil || res.Request == nil || res.Request.URL == nil {
-		return ""
-	}
-	return res.Request.URL.Host
+	return resourceHostOf(res)
 }
 
-// rememberHost records where a successful read or create was answered, so a
-// later "gone" can be checked against it.
+// rememberHost records where a resource lives, so a later "gone" can be
+// checked against it. Called from Create as well as Read: a resource created
+// and then looked for on another host, with no refresh in between, was
+// unprotected while this ran on Read alone, and a plan does not save state.
 func rememberHost(ctx context.Context, p interface {
 	SetKey(context.Context, string, []byte) diag.Diagnostics
 }, res *http.Response) {

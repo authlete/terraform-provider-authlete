@@ -280,8 +280,13 @@ func (p *AuthleteProvider) Configure(ctx context.Context, req provider.Configure
 	}
 	// Redaction sits outside the generated logging transport, which records
 	// every request and response body verbatim. See log_redaction.go.
-	httpClient.Transport = NewLogRedactingTransport(
-		NewIdpRoutingTransport(serverUrl, idpHost, apiServerID, organizationID, httpClient.Transport))
+	//
+	// Body capture sits outermost, so it is the last thing to touch a response
+	// before the SDK does. The SDK drains a 404 body, which is what the "is
+	// this gone" checks read. See captured_body.go.
+	httpClient.Transport = NewBodyCapturingTransport(serverUrl,
+		NewLogRedactingTransport(
+			NewIdpRoutingTransport(serverUrl, idpHost, apiServerID, organizationID, httpClient.Transport)))
 
 	opts := []sdk.SDKOption{
 		sdk.WithServerURL(serverUrl),

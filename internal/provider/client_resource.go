@@ -1403,6 +1403,7 @@ func (r *ClientResource) Create(ctx context.Context, req resource.CreateRequest,
 		resp.Diagnostics.AddError(fmt.Sprintf("unexpected response from API. Got an unexpected response code %v", res.StatusCode), debugResponse(res.RawResponse))
 		return
 	}
+	rememberHost(ctx, resp.Private, res.RawResponse) // scripts/patch-missing-service.py
 	if !(res.Client != nil) {
 		resp.Diagnostics.AddError("unexpected response from API. Got an unexpected response body", debugResponse(res.RawResponse))
 		return
@@ -1587,6 +1588,11 @@ func (r *ClientResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		break
 	default:
 		if clientOrServiceIsGone(res.RawResponse) {
+			if was := movedHost(ctx, req.Private, res.RawResponse); was != "" {
+				summary, detail := goneElsewhereMessage(was, responseHost(res.RawResponse))
+				resp.Diagnostics.AddError(summary, detail)
+				return
+			}
 			break // already gone, so there is nothing to delete
 		}
 		resp.Diagnostics.AddError(fmt.Sprintf("unexpected response from API. Got an unexpected response code %v", res.StatusCode), debugResponse(res.RawResponse))

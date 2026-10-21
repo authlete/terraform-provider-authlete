@@ -532,9 +532,14 @@ resource "authlete_service" "s" {
 }
 TF
     ( cd "$workdir" && "$TF" apply -auto-approve -no-color -var "server_url=$AUTHLETE_SERVER_URL" >/dev/null ) || die "apply failed"
-    # A plan does not write state, so the host is recorded by a refresh that does.
-    ( cd "$workdir" && "$TF" apply -refresh-only -auto-approve -no-color -var "server_url=$AUTHLETE_SERVER_URL" >/dev/null ) || die "refresh failed"
-    say "Applied, and the host that answered is recorded."
+    say "Applied. No refresh follows, deliberately."
+
+    # The first version of this test ran "apply -refresh-only" here, because
+    # the host was recorded on Read and a plan does not save state. That extra
+    # step is exactly what hid the hole: a resource created and then looked
+    # for on another host was unprotected, which is the report's own repro.
+    # Create records the host now, so the guard has to hold from here with no
+    # refresh in between. Reviewer found this; the harness had not.
 
     check_refuses() {
       local url=$1 what=$2
@@ -562,6 +567,19 @@ TF
       die "FAIL: a service deleted out of band proposes no change, so it can never be recreated."
     fi
     say "PASS: a genuine deletion still plans for recreation."
+
+    # And the Delete path, which refresh hides. The SDK drains a 404 body, so
+    # the body-based check saw nothing there and a service already deleted in
+    # the console made destroy fail. Only -refresh=false reaches it: with a
+    # refresh, Read drops the resource first and Delete is never called.
+    if ! ( cd "$workdir" && "$TF" destroy -refresh=false -auto-approve -no-color \
+             -var "server_url=$AUTHLETE_SERVER_URL" >"$workdir/destroy.log" 2>&1 ); then
+      sed -n '1,20p' "$workdir/destroy.log" >&2
+      die "FAIL: destroy -refresh=false errors on a service that is already gone.
+  The SDK calls utils.DrainBody on a 404, so serviceIsGone read an empty body.
+  See internal/provider/captured_body.go."
+    fi
+    say "PASS: destroy -refresh=false succeeds on a service already deleted."
     ;;
   statekeys)
     # Items 3 and 7: the key checks used to run on every read of the value,
