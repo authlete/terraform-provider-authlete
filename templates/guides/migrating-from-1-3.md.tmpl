@@ -14,6 +14,30 @@ from you rather than a rename.
 
 Read it before upgrading. Two of these change where your private keys live.
 
+## If 1.3.x has started failing with a bare 400
+
+This is not a migration problem, but it is the first thing people hit, and it
+hits while still on 1.3.x:
+
+```
+Error: 400 Bad Request
+```
+
+1.3.x sends every URI attribute you left unset as an empty string, and Authlete
+now rejects an empty URI with `A031219` where it accepts a missing one. Any
+`apply` that creates or updates a service can fail this way, and the error does
+not name the attribute.
+
+Set the attribute to a real `https` URL to get past it:
+
+```terraform
+federation_registration_endpoint = "https://example.com/federation/register"
+```
+
+`federation_registration_endpoint` is the one usually responsible, but the same
+applies to the other URI attributes. 3.0 sends an unset attribute as absent
+rather than empty, so this stops once you have migrated.
+
 ## Authentication
 
 1.3.x authenticated with a key and secret pair:
@@ -287,6 +311,57 @@ regard to order, so a list Authlete returns rearranged does not show a diff.
 `supported_scopes` on a service is sorted by Authlete and is held the same way,
 matched on scope name rather than on the whole entry, so an edit to a
 description is still a change.
+
+## Attributes that are now read-only
+
+Some attributes that 1.3.x let you set are server-owned in 3.0 and are reported
+rather than configured. Setting one is refused by `terraform validate`, before
+any plan and without a token:
+
+```
+Error: Invalid Configuration for Read-Only Attribute
+
+  with authlete_client.c,
+  on main.tf line 8, in resource "authlete_client" "c":
+   8:   developer   = "someone"
+
+Cannot set value for this attribute as the provider has marked it as
+read-only. Remove the configuration line setting the value.
+```
+
+So this surfaces immediately rather than silently. Remove them from your
+configuration; the values still read back, so anything referring to them keeps
+working.
+
+On a client:
+
+```
+automatically_registered        dynamically_registered
+client_id_alias_enabled         explicitly_registered
+client_registration_types       metadata_document_expires_at
+client_source                   metadata_document_updated_at
+developer                       organization_name
+discovered_by_metadata_document signed_jwks_uri
+                                trust_anchor_id
+                                trust_chain_expires_at
+```
+
+On a service:
+
+```
+client_id_alias_enabled                      metadata
+created_at                                   sns
+developer_authentication_callback_api_secret sns_credentials
+direct_introspection_endpoint_enabled        supported_acrs
+direct_revocation_endpoint_enabled           supported_snses
+direct_user_info_endpoint_enabled            hsks
+key, kty, use                                hsm_name
+```
+
+`developer` is the one most 1.3.x client configurations carry, because the
+examples of the day set it. `client_id_alias_enabled` is deprecated and always
+true. The `direct_*` flags report whether an endpoint is reachable directly and
+were never settable in a way that did anything.
 
 ## What did not change
 
