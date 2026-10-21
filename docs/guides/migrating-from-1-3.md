@@ -147,8 +147,18 @@ jwks = jsonencode({
 })
 ```
 
-That file holds private keys. Treat it as a secret: keep it out of version
-control, and delete it once the migration has been applied.
+That file holds private keys, and the configuration reads it on every plan, so
+it has to stay where Terraform can find it. Do not delete it after the
+migration: `file()` is evaluated every run, and a missing file fails every plan
+and apply from then on.
+
+Treat it as a secret for as long as it exists. Keep it out of version control,
+restrict it to the user Terraform runs as, and give it the same handling as a
+state file, which already holds the same keys.
+
+If leaving private keys on disk is not acceptable, do not carry them over at
+all. Rotate instead, as below: the old keys stay where they are, in Authlete
+and in state, and nothing new is written to a file.
 
 The alternative is to rotate rather than carry over: generate fresh keys with
 `tls_private_key`, apply them, and update whichever `*_signature_key_id`
