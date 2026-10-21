@@ -23,6 +23,7 @@ in effect" warning on every command; that is expected.
 ./run.sh negative    # assert the things that must be refused still are — no token needed
 ./run.sh reorder     # reordering a list already in state must plan nothing
 ./run.sh gone        # only a real deletion may drop a resource from state
+./run.sh statekeys   # keys read back from Authlete must never be rejected
 ./run.sh show        # dump current state
 ```
 
@@ -333,3 +334,34 @@ gone      Plan: 1 to add                 a 404 treated as a deletion
 ```
 
 They need a token and create one real service each, removing it on exit.
+
+## Keys that arrive from the server, not from your configuration
+
+`./run.sh statekeys` covers the other direction: a check that is right about
+configuration and wrong about everything else.
+
+The key checks used to live on the custom type, and the framework calls that
+on every read of the value, state included. So they also judged key sets
+Authlete had handed back, which Terraform never wrote and cannot fix.
+
+| case | why it is legal |
+|---|---|
+| a client key with no `kid` | RFC 7517 makes `kid` optional |
+| a signing and an encryption key sharing a `kid` | they are told apart by `use` |
+| a client carrying `jwks = ""` | v1.3.17 stored that for every client |
+
+The first two are created through the API on purpose, because the provider
+refuses to *write* them and that refusal is correct. The point is that it
+must still *read* them. The third is what a 1.3.17 state upgrade leaves
+behind: `_ = d.Set("jwks", nil)` in its `client.go`.
+
+Against the commit before the fix, the same run gives:
+
+```
+Error: Key without a kid
+Error: Duplicate kid "k"
+Error: JWK Set is not a JSON object
+```
+
+which is every plan broken for anyone upgrading, and for any client
+registered through DCR.

@@ -9,6 +9,7 @@
 #   ./run.sh import      # create a service, import it, and assert the plan is clean
 #   ./run.sh reorder     # reordering a list already in state must plan nothing
 #   ./run.sh gone        # only a real deletion may drop a resource from state
+#   ./run.sh statekeys   # keys read back from Authlete must never be rejected
 #   ./run.sh show        # print current state
 #
 # Terraform finds the Authlete provider through a dev_overrides block written to
@@ -82,8 +83,8 @@ command -v "$TF" >/dev/null 2>&1 || die \
 command -v go >/dev/null 2>&1 || die "go not found on PATH."
 
 case "$MODE" in
-  validate|plan|apply|destroy|show|import|regress|regress-destroy|negative|reorder|gone) ;;
-  *) die "unknown mode '$MODE'. Use one of: validate, plan, apply, destroy, show, import, regress, regress-destroy, negative, reorder, gone" ;;
+  validate|plan|apply|destroy|show|import|regress|regress-destroy|negative|reorder|gone|statekeys) ;;
+  *) die "unknown mode '$MODE'. Use one of: validate, plan, apply, destroy, show, import, regress, regress-destroy, negative, reorder, gone, statekeys" ;;
 esac
 
 # validate and plan for not-yet-created resources need no live credentials, so a
@@ -561,6 +562,134 @@ TF
       die "FAIL: a service deleted out of band proposes no change, so it can never be recreated."
     fi
     say "PASS: a genuine deletion still plans for recreation."
+    ;;
+  statekeys)
+    # Items 3 and 7: the key checks used to run on every read of the value,
+    # state included, because they lived on the custom type. Two consequences,
+    # both of which break a plan rather than a configuration.
+    #
+    # A client registered through the API, or through DCR, may hold a key with
+    # no kid, or a signing and an encryption key sharing one. Both are legal
+    # per RFC 7517 and neither is something Terraform wrote.
+    #
+    # And v1.3.17 stored jwks = "" for every client, which the state upgrader
+    # copies as written, so the malformed-document check rejected it.
+    #
+    # Nothing here is in the configuration, so a validator must never see it.
+    cat <<EOF
+
+  This creates one real service and two clients in the Authlete organization
+  the token belongs to, and removes them again at the end.
+
+EOF
+    if [[ "${ASSUME_YES:-}" != "1" ]]; then
+      read -r -p "Continue? [y/N] " reply
+      [[ "$reply" == "y" || "$reply" == "Y" ]] || die "aborted"
+    fi
+
+    workdir=$(mktemp -d)
+    trap 'say "Removing the probe service"; ( cd "$workdir" && "$TF" destroy -auto-approve -no-color >/dev/null 2>&1 ); rm -rf "$workdir"' EXIT
+
+    cat > "$workdir/main.tf" <<TF
+terraform {
+  required_providers { authlete = { source = "authlete/authlete" } }
+}
+provider "authlete" {
+  organization_id = $AUTHLETE_ORGANIZATION_ID
+}
+resource "authlete_service" "s" {
+  service_name = "${TF_VAR_name_prefix:-tftest}-statekeys"
+  issuer       = "https://statekeys.example.com"
+}
+TF
+    ( cd "$workdir" && "$TF" apply -auto-approve -no-color >/dev/null ) || die "apply failed"
+    SID=$( cd "$workdir" && "$TF" show -json | python3 -c 'import sys,json; print(json.load(sys.stdin)["values"]["root_module"]["resources"][0]["values"]["api_key"])' )
+
+    # The clients are made through the API, because the provider refuses to
+    # write these shapes and that refusal is correct: the point is that it
+    # must still read them back.
+    python3 - "$SID" <<'PY' > "$workdir/clients.json"
+import json, os, sys, urllib.request
+
+# A static public key. Authlete stores a client's key set without checking
+# that the modulus is a real one, and this test is about the shape of the
+# document, not the mathematics, so there is no dependency on a crypto
+# library here.
+def pub():
+    return {"kty": "RSA", "n": "sXchDaQ" + "A" * 335, "e": "AQAB"}
+
+sid = sys.argv[1]
+base = os.environ["AUTHLETE_SERVER_URL"]
+tok = os.environ["AUTHLETE_TOKEN"]
+cases = {
+    "no-kid": {"keys": [dict(pub(), alg="RS256", use="sig")]},
+    "shared-kid": {"keys": [dict(pub(), kid="k", alg="RS256", use="sig"),
+                            dict(pub(), kid="k", alg="RSA-OAEP-256", use="enc")]},
+}
+out = {}
+for name, jwks in cases.items():
+    body = json.dumps({"clientName": "statekeys-" + name, "jwks": json.dumps(jwks)}).encode()
+    req = urllib.request.Request(f"{base}/api/{sid}/client/create", data=body,
+                                 headers={"Authorization": "Bearer " + tok,
+                                          "Content-Type": "application/json"})
+    out[name] = json.load(urllib.request.urlopen(req))["clientId"]
+print(json.dumps(out))
+PY
+    A=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["no-kid"])' "$workdir/clients.json")
+    B=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["shared-kid"])' "$workdir/clients.json")
+    say "Created a client with a kid-less key and one with two keys sharing a kid."
+
+    cat >> "$workdir/main.tf" <<TF
+
+import {
+  to = authlete_client.no_kid
+  id = jsonencode({ client_id = $A, service_id = "$SID" })
+}
+import {
+  to = authlete_client.shared_kid
+  id = jsonencode({ client_id = $B, service_id = "$SID" })
+}
+resource "authlete_client" "no_kid" {
+  service_id  = "$SID"
+  client_name = "statekeys-no-kid"
+}
+resource "authlete_client" "shared_kid" {
+  service_id  = "$SID"
+  client_name = "statekeys-shared-kid"
+}
+TF
+    if ! ( cd "$workdir" && "$TF" apply -auto-approve -no-color >/dev/null 2>&1 ); then
+      ( cd "$workdir" && "$TF" apply -auto-approve -no-color 2>&1 | grep -E "^Error" | head -3 )
+      die "FAIL: a client whose server-side keys are legal could not be imported.
+  These checks belong on an attribute validator, which sees configuration
+  only. On the custom type they run on every read, state included."
+    fi
+    if ! ( cd "$workdir" && "$TF" plan -detailed-exitcode -no-color >/dev/null 2>&1 ); then
+      ( cd "$workdir" && "$TF" plan -no-color 2>&1 | grep -E "^Error|^Plan:" | head -3 )
+      die "FAIL: an imported client does not plan cleanly."
+    fi
+    say "PASS: both import and plan cleanly."
+
+    # What a v1.3.17 upgrade leaves behind, which the upgrader copies as written.
+    python3 - "$workdir/terraform.tfstate" <<'PY'
+import json, sys
+p = sys.argv[1]
+s = json.load(open(p))
+for r in s["resources"]:
+    if r["type"] == "authlete_client":
+        for i in r["instances"]:
+            i["attributes"]["jwks"] = ""
+s["serial"] = s.get("serial", 1) + 1
+json.dump(s, open(p, "w"), indent=2)
+PY
+    if ( cd "$workdir" && "$TF" plan -no-color >/dev/null 2>&1 ); then
+      say 'PASS: a client carrying jwks = "" from a 1.3.17 upgrade still plans.'
+    else
+      ( cd "$workdir" && "$TF" plan -no-color 2>&1 | grep -E "^Error" | head -2 )
+      die 'FAIL: jwks = "" breaks the plan, so every client upgraded from
+  v1.3.17 is stuck. v1.3.17 set it for all of them: see _ = d.Set("jwks", nil)
+  in its client.go.'
+    fi
     ;;
   regress-destroy)
     cd "$TESTING_DIR/regressions"
