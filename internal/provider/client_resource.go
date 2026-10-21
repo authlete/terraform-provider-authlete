@@ -18,6 +18,7 @@ import (
 	stateupgraders "github.com/authlete/terraform-provider-authlete/v3/internal/stateupgraders"
 	custom_listvalidators "github.com/authlete/terraform-provider-authlete/v3/internal/validators/listvalidators"
 	speakeasy_objectvalidators "github.com/authlete/terraform-provider-authlete/v3/internal/validators/objectvalidators"
+	custom_stringvalidators "github.com/authlete/terraform-provider-authlete/v3/internal/validators/stringvalidators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -383,6 +384,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
 					custom_int64planmodifier.UseStateForUnknown(),
+					custom_int64planmodifier.UseStateForUnknown(),
 				},
 				Description: `A client ID.`,
 			},
@@ -434,6 +436,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Computed:  true,
 				Sensitive: true,
 				PlanModifiers: []planmodifier.String{
+					custom_stringplanmodifier.UseStateForUnknown(),
 					custom_stringplanmodifier.UseStateForUnknown(),
 				},
 				MarkdownDescription: `The client secret. A random 512-bit value encoded by base64url (86 letters). The value of this` + "\n" +
@@ -500,6 +503,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"created_at": schema.Int64Attribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.Int64{
+					custom_int64planmodifier.UseStateForUnknown(),
 					custom_int64planmodifier.UseStateForUnknown(),
 				},
 				Description: `The time at which this client was created. The value is represented as milliseconds since the UNIX epoch (1970-01-01).`,
@@ -657,6 +661,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 						Optional: true,
 						PlanModifiers: []planmodifier.List{
 							custom_listplanmodifier.KeepOrderRequestableScopes(),
+							custom_listplanmodifier.KeepOrderRequestableScopes(),
 						},
 						ElementType: types.StringType,
 						MarkdownDescription: `The set of scopes that the client application is allowed to request. This paramter will be one` + "\n" +
@@ -682,10 +687,12 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
 					custom_listplanmodifier.KeepOrderClientFapiModes(),
+					custom_listplanmodifier.KeepOrderClientFapiModes(),
 				},
 				ElementType: types.StringType,
 				Description: `The FAPI modes for this client.`,
 				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
 					custom_listvalidators.ValidEnumValues(),
 				},
 			},
@@ -700,12 +707,14 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
 					custom_listplanmodifier.KeepOrderGrantTypes(),
+					custom_listplanmodifier.KeepOrderGrantTypes(),
 				},
 				ElementType: types.StringType,
 				MarkdownDescription: `A string array of grant types which the client application declares that it will restrict itself to using.` + "\n" +
 					`This property corresponds to ` + "`" + `grant_types` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0,` + "\n" +
 					`2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
 				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
 					custom_listvalidators.ValidEnumValues(),
 				},
 			},
@@ -807,6 +816,9 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 					`The format is described in` + "\n" +
 					`[JSON Web Key (JWK), 5. JWK Set Format](https://datatracker.ietf.org/doc/html/rfc7517#section-5).` + "\n" +
 					`The JWK Set must not include private keys of the client application.`,
+				Validators: []validator.String{
+					custom_stringvalidators.ValidPublicJWKSet(),
+				},
 			},
 			"jwks_uri": schema.StringAttribute{
 				Computed: true,
@@ -886,6 +898,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"number": schema.Int32Attribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.Int32{
+					custom_int32planmodifier.UseStateForUnknown(),
 					custom_int32planmodifier.UseStateForUnknown(),
 				},
 				Description: `The sequential number of the client. The value of this property is assigned by Authlete.`,
@@ -1083,6 +1096,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
 					custom_listplanmodifier.KeepOrderResponseModes(),
+					custom_listplanmodifier.KeepOrderResponseModes(),
 				},
 				ElementType: types.StringType,
 				Description: `The response modes that this client may use.`,
@@ -1092,12 +1106,14 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Optional: true,
 				PlanModifiers: []planmodifier.List{
 					custom_listplanmodifier.KeepOrderResponseTypes(),
+					custom_listplanmodifier.KeepOrderResponseTypes(),
 				},
 				ElementType: types.StringType,
 				MarkdownDescription: `A string array of response types which the client application declares that it will restrict itself to using.` + "\n" +
 					`This property corresponds to ` + "`" + `response_types` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0,` + "\n" +
 					`2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
 				Validators: []validator.List{
+					custom_listvalidators.ValidEnumValues(),
 					custom_listvalidators.ValidEnumValues(),
 				},
 			},
@@ -1130,6 +1146,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"service_number": schema.Int32Attribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.Int32{
+					custom_int32planmodifier.UseStateForUnknown(),
 					custom_int32planmodifier.UseStateForUnknown(),
 				},
 				MarkdownDescription: `The sequential number of the service of the client application. The value of this property is` + "\n" +
@@ -1200,6 +1217,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
 					custom_stringplanmodifier.ClearSupersededTLSClientAuthSanDNS(),
+					custom_stringplanmodifier.ClearSupersededTLSClientAuthSanDNS(),
 				},
 				MarkdownDescription: `The string representation of the expected DNS subject alternative name of the certificate this` + "\n" +
 					`client will use in mutual TLS authentication.` + "\n" +
@@ -1213,6 +1231,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
+					custom_stringplanmodifier.ClearSupersededTLSClientAuthSanEmail(),
 					custom_stringplanmodifier.ClearSupersededTLSClientAuthSanEmail(),
 				},
 				MarkdownDescription: `The string representation of the expected email address subject alternative name of the certificate` + "\n" +
@@ -1228,6 +1247,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
 					custom_stringplanmodifier.ClearSupersededTLSClientAuthSanIP(),
+					custom_stringplanmodifier.ClearSupersededTLSClientAuthSanIP(),
 				},
 				MarkdownDescription: `The string representation of the expected IP address subject alternative name of the certificate` + "\n" +
 					`this client will use in mutual TLS authentication.` + "\n" +
@@ -1242,6 +1262,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
 					custom_stringplanmodifier.ClearSupersededTLSClientAuthSanURI(),
+					custom_stringplanmodifier.ClearSupersededTLSClientAuthSanURI(),
 				},
 				MarkdownDescription: `The string representation of the expected URI subject alternative name of the certificate this` + "\n" +
 					`client will use in mutual TLS authentication.` + "\n" +
@@ -1255,6 +1276,7 @@ func (r *ClientResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				Computed: true,
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
+					custom_stringplanmodifier.ClearSupersededTLSClientAuthSubjectDn(),
 					custom_stringplanmodifier.ClearSupersededTLSClientAuthSubjectDn(),
 				},
 				MarkdownDescription: `The string representation of the expected subject distinguished name of the certificate this` + "\n" +
