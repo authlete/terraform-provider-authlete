@@ -284,7 +284,7 @@ func (p *AuthleteProvider) Configure(ctx context.Context, req provider.Configure
 	// Body capture sits outermost, so it is the last thing to touch a response
 	// before the SDK does. The SDK drains a 404 body, which is what the "is
 	// this gone" checks read. See captured_body.go.
-	httpClient.Transport = NewBodyCapturingTransport(serverUrl,
+	httpClient.Transport = NewBodyCapturingTransport(serverUrl, idpHost, organizationID, apiServerID,
 		NewLogRedactingTransport(
 			NewIdpRoutingTransport(serverUrl, idpHost, apiServerID, organizationID, httpClient.Transport)))
 

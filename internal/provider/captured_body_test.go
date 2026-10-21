@@ -53,7 +53,7 @@ func (o *offline) RoundTrip(req *http.Request) (*http.Response, error) {
 // own identity server.
 func sdkAgainst(t *testing.T, srv *httptest.Server) *sdk.Authlete {
 	host := strings.TrimPrefix(srv.URL, "http://")
-	chain := NewBodyCapturingTransport(srv.URL,
+	chain := NewBodyCapturingTransport(srv.URL, srv.URL, 1, 1,
 		NewIdpRoutingTransport(srv.URL, srv.URL, 1, 1,
 			&offline{allowed: host, t: t, next: http.DefaultTransport}))
 	return sdk.New(
@@ -160,7 +160,7 @@ func TestTheCaptureIsNotVisibleOnTheResponse(t *testing.T) {
 // every genuine deletion read as a move to another host.
 func TestTheResourceHostIsServerURLNotTheAnswerer(t *testing.T) {
 	srv := serverReturning(t, 404, `{"error":"Service is not found"}`)
-	chain := NewBodyCapturingTransport("https://api.example.test",
+	chain := NewBodyCapturingTransport("https://api.example.test", "", 0, 0,
 		&offline{allowed: strings.TrimPrefix(srv.URL, "http://"), t: t, next: http.DefaultTransport})
 
 	req, err := http.NewRequest(http.MethodGet, srv.URL+"/anything", nil)

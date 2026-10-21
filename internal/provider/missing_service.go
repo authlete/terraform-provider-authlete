@@ -36,6 +36,7 @@ package provider
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
@@ -122,32 +123,37 @@ func clientOrServiceIsGone(res *http.Response) bool {
 	return clientIsGone(res) || serviceIsGone(res)
 }
 
-// responseHost is the host a resource lives on: the configured server_url,
-// not whichever host happened to answer. Creating a service answers from the
-// IdP while the service itself lives on server_url, so the two differ exactly
-// where getting it wrong is most expensive. See captured_body.go.
+// responseHost describes where a resource lives: the configured server_url
+// together with the IdP coordinates, not whichever host happened to answer.
+// Creating or deleting a service is answered by the IdP while the service
+// itself lives on server_url, so the two differ exactly where getting it
+// wrong is most expensive. See captured_body.go.
 func responseHost(res *http.Response) string {
-	return resourceHostOf(res)
+	return locationOf(res).Describe()
 }
 
 // rememberHost records where a resource lives, so a later "gone" can be
 // checked against it. Called from Create as well as Read: a resource created
-// and then looked for on another host, with no refresh in between, was
+// and then looked for somewhere else, with no refresh in between, was
 // unprotected while this ran on Read alone, and a plan does not save state.
 func rememberHost(ctx context.Context, p interface {
 	SetKey(context.Context, string, []byte) diag.Diagnostics
 }, res *http.Response) {
-	host := responseHost(res)
-	if host == "" || p == nil {
+	where := locationOf(res)
+	if where.Host == "" || p == nil {
+		return
+	}
+	raw, err := json.Marshal(where)
+	if err != nil {
 		return
 	}
 	// A failure to record only costs the check below, so it is not reported.
-	_ = p.SetKey(ctx, hostKey, []byte(`"`+host+`"`))
+	_ = p.SetKey(ctx, hostKey, raw)
 }
 
-// movedHost returns the remembered host when it differs from the one that
-// just answered. An empty result means there is nothing to object to: either
-// no host was recorded, or it is the same one.
+// movedHost returns a description of the recorded location when it differs
+// from the one that just answered. An empty result means there is nothing to
+// object to: either nothing was recorded, or it is the same place.
 func movedHost(ctx context.Context, p interface {
 	GetKey(context.Context, string) ([]byte, diag.Diagnostics)
 }, res *http.Response) string {
@@ -158,27 +164,60 @@ func movedHost(ctx context.Context, p interface {
 	if diags.HasError() || len(raw) == 0 {
 		return ""
 	}
-	was := string(bytes.Trim(raw, `"`))
-	if was == "" || was == responseHost(res) {
+	was, legacy, ok := decodeLocation(raw)
+	if !ok || was.Host == "" {
 		return ""
 	}
-	return was
+	now := locationOf(res)
+	if legacy {
+		// All an older record holds is the cluster, so that is all it can be
+		// compared on. Comparing the rest would read every upgraded resource
+		// as having moved and refuse every genuine deletion.
+		if was.Host == now.Host {
+			return ""
+		}
+		return was.Describe()
+	}
+	if len(was.Differences(now)) == 0 {
+		return ""
+	}
+	return was.Describe()
 }
 
-// goneElsewhereMessage is raised instead of dropping a resource that is
-// missing from a host other than the one it was last read from. Recreating
-// would leave the original running and unmanaged.
+// decodeLocation reads what rememberHost wrote. State written before the IdP
+// coordinates were recorded holds a bare host string, and must keep working:
+// treating it as unreadable would be harmless, but treating it as a mismatch
+// would refuse every genuine deletion after an upgrade.
+// The second return reports whether the record is the older host-only form,
+// which can only be compared on the cluster.
+func decodeLocation(raw []byte) (where Location, legacy, ok bool) {
+	var host string
+	if err := json.Unmarshal(raw, &host); err == nil && host != "" {
+		return Location{Host: host}, true, true
+	}
+	if err := json.Unmarshal(raw, &where); err == nil && where.Host != "" {
+		return where, false, true
+	}
+	return Location{}, false, false
+}
+
+// goneElsewhereMessage is raised instead of dropping, or silently not
+// deleting, a resource that is missing from somewhere other than where it was
+// last seen. Recreating would leave the original running and unmanaged;
+// reporting a successful destroy would do the same.
 func goneElsewhereMessage(was, now string) (summary, detail string) {
-	return "Resource not found on a different host",
-		fmt.Sprintf("This resource was last read from %s, and %s reports that it "+
+	return "Resource not found in the configured location",
+		fmt.Sprintf("This resource was last seen at %s, and %s reports that it "+
 			"does not exist.\n\n"+
-			"A service id is unique to the cluster that issued it, and a cluster "+
-			"that never had the service answers exactly as one that has deleted "+
-			"it. Terraform cannot tell the two apart, so it will not assume the "+
-			"resource is gone.\n\n"+
-			"If server_url or AUTHLETE_SERVER_URL changed by mistake, put it "+
-			"back. If the move was intended, remove the resource from state and "+
-			"import it from the new host.", was, now)
+			"A service id is unique to the cluster that issued it, and the "+
+			"identity server looks a service up under an organization on an api "+
+			"server. A place that never had the service answers exactly as one "+
+			"that has deleted it, so Terraform cannot tell the two apart and "+
+			"will not assume the resource is gone.\n\n"+
+			"If server_url, idp_host, organization_id or api_server_id changed "+
+			"by mistake, put the old value back. If the move was intended, "+
+			"remove the resource from state and import it where it now lives.",
+			was, now)
 }
 
 // serviceGoneMessage is the diagnostic a data source raises instead of

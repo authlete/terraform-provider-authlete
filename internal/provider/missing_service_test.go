@@ -266,3 +266,80 @@ func TestGoneElsewhereMessageNamesBothHosts(t *testing.T) {
 		}
 	}
 }
+
+// responseAt builds a response the capturing transport has annotated, which
+// is how the provider sees one in practice: the location is the configured
+// one, not the host that answered.
+func responseAt(where Location, status int, body string) *http.Response {
+	res := response(status, body)
+	req, _ := http.NewRequest(http.MethodGet, "https://"+where.Host+"/api/1/service/get", nil)
+	res.Request = req.WithContext(context.WithValue(req.Context(), noteKey{}, &note{where: where}))
+	return res
+}
+
+// Deleting a service goes through the IdP, which looks the service up under
+// an organization on an api server and answers "Service is not found" when
+// any of those is wrong. Comparing the cluster alone missed that: a destroy
+// run against the right cluster with the wrong organization reported success
+// and deleted nothing, leaving the service running and unmanaged.
+//
+// Reported in review, after the cluster check was already in place.
+func TestTheIdpCoordinatesArePartOfWhereAResourceLives(t *testing.T) {
+	ctx := context.Background()
+	lived := Location{Host: "api.authlete.local", IdpHost: "login.authlete.local", Org: 11, API: 53285}
+
+	for _, tc := range []struct {
+		name string
+		now  Location
+		want bool
+	}{
+		{"the same place is not a move", lived, false},
+		{"a different cluster", Location{Host: "us.authlete.com", IdpHost: "login.authlete.local", Org: 11, API: 53285}, true},
+		{"a different identity server", Location{Host: "api.authlete.local", IdpHost: "login.example.test", Org: 11, API: 53285}, true},
+		{"a different organization", Location{Host: "api.authlete.local", IdpHost: "login.authlete.local", Org: 12, API: 53285}, true},
+		{"a different api server", Location{Host: "api.authlete.local", IdpHost: "login.authlete.local", Org: 11, API: 99999}, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			p := &fakePrivate{}
+			rememberHost(ctx, p, responseAt(lived, 200, ""))
+			was := movedHost(ctx, p, responseAt(tc.now, 404, `{"error":"Service is not found"}`))
+			if (was != "") != tc.want {
+				t.Fatalf("movedHost = %q, want a move: %v.\n\n"+
+					"A place that never had the service answers exactly as one that "+
+					"deleted it. Treating that as a deletion orphans the original.",
+					was, tc.want)
+			}
+		})
+	}
+}
+
+// State written before the IdP coordinates were recorded holds a bare host.
+// Treating it as a mismatch would refuse every genuine deletion after an
+// upgrade, which is worse than the gap it closes.
+func TestAHostRecordedByAnEarlierVersionStillWorks(t *testing.T) {
+	ctx := context.Background()
+	p := &fakePrivate{data: map[string][]byte{hostKey: []byte(`"jp.authlete.com"`)}}
+
+	if was := movedHost(ctx, p, responseAt(Location{Host: "jp.authlete.com", Org: 11}, 403, "")); was != "" {
+		t.Errorf("a genuine deletion would be refused after an upgrade: %q", was)
+	}
+	if was := movedHost(ctx, p, responseAt(Location{Host: "us.authlete.com"}, 403, "")); was == "" {
+		t.Error("a changed cluster must still be caught when the record is an old bare host")
+	}
+}
+
+// The message has to name what to put back, not only that something moved.
+func TestTheMessageNamesEveryPartThatCanMove(t *testing.T) {
+	detail := Location{Host: "api.authlete.local", IdpHost: "login.authlete.local", Org: 11, API: 53285}.Describe()
+	for _, want := range []string{"api.authlete.local", "login.authlete.local", "organization 11", "api server 53285"} {
+		if !strings.Contains(detail, want) {
+			t.Errorf("Describe() omits %q:\n%s", want, detail)
+		}
+	}
+	_, msg := goneElsewhereMessage("a", "b")
+	for _, want := range []string{"server_url", "idp_host", "organization_id", "api_server_id"} {
+		if !strings.Contains(msg, want) {
+			t.Errorf("the message does not mention %q, so the reader cannot act on it", want)
+		}
+	}
+}

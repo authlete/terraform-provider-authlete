@@ -28,6 +28,7 @@ package provider
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -48,13 +49,68 @@ type note struct {
 	// a 404 and that is the Delete path.
 	body []byte
 
-	// resourceHost is the host a resource lives on: the configured server_url,
-	// not necessarily the host that answered. Creating a service goes to the
-	// IdP, so the answering host there is login.authlete.com or the customer's
-	// own identity server, while the service lives on server_url. Recording
-	// the answering host on Create was the first version of this, and it
-	// turned every genuine deletion into a reported move.
-	resourceHost string
+	// where is the place this resource lives, as configured, not whichever
+	// host answered. Creating or deleting a service goes to the IdP, so the
+	// answering host there is login.authlete.com or the customer's own
+	// identity server, while the service lives on server_url. Recording the
+	// answering host on Create was the first version of this, and it turned
+	// every genuine deletion into a reported move.
+	where Location
+}
+
+// Location is everything that decides which objects a request can see. The
+// cluster alone is not enough: deleting a service goes through the IdP, which
+// looks the service up under an organization on an api server, and answers
+// "Service is not found" when any of those three is wrong. A destroy run with
+// the wrong organization_id therefore reported success and deleted nothing,
+// which is the same orphaning the cluster check exists to prevent.
+type Location struct {
+	Host    string `json:"host"`
+	IdpHost string `json:"idp_host,omitempty"`
+	Org     int64  `json:"organization_id,omitempty"`
+	API     int64  `json:"api_server_id,omitempty"`
+}
+
+// Describe renders a location for a diagnostic, naming only what is set.
+func (l Location) Describe() string {
+	out := l.Host
+	if out == "" {
+		out = "an unknown host"
+	}
+	var extra []string
+	if l.IdpHost != "" {
+		extra = append(extra, "identity server "+l.IdpHost)
+	}
+	if l.Org != 0 {
+		extra = append(extra, fmt.Sprintf("organization %d", l.Org))
+	}
+	if l.API != 0 {
+		extra = append(extra, fmt.Sprintf("api server %d", l.API))
+	}
+	if len(extra) > 0 {
+		out += " (" + strings.Join(extra, ", ") + ")"
+	}
+	return out
+}
+
+// Differences names the parts that changed, for a message that says what to
+// put back rather than only that something moved.
+func (l Location) Differences(other Location) []string {
+	var out []string
+	for _, c := range []struct {
+		name string
+		a, b string
+	}{
+		{"server_url", l.Host, other.Host},
+		{"idp_host", l.IdpHost, other.IdpHost},
+		{"organization_id", fmt.Sprint(l.Org), fmt.Sprint(other.Org)},
+		{"api_server_id", fmt.Sprint(l.API), fmt.Sprint(other.API)},
+	} {
+		if c.a != c.b {
+			out = append(out, c.name)
+		}
+	}
+	return out
 }
 
 // maxCapturedBody bounds what is held in memory. Authlete's error bodies are a
@@ -65,14 +121,14 @@ const maxCapturedBody = 1 << 20
 // bodyCapturingTransport records the body of any response that failed, so a
 // later reader still has it after the SDK drains it.
 type bodyCapturingTransport struct {
-	resourceHost string
-	next         http.RoundTripper
+	where Location
+	next  http.RoundTripper
 }
 
 // NewBodyCapturingTransport wraps next. It belongs outermost in the chain, as
 // the transport the SDK itself calls, so that it is the last to see a response
 // before the SDK does.
-func NewBodyCapturingTransport(serverURL string, next http.RoundTripper) http.RoundTripper {
+func NewBodyCapturingTransport(serverURL, idpHost string, organizationID, apiServerID int64, next http.RoundTripper) http.RoundTripper {
 	if next == nil {
 		next = http.DefaultTransport
 	}
@@ -80,14 +136,22 @@ func NewBodyCapturingTransport(serverURL string, next http.RoundTripper) http.Ro
 	if u, err := url.Parse(strings.TrimSpace(serverURL)); err == nil {
 		host = u.Host
 	}
-	return &bodyCapturingTransport{resourceHost: host, next: next}
+	return &bodyCapturingTransport{
+		where: Location{
+			Host:    host,
+			IdpHost: strings.TrimSpace(idpHost),
+			Org:     organizationID,
+			API:     apiServerID,
+		},
+		next: next,
+	}
 }
 
 func (t *bodyCapturingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	// RoundTrip must not modify the request it is given, so the note is
 	// attached to a clone. res.Request is that clone, which is how anything
 	// holding the response reaches the note.
-	n := &note{resourceHost: t.resourceHost}
+	n := &note{where: t.where}
 	outgoing := req.Clone(context.WithValue(req.Context(), noteKey{}, n))
 
 	res, err := t.next.RoundTrip(outgoing)
@@ -135,15 +199,15 @@ func capturedBody(res *http.Response) []byte {
 	return nil
 }
 
-// resourceHostOf returns the host the resource lives on: the configured
-// server_url, which is what "where this resource is" means. It falls back to
-// the host that answered, for a response this transport never saw.
-func resourceHostOf(res *http.Response) string {
-	if n := noteOn(res); n != nil && n.resourceHost != "" {
-		return n.resourceHost
+// locationOf returns where the resource this response is about lives, as
+// configured. It falls back to the host that answered, for a response this
+// transport never saw.
+func locationOf(res *http.Response) Location {
+	if n := noteOn(res); n != nil && n.where.Host != "" {
+		return n.where
 	}
 	if res == nil || res.Request == nil || res.Request.URL == nil {
-		return ""
+		return Location{}
 	}
-	return res.Request.URL.Host
+	return Location{Host: res.Request.URL.Host}
 }
