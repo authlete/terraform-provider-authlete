@@ -48,21 +48,16 @@ type BackchannelAuthenticationResponse struct {
 	ResultMessage *string `json:"resultMessage,omitzero"`
 	// The next action that the authorization server implementation should take.
 	Action *BackchannelAuthenticationResponseAction `json:"action,omitzero"`
-	// The content that the authorization server implementation is to return to the client
-	// application. Its format varies depending on the value of `action` parameter.
+	// The content that the authorization server implementation is to return to the client application. Its format varies depending on the value of `action` parameter.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
-	// The client ID of the client application that has made the backchannel authentication
-	// request.
+	// The client ID of the client application that has made the backchannel authentication request.
 	//
 	ClientID *int64 `json:"clientId,omitzero"`
-	// The client ID alias of the client application that has made the backchannel authentication
-	// request.
+	// The client ID alias of the client application that has made the backchannel authentication request.
 	//
 	ClientIDAlias *string `json:"clientIdAlias,omitzero"`
-	// `true` if the value of the client_id request parameter included in the backchannel
-	// authentication request is the client ID alias. `false` if the value is the original
-	// numeric client ID.
+	// `true` if the value of the client_id request parameter included in the backchannel authentication request is the client ID alias. `false` if the value is the original numeric client ID.
 	//
 	ClientIDAliasUsed *bool `json:"clientIdAliasUsed,omitzero"`
 	// The name of the client application which has made the backchannel authentication request.
@@ -71,9 +66,7 @@ type BackchannelAuthenticationResponse struct {
 	// The scopes requested by the backchannel authentication request.
 	//
 	Scopes []Scope `json:"scopes,omitzero"`
-	// The names of the claims which were requested indirectly via some special scopes.
-	// See [5.4. Requesting Claims using Scope Values](https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims)
-	// in OpenID Connect Core 1.0 for details.
+	// The names of the claims which were requested indirectly via some special scopes. See [5.4. Requesting Claims using Scope Values](https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) in OpenID Connect Core 1.0 for details.
 	//
 	ClaimNames []string `json:"claimNames,omitzero"`
 	// The client notification token included in the backchannel authentication request.
@@ -81,11 +74,7 @@ type BackchannelAuthenticationResponse struct {
 	ClientNotificationToken *string `json:"clientNotificationToken,omitzero"`
 	// The list of ACR values requested by the backchannel authentication request.
 	//
-	// Basically, this property holds the value of the `acr_values` request parameter in the
-	// backchannel authentication request. However, because unsupported ACR values are dropped
-	// on Authlete side, if the `acr_values` request parameter contains unrecognized ACR values,
-	// the list returned by this property becomes different from the value of the `acr_values`
-	// request parameter.
+	// Basically, this property holds the value of the `acr_values` request parameter in the backchannel authentication request. However, because unsupported ACR values are dropped on Authlete side, if the `acr_values` request parameter contains unrecognized ACR values, the list returned by this property becomes different from the value of the `acr_values` request parameter.
 	//
 	Acrs []string `json:"acrs,omitzero"`
 	// The type of the hint for end-user identification which was included in the backchannel authentication request.
@@ -105,10 +94,7 @@ type BackchannelAuthenticationResponse struct {
 	UserCode *string `json:"userCode,omitzero"`
 	// The flag which indicates whether a user code is required.
 	//
-	// `true` when both the `backchannel_user_code_parameter` metadata of the client (= Client's
-	// `bcUserCodeRequired` property) and the `backchannel_user_code_parameter_supported`
-	// metadata of the service (= Service's `backchannelUserCodeParameterSupported` property)
-	// are `true`.
+	// `true` when both the `backchannel_user_code_parameter` metadata of the client (= Client's `bcUserCodeRequired` property) and the `backchannel_user_code_parameter_supported` metadata of the service (= Service's `backchannelUserCodeParameterSupported` property) are `true`.
 	//
 	UserCodeRequired *bool `json:"userCodeRequired,omitzero"`
 	// The requested expiry for the authentication request ID (`auth_req_id`).
@@ -116,8 +102,7 @@ type BackchannelAuthenticationResponse struct {
 	RequestedExpiry *int `json:"requestedExpiry,omitzero"`
 	// The request context of the backchannel authentication request.
 	//
-	// It is the value of the request_context claim in the signed authentication request and
-	// its format is JSON. request_context is a new claim added by the FAPI-CIBA profile.
+	// It is the value of the request_context claim in the signed authentication request and its format is JSON. request_context is a new claim added by the FAPI-CIBA profile.
 	//
 	RequestContext *string `json:"requestContext,omitzero"`
 	// The warnings raised during processing the backchannel authentication request.
@@ -128,14 +113,10 @@ type BackchannelAuthenticationResponse struct {
 	// This parameter has a value only if the value of `grant_type` request parameter is `password` and the token request is valid.
 	//
 	Ticket *string `json:"ticket,omitzero"`
-	// The resources specified by the `resource` request parameters or by the `resource` property
-	// in the request object. If both are given, the values in the request object should be
-	// set. See "Resource Indicators for OAuth 2.0" for details.
+	// The resources specified by the `resource` request parameters or by the `resource` property in the request object. If both are given, the values in the request object should be set. See "Resource Indicators for OAuth 2.0" for details.
 	//
 	Resources []string `json:"resources,omitzero"`
-	// The authorization details. This represents the value of the `authorization_details`
-	// request parameter in the preceding device authorization request which is defined in
-	// "OAuth 2.0 Rich Authorization Requests".
+	// The authorization details. This represents the value of the `authorization_details` request parameter in the preceding device authorization request which is defined in "OAuth 2.0 Rich Authorization Requests".
 	//
 	AuthorizationDetails *AuthzDetails `json:"authorizationDetails,omitzero"`
 	// The attributes of this service that the client application belongs to.
@@ -153,35 +134,16 @@ type BackchannelAuthenticationResponse struct {
 	ClientAuthMethod *string `json:"clientAuthMethod,omitzero"`
 	// The grant management action of the device authorization request.
 	//
-	// The `grant_management_action` request parameter is defined in
-	// [Grant Management for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html).
+	// The `grant_management_action` request parameter is defined in [Grant Management for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html).
 	//
 	GmAction *GrantManagementAction `json:"gmAction,omitzero"`
 	// the value of the `grant_id` request parameter of the device authorization request.
 	//
-	// The `grant_id` request parameter is defined in
-	// [Grant Management for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html)
-	// , which is supported by Authlete 2.3 and newer versions.
+	// The `grant_id` request parameter is defined in [Grant Management for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html) , which is supported by Authlete 2.3 and newer versions.
 	//
 	GrantID *string `json:"grantId,omitzero"`
 	Grant   *Grant  `json:"grant,omitzero"`
-	// The subject identifying the user who has given the grant identified
-	// by the `grant_id` request parameter of the device authorization
-	// request.
-	// Authlete 2.3 and newer versions support [Grant Management
-	// for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html). An authorization request may contain a `grant_id`
-	// request parameter which is defined in the specification. If the value of
-	// the request parameter is valid, &#123;@link #getGrantSubject()&#125; will return
-	// the subject of the user who has given the grant to the client application.
-	// Authorization server implementations may use the value returned from
-	// &#123;@link #getGrantSubject()&#125; in order to determine the user to authenticate.
-	// The user your system will authenticate during the authorization process
-	// (or has already authenticated) may be different from the user of the
-	// grant. The first implementer's draft of "Grant Management for OAuth 2.0"
-	// does not mention anything about the case, so the behavior in the case is
-	// left to implementations. Authlete will not perform the grant management
-	// action when the `subject` passed to Authlete does not match the
-	// user of the grant.
+	// The subject identifying the user who has given the grant identified by the `grant_id` request parameter of the device authorization request. Authlete 2.3 and newer versions support [Grant Management for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html). An authorization request may contain a `grant_id` request parameter which is defined in the specification. If the value of the request parameter is valid, &#123;@link #getGrantSubject()&#125; will return the subject of the user who has given the grant to the client application. Authorization server implementations may use the value returned from &#123;@link #getGrantSubject()&#125; in order to determine the user to authenticate. The user your system will authenticate during the authorization process (or has already authenticated) may be different from the user of the grant. The first implementer's draft of "Grant Management for OAuth 2.0" does not mention anything about the case, so the behavior in the case is left to implementations. Authlete will not perform the grant management action when the `subject` passed to Authlete does not match the user of the grant.
 	//
 	GrantSubject *string `json:"grantSubject,omitzero"`
 	// The entity ID of the client.

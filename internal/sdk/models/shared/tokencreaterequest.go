@@ -13,34 +13,24 @@ type TokenCreateRequest struct {
 	// The ID of the client application which will be associated with a newly created access token.
 	//
 	ClientID *int64 `json:"clientId,omitzero" form:"name=clientId"`
-	// The subject (= unique identifier) of the user who will be associated with a newly created access
-	// token. This parameter is required unless the grant type is `CLIENT_CREDENTIALS`. The value must
-	// consist of only ASCII characters and its length must not exceed 100.
+	// The subject (= unique identifier) of the user who will be associated with a newly created access token. This parameter is required unless the grant type is `CLIENT_CREDENTIALS`. The value must consist of only ASCII characters and its length must not exceed 100.
 	//
 	Subject *string `json:"subject,omitzero" form:"name=subject"`
-	// The scopes which will be associated with a newly created access token. Scopes that are not supported
-	// by the service cannot be specified and requesting them will cause an error.
+	// The scopes which will be associated with a newly created access token. Scopes that are not supported by the service cannot be specified and requesting them will cause an error.
 	//
 	Scopes []string `json:"scopes,omitzero" form:"name=scopes"`
-	// The duration of a newly created access token in seconds. If the value is 0, the duration is determined
-	// according to the settings of the service.
+	// The duration of a newly created access token in seconds. If the value is 0, the duration is determined according to the settings of the service.
 	//
 	AccessTokenDuration *int64 `json:"accessTokenDuration,omitzero" form:"name=accessTokenDuration"`
-	// The duration of a newly created refresh token in seconds. If the value is 0, the duration is
-	// determined according to the settings of the service.
+	// The duration of a newly created refresh token in seconds. If the value is 0, the duration is determined according to the settings of the service.
 	//
-	// A refresh token is not created (1) if the service does not support `REFRESH_TOKEN`, or (2) if the
-	// specified grant type is either `IMPLICIT`or `CLIENT_CREDENTIALS`.
+	// A refresh token is not created (1) if the service does not support `REFRESH_TOKEN`, or (2) if the specified grant type is either `IMPLICIT`or `CLIENT_CREDENTIALS`.
 	//
 	RefreshTokenDuration *int64 `json:"refreshTokenDuration,omitzero" form:"name=refreshTokenDuration"`
-	// Extra properties to associate with a newly created access token. Note that properties parameter
-	// is accepted only when the HTTP method of the request is POST and Content-Type of the request is
-	// `application/json`, so don't use `GET` method or `application/x-www-form-urlencoded` if you want
-	// to specify properties.
+	// Extra properties to associate with a newly created access token. Note that properties parameter is accepted only when the HTTP method of the request is POST and Content-Type of the request is `application/json`, so don't use `GET` method or `application/x-www-form-urlencoded` if you want to specify properties.
 	//
 	Properties []Property `json:"properties,omitzero" form:"name=properties,json"`
-	// A boolean request parameter which indicates whether to emulate that the client ID alias is used
-	// instead of the original numeric client ID when a new access token is created.
+	// A boolean request parameter which indicates whether to emulate that the client ID alias is used instead of the original numeric client ID when a new access token is created.
 	//
 	ClientIDAliasUsed *bool `json:"clientIdAliasUsed,omitzero" form:"name=clientIdAliasUsed"`
 	// The value of the new access token.
@@ -49,43 +39,30 @@ type TokenCreateRequest struct {
 	// The value of the new refresh token.
 	//
 	RefreshToken *string `json:"refreshToken,omitzero" form:"name=refreshToken"`
-	// Get whether the access token expires or not. By default, all access tokens expire after a period
-	// of time determined by their service.
+	// Get whether the access token expires or not. By default, all access tokens expire after a period of time determined by their service.
 	//
-	// If this request parameter is `true`, then the access token will not automatically expire and must
-	// be revoked or deleted manually at the service. If this request parameter is true, the `accessTokenDuration`
-	// request parameter is ignored.
+	// If this request parameter is `true`, then the access token will not automatically expire and must be revoked or deleted manually at the service. If this request parameter is true, the `accessTokenDuration` request parameter is ignored.
 	//
 	AccessTokenPersistent *bool `json:"accessTokenPersistent,omitzero" form:"name=accessTokenPersistent"`
-	// The thumbprint of the MTLS certificate bound to this token. If this property is set, a certificate
-	// with the corresponding value MUST be presented with the access token when it is used by a client.
-	// The value of this property must be a SHA256 certificate thumbprint, base64url encoded.
+	// The thumbprint of the MTLS certificate bound to this token. If this property is set, a certificate with the corresponding value MUST be presented with the access token when it is used by a client. The value of this property must be a SHA256 certificate thumbprint, base64url encoded.
 	//
 	CertificateThumbprint *string `json:"certificateThumbprint,omitzero" form:"name=certificateThumbprint"`
-	// The thumbprint of the public key used for DPoP presentation of this token. If this property is
-	// set, a DPoP proof signed with the corresponding private key MUST be presented with the access
-	// token when it is used by a client. Additionally, the token's `token_type` will be set to 'DPoP'.
+	// The thumbprint of the public key used for DPoP presentation of this token. If this property is set, a DPoP proof signed with the corresponding private key MUST be presented with the access token when it is used by a client. Additionally, the token's `token_type` will be set to 'DPoP'.
 	//
 	DpopKeyThumbprint *string `json:"dpopKeyThumbprint,omitzero" form:"name=dpopKeyThumbprint"`
-	// The authorization details. This represents the value of the `authorization_details`
-	// request parameter in the preceding device authorization request which is defined in
-	// "OAuth 2.0 Rich Authorization Requests".
+	// The authorization details. This represents the value of the `authorization_details` request parameter in the preceding device authorization request which is defined in "OAuth 2.0 Rich Authorization Requests".
 	//
 	AuthorizationDetails *AuthzDetails `json:"authorizationDetails,omitzero" form:"name=authorizationDetails,json"`
-	// The value of the resources to associate with the token. This property represents the value of
-	// one or more `resource` request parameters which is defined in "RFC8707 Resource Indicators for
-	// OAuth 2.0".
+	// The value of the resources to associate with the token. This property represents the value of one or more `resource` request parameters which is defined in "RFC8707 Resource Indicators for OAuth 2.0".
 	//
 	Resources []string `json:"resources,omitzero" form:"name=resources"`
-	// the flag which indicates whether the access token is for an external
-	// attachment.
+	// the flag which indicates whether the access token is for an external attachment.
 	//
 	ForExternalAttachment *bool `json:"forExternalAttachment,omitzero" form:"name=forExternalAttachment"`
 	// Additional claims that are added to the payload part of the JWT access token.
 	//
 	JwtAtClaims *string `json:"jwtAtClaims,omitzero" form:"name=jwtAtClaims"`
-	// The Authentication Context Class Reference of the user authentication that the authorization server performed
-	// during the course of issuing the access token.
+	// The Authentication Context Class Reference of the user authentication that the authorization server performed during the course of issuing the access token.
 	//
 	Acr *string `json:"acr,omitzero" form:"name=acr"`
 	// The time when the user authentication was performed during the course of issuing the access token.
@@ -97,8 +74,7 @@ type TokenCreateRequest struct {
 	// The client Identifier associated with the newly issued access token.
 	//
 	ClientIdentifier *string `json:"clientIdentifier,omitzero" form:"name=clientIdentifier"`
-	// The session ID, which is the ID of the user's authentication session, associated with a newly
-	// created access token.
+	// The session ID, which is the ID of the user's authentication session, associated with a newly created access token.
 	//
 	SessionID *string `json:"sessionId,omitzero" form:"name=sessionId"`
 	// Flag indicating whether a metadata document was used to resolve client metadata for this request.

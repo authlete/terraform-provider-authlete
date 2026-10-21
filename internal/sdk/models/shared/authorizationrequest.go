@@ -7,19 +7,14 @@ import (
 )
 
 type AuthorizationRequest struct {
-	// OAuth 2.0 authorization request parameters which are the request parameters that the OAuth 2.0 authorization endpoint of
-	// the authorization server implementation received from the client application.
+	// OAuth 2.0 authorization request parameters which are the request parameters that the OAuth 2.0 authorization endpoint of the authorization server implementation received from the client application.
 	//
-	// The value of parameters is either (1) the entire query string when the HTTP method of the request from the client application is `GET`
-	// or (2) the entire entity body (which is formatted in `application/x-www-form-urlencoded`) when the HTTP method of the request from
-	// the client application is `POST`.
+	// The value of parameters is either (1) the entire query string when the HTTP method of the request from the client application is `GET` or (2) the entire entity body (which is formatted in `application/x-www-form-urlencoded`) when the HTTP method of the request from the client application is `POST`.
 	//
 	Parameters string `json:"parameters" form:"name=parameters"`
-	// The arbitrary text to be attached to the ticket that will be issued from the `/auth/authorization`
-	// API.
+	// The arbitrary text to be attached to the ticket that will be issued from the `/auth/authorization` API.
 	//
-	// The text can be retrieved later by the `/auth/authorization/ticket/info` API and can be updated
-	// by the `/auth/authorization/ticket/update` API.
+	// The text can be retrieved later by the `/auth/authorization/ticket/info` API and can be updated by the `/auth/authorization/ticket/update` API.
 	//
 	// The text will be compressed and encrypted when it is saved in the Authlete database.
 	//

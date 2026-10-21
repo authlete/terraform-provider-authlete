@@ -53,8 +53,7 @@ type UserinfoIssueResponse struct {
 	ResultMessage *string `json:"resultMessage,omitzero"`
 	// The next action that the authorization server implementation should take.
 	Action *UserinfoIssueResponseAction `json:"action,omitzero"`
-	// The content that the authorization server implementation can use as the value of `WWW-Authenticate`
-	// header on errors.
+	// The content that the authorization server implementation can use as the value of `WWW-Authenticate` header on errors.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
 	// The signature header of the response message.

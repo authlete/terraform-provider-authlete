@@ -7,8 +7,7 @@ import (
 	"fmt"
 )
 
-// AuthorizationFailRequestReason - The reason of the failure of the authorization request.
-// For more details, see [NO_INTERACTION] in the description of `/auth/authorization` API.
+// AuthorizationFailRequestReason - The reason of the failure of the authorization request. For more details, see [NO_INTERACTION] in the description of `/auth/authorization` API.
 type AuthorizationFailRequestReason string
 
 const (
@@ -25,6 +24,9 @@ const (
 	AuthorizationFailRequestReasonConsentRequired          AuthorizationFailRequestReason = "CONSENT_REQUIRED"
 	AuthorizationFailRequestReasonInteractionRequired      AuthorizationFailRequestReason = "INTERACTION_REQUIRED"
 	AuthorizationFailRequestReasonInvalidTarget            AuthorizationFailRequestReason = "INVALID_TARGET"
+	AuthorizationFailRequestReasonTemporarilyUnavailable   AuthorizationFailRequestReason = "TEMPORARILY_UNAVAILABLE"
+	AuthorizationFailRequestReasonInvalidScope             AuthorizationFailRequestReason = "INVALID_SCOPE"
+	AuthorizationFailRequestReasonUnauthorizedClient       AuthorizationFailRequestReason = "UNAUTHORIZED_CLIENT"
 )
 
 func (e AuthorizationFailRequestReason) ToPointer() *AuthorizationFailRequestReason {
@@ -61,6 +63,12 @@ func (e *AuthorizationFailRequestReason) UnmarshalJSON(data []byte) error {
 	case "INTERACTION_REQUIRED":
 		fallthrough
 	case "INVALID_TARGET":
+		fallthrough
+	case "TEMPORARILY_UNAVAILABLE":
+		fallthrough
+	case "INVALID_SCOPE":
+		fallthrough
+	case "UNAUTHORIZED_CLIENT":
 		*e = AuthorizationFailRequestReason(v)
 		return nil
 	default:
@@ -72,8 +80,7 @@ type AuthorizationFailRequest struct {
 	// The ticket issued from Authlete `/auth/authorization` API.
 	//
 	Ticket string `json:"ticket" form:"name=ticket"`
-	// The reason of the failure of the authorization request.
-	// For more details, see [NO_INTERACTION] in the description of `/auth/authorization` API.
+	// The reason of the failure of the authorization request. For more details, see [NO_INTERACTION] in the description of `/auth/authorization` API.
 	//
 	Reason AuthorizationFailRequestReason `json:"reason" form:"name=reason"`
 	// The custom description about the authorization failure.

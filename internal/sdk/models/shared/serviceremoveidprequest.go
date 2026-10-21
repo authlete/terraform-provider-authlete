@@ -3,9 +3,7 @@
 package shared
 
 type ServiceRemoveIdpRequest struct {
-	// The numeric ID of the API server the service belongs to. Official SDKs inject
-	// this automatically for known Authlete clusters, so it can be omitted there;
-	// all other callers must provide it.
+	// The numeric ID of the API server the service belongs to. Official SDKs inject this automatically for known Authlete clusters, so it can be omitted there; all other callers must provide it.
 	//
 	APIServerID *int64 `json:"apiServerId,omitzero"`
 	// The numeric ID of the organization the service belongs to.

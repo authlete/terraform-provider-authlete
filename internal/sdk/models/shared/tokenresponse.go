@@ -63,20 +63,15 @@ type TokenResponse struct {
 	ResultMessage *string `json:"resultMessage,omitzero"`
 	// The next action that the authorization server implementation should take.
 	Action *TokenResponseAction `json:"action,omitzero"`
-	// The content that the authorization server implementation is to return to the client application.
-	// Its format varies depending on the value of `action` parameter.
+	// The content that the authorization server implementation is to return to the client application. Its format varies depending on the value of `action` parameter.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
-	// The value of `username` request parameter in the token request.
-	// The client application must specify username when it uses [Resource Owner Password Grant](https://datatracker.ietf.org/doc/html/rfc6749#section-4.3).
-	// In other words, when the value of `grant_type` request parameter is `password`, `username` request parameter must come along.
+	// The value of `username` request parameter in the token request. The client application must specify username when it uses [Resource Owner Password Grant](https://datatracker.ietf.org/doc/html/rfc6749#section-4.3). In other words, when the value of `grant_type` request parameter is `password`, `username` request parameter must come along.
 	//
 	// This parameter has a value only if the value of `grant_type` request parameter is `password` and the token request is valid.
 	//
 	Username *string `json:"username,omitzero"`
-	// The value of `password` request parameter in the token request.
-	// The client application must specify password when it uses [Resource Owner Password Grant](https://datatracker.ietf.org/doc/html/rfc6749#section-4.3).
-	// In other words, when the value of `grant_type` request parameter is `password`, `password` request parameter must come along.
+	// The value of `password` request parameter in the token request. The client application must specify password when it uses [Resource Owner Password Grant](https://datatracker.ietf.org/doc/html/rfc6749#section-4.3). In other words, when the value of `grant_type` request parameter is `password`, `password` request parameter must come along.
 	//
 	// This parameter has a value only if the value of `grant_type` request parameter is `password` and the token request is valid.
 	//
@@ -88,64 +83,49 @@ type TokenResponse struct {
 	Ticket *string `json:"ticket,omitzero"`
 	// The newly issued access token.
 	AccessToken *string `json:"accessToken,omitzero"`
-	// The datetime at which the newly issued access token will expire.
-	// The value is represented in milliseconds since the Unix epoch (1970-01-01).
+	// The datetime at which the newly issued access token will expire. The value is represented in milliseconds since the Unix epoch (1970-01-01).
 	//
 	AccessTokenExpiresAt *int64 `json:"accessTokenExpiresAt,omitzero"`
 	// The duration of the newly issued access token in seconds.
 	AccessTokenDuration *int64 `json:"accessTokenDuration,omitzero"`
 	// The newly issued refresh token.
 	RefreshToken *string `json:"refreshToken,omitzero"`
-	// The datetime at which the newly issued refresh token will expire.
-	// The value is represented in milliseconds since the Unix epoch (1970-01-01).
+	// The datetime at which the newly issued refresh token will expire. The value is represented in milliseconds since the Unix epoch (1970-01-01).
 	//
 	RefreshTokenExpiresAt *int64 `json:"refreshTokenExpiresAt,omitzero"`
 	// The duration of the newly issued refresh token in seconds.
 	RefreshTokenDuration *int64 `json:"refreshTokenDuration,omitzero"`
-	// The newly issued ID token. Note that an ID token is issued from a token endpoint only when the `response_type` request parameter
-	// of the authorization request to an authorization endpoint has contained `code` and the `scope` request parameter has contained `openid`.
+	// The newly issued ID token. Note that an ID token is issued from a token endpoint only when the `response_type` request parameter of the authorization request to an authorization endpoint has contained `code` and the `scope` request parameter has contained `openid`.
 	//
 	IDToken *string `json:"idToken,omitzero"`
 	// The grant type of the token request.
 	GrantType *string `json:"grantType,omitzero"`
 	// The client ID.
 	ClientID *int64 `json:"clientId,omitzero"`
-	// The client ID alias when the token request was made. If the client did not have an alias, this parameter is `null`.
-	// Also, if the token request was invalid and it failed to identify a client, this parameter is `null`.
+	// The client ID alias when the token request was made. If the client did not have an alias, this parameter is `null`. Also, if the token request was invalid and it failed to identify a client, this parameter is `null`.
 	//
 	ClientIDAlias *string `json:"clientIdAlias,omitzero"`
-	// The flag which indicates whether the client ID alias was used when the token request was made.
-	// `true` if the client ID alias was used when the token request was made.
+	// The flag which indicates whether the client ID alias was used when the token request was made. `true` if the client ID alias was used when the token request was made.
 	//
 	ClientIDAliasUsed *bool `json:"clientIdAliasUsed,omitzero"`
-	// The subject (= resource owner's ID) of the access token.
-	// Even if an access token has been issued by the call of `/api/auth/token` API, this parameter is `null` if the flow of the token request was
-	// [Client Credentials Flow](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4) (`grant_type=client_credentials`) because it means the access token
-	// is not associated with any specific end-user.
+	// The subject (= resource owner's ID) of the access token. Even if an access token has been issued by the call of `/api/auth/token` API, this parameter is `null` if the flow of the token request was [Client Credentials Flow](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4) (`grant_type=client_credentials`) because it means the access token is not associated with any specific end-user.
 	//
 	Subject *string `json:"subject,omitzero"`
 	// The scopes covered by the access token.
 	Scopes []string `json:"scopes,omitzero"`
-	// The extra properties associated with the access token.
-	// This parameter is `null` when no extra property is associated with the issued access token.
+	// The extra properties associated with the access token. This parameter is `null` when no extra property is associated with the issued access token.
 	//
 	Properties []Property `json:"properties,omitzero"`
-	// The newly issued access token in JWT format. If the authorization server is configured
-	// to issue JWT-based access tokens (= if the service's `accessTokenSignAlg` value is a
-	// non-null value), a JWT-based access token is issued along with the original random-string
-	// one.
+	// The newly issued access token in JWT format. If the authorization server is configured to issue JWT-based access tokens (= if the service's `accessTokenSignAlg` value is a non-null value), a JWT-based access token is issued along with the original random-string one.
 	//
 	JwtAccessToken *string `json:"jwtAccessToken,omitzero"`
-	// The resources specified by the `resource` request parameters in the token request.
-	// See "Resource Indicators for OAuth 2.0" for details.
+	// The resources specified by the `resource` request parameters in the token request. See "Resource Indicators for OAuth 2.0" for details.
 	//
 	Resources []string `json:"resources,omitzero"`
 	// The target resources of the access token being issued. See "Resource Indicators for OAuth 2.0" for details.
 	//
 	AccessTokenResources []string `json:"accessTokenResources,omitzero"`
-	// The authorization details. This represents the value of the `authorization_details`
-	// request parameter in the preceding device authorization request which is defined in
-	// "OAuth 2.0 Rich Authorization Requests".
+	// The authorization details. This represents the value of the `authorization_details` request parameter in the preceding device authorization request which is defined in "OAuth 2.0 Rich Authorization Requests".
 	//
 	AuthorizationDetails *AuthzDetails `json:"authorizationDetails,omitzero"`
 	// Additional claims to be embedded in an ID token.
@@ -162,27 +142,22 @@ type TokenResponse struct {
 	ClientAuthMethod *string `json:"clientAuthMethod,omitzero"`
 	// the value of the `grant_id` request parameter of the device authorization request.
 	//
-	// The `grant_id` request parameter is defined in
-	// [Grant Management for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html)
-	// , which is supported by Authlete 2.3 and newer versions.
+	// The `grant_id` request parameter is defined in [Grant Management for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html) , which is supported by Authlete 2.3 and newer versions.
 	//
 	GrantID *string `json:"grantId,omitzero"`
 	// The audiences on the token exchange request
 	//
 	Audiences []string `json:"audiences,omitzero"`
-	// The token type identifier used in OAuth 2.0 Token Exchange (RFC 8693).
-	// The API returns short codes (enum constant names) in response fields.
+	// The token type identifier used in OAuth 2.0 Token Exchange (RFC 8693). The API returns short codes (enum constant names) in response fields.
 	//
 	RequestedTokenType *TokenType `json:"requestedTokenType,omitzero"`
 	SubjectToken       *string    `json:"subjectToken,omitzero"`
-	// The token type identifier used in OAuth 2.0 Token Exchange (RFC 8693).
-	// The API returns short codes (enum constant names) in response fields.
+	// The token type identifier used in OAuth 2.0 Token Exchange (RFC 8693). The API returns short codes (enum constant names) in response fields.
 	//
 	SubjectTokenType *TokenType `json:"subjectTokenType,omitzero"`
 	SubjectTokenInfo *TokenInfo `json:"subjectTokenInfo,omitzero"`
 	ActorToken       *string    `json:"actorToken,omitzero"`
-	// The token type identifier used in OAuth 2.0 Token Exchange (RFC 8693).
-	// The API returns short codes (enum constant names) in response fields.
+	// The token type identifier used in OAuth 2.0 Token Exchange (RFC 8693). The API returns short codes (enum constant names) in response fields.
 	//
 	ActorTokenType *TokenType `json:"actorTokenType,omitzero"`
 	ActorTokenInfo *TokenInfo `json:"actorTokenInfo,omitzero"`
@@ -201,37 +176,28 @@ type TokenResponse struct {
 	// Duration of the `c_nonce` in seconds.
 	//
 	CnonceDuration *int64 `json:"cnonceDuration,omitzero"`
-	// Get the expected nonce value for DPoP proof JWT, which should be used
-	// as the value of the `DPoP-Nonce` HTTP header.
+	// Get the expected nonce value for DPoP proof JWT, which should be used as the value of the `DPoP-Nonce` HTTP header.
 	//
 	DpopNonce *string `json:"dpopNonce,omitzero"`
 	// Get the `c_nonce`.
 	//
 	Cnonce *string `json:"cnonce,omitzero"`
-	// Get the time at which the `c_nonce` expires in milliseconds since
-	// the Unix epoch (1970-01-01).
+	// Get the time at which the `c_nonce` expires in milliseconds since the Unix epoch (1970-01-01).
 	//
 	CnonceExpiresAt *int64 `json:"cnonceExpiresAt,omitzero"`
-	// Get the names of the claims that the authorization request (which resulted
-	// in generation of the access token) requested to be embedded in ID tokens.
+	// Get the names of the claims that the authorization request (which resulted in generation of the access token) requested to be embedded in ID tokens.
 	//
 	RequestedIDTokenClaims []string `json:"requestedIdTokenClaims,omitzero"`
 	// Scopes associated with the refresh token.
 	//
 	RefreshTokenScopes []string `json:"refreshTokenScopes,omitzero"`
-	// The session ID, which is the ID of the user's authentication session, associated with a newly
-	// created access token.
+	// The session ID, which is the ID of the user's authentication session, associated with a newly created access token.
 	//
 	SessionID *string `json:"sessionId,omitzero"`
-	// If the response from the `/auth/token` API contains the `deviceSecret` parameter, its value should
-	// be used as the value of this `deviceSecret` request parameter to the `/nativesso` API. The authorization
-	// server may choose to issue a new device secret; in that case, it is free to generate a new device
-	// secret and specify the new value.
+	// If the response from the `/auth/token` API contains the `deviceSecret` parameter, its value should be used as the value of this `deviceSecret` request parameter to the `/nativesso` API. The authorization server may choose to issue a new device secret; in that case, it is free to generate a new device secret and specify the new value.
 	//
 	DeviceSecret *string `json:"deviceSecret,omitzero"`
-	// The authorization server should compute the hash value of the device secret based on its own logic
-	// and specify the computed hash as the value of this `deviceSecretHash` request parameter to the
-	// `/nativesso` API.
+	// The authorization server should compute the hash value of the device secret based on its own logic and specify the computed hash as the value of this `deviceSecretHash` request parameter to the `/nativesso` API.
 	//
 	DeviceSecretHash *string `json:"deviceSecretHash,omitzero"`
 	// The location of the client's metadata document that was used to resolve client metadata.

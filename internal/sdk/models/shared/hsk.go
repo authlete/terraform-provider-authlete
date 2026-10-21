@@ -7,28 +7,22 @@ type Hsk struct {
 	// The key type (EC or RSA)
 	//
 	Kty *string `json:"kty,omitzero"`
-	// Get the use of the key on the HSM.
-	// When the key use is "sig" (signature), the private key on the HSM is used to sign data and the corresponding public key is used to verify the signature.
-	// When the key use is "enc" (encryption), the private key on the HSM is used to decrypt encrypted data which have been encrypted with the corresponding public key
+	// Get the use of the key on the HSM. When the key use is "sig" (signature), the private key on the HSM is used to sign data and the corresponding public key is used to verify the signature. When the key use is "enc" (encryption), the private key on the HSM is used to decrypt encrypted data which have been encrypted with the corresponding public key
 	//
 	Use *string `json:"use,omitzero"`
 	// Key ID for the key on the HSM.
 	//
 	Kid *string `json:"kid,omitzero"`
-	// The name of the HSM.
-	// The identifier for the HSM that sits behind the Authlete server. For example, "google".
+	// The name of the HSM. The identifier for the HSM that sits behind the Authlete server. For example, "google".
 	//
 	HsmName *string `json:"hsmName,omitzero"`
-	// The handle for the key on the HSM.
-	// A handle is a base64url-encoded 256-bit random value (43 letters) which is assigned by Authlete on the call of the /api/hsk/create API
+	// The handle for the key on the HSM. A handle is a base64url-encoded 256-bit random value (43 letters) which is assigned by Authlete on the call of the /api/hsk/create API
 	//
 	Handle *string `json:"handle,omitzero"`
 	// The public key that corresponds to the key on the HSM.
 	//
 	PublicKey *string `json:"publicKey,omitzero"`
-	// The algorithm of the key on the HSM. When the key use is `"sig"`, the algorithm represents a
-	// signing algorithm such as `"ES256"`. When the key use is `"enc"`, the algorithm represents an
-	// encryption algorithm such as `"RSA-OAEP-256"`.
+	// The algorithm of the key on the HSM. When the key use is `"sig"`, the algorithm represents a signing algorithm such as `"ES256"`. When the key use is `"enc"`, the algorithm represents an encryption algorithm such as `"RSA-OAEP-256"`.
 	//
 	Alg *string `json:"alg,omitzero"`
 }

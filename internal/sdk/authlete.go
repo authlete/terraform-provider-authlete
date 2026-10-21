@@ -55,36 +55,128 @@ func Float64(f float64) *float64 { return &f }
 // Pointer provides a helper function to return a pointer to a type
 func Pointer[T any](v T) *T { return &v }
 
+// Authlete API: Welcome to the **Authlete API documentation**. Authlete is an **API-first service** where every aspect of the platform is configurable via API. This documentation will help you authenticate and integrate with Authlete to build powerful OAuth 2.0 and OpenID Connect servers.
+//
+// At a high level, the Authlete API is grouped into two categories:
+//
+// - **Management APIs**: Enable you to manage services and clients.
+// - **Runtime APIs**: Allow you to build your own Authorization Servers or Verifiable Credential (VC) issuers.
+//
+// ## 🌐 API Servers
+//
+// Authlete is a global service with clusters available in multiple regions across the world:
+//
+// - 🇺🇸 **US**: `https://us.authlete.com`
+// - 🇯🇵 **Japan**: `https://jp.authlete.com`
+// - 🇪🇺 **Europe**: `https://eu.authlete.com`
+// - 🇧🇷 **Brazil**: `https://br.authlete.com`
+//
+// Our customers can host their data in the region that best meets their requirements.
+//
+// ## 🔑 Authentication
+//
+// All API endpoints are secured using **Bearer token authentication**. You must include an access token in every request:
+//
+// ```
+// Authorization: Bearer YOUR_ACCESS_TOKEN
+// ```
+//
+// ### Getting Your Access Token
+//
+// Authlete supports two types of access tokens:
+//
+// **Service Access Token** - Scoped to a single service (authorization server instance)
+//
+// 1. Log in to [Authlete Console](https://console.authlete.com)
+// 2. Navigate to your service → **Settings** → **Access Tokens**
+// 3. Click **Create Token** and select permissions (e.g., `service.read`, `client.write`)
+// 4. Copy the generated token
+//
+// **Organization Token** - Scoped to your entire organization
+//
+// 1. Log in to [Authlete Console](https://console.authlete.com)
+// 2. Navigate to **Organization Settings** → **Access Tokens**
+// 3. Click **Create Token** and select org-level permissions
+// 4. Copy the generated token
+//
+// > ⚠️ **Important Note**: Tokens inherit the permissions of the account that creates them. Service tokens can only access their specific service, while organization tokens can access all services within your org.
+//
+// ### Token Security Best Practices
+//
+// - **Never commit tokens to version control** - Store in environment variables or secure secret managers
+// - **Rotate regularly** - Generate new tokens periodically and revoke old ones
+// - **Scope appropriately** - Request only the permissions your application needs
+// - **Revoke unused tokens** - Delete tokens you're no longer using from the console
+//
+// ### Quick Test
+//
+// Verify your token works with a simple API call:
+//
+// ```bash
+//
+//	curl -X GET https://us.authlete.com/api/service/get/list \
+//	  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+//
+// ```
+//
+// ## 🎓 Tutorials
+//
+// If you're new to Authlete or want to see sample implementations, these resources will help you get started:
+//
+// - [Getting Started with Authlete](https://www.authlete.com/developers/getting_started/)
+// - [From Sign-Up to the First API Request](https://www.authlete.com/developers/tutorial/signup/)
+//
+// ## 🛠 Contact Us
+//
+// If you have any questions or need assistance, our team is here to help:
+//
+// - [Contact Page](https://www.authlete.com/contact/)
 type Authlete struct {
 	SDKVersion string
-	Services   *Services
-	Service    *Service
-	Audit      *Audit
-	Clients    *Clients
+	// API endpoints for managing services, including creation, update, and deletion of services.
+	ServiceManagement *ServiceManagement
+	Service           *Service
+	Audit             *Audit
 	// API endpoints for managing OAuth clients, including creation, update, and deletion of clients.
-	ClientManagement    *ClientManagement
-	Authorization       *Authorization
-	PushedAuthorization *PushedAuthorization
-	Tokens              *Tokens
-	Introspection       *Introspection
-	Revocation          *Revocation
-	Userinfo            *Userinfo
-	TokenManagement     *TokenManagement
-	GrantManagement     *GrantManagement
+	ClientManagement *ClientManagement
+	// API endpoints for implementing OAuth 2.0 Authorization Endpoint.
+	AuthorizationEndpoint *AuthorizationEndpoint
+	// API endpoints for implementing OAuth 2.0 Pushed Authorization Requests (PAR).
+	PushedAuthorizationEndpoint *PushedAuthorizationEndpoint
+	// API endpoints for implementing OAuth 2.0 Token Endpoint.
+	TokenEndpoint *TokenEndpoint
+	// API endpoints for implementing OAuth 2.0 Introspection Endpoint.
+	IntrospectionEndpoint *IntrospectionEndpoint
+	// API endpoint for implementing OAuth 2.0 Revocation Endpoint.
+	RevocationEndpoint *RevocationEndpoint
+	// API endpoints for implementing OpenID Connect UserInfo Endpoint.
+	UserInfoEndpoint *UserInfoEndpoint
+	// API endpoint for implementing OAuth 2.0 grants, including grant management actions like updating and revoking grants.
+	GrantManagementEndpoint *GrantManagementEndpoint
 	// API endpoints for to generate JSON Web Key Set (JWKS) for a service.
-	JWKSetEndpoint            *JWKSetEndpoint
+	JWKSetEndpoint *JWKSetEndpoint
+	// API endpoints for implementing OAuth 2.0 Dynamic Client Registration.
 	DynamicClientRegistration *DynamicClientRegistration
-	Ciba                      *Ciba
-	BackChannelLogout         *BackChannelLogout
-	DeviceFlow                *DeviceFlow
+	// API endpoints for implementing Client-Initiated Backchannel Authentication (CIBA).
+	Ciba              *Ciba
+	BackChannelLogout *BackChannelLogout
+	// API endpoints for implementing OAuth 2.0 Device Flow
+	DeviceFlow *DeviceFlow
+	// API endpoints for various token related operations, including creating, revoking and deleting access_tokens with specified scopes.
+	TokenOperations *TokenOperations
 	// API endpoints for JOSE objects.
-	JoseObject              *JoseObject
-	Federation              *Federation
-	HardwareSecurityKeys    *HardwareSecurityKeys
-	VerifiableCredentials   *VerifiableCredentials
-	Lifecycle               *Lifecycle
-	AuthorizationManagement *AuthorizationManagement
-	NativeSso               *NativeSso
+	JoseObject *JoseObject
+	// API endpoints for implementing OpenID Federation using Authlete.
+	FederationEndpoint *FederationEndpoint
+	// API endpoints for various utility operations.
+	UtilityEndpoints *UtilityEndpoints
+	// API endpoints for managing hardware security keys (HSK).
+	HardwareSecurityKey *HardwareSecurityKey
+	// API endpoints for implementing and running a Verifiable Credential Issuer (VCI).
+	VerifiableCredentialIssuer *VerifiableCredentialIssuer
+	Lifecycle                  *Lifecycle
+	// API endpoints for Native SSO
+	NativeSSO *NativeSSO
 
 	sdkConfiguration config.SDKConfiguration
 	hooks            *hooks.Hooks
@@ -205,31 +297,30 @@ func New(opts ...SDKOption) *Authlete {
 		sdk.sdkConfiguration.ServerURL = serverURL
 	}
 
-	sdk.Services = newServices(sdk, sdk.sdkConfiguration, sdk.hooks)
+	sdk.ServiceManagement = newServiceManagement(sdk, sdk.sdkConfiguration, sdk.hooks)
 	sdk.Service = newService(sdk, sdk.sdkConfiguration, sdk.hooks)
 	sdk.Audit = newAudit(sdk, sdk.sdkConfiguration, sdk.hooks)
-	sdk.Clients = newClients(sdk, sdk.sdkConfiguration, sdk.hooks)
 	sdk.ClientManagement = newClientManagement(sdk, sdk.sdkConfiguration, sdk.hooks)
-	sdk.Authorization = newAuthorization(sdk, sdk.sdkConfiguration, sdk.hooks)
-	sdk.PushedAuthorization = newPushedAuthorization(sdk, sdk.sdkConfiguration, sdk.hooks)
-	sdk.Tokens = newTokens(sdk, sdk.sdkConfiguration, sdk.hooks)
-	sdk.Introspection = newIntrospection(sdk, sdk.sdkConfiguration, sdk.hooks)
-	sdk.Revocation = newRevocation(sdk, sdk.sdkConfiguration, sdk.hooks)
-	sdk.Userinfo = newUserinfo(sdk, sdk.sdkConfiguration, sdk.hooks)
-	sdk.TokenManagement = newTokenManagement(sdk, sdk.sdkConfiguration, sdk.hooks)
-	sdk.GrantManagement = newGrantManagement(sdk, sdk.sdkConfiguration, sdk.hooks)
+	sdk.AuthorizationEndpoint = newAuthorizationEndpoint(sdk, sdk.sdkConfiguration, sdk.hooks)
+	sdk.PushedAuthorizationEndpoint = newPushedAuthorizationEndpoint(sdk, sdk.sdkConfiguration, sdk.hooks)
+	sdk.TokenEndpoint = newTokenEndpoint(sdk, sdk.sdkConfiguration, sdk.hooks)
+	sdk.IntrospectionEndpoint = newIntrospectionEndpoint(sdk, sdk.sdkConfiguration, sdk.hooks)
+	sdk.RevocationEndpoint = newRevocationEndpoint(sdk, sdk.sdkConfiguration, sdk.hooks)
+	sdk.UserInfoEndpoint = newUserInfoEndpoint(sdk, sdk.sdkConfiguration, sdk.hooks)
+	sdk.GrantManagementEndpoint = newGrantManagementEndpoint(sdk, sdk.sdkConfiguration, sdk.hooks)
 	sdk.JWKSetEndpoint = newJWKSetEndpoint(sdk, sdk.sdkConfiguration, sdk.hooks)
 	sdk.DynamicClientRegistration = newDynamicClientRegistration(sdk, sdk.sdkConfiguration, sdk.hooks)
 	sdk.Ciba = newCiba(sdk, sdk.sdkConfiguration, sdk.hooks)
 	sdk.BackChannelLogout = newBackChannelLogout(sdk, sdk.sdkConfiguration, sdk.hooks)
 	sdk.DeviceFlow = newDeviceFlow(sdk, sdk.sdkConfiguration, sdk.hooks)
+	sdk.TokenOperations = newTokenOperations(sdk, sdk.sdkConfiguration, sdk.hooks)
 	sdk.JoseObject = newJoseObject(sdk, sdk.sdkConfiguration, sdk.hooks)
-	sdk.Federation = newFederation(sdk, sdk.sdkConfiguration, sdk.hooks)
-	sdk.HardwareSecurityKeys = newHardwareSecurityKeys(sdk, sdk.sdkConfiguration, sdk.hooks)
-	sdk.VerifiableCredentials = newVerifiableCredentials(sdk, sdk.sdkConfiguration, sdk.hooks)
+	sdk.FederationEndpoint = newFederationEndpoint(sdk, sdk.sdkConfiguration, sdk.hooks)
+	sdk.UtilityEndpoints = newUtilityEndpoints(sdk, sdk.sdkConfiguration, sdk.hooks)
+	sdk.HardwareSecurityKey = newHardwareSecurityKey(sdk, sdk.sdkConfiguration, sdk.hooks)
+	sdk.VerifiableCredentialIssuer = newVerifiableCredentialIssuer(sdk, sdk.sdkConfiguration, sdk.hooks)
 	sdk.Lifecycle = newLifecycle(sdk, sdk.sdkConfiguration, sdk.hooks)
-	sdk.AuthorizationManagement = newAuthorizationManagement(sdk, sdk.sdkConfiguration, sdk.hooks)
-	sdk.NativeSso = newNativeSso(sdk, sdk.sdkConfiguration, sdk.hooks)
+	sdk.NativeSSO = newNativeSSO(sdk, sdk.sdkConfiguration, sdk.hooks)
 
 	return sdk
 }

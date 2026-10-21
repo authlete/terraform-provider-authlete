@@ -16,12 +16,10 @@ type JoseVerifyRequest struct {
 	// Allowable clock skew in seconds.
 	//
 	ClockSkew *int `json:"clockSkew,omitzero" form:"name=clockSkew"`
-	// The identifier of the client application whose keys are required for verification of the JOSE
-	// object.
+	// The identifier of the client application whose keys are required for verification of the JOSE object.
 	//
 	ClientIdentifier *string `json:"clientIdentifier,omitzero" form:"name=clientIdentifier"`
-	// The flag which indicates whether the signature of the JOSE object has been signed by a client
-	// application with the client's private key or a shared symmetric key.
+	// The flag which indicates whether the signature of the JOSE object has been signed by a client application with the client's private key or a shared symmetric key.
 	//
 	SignedByClient *bool `json:"signedByClient,omitzero" form:"name=signedByClient"`
 }

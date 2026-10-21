@@ -958,10 +958,6 @@ func (r *ClientResourceModel) ToSharedClientInput(ctx context.Context) (*shared.
 	} else {
 		rsSignedRequestKeyID = nil
 	}
-	trustChain := make([]string, 0, len(r.TrustChain))
-	for trustChainIndex := range r.TrustChain {
-		trustChain = append(trustChain, r.TrustChain[trustChainIndex].ValueString())
-	}
 	credentialOfferEndpoint := new(string)
 	if !r.CredentialOfferEndpoint.IsUnknown() && !r.CredentialOfferEndpoint.IsNull() {
 		*credentialOfferEndpoint = r.CredentialOfferEndpoint.ValueString()
@@ -1083,7 +1079,6 @@ func (r *ClientResourceModel) ToSharedClientInput(ctx context.Context) (*shared.
 		DpopRequired:                                dpopRequired,
 		RsRequestSigned:                             rsRequestSigned,
 		RsSignedRequestKeyID:                        rsSignedRequestKeyID,
-		TrustChain:                                  trustChain,
 		CredentialOfferEndpoint:                     credentialOfferEndpoint,
 		FapiModes:                                   fapiModes,
 		ResponseModes:                               responseModes,

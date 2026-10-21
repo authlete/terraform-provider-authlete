@@ -46,9 +46,7 @@ func (e *PushedAuthorizationResponseAction) UnmarshalJSON(data []byte) error {
 	}
 }
 
-// PushedAuthorizationResponseClientAuthMethod - The client authentication method that the client application declares that it uses at the token
-// endpoint. This property corresponds to `token_endpoint_auth_method` in [OpenID Connect Dynamic
-// Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
+// PushedAuthorizationResponseClientAuthMethod - The client authentication method that the client application declares that it uses at the token endpoint. This property corresponds to `token_endpoint_auth_method` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
 type PushedAuthorizationResponseClientAuthMethod string
 
 const (
@@ -106,17 +104,13 @@ type PushedAuthorizationResponse struct {
 	// The request_uri created to the client to be used as request_uri on the authorize call.
 	//
 	RequestURI *string `json:"requestUri,omitzero"`
-	// The content that the authorization server implementation is to return to the client
-	// application.
+	// The content that the authorization server implementation is to return to the client application.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
-	// The client authentication method that the client application declares that it uses at the token
-	// endpoint. This property corresponds to `token_endpoint_auth_method` in [OpenID Connect Dynamic
-	// Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
+	// The client authentication method that the client application declares that it uses at the token endpoint. This property corresponds to `token_endpoint_auth_method` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
 	//
 	ClientAuthMethod *PushedAuthorizationResponseClientAuthMethod `json:"clientAuthMethod,omitzero"`
-	// Get the expected nonce value for DPoP proof JWT, which should be used
-	// as the value of the `DPoP-Nonce` HTTP header.
+	// Get the expected nonce value for DPoP proof JWT, which should be used as the value of the `DPoP-Nonce` HTTP header.
 	//
 	DpopNonce *string `json:"dpopNonce,omitzero"`
 }

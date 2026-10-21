@@ -42,25 +42,20 @@ type TokenIssueResponse struct {
 	ResultMessage *string `json:"resultMessage,omitzero"`
 	// The next action that the authorization server implementation should take.
 	Action *TokenIssueResponseAction `json:"action,omitzero"`
-	// The content that the authorization server implementation is to return to the client application.
-	// Its format is JSON.
+	// The content that the authorization server implementation is to return to the client application. Its format is JSON.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
 	// The newly issued access token. This parameter is a non-null value only when the value of `action` parameter is `OK`.
 	AccessToken *string `json:"accessToken,omitzero"`
-	// The datetime at which the newly issued access token will expire.
-	// The value is represented in milliseconds since the Unix epoch (1970-01-01).
+	// The datetime at which the newly issued access token will expire. The value is represented in milliseconds since the Unix epoch (1970-01-01).
 	//
 	AccessTokenExpiresAt *int64 `json:"accessTokenExpiresAt,omitzero"`
 	// The duration of the newly issued access token in seconds.
 	AccessTokenDuration *int64 `json:"accessTokenDuration,omitzero"`
-	// The refresh token. This parameter is a non-null value only when `action` is `OK` and the service supports the refresh token flow.
-	// If `refreshTokenKept` is set to `false`, a new refresh token is issued and the old refresh token used in the refresh token flow
-	// is invalidated. On the contrary, if `refreshTokenKept` is set to `true`, the refresh token itself is not refreshed.
+	// The refresh token. This parameter is a non-null value only when `action` is `OK` and the service supports the refresh token flow. If `refreshTokenKept` is set to `false`, a new refresh token is issued and the old refresh token used in the refresh token flow is invalidated. On the contrary, if `refreshTokenKept` is set to `true`, the refresh token itself is not refreshed.
 	//
 	RefreshToken *string `json:"refreshToken,omitzero"`
-	// The datetime at which the newly issued refresh token will expire.
-	// The value is represented in milliseconds since the Unix epoch (1970-01-01).
+	// The datetime at which the newly issued refresh token will expire. The value is represented in milliseconds since the Unix epoch (1970-01-01).
 	//
 	RefreshTokenExpiresAt *int64 `json:"refreshTokenExpiresAt,omitzero"`
 	// The duration of the newly issued refresh token in seconds.
@@ -70,33 +65,24 @@ type TokenIssueResponse struct {
 	// The client ID alias. If the client did not have an alias, this parameter is `null`.
 	//
 	ClientIDAlias *string `json:"clientIdAlias,omitzero"`
-	// The flag which indicates whether the client ID alias was used when the token request was made.
-	// `true` if the client ID alias was used when the token request was made.
+	// The flag which indicates whether the client ID alias was used when the token request was made. `true` if the client ID alias was used when the token request was made.
 	//
 	ClientIDAliasUsed *bool `json:"clientIdAliasUsed,omitzero"`
-	// The subject (= resource owner's ID) of the access token.
-	// Even if an access token has been issued by calling `/api/auth/token` API, this parameter is `null` if the flow of the token request was
-	// [Client Credentials Flow](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4) (`grant_type=client_credentials`) because it means
-	// the access token is not associated with any specific end-user.
+	// The subject (= resource owner's ID) of the access token. Even if an access token has been issued by calling `/api/auth/token` API, this parameter is `null` if the flow of the token request was [Client Credentials Flow](https://datatracker.ietf.org/doc/html/rfc6749#section-4.4) (`grant_type=client_credentials`) because it means the access token is not associated with any specific end-user.
 	//
 	Subject *string `json:"subject,omitzero"`
 	// The scopes covered by the access token.
 	Scopes []string `json:"scopes,omitzero"`
-	// The extra properties associated with the access token.
-	// This parameter is `null` when no extra property is associated with the issued access token.
+	// The extra properties associated with the access token. This parameter is `null` when no extra property is associated with the issued access token.
 	//
 	Properties []Property `json:"properties,omitzero"`
-	// The newly issued access token in JWT format. If the authorization server is configured to issue JWT-based access tokens
-	// (= if the service's `accessTokenSignAlg` value is a non-null value), a JWT-based access token is issued along with the
-	// original random-string one.
+	// The newly issued access token in JWT format. If the authorization server is configured to issue JWT-based access tokens (= if the service's `accessTokenSignAlg` value is a non-null value), a JWT-based access token is issued along with the original random-string one.
 	//
 	JwtAccessToken *string `json:"jwtAccessToken,omitzero"`
 	// The target resources of the access token being issued. See "Resource Indicators for OAuth 2.0" for details.
 	//
 	AccessTokenResources []string `json:"accessTokenResources,omitzero"`
-	// The authorization details. This represents the value of the `authorization_details`
-	// request parameter in the preceding device authorization request which is defined in
-	// "OAuth 2.0 Rich Authorization Requests".
+	// The authorization details. This represents the value of the `authorization_details` request parameter in the preceding device authorization request which is defined in "OAuth 2.0 Rich Authorization Requests".
 	//
 	AuthorizationDetails *AuthzDetails `json:"authorizationDetails,omitzero"`
 	// The attributes of this service that the client application belongs to.

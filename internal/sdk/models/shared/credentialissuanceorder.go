@@ -11,8 +11,7 @@ type CredentialIssuanceOrder struct {
 	IssuanceDeferred *bool `json:"issuanceDeferred,omitzero"`
 	// The duration of a credential to be issued.
 	CredentialDuration *int64 `json:"credentialDuration,omitzero"`
-	// The key ID of a private key that should be used for signing a credential
-	// to be issued.
+	// The key ID of a private key that should be used for signing a credential to be issued.
 	//
 	SigningKeyID *string `json:"signingKeyId,omitzero"`
 }

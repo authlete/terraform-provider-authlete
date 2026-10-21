@@ -2,11 +2,26 @@
 
 package shared
 
+import (
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/utils"
+)
+
 type TaggedValue struct {
 	// The language tag part.
 	Tag *string `json:"tag,omitzero"`
 	// The value part.
 	Value *string `json:"value,omitzero"`
+}
+
+func (t TaggedValue) MarshalJSON() ([]byte, error) {
+	return utils.MarshalJSON(t, "", false)
+}
+
+func (t *TaggedValue) UnmarshalJSON(data []byte) error {
+	if err := utils.UnmarshalJSON(data, &t, "", false, nil); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (t *TaggedValue) GetTag() *string {

@@ -6,10 +6,7 @@ import (
 	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/utils"
 )
 
-// IdpError - Error response returned by the Authlete IdP server. Unlike the main API's
-// `resultCode`/`resultMessage` format, IdP errors carry a human-readable `error` message,
-// optionally accompanied by contextual fields (such as `organizationId` or `apiServerId`).
-// Request validation failures instead return an `errors` array of per-field messages.
+// IdpError - Error response returned by the Authlete IdP server. Unlike the main API's `resultCode`/`resultMessage` format, IdP errors carry a human-readable `error` message, optionally accompanied by contextual fields (such as `organizationId` or `apiServerId`). Request validation failures instead return an `errors` array of per-field messages.
 type IdpError struct {
 	// A human-readable error message.
 	Error *string `json:"error,omitzero"`

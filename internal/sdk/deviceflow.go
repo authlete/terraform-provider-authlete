@@ -16,6 +16,7 @@ import (
 	"net/http"
 )
 
+// DeviceFlow - API endpoints for implementing OAuth 2.0 Device Flow
 type DeviceFlow struct {
 	rootSDK          *Authlete
 	sdkConfiguration config.SDKConfiguration
@@ -30,11 +31,9 @@ func newDeviceFlow(rootSDK *Authlete, sdkConfig config.SDKConfiguration, hooks *
 	}
 }
 
-// Authorization - Process Device Authorization Request
-// This API parses request parameters of a [device authorization request](https://datatracker.ietf.org/doc/html/rfc8628#section-3.1)
-// and returns necessary data for the authorization server implementation to process the device authorization
-// request further.
-func (s *DeviceFlow) Authorization(ctx context.Context, request operations.DeviceAuthorizationAPIRequest, opts ...operations.Option) (*operations.DeviceAuthorizationAPIResponse, error) {
+// DeviceAuthorizationAPI - Process Device Authorization Request
+// This API parses request parameters of a [device authorization request](https://datatracker.ietf.org/doc/html/rfc8628#section-3.1) and returns necessary data for the authorization server implementation to process the device authorization request further.
+func (s *DeviceFlow) DeviceAuthorizationAPI(ctx context.Context, request operations.DeviceAuthorizationAPIRequest, opts ...operations.Option) (*operations.DeviceAuthorizationAPIResponse, error) {
 	o := operations.Options{}
 	supportedOptions := []string{
 		operations.SupportedOptionRetries,
@@ -307,9 +306,9 @@ func (s *DeviceFlow) Authorization(ctx context.Context, request operations.Devic
 
 }
 
-// Verification - Process Device Verification Request
+// DeviceVerificationAPI - Process Device Verification Request
 // The API returns information associated with a user code.
-func (s *DeviceFlow) Verification(ctx context.Context, request operations.DeviceVerificationAPIRequest, opts ...operations.Option) (*operations.DeviceVerificationAPIResponse, error) {
+func (s *DeviceFlow) DeviceVerificationAPI(ctx context.Context, request operations.DeviceVerificationAPIRequest, opts ...operations.Option) (*operations.DeviceVerificationAPIResponse, error) {
 	o := operations.Options{}
 	supportedOptions := []string{
 		operations.SupportedOptionRetries,
@@ -582,11 +581,9 @@ func (s *DeviceFlow) Verification(ctx context.Context, request operations.Device
 
 }
 
-// CompleteRequest - Complete Device Authorization
-// This API returns information about what action the authorization server should take after it receives
-// the result of end-user's decision about whether the end-user has approved or rejected a client
-// application's request.
-func (s *DeviceFlow) CompleteRequest(ctx context.Context, request operations.DeviceCompleteAPIRequest, opts ...operations.Option) (*operations.DeviceCompleteAPIResponse, error) {
+// DeviceCompleteAPI - Complete Device Authorization
+// This API returns information about what action the authorization server should take after it receives the result of end-user's decision about whether the end-user has approved or rejected a client application's request.
+func (s *DeviceFlow) DeviceCompleteAPI(ctx context.Context, request operations.DeviceCompleteAPIRequest, opts ...operations.Option) (*operations.DeviceCompleteAPIResponse, error) {
 	o := operations.Options{}
 	supportedOptions := []string{
 		operations.SupportedOptionRetries,
