@@ -66,6 +66,18 @@ jwks = jsonencode({
 })
 ```
 
+> ⚠️ **Setting `jwks` replaces the whole key set.** Any key not in the list is
+> removed from the service. The examples here show one key because they are
+> showing the syntax; a service with several keys needs all of them.
+>
+> This is easy to miss, because `jwks` is sensitive, so the plan shows only
+> `~ jwks = (sensitive value)` and does not list the keys being deleted. If the
+> service signs tokens with a key that disappears, and
+> `id_token_signature_key_id` or one of the other key id attributes still names
+> it, signing breaks.
+>
+> "Keeping the keys you already have", below, shows how to carry them across.
+
 `federation_jwk` became `federation_jwks` in the same way.
 
 ### `generate = true` has no equivalent
@@ -108,6 +120,45 @@ resource "tls_private_key" "signing" {
 This puts the private key in state, which the first option also does on
 refresh. Either way, use a state backend that encrypts.
 
+### Keeping the keys you already have
+
+A 1.3.x service usually holds several keys: one or more that `generate = true`
+produced, plus any you supplied as PEM. Writing a `jwks` with only the new key
+deletes the rest.
+
+Read the current set out of state and add to it rather than replacing it:
+
+```shell
+terraform show -json | jq -r '
+  .values.root_module.resources[]
+  | select(.address == "authlete_service.example")
+  | .values.jwks' > current-jwks.json
+```
+
+Then build the new set from both:
+
+```terraform
+jwks = jsonencode({
+  keys = concat(
+    jsondecode(file("current-jwks.json")).keys,
+    [jsondecode(provider::authlete::jwk_from_pem(
+      file("new-key.pem"), "sig-2", "RS256", "sig"))],
+  )
+})
+```
+
+That file holds private keys. Treat it as a secret: keep it out of version
+control, and delete it once the migration has been applied.
+
+The alternative is to rotate rather than carry over: generate fresh keys with
+`tls_private_key`, apply them, and update whichever `*_signature_key_id`
+attributes name the old ones. That is cleaner, but it is a key rotation, so
+anything holding a token signed by an old key is affected.
+
+Either way, check afterwards that every `*_signature_key_id` on the service
+still names a `kid` that exists in `jwks`. Authlete does not check this, and a
+name with no matching key is only noticed when signing fails.
+
 ### X25519 needs an external tool
 
 This provider converts an X25519 key into a JWK, but nothing generates the key
@@ -129,6 +180,10 @@ jwks = jsonencode({
     file("x25519.pem"), "ecdh-1", "ECDH-ES", "enc"))]
 })
 ```
+
+As above, this replaces the whole set. An encryption key is usually added
+beside signing keys rather than instead of them, so concatenate it with what
+is already there.
 
 Or leave the key out of Terraform entirely, as above.
 
