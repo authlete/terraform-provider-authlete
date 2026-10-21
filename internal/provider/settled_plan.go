@@ -67,9 +67,43 @@ func keepPriorWhenNothingChanged(req resource.ModifyPlanRequest, resp *resource.
 	if resp.Plan.Raw.IsNull() {
 		return
 	}
+	// An unknown is only noise when the framework invented it. One that comes
+	// from the configuration is a value the user asked for and the provider
+	// cannot see yet, such as jwks built from a tls_private_key being created
+	// in the same run, which is the key rotation the migration guide
+	// recommends. Absorbing that showed "No changes" for a real edit and
+	// silently skipped the rotation.
+	//
+	// Telling the two apart per attribute is possible but easy to get wrong,
+	// and getting it wrong loses a change silently. So the whole optimisation
+	// stands down whenever the configuration holds an unknown anywhere. The
+	// cost is that a reorder in a configuration that also depends on a
+	// resource being created will not settle until the next run, which is the
+	// behaviour before this fix and is visible rather than silent.
+	if containsUnknown(req.Config.Raw) {
+		return
+	}
 	if onlyUnknownsDiffer(resp.Plan.Raw, req.State.Raw) {
 		resp.Plan.Raw = req.State.Raw
 	}
+}
+
+// containsUnknown reports whether any value anywhere beneath v is unknown.
+func containsUnknown(v tftypes.Value) bool {
+	found := false
+	// Walk visits v and every value beneath it. The error return is for the
+	// callback; this one never fails.
+	_ = tftypes.Walk(v, func(_ *tftypes.AttributePath, val tftypes.Value) (bool, error) {
+		if found {
+			return false, nil
+		}
+		if !val.IsKnown() {
+			found = true
+			return false, nil
+		}
+		return true, nil
+	})
+	return found
 }
 
 // onlyUnknownsDiffer reports whether every place the plan differs from prior

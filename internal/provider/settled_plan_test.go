@@ -106,3 +106,91 @@ func TestOnlyUnknownsDiffersWalksNested(t *testing.T) {
 		t.Error("a nested edit was missed, so a real change would be suppressed")
 	}
 }
+
+// An unknown the framework invented is noise. An unknown the user wrote is a
+// change the provider cannot see yet, and absorbing it loses that change
+// silently. The case that matters is jwks built from a tls_private_key being
+// created in the same run, which is the rotation the migration guide
+// recommends: the plan said "No changes" and the keys were never rotated.
+func TestAConfiguredUnknownIsNotAbsorbed(t *testing.T) {
+	types := map[string]tftypes.Type{
+		"name": tftypes.String,
+		"jwks": tftypes.String,
+	}
+	state := obj(types, map[string]tftypes.Value{
+		"name": tftypes.NewValue(tftypes.String, "svc"),
+		"jwks": tftypes.NewValue(tftypes.String, "old-keys"),
+	})
+	// jwks comes from a resource being created, so it is unknown at plan time.
+	plan := obj(types, map[string]tftypes.Value{
+		"name": tftypes.NewValue(tftypes.String, "svc"),
+		"jwks": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+	})
+
+	// Without looking at the configuration, the plan and prior state differ
+	// only by an unknown, so the old rule absorbed it.
+	if !onlyUnknownsDiffer(plan, state) {
+		t.Fatal("precondition: this is exactly the shape the old rule absorbed")
+	}
+
+	configured := obj(types, map[string]tftypes.Value{
+		"name": tftypes.NewValue(tftypes.String, "svc"),
+		"jwks": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+	})
+	if !containsUnknown(configured) {
+		t.Fatal("a configuration holding an unknown must be recognised as such")
+	}
+
+	// And a configuration with nothing unknown must not stand the rule down,
+	// or the reorder fix stops working.
+	settled := obj(types, map[string]tftypes.Value{
+		"name": tftypes.NewValue(tftypes.String, "svc"),
+		"jwks": tftypes.NewValue(tftypes.String, nil),
+	})
+	if containsUnknown(settled) {
+		t.Fatal("a fully known configuration must not stand the rule down")
+	}
+}
+
+// Nested, because a client's extension attributes live inside an object and a
+// jwks built from a new key can sit anywhere in the tree.
+func TestContainsUnknownFindsItNested(t *testing.T) {
+	inner := tftypes.Object{AttributeTypes: map[string]tftypes.Type{"kid": tftypes.String}}
+	outer := map[string]tftypes.Type{
+		"name":      tftypes.String,
+		"extension": inner,
+		"list":      tftypes.List{ElementType: tftypes.String},
+	}
+
+	known := obj(outer, map[string]tftypes.Value{
+		"name": tftypes.NewValue(tftypes.String, "c"),
+		"extension": tftypes.NewValue(inner, map[string]tftypes.Value{
+			"kid": tftypes.NewValue(tftypes.String, "k1"),
+		}),
+		"list": tftypes.NewValue(tftypes.List{ElementType: tftypes.String},
+			[]tftypes.Value{tftypes.NewValue(tftypes.String, "a")}),
+	})
+	if containsUnknown(known) {
+		t.Fatal("nothing here is unknown")
+	}
+
+	for name, v := range map[string]tftypes.Value{
+		"inside an object": obj(outer, map[string]tftypes.Value{
+			"name": tftypes.NewValue(tftypes.String, "c"),
+			"extension": tftypes.NewValue(inner, map[string]tftypes.Value{
+				"kid": tftypes.NewValue(tftypes.String, tftypes.UnknownValue),
+			}),
+			"list": tftypes.NewValue(tftypes.List{ElementType: tftypes.String}, nil),
+		}),
+		"inside a list": obj(outer, map[string]tftypes.Value{
+			"name":      tftypes.NewValue(tftypes.String, "c"),
+			"extension": tftypes.NewValue(inner, nil),
+			"list": tftypes.NewValue(tftypes.List{ElementType: tftypes.String},
+				[]tftypes.Value{tftypes.NewValue(tftypes.String, tftypes.UnknownValue)}),
+		}),
+	} {
+		if !containsUnknown(v) {
+			t.Fatalf("an unknown %s must be found", name)
+		}
+	}
+}
