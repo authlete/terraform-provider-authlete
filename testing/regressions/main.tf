@@ -12,10 +12,9 @@
 # The `check` blocks assert the things a clean plan cannot: that a value came
 # back in the shape it was written, rather than merely agreeing with itself.
 #
-# Deliberately absent: supported_scopes. It is a documented limitation, not a
-# fixed bug, and Authlete returns it reordered with server-filled fields, so
-# including it would make the no-drift assertion fail for a known reason and
-# mask everything else. See ../../docs/guides/known-limitations.md.
+# Scope ordering has its own multi-phase test in ../run.sh reorder. That
+# checks supported_scopes and extension.requestable_scopes after creation,
+# an order-only edit and import, rather than only after this initial apply.
 # ---------------------------------------------------------------------------
 
 terraform {

@@ -174,9 +174,9 @@ The offline equivalents, which need no credentials, are
 `scripts/patch-empty-lists.sh --check`, `scripts/fill-keep-order-stubs.py --check`
 and the tests in `internal/provider/`.
 
-`supported_scopes` is deliberately absent. It is a documented limitation rather
-than a fixed bug, so including it would fail the no-drift assertion for a known
-reason and hide everything else. See `docs/guides/known-limitations.md`.
+`supported_scopes` and the client's `extension.requestable_scopes` are covered
+by `./run.sh reorder`. That test also changes their order after creation and
+imports both resources, so it catches failures an initial apply alone misses.
 
 ## Configuration
 
@@ -305,8 +305,12 @@ This directory is hand-written and is not tracked in `.speakeasy/gen.lock`, so
 Two modes cover the fixes that are only visible on the *second* plan, which
 is why they were missed for so long.
 
-`./run.sh reorder` applies a service, then rewrites the same lists in a
-different order and asserts the plan is empty. Before the fix this planned a
+`./run.sh reorder` applies a service and client with deliberately scrambled
+scopes, authentication methods, grants, backchannel delivery modes and
+compatible FAPI message-signing modes. It rewrites the same lists in a
+different order and asserts the plan is empty, then re-imports both resources
+and asserts another clean plan. The client also has a public JWK Set, so
+server-side JSON formatting after import is covered. Before the fix this planned a
 change for ever: the lists showed no diff, but around 180 computed attributes
 went to "known after apply", the apply sent nothing the server treated as a
 change, and the next plan said the same again. Every import hit it, because

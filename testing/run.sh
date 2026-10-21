@@ -424,7 +424,14 @@ EOF
     fi
 
     workdir=$(mktemp -d)
-    trap 'say "Removing the probe service"; ( cd "$workdir" && "$TF" destroy -auto-approve -no-color >/dev/null 2>&1 ); rm -rf "$workdir"' EXIT
+    trap 'say "Removing the probe resources"; if ( cd "$workdir" && "$TF" destroy -auto-approve -no-color >/dev/null 2>&1 ); then rm -rf "$workdir"; else warn "Cleanup failed; state retained at $workdir"; fi' EXIT
+
+    # A genuine public key makes the import check exercise server-normalised
+    # JWK JSON as well as list ordering. No private key is sent to a client.
+    openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 \
+      -out "$workdir/private.pem" 2>/dev/null || die "could not generate the probe key"
+    openssl pkey -in "$workdir/private.pem" -pubout \
+      -out "$workdir/public.pem" 2>/dev/null || die "could not export the public probe key"
 
     write_reorder_config() {
       cat > "$workdir/main.tf" <<TF
@@ -440,6 +447,22 @@ resource "authlete_service" "s" {
 
   supported_grant_types = [$1]
   supported_scopes = [$2]
+  supported_introspection_auth_methods = [$4]
+  supported_revocation_auth_methods = [$4]
+  supported_backchannel_token_delivery_modes = [$6]
+  fapi_modes = [$5]
+}
+resource "authlete_client" "c" {
+  service_id = tostring(authlete_service.s.api_key)
+  client_name = "${TF_VAR_name_prefix:-tftest}-reorder-client"
+  client_type = "CONFIDENTIAL"
+  fapi_modes = [$5]
+  extension = {
+    requestable_scopes_enabled = true
+    requestable_scopes = [$3]
+  }
+  jwks = jsonencode({ keys = [jsondecode(provider::authlete::jwk_from_pem(
+    file("$workdir/public.pem"), "public", "RS256", "sig"))] })
 }
 TF
     }
@@ -448,8 +471,17 @@ TF
     B_GRANTS='"CLIENT_CREDENTIALS", "AUTHORIZATION_CODE", "REFRESH_TOKEN"'
     A_SCOPES='{ name = "read" }, { name = "write" }, { name = "admin" }'
     B_SCOPES='{ name = "admin" }, { name = "write" }, { name = "read" }'
+    A_REQUESTABLE='"write", "read"'
+    B_REQUESTABLE='"read", "write"'
+    A_AUTH='"CLIENT_SECRET_POST", "NONE"'
+    B_AUTH='"NONE", "CLIENT_SECRET_POST"'
+    # Message-signing modes may be combined. FAPI1 and FAPI2_SECURITY may not.
+    A_FAPI='"FAPI2_MESSAGE_SIGNING_AUTH_RES", "FAPI2_MESSAGE_SIGNING_AUTH_REQ"'
+    B_FAPI='"FAPI2_MESSAGE_SIGNING_AUTH_REQ", "FAPI2_MESSAGE_SIGNING_AUTH_RES"'
+    A_DELIVERY='"PUSH", "POLL", "PING"'
+    B_DELIVERY='"PING", "POLL", "PUSH"'
 
-    write_reorder_config "$A_GRANTS" "$A_SCOPES"
+    write_reorder_config "$A_GRANTS" "$A_SCOPES" "$A_REQUESTABLE" "$A_AUTH" "$A_FAPI" "$A_DELIVERY"
     ( cd "$workdir" && "$TF" apply -auto-approve -no-color >/dev/null ) || die "apply failed"
     say "Applied with the lists in one order."
 
@@ -460,7 +492,7 @@ TF
     say "The plan after the apply is clean."
 
     # The case that used to loop for ever: same values, different order.
-    write_reorder_config "$B_GRANTS" "$B_SCOPES"
+    write_reorder_config "$B_GRANTS" "$B_SCOPES" "$B_REQUESTABLE" "$B_AUTH" "$B_FAPI" "$B_DELIVERY"
     if ( cd "$workdir" && "$TF" plan -detailed-exitcode -no-color >/dev/null 2>&1 ); then
       say "PASS: reordering a list already in state proposes nothing."
     else
@@ -471,6 +503,32 @@ TF
   The resource-level ModifyPlan in internal/provider/settled_plan.go restores
   prior state when every difference is an unknown. Check it is still wired:
   the framework finds it through ResourceWithModifyPlan."
+    fi
+
+    # Import has no saved configuration spelling, so Authlete's ordering and
+    # JSON formatting enter state directly. The first plan must be clean too.
+    IDS=$( cd "$workdir" && "$TF" show -json | python3 -c '
+import json,sys
+resources=json.load(sys.stdin)["values"]["root_module"]["resources"]
+sid=next(r["values"]["api_key"] for r in resources if r["type"]=="authlete_service")
+cid=next(r["values"]["client_id"] for r in resources if r["type"]=="authlete_client")
+print(sid, cid)
+' )
+    read -r SID CID <<< "$IDS"
+    CLIENT_IMPORT=$(python3 -c 'import json,sys; print(json.dumps({"service_id":sys.argv[1],"client_id":int(sys.argv[2])}))' "$SID" "$CID")
+    cp "$workdir/terraform.tfstate" "$workdir/before-import.tfstate"
+    if ! ( cd "$workdir" && "$TF" state rm authlete_client.c authlete_service.s >/dev/null \
+      && "$TF" import -no-color authlete_service.s "$SID" >/dev/null \
+      && "$TF" import -no-color authlete_client.c "$CLIENT_IMPORT" >/dev/null ); then
+      # Restore our local test state so cleanup still owns both real objects.
+      cp "$workdir/before-import.tfstate" "$workdir/terraform.tfstate"
+      die "could not re-import the probe resources"
+    fi
+    if ( cd "$workdir" && "$TF" plan -detailed-exitcode -no-color >/dev/null 2>&1 ); then
+      say "PASS: service and client import with reordered lists and a JWK Set plans no change."
+    else
+      ( cd "$workdir" && "$TF" plan -no-color > "$workdir/import-plan.txt" 2>&1 ) || true
+      die "FAIL: import plans a change; see $workdir/import-plan.txt"
     fi
     ;;
   gone)
