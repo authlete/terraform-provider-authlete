@@ -154,16 +154,17 @@ and apply from then on.
 
 Treat it as a secret for as long as it exists. Keep it out of version control,
 restrict it to the user Terraform runs as, and give it the same handling as a
-state file, which already holds the same keys.
+state file, which already holds the same keys. Every machine that runs a plan
+reads it, so a pipeline has to fetch it from wherever secrets are kept and
+write it beside the configuration before Terraform runs.
 
-If leaving private keys on disk is not acceptable, do not carry them over at
-all. Rotate instead, as below: the old keys stay where they are, in Authlete
-and in state, and nothing new is written to a file.
-
-The alternative is to rotate rather than carry over: generate fresh keys with
-`tls_private_key`, apply them, and update whichever `*_signature_key_id`
-attributes name the old ones. That is cleaner, but it is a key rotation, so
-anything holding a token signed by an old key is affected.
+If that is more handling than you want, rotate instead of carrying the keys
+over. Generate fresh keys with `tls_private_key`, set `jwks` to those alone,
+and update whichever `*_signature_key_id` attributes name the old ones.
+Nothing is written to a file and nothing has to reach CI. It is a real
+rotation though: setting `jwks` replaces the whole set, so the old keys are
+removed from Authlete, and anything holding a token signed by one of them is
+affected until it fetches the key set again.
 
 Either way, check afterwards that every `*_signature_key_id` on the service
 still names a `kid` that exists in `jwks`. Authlete does not check this, and a
