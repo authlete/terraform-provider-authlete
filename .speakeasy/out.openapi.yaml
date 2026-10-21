@@ -10560,6 +10560,7 @@ components:
               </Accordion>
           x-speakeasy-plan-modifiers:
             - KeepOrder_requestable_scopes
+            - KeepOrder_requestable_scopes
         requestableScopesEnabled:
           type: boolean
           description: |
@@ -10632,6 +10633,7 @@ components:
             The sequential number of the client. The value of this property is assigned by Authlete.
           x-speakeasy-plan-modifiers:
             - UseStateForUnknown
+            - UseStateForUnknown
         serviceNumber:
           type: integer
           format: int32
@@ -10640,6 +10642,7 @@ components:
             The sequential number of the service of the client application. The value of this property is
             assigned by Authlete.
           x-speakeasy-plan-modifiers:
+            - UseStateForUnknown
             - UseStateForUnknown
         clientName:
           type: string
@@ -10670,6 +10673,7 @@ components:
           description: The client identifier used in Authlete API calls. The value of this property is assigned by Authlete.
           x-speakeasy-plan-modifiers:
             - UseStateForUnknown
+            - UseStateForUnknown
         clientSecret:
           type: string
           readOnly: true
@@ -10693,6 +10697,7 @@ components:
               </Accordion>
           x-speakeasy-param-sensitive: true
           x-speakeasy-plan-modifiers:
+            - UseStateForUnknown
             - UseStateForUnknown
         clientIdAlias:
           type: string
@@ -10772,6 +10777,7 @@ components:
           description: The time at which this client was created. The value is represented as milliseconds since the UNIX epoch (1970-01-01).
           x-speakeasy-plan-modifiers:
             - UseStateForUnknown
+            - UseStateForUnknown
         modifiedAt:
           type: integer
           format: int64
@@ -10787,7 +10793,9 @@ components:
             2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
           x-speakeasy-plan-validators:
             - ValidEnumValues
+            - ValidEnumValues
           x-speakeasy-plan-modifiers:
+            - KeepOrder_grant_types
             - KeepOrder_grant_types
         responseTypes:
           type: array
@@ -10799,7 +10807,9 @@ components:
             2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
           x-speakeasy-plan-validators:
             - ValidEnumValues
+            - ValidEnumValues
           x-speakeasy-plan-modifiers:
+            - KeepOrder_response_types
             - KeepOrder_response_types
         redirectUris:
           type: array
@@ -10877,6 +10887,7 @@ components:
             Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
           x-speakeasy-plan-modifiers:
             - ClearSuperseded_tls_client_auth_subject_dn
+            - ClearSuperseded_tls_client_auth_subject_dn
         tlsClientAuthSanDns:
           type: string
           description: |-
@@ -10888,6 +10899,7 @@ components:
 
             Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
           x-speakeasy-plan-modifiers:
+            - ClearSuperseded_tls_client_auth_san_dns
             - ClearSuperseded_tls_client_auth_san_dns
         tlsClientAuthSanUri:
           type: string
@@ -10901,6 +10913,7 @@ components:
             Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
           x-speakeasy-plan-modifiers:
             - ClearSuperseded_tls_client_auth_san_uri
+            - ClearSuperseded_tls_client_auth_san_uri
         tlsClientAuthSanIp:
           type: string
           description: |-
@@ -10913,6 +10926,7 @@ components:
             Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
           x-speakeasy-plan-modifiers:
             - ClearSuperseded_tls_client_auth_san_ip
+            - ClearSuperseded_tls_client_auth_san_ip
         tlsClientAuthSanEmail:
           type: string
           description: |-
@@ -10924,6 +10938,7 @@ components:
 
             Authlete accepts exactly one of `tls_client_auth_subject_dn`, `tls_client_auth_san_dns`, `tls_client_auth_san_email`, `tls_client_auth_san_ip` and `tls_client_auth_san_uri`. To switch between them, delete the old line and add the new one: the provider clears the superseded value and shows it in the plan. Setting two at once is refused before anything is sent. An empty string does not clear one, because Authlete counts it as naming that subject type.
           x-speakeasy-plan-modifiers:
+            - ClearSuperseded_tls_client_auth_san_email
             - ClearSuperseded_tls_client_auth_san_email
         parRequired:
           type: boolean
@@ -11048,8 +11063,11 @@ components:
           x-speakeasy-terraform-custom-type:
             imports:
               - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
+              - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
             schemaType: customtypes.PublicJWKSType{}
             valueType: customtypes.PublicJWKS
+          x-speakeasy-plan-validators:
+            - ValidPublicJWKSet
         userInfoSignAlg:
           nullable: true
           $ref: '#/components/schemas/jws_alg'
@@ -11422,7 +11440,9 @@ components:
               </Accordion>
           x-speakeasy-plan-modifiers:
             - KeepOrder_client_fapi_modes
+            - KeepOrder_client_fapi_modes
           x-speakeasy-plan-validators:
+            - ValidEnumValues
             - ValidEnumValues
         responseModes:
           type: array
@@ -11439,6 +11459,7 @@ components:
           description: The response modes that this client may use.
           nullable: true
           x-speakeasy-plan-modifiers:
+            - KeepOrder_response_modes
             - KeepOrder_response_modes
         credentialResponseEncryptionRequired:
           type: boolean
@@ -11725,6 +11746,7 @@ components:
           description: The sequential number of the service. The value of this property is assigned by Authlete.
           x-speakeasy-plan-modifiers:
             - UseStateForUnknown
+            - UseStateForUnknown
         serviceName:
           type: string
           description: The name of this service.
@@ -11747,6 +11769,7 @@ components:
           description: The service ID used in Authlete API calls. The value of this property is assigned by Authlete.
           x-speakeasy-plan-modifiers:
             - UseStateForUnknown
+            - UseStateForUnknown
         apiSecret:
           type: string
           readOnly: true
@@ -11754,6 +11777,7 @@ components:
           x-speakeasy-param-sensitive: true
           x-speakeasy-terraform-ignore: true
           x-speakeasy-plan-modifiers:
+            - UseStateForUnknown
             - UseStateForUnknown
         tokenBatchNotificationEndpoint:
           type: string
@@ -11769,6 +11793,7 @@ components:
           readOnly: true
           description: "The number of the organization that owns this service. This value is \nassigned by Authlete.\n"
           x-speakeasy-plan-modifiers:
+            - UseStateForUnknown
             - UseStateForUnknown
         clientsPerDeveloper:
           type: integer
@@ -11823,6 +11848,7 @@ components:
           readOnly: true
           x-speakeasy-plan-modifiers:
             - SuppressDiff(ExplicitSuppress)
+            - SuppressDiff(ExplicitSuppress)
         createdAt:
           type: integer
           format: int64
@@ -11831,6 +11857,7 @@ components:
             The time at which this service was created. The value is represented as milliseconds since the
             UNIX epoch (`1970-01-01`).
           x-speakeasy-plan-modifiers:
+            - UseStateForUnknown
             - UseStateForUnknown
         modifiedAt:
           type: integer
@@ -11883,7 +11910,9 @@ components:
           nullable: true
           x-speakeasy-plan-validators:
             - ValidEnumValues
+            - ValidEnumValues
           x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_grant_types
             - KeepOrder_supported_grant_types
         supportedResponseTypes:
           type: array
@@ -11898,7 +11927,9 @@ components:
           nullable: true
           x-speakeasy-plan-validators:
             - ValidEnumValues
+            - ValidEnumValues
           x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_response_types
             - KeepOrder_supported_response_types
         supportedAuthorizationDetailsTypes:
           type: array
@@ -11917,7 +11948,9 @@ components:
             The profiles that this service supports.
           x-speakeasy-plan-validators:
             - ValidEnumValues
+            - ValidEnumValues
           x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_service_profiles
             - KeepOrder_supported_service_profiles
         errorDescriptionOmitted:
           type: boolean
@@ -11976,7 +12009,9 @@ components:
           nullable: true
           x-speakeasy-plan-validators:
             - ValidEnumValues
+            - ValidEnumValues
           x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_displays
             - KeepOrder_supported_displays
         pkceRequired:
           type: boolean
@@ -12039,7 +12074,9 @@ components:
           nullable: true
           x-speakeasy-plan-validators:
             - ValidEnumValues
+            - ValidEnumValues
           x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_token_auth_methods
             - KeepOrder_supported_token_auth_methods
         missingClientIdAllowed:
           type: boolean
@@ -12067,7 +12104,9 @@ components:
             Client authentication methods supported at the revocation endpoint.
           x-speakeasy-plan-validators:
             - ValidEnumValues
+            - ValidEnumValues
           x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_revocation_auth_methods
             - KeepOrder_supported_revocation_auth_methods
         introspectionEndpoint:
           type: string
@@ -12086,7 +12125,9 @@ components:
             $ref: '#/components/schemas/client_auth_method'
           x-speakeasy-plan-validators:
             - ValidEnumValues
+            - ValidEnumValues
           x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_introspection_auth_methods
             - KeepOrder_supported_introspection_auth_methods
         pushedAuthReqEndpoint:
           type: string
@@ -12290,6 +12331,7 @@ components:
               </Accordion>
           x-speakeasy-plan-modifiers:
             - KeepOrderByName_supported_scopes
+            - KeepOrderByName_supported_scopes
         scopeRequired:
           type: boolean
           description: |
@@ -12338,7 +12380,9 @@ components:
           nullable: true
           x-speakeasy-plan-validators:
             - ValidEnumValues
+            - ValidEnumValues
           x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_claim_types
             - KeepOrder_supported_claim_types
         supportedClaimLocales:
           type: array
@@ -12393,6 +12437,7 @@ components:
               </Accordion>
           x-speakeasy-plan-modifiers:
             - KeepOrder_supported_claims
+            - KeepOrder_supported_claims
         claimShortcutRestrictive:
           type: boolean
           description: |
@@ -12445,8 +12490,11 @@ components:
           x-speakeasy-terraform-custom-type:
             imports:
               - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
+              - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
             schemaType: customtypes.JWKSType{}
             valueType: customtypes.JWKS
+          x-speakeasy-plan-validators:
+            - ValidJWKSet
         idTokenSignatureKeyId:
           type: string
           description: |
@@ -12587,7 +12635,9 @@ components:
             Backchannel Authentication)](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html).
           x-speakeasy-plan-validators:
             - ValidEnumValues
+            - ValidEnumValues
           x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_backchannel_token_delivery_modes
             - KeepOrder_supported_backchannel_token_delivery_modes
         backchannelAuthReqIdDuration:
           type: integer
@@ -13113,8 +13163,11 @@ components:
           x-speakeasy-terraform-custom-type:
             imports:
               - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
+              - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
             schemaType: customtypes.JWKSType{}
             valueType: customtypes.JWKS
+          x-speakeasy-plan-validators:
+            - ValidJWKSet
         federationSignatureKeyId:
           type: string
           description: |
@@ -13165,7 +13218,9 @@ components:
             implementer's draft of OpenID Connect for Identity Assurance 1.0.
           x-speakeasy-plan-validators:
             - ValidEnumValues
+            - ValidEnumValues
           x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_attachments
             - KeepOrder_supported_attachments
         supportedDigestAlgorithms:
           type: array
@@ -13229,7 +13284,9 @@ components:
             $ref: '#/components/schemas/client_registration_type'
           x-speakeasy-plan-modifiers:
             - KeepOrder_supported_client_registration_types
+            - KeepOrder_supported_client_registration_types
           x-speakeasy-plan-validators:
+            - ValidEnumValues
             - ValidEnumValues
         tokenExchangeByIdentifiableClientsOnly:
           type: boolean
@@ -13370,7 +13427,9 @@ components:
           nullable: true
           x-speakeasy-plan-validators:
             - ValidEnumValues
+            - ValidEnumValues
           x-speakeasy-plan-modifiers:
+            - KeepOrder_supported_prompt_values
             - KeepOrder_supported_prompt_values
         idTokenReissuable:
           type: boolean
@@ -13399,7 +13458,9 @@ components:
             Advanced" if the FAPI feature is enabled in Authlete and the FAPI profile is supported by this service.
           x-speakeasy-plan-modifiers:
             - KeepOrder_service_fapi_modes
+            - KeepOrder_service_fapi_modes
           x-speakeasy-plan-validators:
+            - ValidEnumValues
             - ValidEnumValues
         credentialDuration:
           type: integer
@@ -20617,6 +20678,54 @@ x-speakeasy-retries:
 x-speakeasy-timeout: 5000
 x-speakeasy-globals:
   parameters:
+    - name: organizationId
+      in: path
+      description: |-
+        The Authlete organization services are created under. Required to
+        create or delete a service, which goes through the IdP rather than
+        the regional cluster.
+
+        Also settable with the AUTHLETE_ORGANIZATION_ID environment
+        variable. Shown in the Authlete console.
+      schema:
+        type: integer
+        format: int64
+    - name: idpHost
+      in: path
+      description: |-
+        The host of your own identity server, for Dedicated Cloud and
+        On-Premise deployments. Leave unset on Shared Cloud, which uses
+        Authlete's own IdP at login.authlete.com.
+
+        Set this whenever server_url is not one of the four public
+        clusters. Without it, creating a service sends your organization
+        token to login.authlete.com instead of your deployment, and the
+        error only says that apiServerId must not be null.
+
+        Also settable with the AUTHLETE_IDP_HOST environment variable.
+      schema:
+        type: string
+    - name: apiServerId
+      in: path
+      description: |-
+        Which API server the IdP should create the service on. The
+        Authlete console calls this the cluster ID.
+
+        Derived automatically for the four public clusters, so Shared
+        Cloud deployments need not set it. Dedicated Cloud, On-Premise and
+        pre-production hosts are not derivable and must supply it, or the
+        IdP rejects create and delete.
+
+        Must describe the same deployment as server_url. Creating a
+        service on one cluster and reading it from another fails on the
+        next refresh with a 403, leaving a service Terraform can neither
+        read nor delete.
+
+        Also settable with the AUTHLETE_API_SERVER_ID environment
+        variable.
+      schema:
+        type: integer
+        format: int64
     - name: organizationId
       in: path
       description: |-

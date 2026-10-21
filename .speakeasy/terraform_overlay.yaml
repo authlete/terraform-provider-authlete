@@ -228,6 +228,8 @@ actions:
           - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
         schemaType: customtypes.PublicJWKSType{}
         valueType: customtypes.PublicJWKS
+      x-speakeasy-plan-validators:
+        - ValidPublicJWKSet
 
   - target: $.components.schemas.service.properties.jwks
     description: Compare the service JWK Set by meaning, not bytes
@@ -237,6 +239,8 @@ actions:
           - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
         schemaType: customtypes.JWKSType{}
         valueType: customtypes.JWKS
+      x-speakeasy-plan-validators:
+        - ValidJWKSet
 
   - target: $.components.schemas.service.properties.federationJwks
     description: Compare the federation JWK Set by meaning, not bytes
@@ -246,6 +250,8 @@ actions:
           - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
         schemaType: customtypes.JWKSType{}
         valueType: customtypes.JWKS
+      x-speakeasy-plan-validators:
+        - ValidJWKSet
 
   # ---------- Fields the server does not accept ----------
   # These are described as writable in the spec but never read from the request
