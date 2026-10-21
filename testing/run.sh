@@ -7,6 +7,8 @@
 #   ./run.sh apply       # CREATES A REAL SERVICE AND CLIENT in your Authlete org
 #   ./run.sh destroy     # deletes what apply created
 #   ./run.sh import      # create a service, import it, and assert the plan is clean
+#   ./run.sh reorder     # reordering a list already in state must plan nothing
+#   ./run.sh gone        # only a real deletion may drop a resource from state
 #   ./run.sh show        # print current state
 #
 # Terraform finds the Authlete provider through a dev_overrides block written to
@@ -80,8 +82,8 @@ command -v "$TF" >/dev/null 2>&1 || die \
 command -v go >/dev/null 2>&1 || die "go not found on PATH."
 
 case "$MODE" in
-  validate|plan|apply|destroy|show|import|regress|regress-destroy|negative) ;;
-  *) die "unknown mode '$MODE'. Use one of: validate, plan, apply, destroy, show, import, regress, regress-destroy, negative" ;;
+  validate|plan|apply|destroy|show|import|regress|regress-destroy|negative|reorder|gone) ;;
+  *) die "unknown mode '$MODE'. Use one of: validate, plan, apply, destroy, show, import, regress, regress-destroy, negative, reorder, gone" ;;
 esac
 
 # validate and plan for not-yet-created resources need no live credentials, so a
@@ -399,6 +401,166 @@ EOF
     [[ $failures -eq 0 ]] || die "$failures negative case(s) did not behave as expected.
   Each one guards a fix that makes something impossible. See negative/README.md."
     say "Every negative case was refused for the right reason."
+    ;;
+  reorder)
+    # Item 5: writing a list out of order on create always settled. Changing
+    # the order of a list already in state did not: the list itself showed no
+    # diff, but about 180 computed attributes went to "known after apply", the
+    # apply sent nothing the server treated as a change, and the next plan
+    # proposed the same thing again. Every import hit it, because imported
+    # state holds Authlete's order.
+    #
+    # Two phases, because one configuration cannot express "then reorder it".
+    cat <<EOF
+
+  This creates one real service in the Authlete organization the token
+  belongs to, and removes it again at the end.
+
+EOF
+    if [[ "${ASSUME_YES:-}" != "1" ]]; then
+      read -r -p "Continue? [y/N] " reply
+      [[ "$reply" == "y" || "$reply" == "Y" ]] || die "aborted"
+    fi
+
+    workdir=$(mktemp -d)
+    trap 'say "Removing the probe service"; ( cd "$workdir" && "$TF" destroy -auto-approve -no-color >/dev/null 2>&1 ); rm -rf "$workdir"' EXIT
+
+    write_reorder_config() {
+      cat > "$workdir/main.tf" <<TF
+terraform {
+  required_providers { authlete = { source = "authlete/authlete" } }
+}
+provider "authlete" {
+  organization_id = $AUTHLETE_ORGANIZATION_ID
+}
+resource "authlete_service" "s" {
+  service_name = "${TF_VAR_name_prefix:-tftest}-reorder"
+  issuer       = "https://reorder.example.com"
+
+  supported_grant_types = [$1]
+  supported_scopes = [$2]
+}
+TF
+    }
+
+    A_GRANTS='"AUTHORIZATION_CODE", "REFRESH_TOKEN", "CLIENT_CREDENTIALS"'
+    B_GRANTS='"CLIENT_CREDENTIALS", "AUTHORIZATION_CODE", "REFRESH_TOKEN"'
+    A_SCOPES='{ name = "read" }, { name = "write" }, { name = "admin" }'
+    B_SCOPES='{ name = "admin" }, { name = "write" }, { name = "read" }'
+
+    write_reorder_config "$A_GRANTS" "$A_SCOPES"
+    ( cd "$workdir" && "$TF" apply -auto-approve -no-color >/dev/null ) || die "apply failed"
+    say "Applied with the lists in one order."
+
+    if ! ( cd "$workdir" && "$TF" plan -detailed-exitcode -no-color >/dev/null 2>&1 ); then
+      ( cd "$workdir" && "$TF" plan -no-color 2>&1 | grep -E "^Plan:" | head -1 )
+      die "FAIL: the plan straight after the apply is not empty."
+    fi
+    say "The plan after the apply is clean."
+
+    # The case that used to loop for ever: same values, different order.
+    write_reorder_config "$B_GRANTS" "$B_SCOPES"
+    if ( cd "$workdir" && "$TF" plan -detailed-exitcode -no-color >/dev/null 2>&1 ); then
+      say "PASS: reordering a list already in state proposes nothing."
+    else
+      ( cd "$workdir" && "$TF" plan -no-color > "$workdir/p.txt" 2>&1 )
+      grep -E "^Plan:" "$workdir/p.txt" | head -1
+      printf '  attributes going unknown: %s\n' "$(grep -c 'known after apply' "$workdir/p.txt")" >&2
+      die "FAIL: an order-only change plans a change, so it will never settle.
+  The resource-level ModifyPlan in internal/provider/settled_plan.go restores
+  prior state when every difference is an unknown. Check it is still wired:
+  the framework finds it through ResourceWithModifyPlan."
+    fi
+    ;;
+  gone)
+    # Items 1 and 2: deciding a resource is gone drops it from state and plans
+    # a replacement, which creates a second service and orphans the original.
+    # The generated code decided it from the status code, so any 404 -- an
+    # nginx page, a proxy, a typo in server_url -- recreated everything. And a
+    # cluster that never had the service answers exactly as one that deleted
+    # it, so a wrong AUTHLETE_SERVER_URL did the same.
+    #
+    # Mocks stand in for both, so no second cluster is needed.
+    cat <<EOF
+
+  This creates one real service in the Authlete organization the token
+  belongs to, and removes it again at the end. It also listens on
+  127.0.0.1:8911 and 127.0.0.1:8912.
+
+EOF
+    if [[ "${ASSUME_YES:-}" != "1" ]]; then
+      read -r -p "Continue? [y/N] " reply
+      [[ "$reply" == "y" || "$reply" == "Y" ]] || die "aborted"
+    fi
+
+    command -v python3 >/dev/null || die "python3 is needed for the mock responses"
+
+    workdir=$(mktemp -d)
+    trap 'say "Removing the probe service"; ( cd "$workdir" && "$TF" destroy -auto-approve -no-color -var "server_url=$AUTHLETE_SERVER_URL" >/dev/null 2>&1 ); kill %1 %2 2>/dev/null; rm -rf "$workdir"' EXIT
+
+    cat > "$workdir/mock.py" <<'PY'
+import sys, http.server
+port, status, body = int(sys.argv[1]), int(sys.argv[2]), sys.argv[3].encode()
+class H(http.server.BaseHTTPRequestHandler):
+    def respond(self):
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+    do_GET = do_POST = do_DELETE = do_PUT = lambda s: s.respond()
+    def log_message(self, *a): pass
+http.server.HTTPServer(("127.0.0.1", port), H).serve_forever()
+PY
+    python3 "$workdir/mock.py" 8911 404 '<html><title>404 Not Found</title><body>nginx</body></html>' &
+    python3 "$workdir/mock.py" 8912 403 '{"resultCode":"A458203","resultMessage":"[A458203] Service not found: entity is null."}' &
+    sleep 2
+
+    cat > "$workdir/main.tf" <<TF
+terraform {
+  required_providers { authlete = { source = "authlete/authlete" } }
+}
+variable "server_url" { type = string }
+provider "authlete" {
+  organization_id = $AUTHLETE_ORGANIZATION_ID
+  server_url      = var.server_url
+}
+resource "authlete_service" "s" {
+  service_name = "${TF_VAR_name_prefix:-tftest}-gone"
+  issuer       = "https://gone.example.com"
+}
+TF
+    ( cd "$workdir" && "$TF" apply -auto-approve -no-color -var "server_url=$AUTHLETE_SERVER_URL" >/dev/null ) || die "apply failed"
+    # A plan does not write state, so the host is recorded by a refresh that does.
+    ( cd "$workdir" && "$TF" apply -refresh-only -auto-approve -no-color -var "server_url=$AUTHLETE_SERVER_URL" >/dev/null ) || die "refresh failed"
+    say "Applied, and the host that answered is recorded."
+
+    check_refuses() {
+      local url=$1 what=$2
+      if ( cd "$workdir" && "$TF" plan -no-color -var "server_url=$url" >/dev/null 2>&1 ); then
+        ( cd "$workdir" && "$TF" plan -no-color -var "server_url=$url" 2>&1 | grep -E "^Plan:" | head -1 )
+        die "FAIL: $what was treated as a deletion.
+  Terraform would create a second service and leave the original running
+  unmanaged. See internal/provider/missing_service.go."
+      fi
+      say "PASS: $what is refused rather than treated as a deletion."
+    }
+
+    check_refuses "http://127.0.0.1:8911" "a 404 with an unrelated body"
+    check_refuses "http://127.0.0.1:8912" "a service missing from a different host"
+
+    # And the behaviour that must survive: a service genuinely deleted, on the
+    # host it was read from, still plans for recreation.
+    SID=$( cd "$workdir" && "$TF" show -json | python3 -c 'import sys,json; print(json.load(sys.stdin)["values"]["root_module"]["resources"][0]["values"]["api_key"])' )
+    curl -fsS -o /dev/null -X POST "${AUTHLETE_IDP_URL:-https://login.authlete.com}/api/service/remove" \
+      -H "Authorization: Bearer $AUTHLETE_TOKEN" -H "Content-Type: application/json" \
+      -d "{\"apiServerId\":$TF_VAR_api_server_id_probe,\"organizationId\":$AUTHLETE_ORGANIZATION_ID,\"serviceId\":$SID}" \
+      || die "could not delete the service out of band"
+
+    if ( cd "$workdir" && "$TF" plan -detailed-exitcode -no-color -var "server_url=$AUTHLETE_SERVER_URL" >/dev/null 2>&1 ); then
+      die "FAIL: a service deleted out of band proposes no change, so it can never be recreated."
+    fi
+    say "PASS: a genuine deletion still plans for recreation."
     ;;
   regress-destroy)
     cd "$TESTING_DIR/regressions"

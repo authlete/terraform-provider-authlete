@@ -21,6 +21,8 @@ in effect" warning on every command; that is expected.
 ./run.sh import      # create a service, import it, assert the plan is clean
 ./run.sh regress     # apply the regression cases, assert the second plan is empty
 ./run.sh negative    # assert the things that must be refused still are — no token needed
+./run.sh reorder     # reordering a list already in state must plan nothing
+./run.sh gone        # only a real deletion may drop a resource from state
 ./run.sh show        # dump current state
 ```
 
@@ -296,3 +298,38 @@ build rather than shipping a provider that ignores both settings.
 
 This directory is hand-written and is not tracked in `.speakeasy/gen.lock`, so
 `speakeasy run` leaves it alone. Nothing here is generated; edit it freely.
+
+## Plans that must settle, and resources that must not vanish
+
+Two modes cover the fixes that are only visible on the *second* plan, which
+is why they were missed for so long.
+
+`./run.sh reorder` applies a service, then rewrites the same lists in a
+different order and asserts the plan is empty. Before the fix this planned a
+change for ever: the lists showed no diff, but around 180 computed attributes
+went to "known after apply", the apply sent nothing the server treated as a
+change, and the next plan said the same again. Every import hit it, because
+imported state holds Authlete's order.
+
+`./run.sh gone` covers the opposite failure, where Terraform decides a
+resource has been deleted and recreates it, leaving the original running
+unmanaged. It asserts three things against a real service:
+
+| case | must |
+|---|---|
+| a 404 with an unrelated body, from a mock | be refused, not treated as a deletion |
+| the service missing from a different host | be refused, naming both hosts |
+| the service genuinely deleted out of band | still plan for recreation |
+
+The third matters as much as the other two. Making the provider stricter is
+easy; keeping a real deletion recoverable while doing it is the part that
+breaks.
+
+Both modes were checked against the commit before each fix, where they fail:
+
+```
+reorder   Plan: 0 to add, 1 to change    183 attributes going unknown
+gone      Plan: 1 to add                 a 404 treated as a deletion
+```
+
+They need a token and create one real service each, removing it on exit.
