@@ -2,10 +2,13 @@
 package provider
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
 func response(status int, body string) *http.Response {
@@ -169,5 +172,97 @@ func TestA403WithoutTheCodeIsNotGone(t *testing.T) {
 				t.Error("a permission failure was read as a deletion")
 			}
 		})
+	}
+}
+
+// fakePrivate stands in for the framework's private state, which is what
+// carries the host between runs.
+type fakePrivate struct {
+	data map[string][]byte
+	err  bool
+}
+
+func (f *fakePrivate) SetKey(_ context.Context, key string, value []byte) diag.Diagnostics {
+	var diags diag.Diagnostics
+	if f.err {
+		diags.AddError("set failed", "")
+		return diags
+	}
+	if f.data == nil {
+		f.data = map[string][]byte{}
+	}
+	f.data[key] = value
+	return diags
+}
+
+func (f *fakePrivate) GetKey(_ context.Context, key string) ([]byte, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	if f.err {
+		diags.AddError("get failed", "")
+		return nil, diags
+	}
+	return f.data[key], diags
+}
+
+func responseFrom(host string, status int, body string) *http.Response {
+	res := response(status, body)
+	req, _ := http.NewRequest(http.MethodGet, "https://"+host+"/api/1/service/get", nil)
+	res.Request = req
+	return res
+}
+
+// The guard that stops a wrong server_url recreating everything. It must fire
+// only when the host actually changed, or a genuine deletion stops working.
+func TestMovedHost(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("nothing recorded yet means nothing to object to", func(t *testing.T) {
+		if was := movedHost(ctx, &fakePrivate{}, responseFrom("jp.authlete.com", 403, "")); was != "" {
+			t.Errorf("objected with no recorded host: %q", was)
+		}
+	})
+
+	t.Run("the same host is not a move", func(t *testing.T) {
+		p := &fakePrivate{}
+		rememberHost(ctx, p, responseFrom("jp.authlete.com", 200, ""))
+		if was := movedHost(ctx, p, responseFrom("jp.authlete.com", 403, "")); was != "" {
+			t.Errorf("a genuine deletion would be refused: %q", was)
+		}
+	})
+
+	t.Run("a different host is a move", func(t *testing.T) {
+		p := &fakePrivate{}
+		rememberHost(ctx, p, responseFrom("jp.authlete.com", 200, ""))
+		if was := movedHost(ctx, p, responseFrom("us.authlete.com", 403, "")); was != "jp.authlete.com" {
+			t.Errorf("movedHost = %q, want jp.authlete.com", was)
+		}
+	})
+
+	// Failing to read private state must not invent a move, which would turn
+	// a recoverable situation into a blocked one.
+	t.Run("an unreadable private state is not a move", func(t *testing.T) {
+		if was := movedHost(ctx, &fakePrivate{err: true}, responseFrom("us.authlete.com", 403, "")); was != "" {
+			t.Errorf("objected on a private-state failure: %q", was)
+		}
+	})
+
+	t.Run("a response with no request carries no host", func(t *testing.T) {
+		p := &fakePrivate{}
+		rememberHost(ctx, p, response(200, ""))
+		if len(p.data) != 0 {
+			t.Errorf("recorded something from a response with no request: %v", p.data)
+		}
+	})
+}
+
+func TestGoneElsewhereMessageNamesBothHosts(t *testing.T) {
+	summary, detail := goneElsewhereMessage("jp.authlete.com", "us.authlete.com")
+	if summary == "" {
+		t.Error("no summary")
+	}
+	for _, want := range []string{"jp.authlete.com", "us.authlete.com", "import"} {
+		if !strings.Contains(detail, want) {
+			t.Errorf("the detail does not mention %q, so the reader cannot act on it:\n%s", want, detail)
+		}
 	}
 }

@@ -474,9 +474,9 @@ actions:
               Authlete's own IdP at login.authlete.com.
 
               Set this whenever server_url is not one of the four public
-              clusters. Without it, creating a service sends your organization
-              token to login.authlete.com instead of your deployment, and the
-              error only says that apiServerId must not be null.
+              clusters. Without it the provider refuses to create or delete a
+              service, rather than send your organization token to Authlete's
+              shared IdP, and the error names this attribute.
 
               Also settable with the AUTHLETE_IDP_HOST environment variable.
             schema:
@@ -492,10 +492,12 @@ actions:
               pre-production hosts are not derivable and must supply it, or the
               IdP rejects create and delete.
 
-              Must describe the same deployment as server_url. Creating a
-              service on one cluster and reading it from another fails on the
-              next refresh with a 403, leaving a service Terraform can neither
-              read nor delete.
+              Must describe the same deployment as server_url. A service id
+              is unique to the cluster that issued it, and a cluster that never
+              had the service answers exactly as one that deleted it, so
+              reading from the wrong cluster is refused rather than treated as
+              a deletion. Put server_url back, or import the resource from the
+              cluster it now lives on.
 
               Also settable with the AUTHLETE_API_SERVER_ID environment
               variable.

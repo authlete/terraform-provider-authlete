@@ -69,10 +69,12 @@ func (p *AuthleteProvider) Schema(ctx context.Context, req provider.SchemaReques
 					`pre-production hosts are not derivable and must supply it, or the` + "\n" +
 					`IdP rejects create and delete.` + "\n" +
 					`` + "\n" +
-					`Must describe the same deployment as server_url. Creating a` + "\n" +
-					`service on one cluster and reading it from another fails on the` + "\n" +
-					`next refresh with a 403, leaving a service Terraform can neither` + "\n" +
-					`read nor delete.` + "\n" +
+					`Must describe the same deployment as server_url. A service id` + "\n" +
+					`is unique to the cluster that issued it, and a cluster that never` + "\n" +
+					`had the service answers exactly as one that deleted it, so` + "\n" +
+					`reading from the wrong cluster is refused rather than treated as` + "\n" +
+					`a deletion. Put server_url back, or import the resource from the` + "\n" +
+					`cluster it now lives on.` + "\n" +
 					`` + "\n" +
 					`Also settable with the AUTHLETE_API_SERVER_ID environment` + "\n" +
 					`variable.`,
@@ -101,9 +103,9 @@ func (p *AuthleteProvider) Schema(ctx context.Context, req provider.SchemaReques
 					`Authlete's own IdP at login.authlete.com.` + "\n" +
 					`` + "\n" +
 					`Set this whenever server_url is not one of the four public` + "\n" +
-					`clusters. Without it, creating a service sends your organization` + "\n" +
-					`token to login.authlete.com instead of your deployment, and the` + "\n" +
-					`error only says that apiServerId must not be null.` + "\n" +
+					`clusters. Without it the provider refuses to create or delete a` + "\n" +
+					`service, rather than send your organization token to Authlete's` + "\n" +
+					`shared IdP, and the error names this attribute.` + "\n" +
 					`` + "\n" +
 					`Also settable with the AUTHLETE_IDP_HOST environment variable.`,
 				Optional: true,
