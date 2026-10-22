@@ -555,7 +555,7 @@ EOF
     command -v python3 >/dev/null || die "python3 is needed for the mock responses"
 
     workdir=$(mktemp -d)
-    trap 'say "Removing the probe service"; ( cd "$workdir" && "$TF" destroy -auto-approve -no-color -var "server_url=$AUTHLETE_SERVER_URL" >/dev/null 2>&1 ); kill %1 %2 2>/dev/null; rm -rf "$workdir"' EXIT
+    trap 'say "Removing the probe service"; ( cd "$workdir" && "$TF" destroy -auto-approve -no-color -var "server_url=$AUTHLETE_SERVER_URL" -var "organization_id=$AUTHLETE_ORGANIZATION_ID" -var "idp_host=${AUTHLETE_IDP_HOST:-}" >/dev/null 2>&1 ); kill %1 %2 2>/dev/null; rm -rf "$workdir"' EXIT
 
     cat > "$workdir/mock.py" <<'PY'
 import sys, http.server
@@ -580,16 +580,22 @@ terraform {
   required_providers { authlete = { source = "authlete/authlete" } }
 }
 variable "server_url" { type = string }
+variable "organization_id" { type = number }
+variable "idp_host" {
+  type    = string
+  default = ""
+}
 provider "authlete" {
-  organization_id = $AUTHLETE_ORGANIZATION_ID
+  organization_id = var.organization_id
   server_url      = var.server_url
+  idp_host        = var.idp_host != "" ? var.idp_host : null
 }
 resource "authlete_service" "s" {
   service_name = "${TF_VAR_name_prefix:-tftest}-gone"
   issuer       = "https://gone.example.com"
 }
 TF
-    ( cd "$workdir" && "$TF" apply -auto-approve -no-color -var "server_url=$AUTHLETE_SERVER_URL" >/dev/null ) || die "apply failed"
+    ( cd "$workdir" && "$TF" apply -auto-approve -no-color -var "server_url=$AUTHLETE_SERVER_URL" -var "organization_id=$AUTHLETE_ORGANIZATION_ID" -var "idp_host=${AUTHLETE_IDP_HOST:-}" >/dev/null ) || die "apply failed"
     say "Applied. No refresh follows, deliberately."
 
     # The first version of this test ran "apply -refresh-only" here, because
@@ -601,8 +607,8 @@ TF
 
     check_refuses() {
       local url=$1 what=$2
-      if ( cd "$workdir" && "$TF" plan -no-color -var "server_url=$url" >/dev/null 2>&1 ); then
-        ( cd "$workdir" && "$TF" plan -no-color -var "server_url=$url" 2>&1 | grep -E "^Plan:" | head -1 )
+      if ( cd "$workdir" && "$TF" plan -no-color -var "server_url=$url" -var "organization_id=$AUTHLETE_ORGANIZATION_ID" -var "idp_host=${AUTHLETE_IDP_HOST:-}" >/dev/null 2>&1 ); then
+        ( cd "$workdir" && "$TF" plan -no-color -var "server_url=$url" -var "organization_id=$AUTHLETE_ORGANIZATION_ID" -var "idp_host=${AUTHLETE_IDP_HOST:-}" 2>&1 | grep -E "^Plan:" | head -1 )
         die "FAIL: $what was treated as a deletion.
   Terraform would create a second service and leave the original running
   unmanaged. See internal/provider/missing_service.go."
@@ -621,7 +627,7 @@ TF
       -d "{\"apiServerId\":$TF_VAR_api_server_id_probe,\"organizationId\":$AUTHLETE_ORGANIZATION_ID,\"serviceId\":$SID}" \
       || die "could not delete the service out of band"
 
-    if ( cd "$workdir" && "$TF" plan -detailed-exitcode -no-color -var "server_url=$AUTHLETE_SERVER_URL" >/dev/null 2>&1 ); then
+    if ( cd "$workdir" && "$TF" plan -detailed-exitcode -no-color -var "server_url=$AUTHLETE_SERVER_URL" -var "organization_id=$AUTHLETE_ORGANIZATION_ID" -var "idp_host=${AUTHLETE_IDP_HOST:-}" >/dev/null 2>&1 ); then
       die "FAIL: a service deleted out of band proposes no change, so it can never be recreated."
     fi
     say "PASS: a genuine deletion still plans for recreation."
@@ -631,13 +637,75 @@ TF
     # the console made destroy fail. Only -refresh=false reaches it: with a
     # refresh, Read drops the resource first and Delete is never called.
     if ! ( cd "$workdir" && "$TF" destroy -refresh=false -auto-approve -no-color \
-             -var "server_url=$AUTHLETE_SERVER_URL" >"$workdir/destroy.log" 2>&1 ); then
+             -var "server_url=$AUTHLETE_SERVER_URL" -var "organization_id=$AUTHLETE_ORGANIZATION_ID" -var "idp_host=${AUTHLETE_IDP_HOST:-}" >"$workdir/destroy.log" 2>&1 ); then
       sed -n '1,20p' "$workdir/destroy.log" >&2
       die "FAIL: destroy -refresh=false errors on a service that is already gone.
   The SDK calls utils.DrainBody on a 404, so serviceIsGone read an empty body.
   See internal/provider/captured_body.go."
     fi
     say "PASS: destroy -refresh=false succeeds on a service already deleted."
+
+    # The cases the harness could not see before, because it only ever varied
+    # server_url. A read goes to server_url and the server ignores the three
+    # IdP coordinates, so a wrong-organization read succeeds and rewrites the
+    # recorded location with the wrong organization. The record then agrees
+    # with itself and the IdP's "Service is not found" was taken as a
+    # deletion: destroy reported success and the service kept running.
+    #
+    # Refresh is on here, deliberately. That is the default, and it is what
+    # made the record useless.
+    say "Creating a second service for the coordinate checks"
+    ( cd "$workdir" && "$TF" apply -auto-approve -no-color \
+        -var "server_url=$AUTHLETE_SERVER_URL" -var "organization_id=$AUTHLETE_ORGANIZATION_ID" \
+        -var "idp_host=${AUTHLETE_IDP_HOST:-}" >/dev/null ) || die "second apply failed"
+    SID2=$( cd "$workdir" && "$TF" show -json | python3 -c 'import sys,json; print(json.load(sys.stdin)["values"]["root_module"]["resources"][0]["values"]["api_key"])' )
+
+    still_there() {
+      curl -fsS -o /dev/null "$AUTHLETE_SERVER_URL/api/$SID2/service/get" \
+        -H "Authorization: Bearer $AUTHLETE_TOKEN" 2>/dev/null
+    }
+
+    check_destroy_refuses() {
+      local what=$1; shift
+      if ( cd "$workdir" && "$TF" destroy -auto-approve -no-color \
+             -var "server_url=$AUTHLETE_SERVER_URL" "$@" >/dev/null 2>&1 ); then
+        if still_there; then
+          die "FAIL: destroy with $what reported success and the service still exists.
+  Terraform dropped it from state, so it is now running unmanaged."
+        fi
+        die "FAIL: destroy with $what deleted the service it should have refused to touch."
+      fi
+      still_there || die "FAIL: destroy with $what errored but the service is gone anyway."
+      say "PASS: destroy with $what is refused, and the service survives."
+    }
+
+    check_destroy_refuses "a wrong organization_id" -var "organization_id=999999999999999" -var "idp_host=${AUTHLETE_IDP_HOST:-}"
+    check_destroy_refuses "a wrong idp_host" -var "organization_id=$AUTHLETE_ORGANIZATION_ID" -var "idp_host=login.invalid.example"
+
+    # State that carries no recorded location at all: everything created by
+    # 3.0.0-beta3, and everything upgraded from 1.3.x. Treating "nothing
+    # recorded" as "nothing to object to" left the first run after an upgrade
+    # with no protection, which is the run most likely to have a mistyped
+    # server_url.
+    python3 - "$workdir/terraform.tfstate" <<'PY2'
+import json, sys
+p = sys.argv[1]
+s = json.load(open(p))
+for r in s["resources"]:
+    for i in r["instances"]:
+        i.pop("private", None)
+s["serial"] = s.get("serial", 1) + 1
+json.dump(s, open(p, "w"), indent=2)
+PY2
+    say "Removed the recorded location, as upgraded state has none."
+    if ( cd "$workdir" && "$TF" plan -no-color \
+           -var "server_url=http://127.0.0.1:8912" -var "organization_id=$AUTHLETE_ORGANIZATION_ID" \
+           -var "idp_host=${AUTHLETE_IDP_HOST:-}" >/dev/null 2>&1 ); then
+      die "FAIL: state with no recorded location plans a replacement on a wrong server_url.
+  This is the first run after upgrading from beta3 or 1.3.x, and it would
+  create a duplicate service and orphan the original."
+    fi
+    say "PASS: state with no recorded location refuses rather than recreating."
     ;;
   statekeys)
     # Items 3 and 7: the key checks used to run on every read of the value,

@@ -1466,6 +1466,11 @@ func (r *ClientResource) Read(ctx context.Context, req resource.ReadRequest, res
 			resp.Diagnostics.AddError(summary, detail)
 			return
 		}
+		if !hasRecord(ctx, req.Private) {
+			summary, detail := noRecordMessage("client", fmt.Sprintf("%v", request.ClientID))
+			resp.Diagnostics.AddError(summary, detail)
+			return
+		}
 		resp.State.RemoveResource(ctx)
 		return
 	}
@@ -1590,6 +1595,11 @@ func (r *ClientResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		if clientOrServiceIsGone(res.RawResponse) {
 			if was := movedHost(ctx, req.Private, res.RawResponse); was != "" {
 				summary, detail := goneElsewhereMessage(was, responseHost(res.RawResponse))
+				resp.Diagnostics.AddError(summary, detail)
+				return
+			}
+			if !hasRecord(ctx, req.Private) {
+				summary, detail := noRecordMessage("client", fmt.Sprintf("%v", request.ClientID))
 				resp.Diagnostics.AddError(summary, detail)
 				return
 			}

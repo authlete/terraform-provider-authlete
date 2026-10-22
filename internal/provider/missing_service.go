@@ -41,6 +41,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/models/operations"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
@@ -256,4 +257,97 @@ func serviceGoneMessage(id string) (summary, detail string) {
 			"Check the id against the Management Console, and check that " +
 			"server_url and AUTHLETE_SERVER_URL name the cluster the service " +
 			"lives on."
+}
+
+// The record alone cannot answer "is this service really gone".
+//
+// The place a resource lives is written from the configuration on every
+// successful read, and a read goes to server_url, which ignores
+// organization_id, idp_host and api_server_id. So a run with the wrong
+// organization reads successfully, overwrites the record with the wrong
+// organization, and the IdP's "Service is not found" then agrees with the
+// record it just wrote. Destroy reported success and the service kept
+// running. Only the host component is ever proved by anything.
+//
+// So for a service the IdP says is missing, ask the cluster, which does know.
+// A service id is resolved there without reference to any of the three IdP
+// coordinates, so a 200 means the service exists and the IdP's answer was
+// about the coordinates, not about the service.
+type serviceReader interface {
+	ServiceGetAPI(context.Context, operations.ServiceGetAPIRequest, ...operations.Option) (*operations.ServiceGetAPIResponse, error)
+}
+
+// serviceStillExists asks the cluster directly. The second return reports
+// whether the question could be answered at all: a transport failure or an
+// unexpected status is not evidence either way, and must not be read as
+// permission to drop the resource.
+func serviceStillExists(ctx context.Context, api serviceReader, serviceID int64) (exists, known bool) {
+	if api == nil {
+		return false, false
+	}
+	res, err := api.ServiceGetAPI(ctx, operations.ServiceGetAPIRequest{ServiceID: serviceID})
+	if err != nil || res == nil || res.RawResponse == nil {
+		return false, false
+	}
+	if res.RawResponse.StatusCode == http.StatusOK {
+		return true, true
+	}
+	if serviceIsGone(res.RawResponse) {
+		return false, true
+	}
+	return false, false
+}
+
+// serviceStillThereMessage is raised when the identity server says a service
+// is missing but the cluster still has it. The usual cause is that one of the
+// three coordinates the identity server resolves by is wrong.
+func serviceStillThereMessage(id string, where Location) (summary, detail string) {
+	return "Service still exists, so it was not deleted",
+		fmt.Sprintf("The identity server reports that service %s does not exist, but %s still "+
+			"returns it.\n\n"+
+			"The identity server finds a service through organization_id, api_server_id and "+
+			"idp_host. When any of those names a different place, it answers exactly as it "+
+			"would for a service that had been deleted. Terraform will not drop a resource "+
+			"that is demonstrably still there.\n\n"+
+			"Check organization_id, api_server_id and idp_host against the service in the "+
+			"Management Console. The configuration currently names %s.", id, where.Host, where.Describe())
+}
+
+// noRecordMessage is raised when a resource is reported missing and nothing
+// was ever recorded about where it lives.
+//
+// State written before this provider recorded a location, which is every
+// service created by 3.0.0-beta3 and everything upgraded from 1.3.x, carries
+// no record. Treating "nothing recorded" as "nothing to object to" meant the
+// first run after an upgrade had no protection at all, so a mistyped
+// server_url in CI dropped the resource and created a duplicate. That is the
+// run where a mistyped server_url is most likely.
+func noRecordMessage(what, id string) (summary, detail string) {
+	return fmt.Sprintf("Cannot confirm that %s %s is gone", what, id),
+		"This resource is reported as missing, and Terraform has no record of where it " +
+			"was last seen, so it cannot tell a deletion apart from a configuration that " +
+			"points somewhere else.\n\n" +
+			"State written before this version, including state upgraded from 1.3.x, " +
+			"carries no such record. The first run with this provider establishes one.\n\n" +
+			"If server_url, idp_host, organization_id and api_server_id are correct, run " +
+			"terraform apply -refresh-only to record the location, after which this " +
+			"resource is protected and a genuine deletion is handled normally.\n\n" +
+			"If the resource really was deleted outside Terraform, remove it from state " +
+			"with terraform state rm and apply again to recreate it."
+}
+
+// hasRecord reports whether anything is recorded about where this resource
+// lives.
+func hasRecord(ctx context.Context, p interface {
+	GetKey(context.Context, string) ([]byte, diag.Diagnostics)
+}) bool {
+	if p == nil {
+		return false
+	}
+	raw, diags := p.GetKey(ctx, hostKey)
+	if diags.HasError() || len(raw) == 0 {
+		return false
+	}
+	_, _, ok := decodeLocation(raw)
+	return ok
 }

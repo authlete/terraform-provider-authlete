@@ -1965,6 +1965,11 @@ func (r *ServiceResource) Read(ctx context.Context, req resource.ReadRequest, re
 			resp.Diagnostics.AddError(summary, detail)
 			return
 		}
+		if !hasRecord(ctx, req.Private) {
+			summary, detail := noRecordMessage("service", fmt.Sprintf("%v", request.ServiceID))
+			resp.Diagnostics.AddError(summary, detail)
+			return
+		}
 		resp.State.RemoveResource(ctx)
 		return
 	}
@@ -2100,6 +2105,11 @@ func (r *ServiceResource) Delete(ctx context.Context, req resource.DeleteRequest
 		if serviceIsGone(res.RawResponse) {
 			if was := movedHost(ctx, req.Private, res.RawResponse); was != "" {
 				summary, detail := goneElsewhereMessage(was, responseHost(res.RawResponse))
+				resp.Diagnostics.AddError(summary, detail)
+				return
+			}
+			if exists, known := serviceStillExists(ctx, r.client.ServiceManagement, request.ServiceID); exists || !known {
+				summary, detail := serviceStillThereMessage(fmt.Sprintf("%v", request.ServiceID), locationOf(res.RawResponse))
 				resp.Diagnostics.AddError(summary, detail)
 				return
 			}
