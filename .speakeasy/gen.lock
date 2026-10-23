@@ -5,12 +5,14 @@ management:
   docVersion: 3.0.16
   speakeasyVersion: 1.795.1
   generationVersion: 2.932.9
-  releaseVersion: 3.0.0-beta3
-  configChecksum: 1175079147b078dc5d3f044c94fb746c
+  releaseVersion: 3.0.0-beta4
+  configChecksum: bed86be2879a3f86ef555a52b0b50ff4
+  repoURL: https://github.com/authlete/terraform-provider-authlete.git
+  installationURL: https://github.com/authlete/terraform-provider-authlete
 persistentEdits:
-  generation_id: 6d60198e-2474-4cb6-9c19-8ff23927a1ff
-  pristine_commit_hash: 39773d97f2c7a3237343bc9c9318ffaaa7fee88a
-  pristine_tree_hash: b3cac77b0325b771269cd01f7158a65d61b8dbb2
+  generation_id: 0df40a7c-64ad-493b-9ec8-77d543b761b6
+  pristine_commit_hash: edc92b575fc3a10e456805bdf5728749ced1c992
+  pristine_tree_hash: a1d6175a297c4a9ca57eec3f35411ff551453edf
 features:
   terraform:
     additionalDependencies: 0.1.0
@@ -49,8 +51,8 @@ trackedFiles:
     pristine_git_object: a7612b46be14c305cfcda66b10ebdea5e948143c
   examples/provider/provider.tf:
     id: 954e955c0240
-    last_write_checksum: sha1:d07d29f9812d4dffcad00a14f0e3ca1823fd8701
-    pristine_git_object: 69ccfc5138ce081fc063171215ff4d4fa37ad5ff
+    last_write_checksum: sha1:92313b34d6b2954e5c13b6fab32f1ffe1fa3aa56
+    pristine_git_object: 9a38d44151fe127150db997dc96cfec277a1fb06
   examples/resources/authlete_client/import-by-string-id.tf:
     id: 9efa3322fdf0
     last_write_checksum: sha1:2b9b0b56ea4e5c910964d78d3896cc058fdfd4fd
@@ -229,7 +231,7 @@ trackedFiles:
     pristine_git_object: d34f6c1c571f882033bd458cb879d106a3ab1197
   internal/provider/client_resource.go:
     id: 3860e6dd0586
-    last_write_checksum: sha1:d9b2a626e08739b2fc2ee5ead08c1b83c5b375f3
+    last_write_checksum: sha1:ca678579630dd874de0912b194aac5acbf32d167
     pristine_git_object: b1299430705e4cde5d99834301a6c679e0d56f21
   internal/provider/client_resource_sdk.go:
     id: 4e9ceaded2eb
@@ -237,7 +239,7 @@ trackedFiles:
     pristine_git_object: 4899934303e9e10d93ebe4818b873953bf369dd3
   internal/provider/provider.go:
     id: 1e7e86841cf3
-    last_write_checksum: sha1:1ab13d10e3b2396f661215fbca28909b0dc7f780
+    last_write_checksum: sha1:02ddcd33d845606c004a2c85afcfbcbbc919cb3e
     pristine_git_object: 55ae5a67895b9066de09311a2748e7b2b4af862b
   internal/provider/reflect/diags.go:
     id: 35b6b44972e2
@@ -305,7 +307,7 @@ trackedFiles:
     pristine_git_object: 4fc85ea28570e6813ff917c7180c8aa54235082f
   internal/provider/service_resource.go:
     id: 48455625b204
-    last_write_checksum: sha1:1b721be8fbb9ce98468dd543764b0c2da2542ee5
+    last_write_checksum: sha1:6af6f3e8ab278a87986c68ae7461f11b61c62689
     pristine_git_object: 7950cc9af1a8c0fdbbca31e050a1e0f805416703
   internal/provider/service_resource_sdk.go:
     id: 09d622ad7c17
@@ -373,8 +375,8 @@ trackedFiles:
     pristine_git_object: 2ac211fbb61135424e32c37edaaa44db9581ef20
   internal/sdk/authlete.go:
     id: 81104225f83a
-    last_write_checksum: sha1:c384af3f88ef2b3120060a6a93e50ec79eb3ea16
-    pristine_git_object: 5f026a9ebff9ad1ad5caa18d85a9012983379ab6
+    last_write_checksum: sha1:7dd6b3e25326f669245736db80019bf3a4adb891
+    pristine_git_object: 613e6d9f4c7ea9b9a3b0c19aaa5f3c72ac4cc173
   internal/sdk/authorizationendpoint.go:
     id: 372506d1dfd3
     last_write_checksum: sha1:bf8191bf8f7b132d0dafa27af52a4534865520dc
