@@ -44,8 +44,7 @@ type BackchannelAuthenticationIssueResponse struct {
 	ResultMessage *string `json:"resultMessage,omitzero"`
 	// The next action that the authorization server implementation should take.
 	Action *BackchannelAuthenticationIssueResponseAction `json:"action,omitzero"`
-	// The content that the authorization server implementation is to return to the client
-	// application. Its format varies depending on the value of `action` parameter.
+	// The content that the authorization server implementation is to return to the client application. Its format varies depending on the value of `action` parameter.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
 	// The newly issued authentication request ID.
@@ -54,8 +53,7 @@ type BackchannelAuthenticationIssueResponse struct {
 	// The duration of the issued authentication request ID in seconds.
 	//
 	ExpiresIn *int `json:"expiresIn,omitzero"`
-	// The minimum amount of time in seconds that the client must wait for between polling
-	// requests to the token endpoint.
+	// The minimum amount of time in seconds that the client must wait for between polling requests to the token endpoint.
 	//
 	Interval *int `json:"interval,omitzero"`
 }

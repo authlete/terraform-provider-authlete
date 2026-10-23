@@ -3,8 +3,7 @@
 package shared
 
 type VciJwksRequest struct {
-	// The flag indicating whether the metadata is written in the pretty
-	// format or not.
+	// The flag indicating whether the metadata is written in the pretty format or not.
 	//
 	Pretty bool `json:"pretty" form:"name=pretty"`
 }

@@ -7,8 +7,7 @@ type Property struct {
 	Key *string `json:"key,omitzero"`
 	// The value part.
 	Value *string `json:"value,omitzero"`
-	// The flag to indicate whether this property hidden from or visible to client applications.
-	// If `true`, this property is hidden from client applications. Otherwise, this property is visible to client applications.
+	// The flag to indicate whether this property hidden from or visible to client applications. If `true`, this property is hidden from client applications. Otherwise, this property is visible to client applications.
 	//
 	Hidden *bool `json:"hidden,omitzero"`
 }

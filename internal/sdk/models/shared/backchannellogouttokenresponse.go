@@ -45,12 +45,10 @@ type BackchannelLogoutTokenResponse struct {
 	// The next action that the API caller should take.
 	//
 	Action *BackchannelLogoutTokenResponseAction `json:"action,omitzero"`
-	// The logout token issued for the client. The caller should deliver this
-	// token to the client's `backchannelLogoutUri`.
+	// The logout token issued for the client. The caller should deliver this token to the client's `backchannelLogoutUri`.
 	//
 	LogoutToken *string `json:"logoutToken,omitzero"`
-	// The backchannel logout URI of the client. The caller should POST the
-	// `logoutToken` to this URI.
+	// The backchannel logout URI of the client. The caller should POST the `logoutToken` to this URI.
 	//
 	BackchannelLogoutURI *string `json:"backchannelLogoutUri,omitzero"`
 }

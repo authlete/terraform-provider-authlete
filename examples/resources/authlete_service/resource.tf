@@ -29,6 +29,7 @@ resource "authlete_service" "my_service" {
   backchannel_logout_supported                 = false
   backchannel_polling_interval                 = 8
   backchannel_user_code_parameter_supported    = false
+  challenge_endpoint                           = "https://teeming-nun.name/"
   cimd_allowlist = [
     "..."
   ]
@@ -78,17 +79,24 @@ resource "authlete_service" "my_service" {
   dcr_duplicate_software_id_blocked = false
   dcr_scope_used_as_requestable     = true
   description                       = "...my_description..."
-  device_authorization_endpoint     = "https://nimble-secrecy.name/"
-  device_flow_code_duration         = 8
-  device_flow_polling_interval      = 3
-  device_verification_uri           = "https://brilliant-cannon.biz/"
-  device_verification_uri_complete  = "https://agile-handover.name"
-  dpop_nonce_duration               = 4
-  dpop_nonce_required               = false
-  dynamic_registration_supported    = false
-  end_session_endpoint              = "https://defensive-casket.net/"
-  error_description_omitted         = false
-  error_uri_omitted                 = true
+  developer_sns_credentials = [
+    {
+      api_key    = "...my_api_key..."
+      api_secret = "...my_api_secret..."
+      sns        = "...my_sns..."
+    }
+  ]
+  device_authorization_endpoint    = "https://nimble-secrecy.name/"
+  device_flow_code_duration        = 8
+  device_flow_polling_interval     = 3
+  device_verification_uri          = "https://brilliant-cannon.biz/"
+  device_verification_uri_complete = "https://agile-handover.name"
+  dpop_nonce_duration              = 4
+  dpop_nonce_required              = false
+  dynamic_registration_supported   = false
+  end_session_endpoint             = "https://defensive-casket.net/"
+  error_description_omitted        = false
+  error_uri_omitted                = true
   fapi_modes = [
     "FAPI2_MESSAGE_SIGNING_AUTH_RES"
   ]
@@ -100,9 +108,11 @@ resource "authlete_service" "my_service" {
   front_channel_request_object_encryption_required = false
   grant_management_action_required                 = true
   grant_management_endpoint                        = "...my_grant_management_endpoint..."
+  haip_version                                     = "...my_haip_version..."
   hsm_enabled                                      = true
   http_alias_prohibited                            = true
   id_token_aud_type                                = "...my_id_token_aud_type..."
+  id_token_dropped_on_issue_without_openid         = false
   id_token_duration                                = 10
   id_token_reissuable                              = true
   id_token_signature_key_id                        = "...my_id_token_signature_key_id..."
@@ -185,6 +195,9 @@ resource "authlete_service" "my_service" {
   ]
   supported_custom_client_metadata = [
     "..."
+  ]
+  supported_developer_snses = [
+    "FACEBOOK"
   ]
   supported_digest_algorithms = [
     "..."

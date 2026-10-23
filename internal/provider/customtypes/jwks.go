@@ -21,8 +21,8 @@ import (
 
 	"github.com/authlete/terraform-provider-authlete/v3/internal/provider/jwkalg"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -30,8 +30,7 @@ import (
 // --- type -------------------------------------------------------------------
 
 var (
-	_ basetypes.StringTypable     = (*JWKSType)(nil)
-	_ xattr.ValidateableAttribute = (*JWKS)(nil)
+	_ basetypes.StringTypable = (*JWKSType)(nil)
 )
 
 // JWKSType is a string type whose values compare by JSON meaning.
@@ -149,32 +148,33 @@ func NewJWKSUnknown() JWKS {
 // or a key with none, makes the choice ambiguous and the set is stored anyway,
 // since Authlete treats it as an opaque string.
 //
-// Only configuration is validated. A value read back from Authlete never
-// reaches here, so a set that predates this check does not start failing.
-func (v JWKS) ValidateAttribute(ctx context.Context, req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse) {
-	if v.IsNull() || v.IsUnknown() {
-		return
-	}
+// Called from an attribute validator rather than from the custom type.
+// A custom type's ValidateAttribute runs on every read of the value, state
+// included, so a set Authlete already stores would be re-checked on refresh
+// and a client whose keys came from DCR could stop planning. An attribute
+// validator runs against configuration only, which is the whole intent.
+func ValidateDocument(at path.Path, doc string, forClient bool) diag.Diagnostics {
+	var diags diag.Diagnostics
 
-	keys, problem := jwkSetKeys(v.ValueString())
+	keys, problem := jwkSetKeys(doc)
 	if problem != nil {
-		resp.Diagnostics.AddAttributeError(req.Path, problem.summary, problem.detail)
-		return
+		diags.AddAttributeError(at, problem.summary, problem.detail)
+		return diags
 	}
 
 	seen := make(map[string]int, len(keys))
 	for i, k := range keys {
-		checkAlg(req, resp, i, k)
-		checkUse(req, resp, i, k)
-		checkKty(req, resp, i, k)
-		checkMaterial(req, resp, i, k)
-		checkCoordinates(req, resp, i, k)
-		checkX5C(req, resp, i, k)
+		checkAlg(&diags, at, i, k)
+		checkUse(&diags, at, i, k)
+		checkKty(&diags, at, i, k)
+		checkMaterial(&diags, at, i, k)
+		checkCoordinates(&diags, at, i, k)
+		checkX5C(&diags, at, i, k)
 
 		kid, _ := k["kid"].(string)
 		if strings.TrimSpace(kid) == "" {
-			resp.Diagnostics.AddAttributeError(
-				req.Path,
+			diags.AddAttributeError(
+				at,
 				"Key without a kid",
 				fmt.Sprintf("The key at position %d has no kid.\n\n"+
 					"Authlete selects a key by its kid, so a key without one "+
@@ -184,8 +184,8 @@ func (v JWKS) ValidateAttribute(ctx context.Context, req xattr.ValidateAttribute
 			continue
 		}
 		if first, dup := seen[kid]; dup {
-			resp.Diagnostics.AddAttributeError(
-				req.Path,
+			diags.AddAttributeError(
+				at,
 				fmt.Sprintf("Duplicate kid %q", kid),
 				fmt.Sprintf("The keys at positions %d and %d share the kid %q.\n\n"+
 					"Authlete selects a key by its kid, so which of the two is "+
@@ -194,7 +194,13 @@ func (v JWKS) ValidateAttribute(ctx context.Context, req xattr.ValidateAttribute
 			continue
 		}
 		seen[kid] = i
+
+		if forClient {
+			checkClientKey(&diags, at, i, k)
+		}
 	}
+
+	return diags
 }
 
 // checkUse refuses a use the key cannot have, which jwk_from_pem already
@@ -205,7 +211,7 @@ func (v JWKS) ValidateAttribute(ctx context.Context, req xattr.ValidateAttribute
 // the key is never selected. Verified against the live API: a key with use
 // "bogus" is stored, published in the JWK Set, and accepted as
 // access_token_signature_key_id, with no complaint anywhere.
-func checkUse(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse, i int, k map[string]any) {
+func checkUse(diags *diag.Diagnostics, at path.Path, i int, k map[string]any) {
 	use, _ := k["use"].(string)
 
 	// use is optional in RFC 7517. A key without one is usable for both.
@@ -214,8 +220,8 @@ func checkUse(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 	}
 
 	if use != "sig" && use != "enc" {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
+		diags.AddAttributeError(
+			at,
 			fmt.Sprintf("Unknown use %q", use),
 			fmt.Sprintf("The key at position %d has use %q.\n\n"+
 				"It must be \"sig\", for signing, or \"enc\", for encryption. "+
@@ -229,8 +235,8 @@ func checkUse(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 	// reverse. Both halves are present and they contradict each other.
 	alg, _ := k["alg"].(string)
 	if want, known := jwkalg.Purpose(alg); known && want != use {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
+		diags.AddAttributeError(
+			at,
 			fmt.Sprintf("alg %q with use %q", alg, use),
 			fmt.Sprintf("The key at position %d has use %q, but alg %q is for %q.",
 				i, use, alg, want),
@@ -252,7 +258,7 @@ func checkUse(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 // this validation exists to prevent. The registry is small and has not grown
 // since OKP was added in 2017, and were it to grow, Authlete would drop the
 // new type until it supported it anyway.
-func checkKty(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse, i int, k map[string]any) {
+func checkKty(diags *diag.Diagnostics, at path.Path, i int, k map[string]any) {
 	kty, _ := k["kty"].(string)
 
 	switch kty {
@@ -261,8 +267,8 @@ func checkKty(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 	}
 
 	if kty == "" {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
+		diags.AddAttributeError(
+			at,
 			"Key with no kty",
 			fmt.Sprintf("The key at position %d has no kty.\n\n"+
 				"Every key states its type. Authlete drops a key it cannot "+
@@ -272,8 +278,8 @@ func checkKty(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 		return
 	}
 
-	resp.Diagnostics.AddAttributeError(
-		req.Path,
+	diags.AddAttributeError(
+		at,
 		fmt.Sprintf("Unknown key type %q", kty),
 		fmt.Sprintf("The key at position %d has kty %q, which is not one of "+
 			"\"RSA\", \"EC\", \"OKP\" or \"oct\".\n\n"+
@@ -290,7 +296,7 @@ func checkKty(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 // present or the right size, which is the half jwk_from_pem and
 // jwk_from_secret get for free by holding the key itself. A hand-written set
 // reaches neither function.
-func checkMaterial(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse, i int, k map[string]any) {
+func checkMaterial(diags *diag.Diagnostics, at path.Path, i int, k map[string]any) {
 	kty, _ := k["kty"].(string)
 	alg, _ := k["alg"].(string)
 
@@ -299,8 +305,8 @@ func checkMaterial(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttri
 	// cannot perform it.
 	if kty != "" && kty != "oct" {
 		if _, _, known := jwkalg.OctKeySize(alg); known && !jwkalg.IsHMAC(alg) {
-			resp.Diagnostics.AddAttributeError(
-				req.Path,
+			diags.AddAttributeError(
+				at,
 				fmt.Sprintf("alg %q on %s %s key", alg, article(kty), kty),
 				fmt.Sprintf("The key at position %d is %s %s key, but alg %q needs a "+
 					"shared secret.\n\n"+
@@ -319,8 +325,8 @@ func checkMaterial(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttri
 	// the key is a description of nothing, and Authlete stores it happily.
 	raw, present := k["k"].(string)
 	if !present || raw == "" {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
+		diags.AddAttributeError(
+			at,
 			"Symmetric key with no k",
 			fmt.Sprintf("The key at position %d has kty \"oct\" but no k member.\n\n"+
 				"A symmetric key is its k value. Build one with jwk_from_secret, "+
@@ -332,8 +338,8 @@ func checkMaterial(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttri
 	// base64url without padding, per RFC 7515 appendix C.
 	decoded, err := base64.RawURLEncoding.DecodeString(raw)
 	if err != nil {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
+		diags.AddAttributeError(
+			at,
 			"k is not base64url",
 			fmt.Sprintf("The key at position %d has a k member that is not "+
 				"unpadded base64url: %s.\n\n"+
@@ -350,8 +356,8 @@ func checkMaterial(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttri
 	}
 	switch {
 	case exact && len(decoded) != size:
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
+		diags.AddAttributeError(
+			at,
 			fmt.Sprintf("Key of the wrong size for %q", alg),
 			fmt.Sprintf("The key at position %d is %d bytes, but alg %q needs "+
 				"exactly %d.\n\n"+
@@ -359,8 +365,8 @@ func checkMaterial(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttri
 				i, len(decoded), alg, size),
 		)
 	case !exact && len(decoded) < size:
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
+		diags.AddAttributeError(
+			at,
 			fmt.Sprintf("Key too short for %q", alg),
 			fmt.Sprintf("The key at position %d is %d bytes, but alg %q needs at "+
 				"least %d.\n\n"+
@@ -377,7 +383,7 @@ func checkMaterial(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttri
 // left padded with zeros, so a short value is a malformed key rather than a
 // smaller number. Authlete refuses one, but with the same generic reply it
 // gives every malformed set, naming neither the key nor the member.
-func checkCoordinates(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse, i int, k map[string]any) {
+func checkCoordinates(diags *diag.Diagnostics, at path.Path, i int, k map[string]any) {
 	kty, _ := k["kty"].(string)
 	if kty != "EC" && kty != "OKP" {
 		return
@@ -399,8 +405,8 @@ func checkCoordinates(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAt
 
 		decoded, err := base64.RawURLEncoding.DecodeString(raw)
 		if err != nil {
-			resp.Diagnostics.AddAttributeError(
-				req.Path,
+			diags.AddAttributeError(
+				at,
 				fmt.Sprintf("%s is not base64url", member),
 				fmt.Sprintf("The key at position %d has a %q member that is not "+
 					"unpadded base64url: %s.", i, member, err),
@@ -409,8 +415,8 @@ func checkCoordinates(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAt
 		}
 
 		if len(decoded) != want {
-			resp.Diagnostics.AddAttributeError(
-				req.Path,
+			diags.AddAttributeError(
+				at,
 				fmt.Sprintf("%s is the wrong size for %s", member, crv),
 				fmt.Sprintf("The key at position %d has a %q member of %d bytes, "+
 					"but %s requires %d.\n\n"+
@@ -429,7 +435,7 @@ func checkCoordinates(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAt
 // RFC 7517 section 4.7 makes x5c an array of standard base64 DER
 // certificates, not base64url, which is the usual mistake. Authlete refuses a
 // malformed one with the same generic reply as any other bad set.
-func checkX5C(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse, i int, k map[string]any) {
+func checkX5C(diags *diag.Diagnostics, at path.Path, i int, k map[string]any) {
 	raw, present := k["x5c"]
 	if !present {
 		return
@@ -437,8 +443,8 @@ func checkX5C(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 
 	chain, ok := raw.([]any)
 	if !ok {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
+		diags.AddAttributeError(
+			at,
 			"x5c is not an array",
 			fmt.Sprintf("The key at position %d has an x5c member that is not an "+
 				"array of certificates.", i),
@@ -449,8 +455,8 @@ func checkX5C(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 	for j, el := range chain {
 		entry, ok := el.(string)
 		if !ok {
-			resp.Diagnostics.AddAttributeError(
-				req.Path,
+			diags.AddAttributeError(
+				at,
 				"x5c holds something that is not a certificate",
 				fmt.Sprintf("The entry at position %d of x5c on the key at position "+
 					"%d is not a string.", j, i),
@@ -462,8 +468,8 @@ func checkX5C(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 		// mistake, and it fails here on "-" and "_".
 		der, err := base64.StdEncoding.DecodeString(entry)
 		if err != nil {
-			resp.Diagnostics.AddAttributeError(
-				req.Path,
+			diags.AddAttributeError(
+				at,
 				"x5c entry is not base64",
 				fmt.Sprintf("The entry at position %d of x5c on the key at position "+
 					"%d is not standard base64: %s.\n\n"+
@@ -475,13 +481,56 @@ func checkX5C(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 		}
 
 		if _, err := x509.ParseCertificate(der); err != nil {
-			resp.Diagnostics.AddAttributeError(
-				req.Path,
+			diags.AddAttributeError(
+				at,
 				"x5c entry is not a certificate",
 				fmt.Sprintf("The entry at position %d of x5c on the key at position "+
 					"%d decodes, but not to a certificate: %s.\n\n"+
 					"Each entry is a DER certificate. Pass the PEM to jwk_from_pem "+
 					"rather than assembling the chain by hand.", j, i, err),
+			)
+			return
+		}
+	}
+}
+
+// checkClientKey applies the two rules that hold only for a client.
+//
+// A client's JWK Set holds the keys Authlete verifies that client with, so it
+// must be public. Authlete enforces that by editing what it stores rather than
+// by refusing it. Measured: an RSA private key loses d, p, q, dp, dq and qi,
+// and a symmetric key is dropped entirely, both without an error, so the
+// configuration and the server disagree for ever.
+func checkClientKey(diags *diag.Diagnostics, at path.Path, i int, k map[string]any) {
+	if kty, _ := k["kty"].(string); kty == "oct" {
+		diags.AddAttributeError(
+			at,
+			"Symmetric key in a client's JWK Set",
+			fmt.Sprintf("The key at position %d is a symmetric key.\n\n"+
+				"A client's JWK Set holds the keys Authlete verifies that "+
+				"client's signatures with, so it must hold public keys. "+
+				"Authlete discards a symmetric key sent to a client without "+
+				"reporting an error, so the plan would never settle.\n\n"+
+				"For client authentication with a shared secret, use the "+
+				"client secret rather than a key in this set.", i),
+		)
+		return
+	}
+
+	for _, m := range privateMembers {
+		if s, ok := k[m].(string); ok && s != "" {
+			diags.AddAttributeError(
+				at,
+				"Private key in a client's JWK Set",
+				fmt.Sprintf("The key at position %d has a %q member, which only a "+
+					"private key has.\n\n"+
+					"A client publishes its public keys; the private half stays with "+
+					"the client. Authlete strips the private members without "+
+					"reporting an error, so the plan would never settle, and the "+
+					"private key would sit in Terraform state for a key the server "+
+					"never kept.\n\n"+
+					"Pass the client's public key PEM to jwk_from_pem rather than "+
+					"its private key.", i, m),
 			)
 			return
 		}
@@ -577,7 +626,7 @@ func jwkSetKeys(doc string) ([]map[string]any, *malformed) {
 // everything it had not been taught would break a working configuration the
 // day Authlete supported something new. That is also why this is narrower than
 // the function, which knows what it just produced and can be exact.
-func checkAlg(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse, i int, k map[string]any) {
+func checkAlg(diags *diag.Diagnostics, at path.Path, i int, k map[string]any) {
 	alg, _ := k["alg"].(string)
 	kty, _ := k["kty"].(string)
 	crv, _ := k["crv"].(string)
@@ -588,8 +637,8 @@ func checkAlg(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 	}
 
 	if alg == "none" {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
+		diags.AddAttributeError(
+			at,
 			`alg "none" in a published key`,
 			fmt.Sprintf("The key at position %d has alg \"none\".\n\n"+
 				"That names an unsigned token and must never appear in a "+
@@ -599,8 +648,8 @@ func checkAlg(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 	}
 
 	if jwkalg.IsHMAC(alg) && jwkalg.IsAsymmetric(kty) {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
+		diags.AddAttributeError(
+			at,
 			fmt.Sprintf("HMAC alg %q on %s %s key", alg, article(kty), kty),
 			fmt.Sprintf("The key at position %d is %s %s key published with alg %q.\n\n"+
 				"HMAC uses a shared secret, not a public and private pair. "+
@@ -613,8 +662,8 @@ func checkAlg(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 	}
 
 	if want, known := jwkalg.KeyType(alg); known && kty != "" && kty != want {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
+		diags.AddAttributeError(
+			at,
 			fmt.Sprintf("alg %q on %s %s key", alg, article(kty), kty),
 			fmt.Sprintf("The key at position %d has kty %q, but alg %q requires %q.",
 				i, kty, alg, want),
@@ -626,8 +675,8 @@ func checkAlg(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 	// kty check above passes either way and the curve has to be checked too.
 	if kty == "OKP" && crv != "" {
 		if want, known := jwkalg.OKPCurve(alg); known && crv != want {
-			resp.Diagnostics.AddAttributeError(
-				req.Path,
+			diags.AddAttributeError(
+				at,
 				fmt.Sprintf("alg %q on curve %q", alg, crv),
 				fmt.Sprintf("The key at position %d is on curve %q, but alg %q needs %q.\n\n"+
 					"Ed25519 signs and X25519 performs key agreement, and neither "+
@@ -641,8 +690,8 @@ func checkAlg(req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeR
 	// other combination is valid. A missing crv is left alone; the server
 	// rejects that document for its own reasons.
 	if want, known := jwkalg.SigCurve(alg); known && crv != "" && crv != want {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
+		diags.AddAttributeError(
+			at,
 			fmt.Sprintf("alg %q on curve %q", alg, crv),
 			fmt.Sprintf("The key at position %d is on curve %q, but alg %q is "+
 				"defined only for %q.\n\n"+

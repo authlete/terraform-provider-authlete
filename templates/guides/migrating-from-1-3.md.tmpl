@@ -14,6 +14,30 @@ from you rather than a rename.
 
 Read it before upgrading. Two of these change where your private keys live.
 
+## If 1.3.x has started failing with a bare 400
+
+This is not a migration problem, but it is the first thing people hit, and it
+hits while still on 1.3.x:
+
+```
+Error: 400 Bad Request
+```
+
+1.3.x sends every URI attribute you left unset as an empty string, and Authlete
+now rejects an empty URI with `A031219` where it accepts a missing one. Any
+`apply` that creates or updates a service can fail this way, and the error does
+not name the attribute.
+
+Set the attribute to a real `https` URL to get past it:
+
+```terraform
+federation_registration_endpoint = "https://example.com/federation/register"
+```
+
+`federation_registration_endpoint` is the one usually responsible, but the same
+applies to the other URI attributes. 3.0 sends an unset attribute as absent
+rather than empty, so this stops once you have migrated.
+
 ## Authentication
 
 1.3.x authenticated with a key and secret pair:
@@ -52,6 +76,7 @@ jwk {
   alg      = "RS256"
   use      = "sig"
   generate = true
+  key_size = 2048
 }
 ```
 
@@ -65,6 +90,18 @@ jwks = jsonencode({
     tls_private_key.signing.private_key_pem, "sig-1", "RS256", "sig"))]
 })
 ```
+
+> ⚠️ **Setting `jwks` replaces the whole key set.** Any key not in the list is
+> removed from the service. The examples here show one key because they are
+> showing the syntax; a service with several keys needs all of them.
+>
+> This is easy to miss, because `jwks` is sensitive, so the plan shows only
+> `~ jwks = (sensitive value)` and does not list the keys being deleted. If the
+> service signs tokens with a key that disappears, and
+> `id_token_signature_key_id` or one of the other key id attributes still names
+> it, signing breaks.
+>
+> "Keeping the keys you already have", below, shows how to carry them across.
 
 `federation_jwk` became `federation_jwks` in the same way.
 
@@ -108,6 +145,74 @@ resource "tls_private_key" "signing" {
 This puts the private key in state, which the first option also does on
 refresh. Either way, use a state backend that encrypts.
 
+### Keeping the keys you already have
+
+A 1.3.x service usually holds several keys: one or more that `generate = true`
+produced, plus any you supplied as PEM. Writing a `jwks` with only the new key
+deletes the rest.
+
+First update the provider and rename your configuration for 3.0, leaving the
+service's `jwks` unset while you preserve the existing keys. Save a refresh:
+
+```shell
+terraform apply -refresh-only
+terraform plan
+```
+
+The refresh reads the existing keys from Authlete and saves state in the new
+schema. Review the refresh before approving it, then expect the plan to show
+no infrastructure changes. A normal `plan` alone does not save the upgraded
+state; exporting it before this step can fail with a schema-version error.
+
+Read the current set out of the refreshed state and add to it rather than
+replacing it:
+
+```shell
+umask 077
+terraform show -json | jq -r '
+  .values.root_module.resources[]
+  | select(.address == "authlete_service.example")
+  | .values.jwks' > current-jwks.json
+```
+
+Then build the new set from both:
+
+```terraform
+jwks = jsonencode({
+  keys = concat(
+    jsondecode(file("current-jwks.json")).keys,
+    [jsondecode(provider::authlete::jwk_from_pem(
+      file("new-key.pem"), "sig-2", "RS256", "sig"))],
+  )
+})
+```
+
+That file holds private keys, and the configuration reads it on every plan, so
+it has to stay where Terraform can find it. Do not delete it after the
+migration: `file()` is evaluated every run, and a missing file fails every plan
+and apply from then on.
+
+Treat it as a secret for as long as it exists. Keep it out of version control,
+restrict it to the user Terraform runs as, and give it the same handling as a
+state file, which already holds the same keys. Every machine that runs a plan
+reads it, so a pipeline has to fetch it from wherever secrets are kept and
+write it beside the configuration before Terraform runs.
+
+If that is more handling than you want, rotate instead of carrying the keys
+over. Generate fresh keys with `tls_private_key`, set `jwks` to those alone,
+and update whichever `*_signature_key_id` attributes name the old ones.
+No exported key file is required, but the generated private keys still live
+in Terraform state. It is a real rotation though: setting `jwks` replaces the
+whole set, so the old keys are removed from Authlete. Existing tokens signed
+by those keys stop verifying once a verifier no longer has them cached;
+fetching the new set cannot restore a removed key. To avoid interrupting
+verification, keep the old keys alongside the new ones until the tokens
+signed by the old keys have expired.
+
+Either way, check afterwards that every `*_signature_key_id` on the service
+still names a `kid` that exists in `jwks`. Authlete does not check this, and a
+name with no matching key is only noticed when signing fails.
+
 ### X25519 needs an external tool
 
 This provider converts an X25519 key into a JWK, but nothing generates the key
@@ -129,6 +234,10 @@ jwks = jsonencode({
     file("x25519.pem"), "ecdh-1", "ECDH-ES", "enc"))]
 })
 ```
+
+As above, this replaces the whole set. An encryption key is usually added
+beside signing keys rather than instead of them, so concatenate it with what
+is already there.
 
 Or leave the key out of Terraform entirely, as above.
 
@@ -221,6 +330,60 @@ regard to order, so a list Authlete returns rearranged does not show a diff.
 `supported_scopes` on a service is sorted by Authlete and is held the same way,
 matched on scope name rather than on the whole entry, so an edit to a
 description is still a change.
+
+## Attributes that are now read-only
+
+Some attributes that 1.3.x let you set are server-owned in 3.0 and are reported
+rather than configured. Setting one is refused by `terraform validate`, before
+any plan and without a token:
+
+```
+Error: Invalid Configuration for Read-Only Attribute
+
+  with authlete_client.c,
+  on main.tf line 8, in resource "authlete_client" "c":
+   8:   developer   = "someone"
+
+Cannot set value for this attribute as the provider has marked it as
+read-only. Remove the configuration line setting the value.
+```
+
+So this surfaces immediately rather than silently. Remove them from your
+configuration; the values still read back, so anything referring to them keeps
+working.
+
+These nine were settable on a client in 1.3.17:
+
+```
+client_id                  developer
+client_id_alias_enabled    dynamically_registered
+client_secret              modified_at
+created_at                 registration_access_token_hash
+derived_sector_identifier
+```
+
+And these eleven on a service:
+
+```
+client_id_alias_enabled                       direct_jwks_endpoint_enabled
+developer_authentication_callback_api_key     direct_revocation_endpoint_enabled
+developer_authentication_callback_api_secret  direct_token_endpoint_enabled
+developer_authentication_callback_endpoint    direct_user_info_endpoint_enabled
+direct_authorization_endpoint_enabled         supported_acrs
+direct_introspection_endpoint_enabled
+```
+
+Both lists are the intersection of what v1.3.17's schema accepted and what 3.0
+marks read-only, taken from the two schemas rather than written by hand.
+
+`developer` is the one most configurations carry: 1.3.x required it on
+Authlete 2.x and rejected an empty value. `client_id_alias_enabled` is
+deprecated and always true. `supported_acrs` is the one worth noticing, since
+it is an ordinary setting rather than an identifier or a flag.
+
+Other attributes are read-only in 3.0 too, but those did not exist in 1.3.17,
+so nothing you are migrating can be setting them. The resource pages list them
+under "Read-Only".
 
 ## What did not change
 

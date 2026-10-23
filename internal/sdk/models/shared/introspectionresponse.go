@@ -56,20 +56,16 @@ type IntrospectionResponse struct {
 	ResponseContent *string `json:"responseContent,omitzero"`
 	// The client ID.
 	ClientID *int64 `json:"clientId,omitzero"`
-	// The client ID alias when the token request was made. If the client did not have an alias, this parameter is `null`.
-	// Also, if the token request was invalid and it failed to identify a client, this parameter is `null`.
+	// The client ID alias when the token request was made. If the client did not have an alias, this parameter is `null`. Also, if the token request was invalid and it failed to identify a client, this parameter is `null`.
 	//
 	ClientIDAlias *string `json:"clientIdAlias,omitzero"`
-	// The flag which indicates whether the client ID alias was used when the token request was made.
-	// `true` if the client ID alias was used when the token request was made.
+	// The flag which indicates whether the client ID alias was used when the token request was made. `true` if the client ID alias was used when the token request was made.
 	//
 	ClientIDAliasUsed *bool `json:"clientIdAliasUsed,omitzero"`
-	// The time at which the access token expires.
-	// The value is represented in milliseconds since the Unix epoch (1970-01-01).
+	// The time at which the access token expires. The value is represented in milliseconds since the Unix epoch (1970-01-01).
 	//
 	ExpiresAt *int64 `json:"expiresAt,omitzero"`
-	// The subject who is associated with the access token.
-	// The value of this property is `null` if the access token was issued using the flow of [Client Credentials Grant](tools.ietf.org/html/rfc6749#section-4.4).
+	// The subject who is associated with the access token. The value of this property is `null` if the access token was issued using the flow of [Client Credentials Grant](tools.ietf.org/html/rfc6749#section-4.4).
 	//
 	Subject *string `json:"subject,omitzero"`
 	// The scopes covered by the access token.
@@ -84,9 +80,7 @@ type IntrospectionResponse struct {
 	// `true` if the access token exists.
 	//
 	Sufficient *bool `json:"sufficient,omitzero"`
-	// `true` if the access token can be refreshed using the associated refresh token which had been issued
-	// along with the access token. `false` if the refresh token for the access token has expired or the access
-	// token has no associated refresh token.
+	// `true` if the access token can be refreshed using the associated refresh token which had been issued along with the access token. `false` if the refresh token for the access token has expired or the access token has no associated refresh token.
 	//
 	Refreshable *bool `json:"refreshable,omitzero"`
 	// The extra properties associated with the access token.
@@ -94,8 +88,7 @@ type IntrospectionResponse struct {
 	// The client certificate thumbprint used to validate the access token.
 	//
 	CertificateThumbprint *string `json:"certificateThumbprint,omitzero"`
-	// The target resources. This represents the resources specified by the `resource` request parameters
-	// or by the `resource` property in the request object.
+	// The target resources. This represents the resources specified by the `resource` request parameters or by the `resource` property in the request object.
 	//
 	// See "Resource Indicators for OAuth 2.0" for details.
 	//
@@ -103,9 +96,7 @@ type IntrospectionResponse struct {
 	// The target resources this proeprty holds may be the same as or different from the ones `resource` property holds.
 	//
 	AccessTokenResources []string `json:"accessTokenResources,omitzero"`
-	// The authorization details. This represents the value of the `authorization_details`
-	// request parameter in the preceding device authorization request which is defined in
-	// "OAuth 2.0 Rich Authorization Requests".
+	// The authorization details. This represents the value of the `authorization_details` request parameter in the preceding device authorization request which is defined in "OAuth 2.0 Rich Authorization Requests".
 	//
 	AuthorizationDetails *AuthzDetails `json:"authorizationDetails,omitzero"`
 	// The attributes of this service that the client application belongs to.
@@ -114,32 +105,25 @@ type IntrospectionResponse struct {
 	// The attributes of the client.
 	//
 	ClientAttributes []Pair `json:"clientAttributes,omitzero"`
-	// The scopes property of this class is a list of scope names. The property does not hold information
-	// about scope attributes. This scopeDetails property was newly created to convey information about
-	// scope attributes.
+	// The scopes property of this class is a list of scope names. The property does not hold information about scope attributes. This scopeDetails property was newly created to convey information about scope attributes.
 	//
 	ScopeDetails []Scope `json:"scopeDetails,omitzero"`
 	// The value of the `grant_id` request parameter of the device authorization request.
 	//
-	// The `grant_id` request parameter is defined in
-	// [Grant Management for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html)
-	// , which is supported by Authlete 2.3 and newer versions.
+	// The `grant_id` request parameter is defined in [Grant Management for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html) , which is supported by Authlete 2.3 and newer versions.
 	//
 	GrantID *string `json:"grantId,omitzero"`
 	Grant   *Grant  `json:"grant,omitzero"`
-	// the flag which indicates whether the access token is for an external
-	// attachment.
+	// the flag which indicates whether the access token is for an external attachment.
 	//
 	ForExternalAttachment *bool `json:"forExternalAttachment,omitzero"`
-	// the claims that the user has consented for the client application
-	// to know.
+	// the claims that the user has consented for the client application to know.
 	//
 	ConsentedClaims []string `json:"consentedClaims,omitzero"`
 	// The grant type of the access token when the access token was created.
 	//
 	GrantType *GrantType `json:"grantType,omitzero"`
-	// The Authentication Context Class Reference of the user authentication that the authorization server performed
-	// during the course of issuing the access token.
+	// The Authentication Context Class Reference of the user authentication that the authorization server performed during the course of issuing the access token.
 	//
 	Acr *string `json:"acr,omitzero"`
 	// The time when the user authentication was performed during the course of issuing the access token.
@@ -159,16 +143,12 @@ type IntrospectionResponse struct {
 	CnonceExpiresAt *int64 `json:"cnonceExpiresAt,omitzero"`
 	// The credentials that can be obtained by presenting the access token.
 	IssuableCredentials *string `json:"issuableCredentials,omitzero"`
-	// The expected nonce value for DPoP proof JWT, which should be used
-	// as the value of the `DPoP-Nonce` HTTP header.
+	// The expected nonce value for DPoP proof JWT, which should be used as the value of the `DPoP-Nonce` HTTP header.
 	//
 	DpopNonce *string `json:"dpopNonce,omitzero"`
-	// The flag indicating whether the HTTP response from the protected resource endpoint must include
-	// an HTTP message signature ([RFC 9421 HTTP Message Signatures](https://www.rfc-editor.org/rfc/rfc9421.html))
-	// in compliance with [FAPI 2.0 Message Signing](https://openid.bitbucket.io/fapi/fapi-2_0-message-signing.html).
+	// The flag indicating whether the HTTP response from the protected resource endpoint must include an HTTP message signature ([RFC 9421 HTTP Message Signatures](https://www.rfc-editor.org/rfc/rfc9421.html)) in compliance with [FAPI 2.0 Message Signing](https://openid.bitbucket.io/fapi/fapi-2_0-message-signing.html).
 	//
-	// When this response parameter is `true`, the HTTP response from the protected resource endpoint
-	// must include the `Signature` and `Signature-Input` HTTP fields.
+	// When this response parameter is `true`, the HTTP response from the protected resource endpoint must include the `Signature` and `Signature-Input` HTTP fields.
 	//
 	ResponseSigningRequired *bool `json:"responseSigningRequired,omitzero"`
 	// The location of the client's metadata document that was used to resolve client metadata.

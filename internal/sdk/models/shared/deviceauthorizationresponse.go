@@ -48,80 +48,60 @@ type DeviceAuthorizationResponse struct {
 	ResultMessage *string `json:"resultMessage,omitzero"`
 	// The next action that the authorization server implementation should take.
 	Action *DeviceAuthorizationResponseAction `json:"action,omitzero"`
-	// The content that the authorization server implementation is to return to the client
-	// application. Its format varies depending on the value of `action` parameter.
+	// The content that the authorization server implementation is to return to the client application. Its format varies depending on the value of `action` parameter.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
 	// The client ID of the client application that has made the device authorization request.
 	//
 	ClientID *int64 `json:"clientId,omitzero"`
-	// The client ID alias of the client application that has made the device authorization
-	// request.
+	// The client ID alias of the client application that has made the device authorization request.
 	//
 	ClientIDAlias *string `json:"clientIdAlias,omitzero"`
-	// `true` if the value of the client_id request parameter included in the device authorization
-	// request is the client ID alias. `false` if the value is the original numeric client ID.
+	// `true` if the value of the client_id request parameter included in the device authorization request is the client ID alias. `false` if the value is the original numeric client ID.
 	//
 	ClientIDAliasUsed *bool `json:"clientIdAliasUsed,omitzero"`
 	// The name of the client application which has made the device authorization request.
 	//
 	ClientName *string `json:"clientName,omitzero"`
-	// The client authentication method that should be performed at the device authorization
-	// endpoint.
+	// The client authentication method that should be performed at the device authorization endpoint.
 	//
 	ClientAuthMethod *string `json:"clientAuthMethod,omitzero"`
 	// The scopes requested by the device authorization request.
 	//
 	Scopes []Scope `json:"scopes,omitzero"`
-	// The names of the claims which were requested indirectly via some special scopes.
-	// See [5.4. Requesting Claims using Scope Values](https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims)
-	// in OpenID Connect Core 1.0 for details.
+	// The names of the claims which were requested indirectly via some special scopes. See [5.4. Requesting Claims using Scope Values](https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) in OpenID Connect Core 1.0 for details.
 	//
 	ClaimNames []string `json:"claimNames,omitzero"`
 	// The list of ACR values requested by the device authorization request.
 	//
-	// Basically, this property holds the value of the `acr_values` request parameter in the
-	// device authorization request. However, because unsupported ACR values are dropped
-	// on Authlete side, if the `acr_values` request parameter contains unrecognized ACR values,
-	// the list returned by this property becomes different from the value of the `acr_values`
-	// request parameter.
+	// Basically, this property holds the value of the `acr_values` request parameter in the device authorization request. However, because unsupported ACR values are dropped on Authlete side, if the `acr_values` request parameter contains unrecognized ACR values, the list returned by this property becomes different from the value of the `acr_values` request parameter.
 	//
 	Acrs []string `json:"acrs,omitzero"`
-	// The device verification code. This corresponds to the `device_code` property in the
-	// response to the client.
+	// The device verification code. This corresponds to the `device_code` property in the response to the client.
 	//
 	DeviceCode *string `json:"deviceCode,omitzero"`
-	// The end-user verification code. This corresponds to the `user_code` property in the
-	// response to the client.
+	// The end-user verification code. This corresponds to the `user_code` property in the response to the client.
 	//
 	UserCode *string `json:"userCode,omitzero"`
-	// The end-user verification URI. This corresponds to the `verification_uri` property in
-	// the response to the client.
+	// The end-user verification URI. This corresponds to the `verification_uri` property in the response to the client.
 	//
 	VerificationURI *string `json:"verificationUri,omitzero"`
-	// The end-user verification URI that includes the end-user verification code. This corresponds
-	// to the `verification_uri_complete` property in the response to the client.
+	// The end-user verification URI that includes the end-user verification code. This corresponds to the `verification_uri_complete` property in the response to the client.
 	//
 	VerificationURIComplete *string `json:"verificationUriComplete,omitzero"`
-	// The duration of the device verification code in seconds. This corresponds to the `expires_in`
-	// property in the response to the client.
+	// The duration of the device verification code in seconds. This corresponds to the `expires_in` property in the response to the client.
 	//
 	ExpiresIn *int `json:"expiresIn,omitzero"`
-	// The minimum amount of time in seconds that the client must wait for between polling
-	// requests to the token endpoint. This corresponds to the `interval` property in the response
-	// to the client.
+	// The minimum amount of time in seconds that the client must wait for between polling requests to the token endpoint. This corresponds to the `interval` property in the response to the client.
 	//
 	Interval *int `json:"interval,omitzero"`
 	// The warnings raised during processing the backchannel authentication request.
 	//
 	Warnings []string `json:"warnings,omitzero"`
-	// The resources specified by the `resource` request parameters. See "Resource Indicators
-	// for OAuth 2.0" for details.
+	// The resources specified by the `resource` request parameters. See "Resource Indicators for OAuth 2.0" for details.
 	//
 	Resources []string `json:"resources,omitzero"`
-	// The authorization details. This represents the value of the `authorization_details`
-	// request parameter in the preceding device authorization request which is defined in
-	// "OAuth 2.0 Rich Authorization Requests".
+	// The authorization details. This represents the value of the `authorization_details` request parameter in the preceding device authorization request which is defined in "OAuth 2.0 Rich Authorization Requests".
 	//
 	AuthorizationDetails *AuthzDetails `json:"authorizationDetails,omitzero"`
 	// The attributes of this service that the client application belongs to.
@@ -135,35 +115,16 @@ type DeviceAuthorizationResponse struct {
 	DynamicScopes []DynamicScope `json:"dynamicScopes,omitzero"`
 	// The grant management action of the device authorization request.
 	//
-	// The `grant_management_action` request parameter is defined in
-	// [Grant Management for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html).
+	// The `grant_management_action` request parameter is defined in [Grant Management for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html).
 	//
 	GmAction *GrantManagementAction `json:"gmAction,omitzero"`
 	// the value of the `grant_id` request parameter of the device authorization request.
 	//
-	// The `grant_id` request parameter is defined in
-	// [Grant Management for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html)
-	// , which is supported by Authlete 2.3 and newer versions.
+	// The `grant_id` request parameter is defined in [Grant Management for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html) , which is supported by Authlete 2.3 and newer versions.
 	//
 	GrantID *string `json:"grantId,omitzero"`
 	Grant   *Grant  `json:"grant,omitzero"`
-	// The subject identifying the user who has given the grant identified
-	// by the `grant_id` request parameter of the device authorization
-	// request.
-	// Authlete 2.3 and newer versions support [Grant Management
-	// for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html). An authorization request may contain a `grant_id`
-	// request parameter which is defined in the specification. If the value of
-	// the request parameter is valid, &#123;@link #getGrantSubject()&#125; will return
-	// the subject of the user who has given the grant to the client application.
-	// Authorization server implementations may use the value returned from
-	// &#123;@link #getGrantSubject()&#125; in order to determine the user to authenticate.
-	// The user your system will authenticate during the authorization process
-	// (or has already authenticated) may be different from the user of the
-	// grant. The first implementer's draft of "Grant Management for OAuth 2.0"
-	// does not mention anything about the case, so the behavior in the case is
-	// left to implementations. Authlete will not perform the grant management
-	// action when the `subject` passed to Authlete does not match the
-	// user of the grant.
+	// The subject identifying the user who has given the grant identified by the `grant_id` request parameter of the device authorization request. Authlete 2.3 and newer versions support [Grant Management for OAuth 2.0](https://openid.net/specs/fapi-grant-management.html). An authorization request may contain a `grant_id` request parameter which is defined in the specification. If the value of the request parameter is valid, &#123;@link #getGrantSubject()&#125; will return the subject of the user who has given the grant to the client application. Authorization server implementations may use the value returned from &#123;@link #getGrantSubject()&#125; in order to determine the user to authenticate. The user your system will authenticate during the authorization process (or has already authenticated) may be different from the user of the grant. The first implementer's draft of "Grant Management for OAuth 2.0" does not mention anything about the case, so the behavior in the case is left to implementations. Authlete will not perform the grant management action when the `subject` passed to Authlete does not match the user of the grant.
 	//
 	GrantSubject *string `json:"grantSubject,omitzero"`
 	// The entity ID of the client.

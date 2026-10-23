@@ -69,18 +69,19 @@ func (p *AuthleteProvider) Schema(ctx context.Context, req provider.SchemaReques
 					`pre-production hosts are not derivable and must supply it, or the` + "\n" +
 					`IdP rejects create and delete.` + "\n" +
 					`` + "\n" +
-					`Must describe the same deployment as server_url. Creating a` + "\n" +
-					`service on one cluster and reading it from another fails on the` + "\n" +
-					`next refresh with a 403, leaving a service Terraform can neither` + "\n" +
-					`read nor delete.` + "\n" +
+					`Must describe the same deployment as server_url. A service id` + "\n" +
+					`is unique to the cluster that issued it, and a cluster that never` + "\n" +
+					`had the service answers exactly as one that deleted it, so` + "\n" +
+					`reading from the wrong cluster is refused rather than treated as` + "\n" +
+					`a deletion. Put server_url back, or import the resource from the` + "\n" +
+					`cluster it now lives on.` + "\n" +
 					`` + "\n" +
 					`Also settable with the AUTHLETE_API_SERVER_ID environment` + "\n" +
 					`variable.`,
 				Optional: true,
 			},
 			"bearer": schema.StringAttribute{
-				MarkdownDescription: `Authenticate every request with a **Service Access Token** or **Organization Token**.` + "\n" +
-					`Set the token value in the ` + "`" + `Authorization: Bearer <token>` + "`" + ` header.` + "\n" +
+				MarkdownDescription: `Authenticate every request with a **Service Access Token** or **Organization Token**. Set the token value in the ` + "`" + `Authorization: Bearer <token>` + "`" + ` header.` + "\n" +
 					`` + "\n" +
 					`**Service Access Token**: Scoped to a single service. Use when automating service-level configuration or runtime flows.` + "\n" +
 					`` + "\n" +
@@ -102,9 +103,9 @@ func (p *AuthleteProvider) Schema(ctx context.Context, req provider.SchemaReques
 					`Authlete's own IdP at login.authlete.com.` + "\n" +
 					`` + "\n" +
 					`Set this whenever server_url is not one of the four public` + "\n" +
-					`clusters. Without it, creating a service sends your organization` + "\n" +
-					`token to login.authlete.com instead of your deployment, and the` + "\n" +
-					`error only says that apiServerId must not be null.` + "\n" +
+					`clusters. Without it the provider refuses to create or delete a` + "\n" +
+					`service, rather than send your organization token to Authlete's` + "\n" +
+					`shared IdP, and the error names this attribute.` + "\n" +
 					`` + "\n" +
 					`Also settable with the AUTHLETE_IDP_HOST environment variable.`,
 				Optional: true,
@@ -127,6 +128,80 @@ func (p *AuthleteProvider) Schema(ctx context.Context, req provider.SchemaReques
 				Optional:    true,
 			},
 		},
+		MarkdownDescription: `Authlete API: Welcome to the **Authlete API documentation**. Authlete is an **API-first service** where every aspect of the platform is configurable via API. This documentation will help you authenticate and integrate with Authlete to build powerful OAuth 2.0 and OpenID Connect servers.` + "\n" +
+			`` + "\n" +
+			`At a high level, the Authlete API is grouped into two categories:` + "\n" +
+			`` + "\n" +
+			`- **Management APIs**: Enable you to manage services and clients.` + "\n" +
+			`- **Runtime APIs**: Allow you to build your own Authorization Servers or Verifiable Credential (VC) issuers.` + "\n" +
+			`` + "\n" +
+			`## 🌐 API Servers` + "\n" +
+			`` + "\n" +
+			`Authlete is a global service with clusters available in multiple regions across the world:` + "\n" +
+			`` + "\n" +
+			`- 🇺🇸 **US**: ` + "`" + `https://us.authlete.com` + "`" + `` + "\n" +
+			`- 🇯🇵 **Japan**: ` + "`" + `https://jp.authlete.com` + "`" + `` + "\n" +
+			`- 🇪🇺 **Europe**: ` + "`" + `https://eu.authlete.com` + "`" + `` + "\n" +
+			`- 🇧🇷 **Brazil**: ` + "`" + `https://br.authlete.com` + "`" + `` + "\n" +
+			`` + "\n" +
+			`Our customers can host their data in the region that best meets their requirements.` + "\n" +
+			`` + "\n" +
+			`## 🔑 Authentication` + "\n" +
+			`` + "\n" +
+			`All API endpoints are secured using **Bearer token authentication**. You must include an access token in every request:` + "\n" +
+			`` + "\n" +
+			`` + "```" + `` + "\n" +
+			`Authorization: Bearer YOUR_ACCESS_TOKEN` + "\n" +
+			`` + "```" + `` + "\n" +
+			`` + "\n" +
+			`### Getting Your Access Token` + "\n" +
+			`` + "\n" +
+			`Authlete supports two types of access tokens:` + "\n" +
+			`` + "\n" +
+			`**Service Access Token** - Scoped to a single service (authorization server instance)` + "\n" +
+			`` + "\n" +
+			`1. Log in to [Authlete Console](https://console.authlete.com)` + "\n" +
+			`2. Navigate to your service → **Settings** → **Access Tokens**` + "\n" +
+			`3. Click **Create Token** and select permissions (e.g., ` + "`" + `service.read` + "`" + `, ` + "`" + `client.write` + "`" + `)` + "\n" +
+			`4. Copy the generated token` + "\n" +
+			`` + "\n" +
+			`**Organization Token** - Scoped to your entire organization` + "\n" +
+			`` + "\n" +
+			`1. Log in to [Authlete Console](https://console.authlete.com)` + "\n" +
+			`2. Navigate to **Organization Settings** → **Access Tokens**` + "\n" +
+			`3. Click **Create Token** and select org-level permissions` + "\n" +
+			`4. Copy the generated token` + "\n" +
+			`` + "\n" +
+			`> ⚠️ **Important Note**: Tokens inherit the permissions of the account that creates them. Service tokens can only access their specific service, while organization tokens can access all services within your org.` + "\n" +
+			`` + "\n" +
+			`### Token Security Best Practices` + "\n" +
+			`` + "\n" +
+			`- **Never commit tokens to version control** - Store in environment variables or secure secret managers` + "\n" +
+			`- **Rotate regularly** - Generate new tokens periodically and revoke old ones` + "\n" +
+			`- **Scope appropriately** - Request only the permissions your application needs` + "\n" +
+			`- **Revoke unused tokens** - Delete tokens you're no longer using from the console` + "\n" +
+			`` + "\n" +
+			`### Quick Test` + "\n" +
+			`` + "\n" +
+			`Verify your token works with a simple API call:` + "\n" +
+			`` + "\n" +
+			`` + "```" + `bash` + "\n" +
+			`curl -X GET https://us.authlete.com/api/service/get/list \` + "\n" +
+			`  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"` + "\n" +
+			`` + "```" + `` + "\n" +
+			`` + "\n" +
+			`## 🎓 Tutorials` + "\n" +
+			`` + "\n" +
+			`If you're new to Authlete or want to see sample implementations, these resources will help you get started:` + "\n" +
+			`` + "\n" +
+			`- [Getting Started with Authlete](https://www.authlete.com/developers/getting_started/)` + "\n" +
+			`- [From Sign-Up to the First API Request](https://www.authlete.com/developers/tutorial/signup/)` + "\n" +
+			`` + "\n" +
+			`## 🛠 Contact Us` + "\n" +
+			`` + "\n" +
+			`If you have any questions or need assistance, our team is here to help:` + "\n" +
+			`` + "\n" +
+			`- [Contact Page](https://www.authlete.com/contact/)`,
 	}
 }
 
@@ -205,8 +280,13 @@ func (p *AuthleteProvider) Configure(ctx context.Context, req provider.Configure
 	}
 	// Redaction sits outside the generated logging transport, which records
 	// every request and response body verbatim. See log_redaction.go.
-	httpClient.Transport = NewLogRedactingTransport(
-		NewIdpRoutingTransport(serverUrl, idpHost, apiServerID, organizationID, httpClient.Transport))
+	//
+	// Body capture sits outermost, so it is the last thing to touch a response
+	// before the SDK does. The SDK drains a 404 body, which is what the "is
+	// this gone" checks read. See captured_body.go.
+	httpClient.Transport = NewBodyCapturingTransport(serverUrl, idpHost, organizationID, apiServerID,
+		NewLogRedactingTransport(
+			NewIdpRoutingTransport(serverUrl, idpHost, apiServerID, organizationID, httpClient.Transport)))
 
 	opts := []sdk.SDKOption{
 		sdk.WithServerURL(serverUrl),

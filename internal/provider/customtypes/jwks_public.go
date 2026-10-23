@@ -28,7 +28,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -114,60 +113,6 @@ func (v PublicJWKS) StringSemanticEquals(ctx context.Context, newValuable basety
 		return false, diags
 	}
 	return v.JWKS.StringSemanticEquals(ctx, newValue.JWKS)
-}
-
-// ValidateAttribute runs the shared checks, then the two a client adds.
-func (v PublicJWKS) ValidateAttribute(ctx context.Context, req xattr.ValidateAttributeRequest, resp *xattr.ValidateAttributeResponse) {
-	v.JWKS.ValidateAttribute(ctx, req, resp)
-
-	if v.IsNull() || v.IsUnknown() {
-		return
-	}
-
-	// A document that is not a JWK Set has already been reported by the
-	// shared checks above, so this says nothing further about it.
-	keys, problem := jwkSetKeys(v.ValueString())
-	if problem != nil {
-		return
-	}
-
-	for i, k := range keys {
-		kty, _ := k["kty"].(string)
-
-		if kty == "oct" {
-			resp.Diagnostics.AddAttributeError(
-				req.Path,
-				"Symmetric key in a client's JWK Set",
-				fmt.Sprintf("The key at position %d is a symmetric key.\n\n"+
-					"A client's JWK Set holds the keys Authlete verifies that "+
-					"client's signatures with, so it must hold public keys. "+
-					"Authlete discards a symmetric key sent to a client without "+
-					"reporting an error, so the plan would never settle.\n\n"+
-					"For client authentication with a shared secret, use the "+
-					"client secret rather than a key in this set.", i),
-			)
-			continue
-		}
-
-		for _, m := range privateMembers {
-			if s, ok := k[m].(string); ok && s != "" {
-				resp.Diagnostics.AddAttributeError(
-					req.Path,
-					"Private key in a client's JWK Set",
-					fmt.Sprintf("The key at position %d has a %q member, which only a "+
-						"private key has.\n\n"+
-						"A client publishes its public keys; the private half stays with "+
-						"the client. Authlete strips the private members without "+
-						"reporting an error, so the plan would never settle, and the "+
-						"private key would sit in Terraform state for a key the server "+
-						"never kept.\n\n"+
-						"Pass the client's public key PEM to jwk_from_pem rather than "+
-						"its private key.", i, m),
-				)
-				break
-			}
-		}
-	}
 }
 
 // NewPublicJWKSValue and friends mirror the constructors the framework expects.

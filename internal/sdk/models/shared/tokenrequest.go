@@ -7,25 +7,19 @@ import (
 )
 
 type TokenRequest struct {
-	// OAuth 2.0 token request parameters which are the request parameters that the OAuth 2.0 token endpoint of the authorization server
-	// implementation received from the client application.
+	// OAuth 2.0 token request parameters which are the request parameters that the OAuth 2.0 token endpoint of the authorization server implementation received from the client application.
 	//
-	// The value of parameters is the entire entity body (which is formatted in `application/x-www-form-urlencoded`) of the request from
-	// the client application.
+	// The value of parameters is the entire entity body (which is formatted in `application/x-www-form-urlencoded`) of the request from the client application.
 	//
 	Parameters string `json:"parameters" form:"name=parameters"`
 	// The client ID extracted from `Authorization` header of the token request from the client application.
 	//
-	// If the token endpoint of the authorization server implementation supports basic authentication as
-	// a means of client authentication, and the request from the client application contained its client ID
-	// in `Authorization` header, the value should be extracted and set to this parameter.
+	// If the token endpoint of the authorization server implementation supports basic authentication as a means of client authentication, and the request from the client application contained its client ID in `Authorization` header, the value should be extracted and set to this parameter.
 	//
 	ClientID *string `json:"clientId,omitzero" form:"name=clientId"`
 	// The client secret extracted from `Authorization` header of the token request from the client application.
 	//
-	// If the token endpoint of the authorization server implementation supports basic authentication as a means of
-	// client authentication, and the request from the client application contained its client secret in `Authorization` header,
-	// the value should be extracted and set to this parameter.
+	// If the token endpoint of the authorization server implementation supports basic authentication as a means of client authentication, and the request from the client application contained its client secret in `Authorization` header, the value should be extracted and set to this parameter.
 	//
 	ClientSecret *string `json:"clientSecret,omitzero" form:"name=clientSecret"`
 	// The client certificate from the MTLS of the token request from the client application.
@@ -33,29 +27,22 @@ type TokenRequest struct {
 	// The certificate path presented by the client during client authentication. These certificates are strings in PEM format.
 	//
 	ClientCertificatePath []string `json:"clientCertificatePath,omitzero" form:"name=clientCertificatePath"`
-	// Extra properties to associate with an access token. See [Extra Properties](https://www.authlete.com/developers/definitive_guide/extra_properties/)
-	// for details.
+	// Extra properties to associate with an access token. See [Extra Properties](https://www.authlete.com/developers/definitive_guide/extra_properties/) for details.
 	//
 	Properties []Property `json:"properties,omitzero" form:"name=properties,json"`
 	// `DPoP` header presented by the client during the request to the token endpoint.
 	//
-	// The header contains a signed JWT which includes the public key that is paired with the private key used to sign the JWT.
-	// See [OAuth 2.0 Demonstration of Proof-of-Possession at the Application Layer (DPoP)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop)
-	// for details.
+	// The header contains a signed JWT which includes the public key that is paired with the private key used to sign the JWT. See [OAuth 2.0 Demonstration of Proof-of-Possession at the Application Layer (DPoP)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop) for details.
 	//
 	Dpop *string `json:"dpop,omitzero" form:"name=dpop"`
 	// HTTP method of the token request. This field is used to validate the `DPoP` header.
 	//
-	// In normal cases, the value is `POST`. When this parameter is omitted, `POST` is used as the default value.
-	// See [OAuth 2.0 Demonstration of Proof-of-Possession at the Application Layer (DPoP)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop)
-	// for details.
+	// In normal cases, the value is `POST`. When this parameter is omitted, `POST` is used as the default value. See [OAuth 2.0 Demonstration of Proof-of-Possession at the Application Layer (DPoP)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop) for details.
 	//
 	Htm *string `json:"htm,omitzero" form:"name=htm"`
 	// URL of the token endpoint. This field is used to validate the `DPoP` header.
 	//
-	// If this parameter is omitted, the `tokenEndpoint` property of the Service is used as the default value.
-	// See [OAuth 2.0 Demonstration of Proof-of-Possession at the Application Layer (DPoP)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop)
-	// for details.
+	// If this parameter is omitted, the `tokenEndpoint` property of the Service is used as the default value. See [OAuth 2.0 Demonstration of Proof-of-Possession at the Application Layer (DPoP)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop) for details.
 	//
 	Htu *string `json:"htu,omitzero" form:"name=htu"`
 	// The representation of an access token that may be issued as a result of the Authlete API call.
@@ -66,32 +53,23 @@ type TokenRequest struct {
 	// Effective only in the client_credentials grant flow (and the Native SSO branch of Token Exchange). For other grant flows, set additional JWT claims via the corresponding API: /auth/authorization/issue (authorization_code), /auth/backchannel/authentication/complete (CIBA), /auth/device/complete (device_code). The parameter is silently ignored when sent with other grants.
 	//
 	JwtAtClaims *string `json:"jwtAtClaims,omitzero" form:"name=jwtAtClaims"`
-	// The value of the `OAuth-Client-Attestation` HTTP header, which is defined in the specification
-	// of [OAuth 2.0 Attestation-Based Client Authentication](https://datatracker.ietf.org/doc/draft-ietf-oauth-attestation-based-client-auth/).
+	// The value of the `OAuth-Client-Attestation` HTTP header, which is defined in the specification of [OAuth 2.0 Attestation-Based Client Authentication](https://datatracker.ietf.org/doc/draft-ietf-oauth-attestation-based-client-auth/).
 	//
 	OauthClientAttestation *string `json:"oauthClientAttestation,omitzero" form:"name=oauthClientAttestation"`
-	// The value of the `OAuth-Client-Attestation-PoP` HTTP header, which is defined in the specification
-	// of [OAuth 2.0 Attestation-Based Client Authentication](https://datatracker.ietf.org/doc/draft-ietf-oauth-attestation-based-client-auth/).
+	// The value of the `OAuth-Client-Attestation-PoP` HTTP header, which is defined in the specification of [OAuth 2.0 Attestation-Based Client Authentication](https://datatracker.ietf.org/doc/draft-ietf-oauth-attestation-based-client-auth/).
 	//
 	OauthClientAttestationPop *string `json:"oauthClientAttestationPop,omitzero" form:"name=oauthClientAttestationPop"`
-	// The duration (in seconds) of the access token that may be issued as a result of the Authlete
-	// API call.
+	// The duration (in seconds) of the access token that may be issued as a result of the Authlete API call.
 	//
-	// When this request parameter holds a positive integer, it is used as the duration of the access
-	// token in. In other cases, this request parameter is ignored.
+	// When this request parameter holds a positive integer, it is used as the duration of the access token in. In other cases, this request parameter is ignored.
 	//
 	AccessTokenDuration *int64 `json:"accessTokenDuration,omitzero" form:"name=accessTokenDuration"`
-	// The duration (in seconds) of the refresh token that may be issued as a result of the Authlete
-	// API call.
+	// The duration (in seconds) of the refresh token that may be issued as a result of the Authlete API call.
 	//
-	// When this request parameter holds a positive integer, it is used as the duration of the refresh
-	// token in. In other cases, this request parameter is ignored.
+	// When this request parameter holds a positive integer, it is used as the duration of the refresh token in. In other cases, this request parameter is ignored.
 	//
 	RefreshTokenDuration *int64 `json:"refreshTokenDuration,omitzero" form:"name=refreshTokenDuration"`
-	// The flag indicating whether to require the DPoP proof JWT to include the `nonce` claim. Even if
-	// the service's `dpopNonceRequired` property is `false`, calling the `/auth/token` API with this
-	// `dpopNonceRequired` parameter `true` will force the Authlete API to check whether the DPoP proof
-	// JWT includes the expected `nonce` value.
+	// The flag indicating whether to require the DPoP proof JWT to include the `nonce` claim. Even if the service's `dpopNonceRequired` property is `false`, calling the `/auth/token` API with this `dpopNonceRequired` parameter `true` will force the Authlete API to check whether the DPoP proof JWT includes the expected `nonce` value.
 	//
 	DpopNonceRequired *bool `json:"dpopNonceRequired,omitzero" form:"name=dpopNonceRequired"`
 	// Options for [OAuth Client ID Metadata Document](https://datatracker.ietf.org/doc/draft-ietf-oauth-client-id-metadata-document/) (CIMD).

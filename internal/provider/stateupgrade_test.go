@@ -27,7 +27,10 @@ import (
 	"testing"
 
 	"github.com/authlete/terraform-provider-authlete/v3/internal/stateupgraders"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -139,6 +142,13 @@ func TestClientStateUpgradeFromV0(t *testing.T) {
 		"requestable_scopes_enabled": true,
 		"client_identifier":          "x",
 		"jwk":                        "{}",
+
+		// v1.3.17 wrote this for every client, with or without keys. The
+		// upgrade always succeeded; what broke was reading the result, on
+		// every plan, once the JWK Set checks were added. Carrying it here
+		// is the whole point: an upgrade that produces unreadable state is
+		// not an upgrade.
+		"jwks": "",
 	})
 	if errSummary != "" {
 		t.Fatalf("unexpected error: %s", errSummary)
@@ -156,6 +166,44 @@ func TestClientStateUpgradeFromV0(t *testing.T) {
 	}
 	if got := mustString(t, out["client_name"]); got != "legacy-client" {
 		t.Errorf("client_name = %q, want %q", got, "legacy-client")
+	}
+
+	// The empty string survives as written. Authlete's own answer for a client
+	// with no keys is the same, so nothing may reject it.
+	if got := mustString(t, out["jwks"]); got != "" {
+		t.Errorf("jwks = %q, want the empty string v1.3.17 wrote", got)
+	}
+
+	// And the upgraded state must be readable. This is the assertion the
+	// upgrade test was missing: the upgrade itself always succeeded, so a test
+	// of the upgrade alone said nothing. Reading is what failed, on every
+	// plan, with "JWK Set is not a JSON object".
+	assertStateIsReadable(t, NewClientResource(), out)
+}
+
+// assertStateIsReadable rebuilds the resource's state from migrated values and
+// reads every attribute back through the framework, which is the path that
+// broke: fwschemadata calls ValidateAttribute on each value it reads, state
+// included, so a check meant for configuration ran against stored keys too.
+func assertStateIsReadable(t *testing.T, r resource.Resource, values map[string]tftypes.Value) {
+	t.Helper()
+	ctx := context.Background()
+	schema := resourceSchema(t, r)
+
+	state := tfsdk.State{
+		Schema: schema,
+		Raw:    tftypes.NewValue(schema.Type().TerraformType(ctx), values),
+	}
+
+	for name := range schema.GetAttributes() {
+		var target attr.Value
+		diags := state.GetAttribute(ctx, path.Root(name), &target)
+		if diags.HasError() {
+			for _, d := range diags.Errors() {
+				t.Errorf("reading %s from migrated state failed: %s: %s",
+					name, d.Summary(), d.Detail())
+			}
+		}
 	}
 }
 

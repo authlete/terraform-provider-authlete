@@ -13,27 +13,19 @@ type CredentialOfferInfo struct {
 	CredentialOffer *string `json:"credentialOffer,omitzero"`
 	// The identifier of the credential issuer.
 	CredentialIssuer *string `json:"credentialIssuer,omitzero"`
-	// The flag indicating whether the `authorization_code` object is
-	// included in the `grants` object.
+	// The flag indicating whether the `authorization_code` object is included in the `grants` object.
 	//
 	AuthorizationCodeGrantIncluded *bool `json:"authorizationCodeGrantIncluded,omitzero"`
-	// The flag indicating whether the `issuer_state` property is
-	// included in the `authorization_code` object in the `grants`
-	// object.
+	// The flag indicating whether the `issuer_state` property is included in the `authorization_code` object in the `grants` object.
 	//
 	IssuerStateIncluded *bool `json:"issuerStateIncluded,omitzero"`
-	// The value of the `issuer_state` property in the
-	// `authorization_code` object in the `grants` object.
+	// The value of the `issuer_state` property in the `authorization_code` object in the `grants` object.
 	//
 	IssuerState *string `json:"issuerState,omitzero"`
-	// The flag indicating whether the
-	// `urn:ietf:params:oauth:grant-type:pre-authorized_code` object is
-	// included in the `grants` object.
+	// The flag indicating whether the `urn:ietf:params:oauth:grant-type:pre-authorized_code` object is included in the `grants` object.
 	//
 	PreAuthorizedCodeGrantIncluded *bool `json:"preAuthorizedCodeGrantIncluded,omitzero"`
-	// The value of the `pre-authorized_code` property in the
-	// `urn:ietf:params:oauth:grant-type:pre-authorized_code` object in
-	// the `grants` object.
+	// The value of the `pre-authorized_code` property in the `urn:ietf:params:oauth:grant-type:pre-authorized_code` object in the `grants` object.
 	//
 	PreAuthorizedCode *string `json:"preAuthorizedCode,omitzero"`
 	// The subject associated with the credential offer.
@@ -44,16 +36,13 @@ type CredentialOfferInfo struct {
 	Context *string `json:"context,omitzero"`
 	// Extra properties to associate with the credential offer.
 	Properties []Property `json:"properties,omitzero"`
-	// Additional claims that are added to the payload part of the JWT
-	// access token.
+	// Additional claims that are added to the payload part of the JWT access token.
 	//
 	JwtAtClaims *string `json:"jwtAtClaims,omitzero"`
-	// The time at which the user authentication was performed during
-	// the course of issuing the credential offer.
+	// The time at which the user authentication was performed during the course of issuing the credential offer.
 	//
 	AuthTime *int64 `json:"authTime,omitzero"`
-	// The Authentication Context Class Reference of the user authentication
-	// performed during the course of issuing the credential offer.
+	// The Authentication Context Class Reference of the user authentication performed during the course of issuing the credential offer.
 	//
 	Acr *string `json:"acr,omitzero"`
 	// The value of the `credential_configuration_ids` property of the credential offer.

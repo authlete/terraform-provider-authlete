@@ -18,6 +18,36 @@ resource "tls_private_key" "signing" {
   rsa_bits  = 2048
 }
 
+# A certificate for that key. jwk_from_pem adds x5c and both thumbprints when
+# the input carries one, which is what 1.3.x's pem_certificate used to do.
+resource "tls_self_signed_cert" "signing" {
+  private_key_pem       = tls_private_key.signing.private_key_pem
+  validity_period_hours = 24
+  allowed_uses          = ["digital_signature"]
+
+  subject {
+    common_name = "${var.name_prefix}.example.com"
+  }
+}
+
+# A shared secret, for the symmetric half of jwk_from_secret. Long enough for
+# HS256, which needs at least 32 bytes.
+variable "shared_secret" {
+  type        = string
+  default     = "tftest-shared-secret-32-bytes!!!"
+  sensitive   = true
+  description = "Exercises jwk_from_secret. A test value, not a real secret."
+}
+
+# An X25519 key, if one has been generated. hashicorp/tls cannot make these,
+# so run.sh creates it with openssl before applying and leaves it out when
+# openssl cannot. Absent, the service simply carries one key fewer.
+variable "x25519_pem_file" {
+  type        = string
+  default     = ""
+  description = "Path to an X25519 private key PEM, or empty to skip that key."
+}
+
 variable "organization_id" {
   description = "Authlete organization services are created under."
   type        = number
@@ -74,8 +104,30 @@ resource "authlete_service" "test" {
   # has. The open question is whether the string round-trips: if Authlete stores
   # it back in any different form, every plan reports a change forever.
   jwks = jsonencode({
-    keys = [jsondecode(provider::authlete::jwk_from_pem(
-      tls_private_key.signing.private_key_pem, "tftest-service-key", "RS256", "sig"))]
+    keys = concat(
+      [
+        # A plain signing key.
+        jsondecode(provider::authlete::jwk_from_pem(
+        tls_private_key.signing.private_key_pem, "tftest-service-key", "RS256", "sig")),
+
+        # The same key with its certificate, so the JWK carries x5c, x5t and
+        # x5t#S256.
+        jsondecode(provider::authlete::jwk_from_pem(
+          "${tls_private_key.signing.private_key_pem}${tls_self_signed_cert.signing.cert_pem}",
+        "tftest-service-cert-key", "RS256", "sig")),
+
+        # A symmetric key. Authlete holds it for its own use and leaves it out
+        # of the JWK Set it serves.
+        jsondecode(provider::authlete::jwk_from_secret(
+        var.shared_secret, "tftest-service-hmac", "HS256", "sig")),
+      ],
+
+      # An X25519 key for ECDH-ES, when run.sh managed to generate one.
+      var.x25519_pem_file == "" ? [] : [
+        jsondecode(provider::authlete::jwk_from_pem(
+        file(var.x25519_pem_file), "tftest-service-x25519", "ECDH-ES", "enc")),
+      ],
+    )
   })
 }
 
@@ -99,7 +151,7 @@ resource "authlete_client" "test" {
   # A client publishes public keys only, so it gets the public PEM.
   jwks = jsonencode({
     keys = [jsondecode(provider::authlete::jwk_from_pem(
-      tls_private_key.signing.public_key_pem, "tftest-client-key", "RS256", "sig"))]
+    tls_private_key.signing.public_key_pem, "tftest-client-key", "RS256", "sig"))]
   })
 }
 

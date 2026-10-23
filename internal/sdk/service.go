@@ -32,11 +32,9 @@ func newService(rootSDK *Authlete, sdkConfig config.SDKConfiguration, hooks *hoo
 }
 
 // Create Service (IDP)
-// Create a new service on the API server, belonging to the specified organization.
-// A service can be created with an organization token or by a user with the CREATE_SERVICE role.
+// Create a new service on the API server, belonging to the specified organization. A service can be created with an organization token or by a user with the CREATE_SERVICE role.
 //
-// This endpoint is hosted on the Authlete IdP server (`https://login.authlete.com`),
-// not on the regional API clusters.
+// This endpoint is hosted on the Authlete IdP server (`https://login.authlete.com`), not on the regional API clusters.
 func (s *Service) Create(ctx context.Context, request shared.ServiceCreateIdpRequest, opts ...operations.Option) (*operations.ServiceCreateIdpAPIResponse, error) {
 	o := operations.Options{}
 	supportedOptions := []string{
@@ -287,11 +285,9 @@ func (s *Service) Create(ctx context.Context, request shared.ServiceCreateIdpReq
 }
 
 // Remove Service (IDP) ⚡
-// Delete a service from the API server.
-// A service can be deleted with an organization token or by a user with the MODIFY_SERVICE role.
+// Delete a service from the API server. A service can be deleted with an organization token or by a user with the MODIFY_SERVICE role.
 //
-// This endpoint is hosted on the Authlete IdP server (`https://login.authlete.com`),
-// not on the regional API clusters.
+// This endpoint is hosted on the Authlete IdP server (`https://login.authlete.com`), not on the regional API clusters.
 func (s *Service) Remove(ctx context.Context, request shared.ServiceRemoveIdpRequest, opts ...operations.Option) (*operations.ServiceRemoveIdpAPIResponse, error) {
 	o := operations.Options{}
 	supportedOptions := []string{

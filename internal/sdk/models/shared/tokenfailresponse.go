@@ -41,8 +41,7 @@ type TokenFailResponse struct {
 	ResultMessage *string `json:"resultMessage,omitzero"`
 	// The next action that the authorization server implementation should take.
 	Action *TokenFailResponseAction `json:"action,omitzero"`
-	// The content that the authorization server implementation is to return to the client application.
-	// Its format varies depending on the value of `action` parameter. See description for details.
+	// The content that the authorization server implementation is to return to the client application. Its format varies depending on the value of `action` parameter. See description for details.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
 }

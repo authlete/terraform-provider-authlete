@@ -53,8 +53,7 @@ type VciBatchParseResponse struct {
 	Action *VciBatchParseResponseAction `json:"action,omitzero"`
 	// The content of the response to the request sender.
 	ResponseContent *string `json:"responseContent,omitzero"`
-	// Information about the credential requests in the batch credential
-	// request.
+	// Information about the credential requests in the batch credential request.
 	//
 	Info []CredentialRequestInfo `json:"info,omitzero"`
 }
