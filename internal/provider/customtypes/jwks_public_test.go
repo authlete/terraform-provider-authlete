@@ -6,20 +6,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
 func validatePublicJWKS(t *testing.T, doc string) diag.Diagnostics {
 	t.Helper()
-	resp := &xattr.ValidateAttributeResponse{}
-	NewPublicJWKSValue(doc).ValidateAttribute(
-		context.Background(),
-		xattr.ValidateAttributeRequest{Path: path.Root("jwks")},
-		resp,
-	)
-	return resp.Diagnostics
+	return ValidateDocument(path.Root("jwks"), doc, true)
 }
 
 // Authlete strips these without reporting an error, so the configuration and

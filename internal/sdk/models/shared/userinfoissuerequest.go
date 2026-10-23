@@ -7,15 +7,13 @@ import (
 )
 
 type UserinfoIssueRequest struct {
-	// The access token that has been passed to the userinfo endpoint by the client application. In other words,
-	// the access token which was contained in the userinfo request.
+	// The access token that has been passed to the userinfo endpoint by the client application. In other words, the access token which was contained in the userinfo request.
 	//
 	Token string `json:"token" form:"name=token"`
 	// Claims in JSON format. As for the format, see [OpenID Connect Core 1.0, 5.1. Standard Claims](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims).
 	//
 	Claims *string `json:"claims,omitzero" form:"name=claims"`
-	// The value of the `sub` claim. If the value of this request parameter is not empty, it is used as the value of
-	// the `sub` claim. Otherwise, the value of the subject associated with the access token is used.
+	// The value of the `sub` claim. If the value of this request parameter is not empty, it is used as the value of the `sub` claim. Otherwise, the value of the subject associated with the access token is used.
 	//
 	Sub *string `json:"sub,omitzero" form:"name=sub"`
 	// Claim key-value pairs that are used to compute transformed claims.
@@ -24,8 +22,7 @@ type UserinfoIssueRequest struct {
 	// The Signature header value from the request.
 	//
 	RequestSignature *string `json:"requestSignature,omitzero" form:"name=requestSignature"`
-	// HTTP headers to be included in processing the signature. If this is a signed request, this must include the
-	// Signature and Signature-Input headers, as well as any additional headers covered by the signature.
+	// HTTP headers to be included in processing the signature. If this is a signed request, this must include the Signature and Signature-Input headers, as well as any additional headers covered by the signature.
 	//
 	Headers []Pair `json:"headers,omitzero" form:"name=headers,json"`
 	// Values of verified claims requested indirectly by "transformed claims".

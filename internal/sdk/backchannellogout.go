@@ -31,8 +31,7 @@ func newBackChannelLogout(rootSDK *Authlete, sdkConfig config.SDKConfiguration, 
 }
 
 // BackchannelLogoutTokenAPI - Backchannel Logout Token Issuing
-// The `/backchannel/logout/token` API issues a logout token for a client application
-// in the context of [OpenID Connect Back-Channel Logout 1.0](https://openid.net/specs/openid-connect-backchannel-1_0.html).
+// The `/backchannel/logout/token` API issues a logout token for a client application in the context of [OpenID Connect Back-Channel Logout 1.0](https://openid.net/specs/openid-connect-backchannel-1_0.html).
 func (s *BackChannelLogout) BackchannelLogoutTokenAPI(ctx context.Context, request operations.BackchannelLogoutTokenAPIRequest, opts ...operations.Option) (*operations.BackchannelLogoutTokenAPIResponse, error) {
 	o := operations.Options{}
 	supportedOptions := []string{

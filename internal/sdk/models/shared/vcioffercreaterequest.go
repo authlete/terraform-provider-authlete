@@ -7,18 +7,13 @@ import (
 )
 
 type VciOfferCreateRequest struct {
-	// The flag indicating whether the `authorization_code` object is
-	// included in the `grants` object.
+	// The flag indicating whether the `authorization_code` object is included in the `grants` object.
 	//
 	AuthorizationCodeGrantIncluded *bool `json:"authorizationCodeGrantIncluded,omitzero" form:"name=authorizationCodeGrantIncluded"`
-	// The flag indicating whether the `issuer_state` property is
-	// included in the `authorization_code` object in the `grants`
-	// object.
+	// The flag indicating whether the `issuer_state` property is included in the `authorization_code` object in the `grants` object.
 	//
 	IssuerStateIncluded *bool `json:"issuerStateIncluded,omitzero" form:"name=issuerStateIncluded"`
-	// The flag to include the
-	// `urn:ietf:params:oauth:grant-type:pre-authorized_code` object
-	// in the `grants` object.
+	// The flag to include the `urn:ietf:params:oauth:grant-type:pre-authorized_code` object in the `grants` object.
 	//
 	PreAuthorizedCodeGrantIncluded *bool `json:"preAuthorizedCodeGrantIncluded,omitzero" form:"name=preAuthorizedCodeGrantIncluded"`
 	// The subject associated with the credential offer.
@@ -29,16 +24,13 @@ type VciOfferCreateRequest struct {
 	Context *string `json:"context,omitzero" form:"name=context"`
 	// Extra properties to associate with the credential offer.
 	Properties []Property `json:"properties,omitzero" form:"name=properties,json"`
-	// Additional claims that are added to the payload part of the JWT
-	// access token.
+	// Additional claims that are added to the payload part of the JWT access token.
 	//
 	JwtAtClaims *string `json:"jwtAtClaims,omitzero" form:"name=jwtAtClaims"`
-	// The time at which the user authentication was performed during
-	// the course of issuing the credential offer.
+	// The time at which the user authentication was performed during the course of issuing the credential offer.
 	//
 	AuthTime *int64 `json:"authTime,omitzero" form:"name=authTime"`
-	// The Authentication Context Class Reference of the user authentication
-	// performed during the course of issuing the credential offer.
+	// The Authentication Context Class Reference of the user authentication performed during the course of issuing the credential offer.
 	//
 	Acr *string `json:"acr,omitzero" form:"name=acr"`
 	// The value of the `credential_configuration_ids` array.

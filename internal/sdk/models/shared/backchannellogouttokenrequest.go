@@ -3,16 +3,13 @@
 package shared
 
 type BackchannelLogoutTokenRequest struct {
-	// The identifier of the client application. Either a client ID or a client
-	// alias.
+	// The identifier of the client application. Either a client ID or a client alias.
 	//
 	ClientIdentifier string `json:"clientIdentifier"`
-	// The subject (end-user) identifier. The logout token will be issued for
-	// this subject. At least one of `subject` or `sessionId` must be provided.
+	// The subject (end-user) identifier. The logout token will be issued for this subject. At least one of `subject` or `sessionId` must be provided.
 	//
 	Subject *string `json:"subject,omitzero"`
-	// The session ID (`sid`) identifying the user session to log out. At least
-	// one of `subject` or `sessionId` must be provided.
+	// The session ID (`sid`) identifying the user session to log out. At least one of `subject` or `sessionId` must be provided.
 	//
 	SessionID *string `json:"sessionId,omitzero"`
 }

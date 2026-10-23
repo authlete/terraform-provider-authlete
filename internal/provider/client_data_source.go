@@ -153,9 +153,8 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 
 		Attributes: map[string]schema.Attribute{
 			"application_type": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The application type. The value of this property affects the validation steps for a redirect URI.` + "\n" +
-					`See the description about ` + "`" + `redirectUris` + "`" + ` property for more details.`,
+				Computed:    true,
+				Description: `The application type. The value of this property affects the validation steps for a redirect URI. See the description about ` + "`" + `redirectUris` + "`" + ` property for more details.`,
 			},
 			"attributes": schema.ListNestedAttribute{
 				Computed: true,
@@ -177,25 +176,20 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Computed: true,
 				MarkdownDescription: `The flag to indicate whether this client requires ` + "`" + `auth_time` + "`" + ` claim to be embedded in the ID token.` + "\n" +
 					`` + "\n" +
-					`This property corresponds to ` + "`" + `require_auth_time` + "`" + ` in` + "\n" +
-					`[OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+					`This property corresponds to ` + "`" + `require_auth_time` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
 			},
 			"authorization_details_types": schema.ListAttribute{
 				Computed:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `The authorization details types that this client may use as values of the ` + "`" + `type` + "`" + ` field in` + "\n" +
-					`` + "`" + `authorization_details` + "`" + `.` + "\n" +
+				MarkdownDescription: `The authorization details types that this client may use as values of the ` + "`" + `type` + "`" + ` field in ` + "`" + `authorization_details` + "`" + `.` + "\n" +
 					`` + "\n" +
-					`This property corresponds to the ` + "`" + `authorization_details_types` + "`" + ` metadata. See [OAuth 2.0 Rich` + "\n" +
-					`Authorization Requests (RAR)](https://datatracker.ietf.org/doc/draft-ietf-oauth-rar/) for details.` + "\n" +
+					`This property corresponds to the ` + "`" + `authorization_details_types` + "`" + ` metadata. See [OAuth 2.0 Rich Authorization Requests (RAR)](https://datatracker.ietf.org/doc/draft-ietf-oauth-rar/) for details.` + "\n" +
 					`` + "\n" +
-					`Note that the property name was renamed from authorizationDataTypes to authorizationDetailsTypes` + "\n" +
-					`to align with the change made by the 5th draft of the RAR specification.`,
+					`Note that the property name was renamed from authorizationDataTypes to authorizationDetailsTypes to align with the change made by the 5th draft of the RAR specification.`,
 			},
 			"authorization_encryption_alg": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: `this is the 'alg' header value for encrypted JWT tokens.` + "\n" +
-					`Depending upon the context, this refers to key transport scheme to be used by the client and by the server. For instance:` + "\n" +
+				MarkdownDescription: `this is the 'alg' header value for encrypted JWT tokens. Depending upon the context, this refers to key transport scheme to be used by the client and by the server. For instance:` + "\n" +
 					`- as ` + "`" + `authorizationEncryptionAlg` + "`" + ` value, it refers to the encoding algorithm used by server for transporting they keys on JARM objects` + "\n" +
 					`- as ` + "`" + `requestEncryptionAlg` + "`" + ` value, it refers to the expected key transport encoding algorithm that server expect from client when encrypting a Request Object` + "\n" +
 					`- as ` + "`" + `idTokenEncryptionAlg` + "`" + ` value, it refers to the algorithm used by the server to key transport of id_tokens` + "\n" +
@@ -204,16 +198,14 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			},
 			"authorization_encryption_enc": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: `This is the encryption algorithm to be used when encrypting a JWT on client or server side.` + "\n" +
-					`Depending upon the context, this refers to encryption done by the client or by the server. For instance:` + "\n" +
+				MarkdownDescription: `This is the encryption algorithm to be used when encrypting a JWT on client or server side. Depending upon the context, this refers to encryption done by the client or by the server. For instance:` + "\n" +
 					`  - as ` + "`" + `authorizationEncryptionEnc` + "`" + ` value, it refers to the encryption algorithm used by server when creating a JARM response` + "\n" +
 					`  - as ` + "`" + `requestEncryptionEnc` + "`" + ` value, it refers to the expected encryption algorithm used by the client when encrypting a Request Object` + "\n" +
 					`  - as ` + "`" + `idTokenEncryptionEnc` + "`" + ` value, it refers to the algorithm used by the server to encrypt id_tokens`,
 			},
 			"authorization_sign_alg": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: `The signature algorithm for JWT. This value is represented on 'alg' attribute` + "\n" +
-					`of the header of JWT.` + "\n" +
+				MarkdownDescription: `The signature algorithm for JWT. This value is represented on 'alg' attribute of the header of JWT.` + "\n" +
 					`` + "\n" +
 					`it's semantics depends upon where is this defined, for instance:` + "\n" +
 					`  - as service accessTokenSignAlg value, it defines that access token are JWT and the algorithm used to sign it. Check your [KB article](https://kb.authlete.com/en/s/oauth-and-openid-connect/a/jwt-based-access-token).` + "\n" +
@@ -221,41 +213,32 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 					`  - or as client requestSignAlg value, it specifies which is the expected signature used by [client on a Request Object](https://kb.authlete.com/en/s/oauth-and-openid-connect/a/request-objects).`,
 			},
 			"automatically_registered": schema.BoolAttribute{
-				Computed: true,
-				MarkdownDescription: `The flag indicating whether this client was registered by the` + "\n" +
-					`"automatic" client registration of OIDC Federation.`,
+				Computed:    true,
+				Description: `The flag indicating whether this client was registered by the "automatic" client registration of OIDC Federation.`,
 			},
 			"backchannel_logout_session_required": schema.BoolAttribute{
-				Computed: true,
-				MarkdownDescription: `The flag indicating whether the client requires that a ` + "`" + `sid` + "`" + ` (session ID)` + "\n" +
-					`claim be included in the logout token sent to ` + "`" + `backchannelLogoutUri` + "`" + `.`,
+				Computed:    true,
+				Description: `The flag indicating whether the client requires that a ` + "`" + `sid` + "`" + ` (session ID) claim be included in the logout token sent to ` + "`" + `backchannelLogoutUri` + "`" + `.`,
 			},
 			"backchannel_logout_uri": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The backchannel logout URI for this client. Used by the service to` + "\n" +
-					`deliver logout tokens when OpenID Connect Back-Channel Logout 1.0 is` + "\n" +
-					`triggered.`,
+				Computed:    true,
+				Description: `The backchannel logout URI for this client. Used by the service to deliver logout tokens when OpenID Connect Back-Channel Logout 1.0 is triggered.`,
 			},
 			"bc_delivery_mode": schema.StringAttribute{
 				Computed: true,
 				MarkdownDescription: `The backchannel token delivery mode.` + "\n" +
 					`` + "\n" +
-					`This property corresponds to the ` + "`" + `backchannel_token_delivery_mode` + "`" + ` metadata.` + "\n" +
-					`The backchannel token delivery mode is defined in the specification of "CIBA (Client Initiated` + "\n" +
-					`Backchannel Authentication)".`,
+					`This property corresponds to the ` + "`" + `backchannel_token_delivery_mode` + "`" + ` metadata. The backchannel token delivery mode is defined in the specification of "CIBA (Client Initiated Backchannel Authentication)".`,
 			},
 			"bc_notification_endpoint": schema.StringAttribute{
 				Computed: true,
 				MarkdownDescription: `The backchannel client notification endpoint.` + "\n" +
 					`` + "\n" +
-					`This property corresponds to the ` + "`" + `backchannel_client_notification_endpoint` + "`" + ` metadata.` + "\n" +
-					`The backchannel token delivery mode is defined in the specification of "CIBA (Client Initiated` + "\n" +
-					`Backchannel Authentication)".`,
+					`This property corresponds to the ` + "`" + `backchannel_client_notification_endpoint` + "`" + ` metadata. The backchannel token delivery mode is defined in the specification of "CIBA (Client Initiated Backchannel Authentication)".`,
 			},
 			"bc_request_sign_alg": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: `The signature algorithm for JWT. This value is represented on 'alg' attribute` + "\n" +
-					`of the header of JWT.` + "\n" +
+				MarkdownDescription: `The signature algorithm for JWT. This value is represented on 'alg' attribute of the header of JWT.` + "\n" +
 					`` + "\n" +
 					`it's semantics depends upon where is this defined, for instance:` + "\n" +
 					`  - as service accessTokenSignAlg value, it defines that access token are JWT and the algorithm used to sign it. Check your [KB article](https://kb.authlete.com/en/s/oauth-and-openid-connect/a/jwt-based-access-token).` + "\n" +
@@ -264,8 +247,7 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			},
 			"bc_user_code_required": schema.BoolAttribute{
 				Computed: true,
-				MarkdownDescription: `The boolean flag to indicate whether a user code is required when this client makes a backchannel` + "\n" +
-					`authentication request.` + "\n" +
+				MarkdownDescription: `The boolean flag to indicate whether a user code is required when this client makes a backchannel authentication request.` + "\n" +
 					`` + "\n" +
 					`This property corresponds to the ` + "`" + `backchannel_user_code_parameter` + "`" + ` metadata.`,
 			},
@@ -274,18 +256,16 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Description: `The client identifier used in Authlete API calls. The value of this property is assigned by Authlete.`,
 			},
 			"client_id_alias": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The value of the client's ` + "`" + `client_id` + "`" + ` property used in OAuth and OpenID Connect calls. By` + "\n" +
-					`default, this is a string version of the ` + "`" + `clientId` + "`" + ` property.`,
+				Computed:    true,
+				Description: `The value of the client's ` + "`" + `client_id` + "`" + ` property used in OAuth and OpenID Connect calls. By default, this is a string version of the ` + "`" + `clientId` + "`" + ` property.`,
 			},
 			"client_id_alias_enabled": schema.BoolAttribute{
 				Computed:    true,
 				Description: `Deprecated. Always set to ` + "`" + `true` + "`" + `.`,
 			},
 			"client_name": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The name of the client application. This property corresponds to ` + "`" + `client_name` + "`" + ` in` + "\n" +
-					`[OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+				Computed:    true,
+				Description: `The name of the client application. This property corresponds to ` + "`" + `client_name` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
 			},
 			"client_names": schema.ListNestedAttribute{
 				Computed: true,
@@ -301,8 +281,7 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 						},
 					},
 				},
-				MarkdownDescription: `Client names with language tags. If the client application has different names for different` + "\n" +
-					`languages, this property can be used to register the names.`,
+				Description: `Client names with language tags. If the client application has different names for different languages, this property can be used to register the names.`,
 			},
 			"client_registration_types": schema.ListAttribute{
 				Computed:    true,
@@ -310,26 +289,23 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Description: `The client registration types that the client has declared it may use.`,
 			},
 			"client_secret": schema.StringAttribute{
-				Computed:  true,
-				Sensitive: true,
-				MarkdownDescription: `The client secret. A random 512-bit value encoded by base64url (86 letters). The value of this` + "\n" +
-					`property is assigned by Authlete.`,
+				Computed:    true,
+				Sensitive:   true,
+				Description: `The client secret. A random 512-bit value encoded by base64url (86 letters). The value of this property is assigned by Authlete.`,
 			},
 			"client_source": schema.StringAttribute{
 				Computed:    true,
 				Description: `Source of this client record.`,
 			},
 			"client_type": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The client type, either ` + "`" + `CONFIDENTIAL` + "`" + ` or ` + "`" + `PUBLIC` + "`" + `. See [RFC 6749, 2.1. Client Types](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1)` + "\n" +
-					`for details.`,
+				Computed:    true,
+				Description: `The client type, either ` + "`" + `CONFIDENTIAL` + "`" + ` or ` + "`" + `PUBLIC` + "`" + `. See [RFC 6749, 2.1. Client Types](https://datatracker.ietf.org/doc/html/rfc6749#section-2.1) for details.`,
 			},
 			"client_uri": schema.StringAttribute{
 				Computed: true,
 				MarkdownDescription: `The URL pointing to the home page of the client application.` + "\n" +
 					`` + "\n" +
-					`This property corresponds to ` + "`" + `client_uri` + "`" + ` in` + "\n" +
-					`[OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+					`This property corresponds to ` + "`" + `client_uri` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
 			},
 			"client_uris": schema.ListNestedAttribute{
 				Computed: true,
@@ -345,26 +321,22 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 						},
 					},
 				},
-				MarkdownDescription: `Home page URLs with language tags.` + "\n" +
-					`If the client application has different home pages for different languages, this property can` + "\n" +
-					`be used to register the URLs.`,
+				Description: `Home page URLs with language tags. If the client application has different home pages for different languages, this property can be used to register the URLs.`,
 			},
 			"contacts": schema.ListAttribute{
 				Computed:    true,
 				ElementType: types.StringType,
 				MarkdownDescription: `An array of email addresses of people responsible for the client application.` + "\n" +
 					`` + "\n" +
-					`This property corresponds to contacts in [OpenID Connect Dynamic Client Registration 1.0, 2. Client` + "\n" +
-					`Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+					`This property corresponds to contacts in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
 			},
 			"created_at": schema.Int64Attribute{
 				Computed:    true,
 				Description: `The time at which this client was created. The value is represented as milliseconds since the UNIX epoch (1970-01-01).`,
 			},
 			"credential_offer_endpoint": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The URL of the credential offer endpoint at which this client` + "\n" +
-					`(wallet) receives a credential offer from the credential issuer.`,
+				Computed:    true,
+				Description: `The URL of the credential offer endpoint at which this client (wallet) receives a credential offer from the credential issuer.`,
 			},
 			"credential_response_encryption_required": schema.BoolAttribute{
 				Computed:    true,
@@ -379,22 +351,17 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			"default_acrs": schema.ListAttribute{
 				Computed:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `The default ACRs (Authentication Context Class References). This value is used when an authorization` + "\n" +
-					`request from the client application has neither ` + "`" + `acr_values` + "`" + ` request parameter nor ` + "`" + `acr` + "`" + ` claim` + "\n" +
-					`in claims request parameter.`,
+				Description: `The default ACRs (Authentication Context Class References). This value is used when an authorization request from the client application has neither ` + "`" + `acr_values` + "`" + ` request parameter nor ` + "`" + `acr` + "`" + ` claim in claims request parameter.`,
 			},
 			"default_max_age": schema.Int32Attribute{
 				Computed: true,
 				MarkdownDescription: `The default maximum authentication age in seconds. This value is used when an authorization request from the client application does not have ` + "`" + `max_age` + "`" + ` request parameter.` + "\n" +
 					`` + "\n" +
-					`This property corresponds to ` + "`" + `default_max_age` + "`" + ` in` + "\n" +
-					`[OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+					`This property corresponds to ` + "`" + `default_max_age` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
 			},
 			"derived_sector_identifier": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The sector identifier host component as derived from either the ` + "`" + `sector_identifier_uri` + "`" + ` or the` + "\n" +
-					`registered redirect URI. If no ` + "`" + `sector_identifier_uri` + "`" + ` is registered and multiple redirect URIs` + "\n" +
-					`are also registered, the value of this property is ` + "`" + `null` + "`" + `.`,
+				Computed:    true,
+				Description: `The sector identifier host component as derived from either the ` + "`" + `sector_identifier_uri` + "`" + ` or the registered redirect URI. If no ` + "`" + `sector_identifier_uri` + "`" + ` is registered and multiple redirect URIs are also registered, the value of this property is ` + "`" + `null` + "`" + `.`,
 			},
 			"description": schema.StringAttribute{
 				Computed:    true,
@@ -414,24 +381,15 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 						},
 					},
 				},
-				MarkdownDescription: `Descriptions about the client application with language tags. If the client application has different` + "\n" +
-					`descriptions for different languages, this property can be used to register the descriptions.`,
+				Description: `Descriptions about the client application with language tags. If the client application has different descriptions for different languages, this property can be used to register the descriptions.`,
 			},
 			"developer": schema.StringAttribute{
 				Computed:    true,
 				Description: `The unique identifier of the developer who created this client application.`,
 			},
 			"digest_algorithm": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The digest algorithm that this client requests the server to use` + "\n" +
-					`when it computes digest values of [external attachments](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#name-external-attachments), which may be referenced from within ID tokens` + "\n" +
-					`or userinfo responses (or any place that can have the ` + "`" + `verified_claims` + "`" + ` claim).` + "\n" +
-					`Possible values are listed in the [Hash Algorithm Registry](https://www.iana.org/assignments/named-information/named-information.xhtml#hash-alg) of IANA (Internet Assigned Numbers Authority),` + "\n" +
-					`but the server does not necessarily support all the values there. When` + "\n" +
-					`this property is omitted, ` + "`" + `sha-256` + "`" + ` is used as the default algorithm.` + "\n" +
-					`This property corresponds to the ` + "`" + `digest_algorithm` + "`" + ` client metadata` + "\n" +
-					`which was defined by the third implementer's draft of` + "\n" +
-					`[OpenID Connect for Identity Assurance 1.0](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html).`,
+				Computed:    true,
+				Description: `The digest algorithm that this client requests the server to use when it computes digest values of [external attachments](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#name-external-attachments), which may be referenced from within ID tokens or userinfo responses (or any place that can have the ` + "`" + `verified_claims` + "`" + ` claim). Possible values are listed in the [Hash Algorithm Registry](https://www.iana.org/assignments/named-information/named-information.xhtml#hash-alg) of IANA (Internet Assigned Numbers Authority), but the server does not necessarily support all the values there. When this property is omitted, ` + "`" + `sha-256` + "`" + ` is used as the default algorithm. This property corresponds to the ` + "`" + `digest_algorithm` + "`" + ` client metadata which was defined by the third implementer's draft of [OpenID Connect for Identity Assurance 1.0](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html).`,
 			},
 			"discovered_by_metadata_document": schema.BoolAttribute{
 				Computed:    true,
@@ -442,71 +400,50 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Description: `If the DPoP is required for this client`,
 			},
 			"dynamically_registered": schema.BoolAttribute{
-				Computed: true,
-				MarkdownDescription: `The flag to indicate whether this client has been registered dynamically.` + "\n" +
-					`For more details, see [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).`,
+				Computed:    true,
+				Description: `The flag to indicate whether this client has been registered dynamically. For more details, see [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).`,
 			},
 			"entity_id": schema.StringAttribute{
 				Computed:    true,
 				Description: `the entity ID of this client.`,
 			},
 			"explicitly_registered": schema.BoolAttribute{
-				Computed: true,
-				MarkdownDescription: `The flag indicating whether this client was registered by the` + "\n" +
-					`"explicit" client registration of OIDC Federation.`,
+				Computed:    true,
+				Description: `The flag indicating whether this client was registered by the "explicit" client registration of OIDC Federation.`,
 			},
 			"extension": schema.SingleNestedAttribute{
 				Computed: true,
 				Attributes: map[string]schema.Attribute{
 					"access_token_duration": schema.Int64Attribute{
 						Computed: true,
-						MarkdownDescription: `The value of the duration of access tokens per client in seconds. In normal cases, the value of` + "\n" +
-							`the service's ` + "`" + `accessTokenDuration` + "`" + ` property is used as the duration of access tokens issued by` + "\n" +
-							`the service. However, if this ` + "`" + `accessTokenDuration` + "`" + ` property holds a non-zero positive number` + "\n" +
-							`and its value is less than the duration configured by the service, the value is used as the duration` + "\n" +
-							`of access tokens issued to the client application.` + "\n" +
+						MarkdownDescription: `The value of the duration of access tokens per client in seconds. In normal cases, the value of the service's ` + "`" + `accessTokenDuration` + "`" + ` property is used as the duration of access tokens issued by the service. However, if this ` + "`" + `accessTokenDuration` + "`" + ` property holds a non-zero positive number and its value is less than the duration configured by the service, the value is used as the duration of access tokens issued to the client application.` + "\n" +
 							`` + "\n" +
-							`Note that the duration of access tokens can be controlled by the scope attribute ` + "`" + `access_token.duration` + "`" + `,` + "\n" +
-							`too. Authlete chooses the minimum value among the candidates.`,
+							`Note that the duration of access tokens can be controlled by the scope attribute ` + "`" + `access_token.duration` + "`" + `, too. Authlete chooses the minimum value among the candidates.`,
 					},
 					"id_token_duration": schema.Int64Attribute{
 						Computed: true,
-						MarkdownDescription: `The value of the duration of ID tokens per client in seconds. In normal cases, the value` + "\n" +
-							`of the service's ` + "`" + `idTokenDuration` + "`" + ` property is used as the duration of ID tokens issued` + "\n" +
-							`by the service. However, if this ` + "`" + `idTokenDuration` + "`" + ` property holds a non-zero positive number` + "\n" +
-							`and its value is less than the duration configured by the service, the value is used as the duration` + "\n" +
-							`of ID tokens issued to the client application.` + "\n" +
+						MarkdownDescription: `The value of the duration of ID tokens per client in seconds. In normal cases, the value of the service's ` + "`" + `idTokenDuration` + "`" + ` property is used as the duration of ID tokens issued by the service. However, if this ` + "`" + `idTokenDuration` + "`" + ` property holds a non-zero positive number and its value is less than the duration configured by the service, the value is used as the duration of ID tokens issued to the client application.` + "\n" +
 							`` + "\n" +
-							`Note that the duration of refresh tokens can be controlled by the scope attribute ` + "`" + `id_token.duration` + "`" + `,` + "\n" +
-							`too. Authlete chooses the minimum value among the candidates.`,
+							`Note that the duration of refresh tokens can be controlled by the scope attribute ` + "`" + `id_token.duration` + "`" + `, too. Authlete chooses the minimum value among the candidates.`,
 					},
 					"refresh_token_duration": schema.Int64Attribute{
 						Computed: true,
-						MarkdownDescription: `The value of the duration of refresh tokens per client in seconds. In normal cases, the value` + "\n" +
-							`of the service's ` + "`" + `refreshTokenDuration` + "`" + ` property is used as the duration of refresh tokens issued` + "\n" +
-							`by the service. However, if this ` + "`" + `refreshTokenDuration` + "`" + ` property holds a non-zero positive number` + "\n" +
-							`and its value is less than the duration configured by the service, the value is used as the duration` + "\n" +
-							`of refresh tokens issued to the client application.` + "\n" +
+						MarkdownDescription: `The value of the duration of refresh tokens per client in seconds. In normal cases, the value of the service's ` + "`" + `refreshTokenDuration` + "`" + ` property is used as the duration of refresh tokens issued by the service. However, if this ` + "`" + `refreshTokenDuration` + "`" + ` property holds a non-zero positive number and its value is less than the duration configured by the service, the value is used as the duration of refresh tokens issued to the client application.` + "\n" +
 							`` + "\n" +
-							`Note that the duration of refresh tokens can be controlled by the scope attribute ` + "`" + `refresh_token.duration` + "`" + `,` + "\n" +
-							`too. Authlete chooses the minimum value among the candidates.`,
+							`Note that the duration of refresh tokens can be controlled by the scope attribute ` + "`" + `refresh_token.duration` + "`" + `, too. Authlete chooses the minimum value among the candidates.`,
 					},
 					"requestable_scopes": schema.ListAttribute{
 						Computed:    true,
 						ElementType: types.StringType,
-						MarkdownDescription: `The set of scopes that the client application is allowed to request. This paramter will be one` + "\n" +
-							`of the following.`,
+						Description: `The set of scopes that the client application is allowed to request. This paramter will be one of the following.`,
 					},
 					"requestable_scopes_enabled": schema.BoolAttribute{
-						Computed: true,
-						MarkdownDescription: `The flag to indicate whether "Requestable Scopes per Client" is enabled or not. If ` + "`" + `true` + "`" + `, you` + "\n" +
-							`can define the set of scopes which this client application can request. If ` + "`" + `false` + "`" + `, this client` + "\n" +
-							`application can request any scope which is supported by the authorization server.`,
+						Computed:    true,
+						Description: `The flag to indicate whether "Requestable Scopes per Client" is enabled or not. If ` + "`" + `true` + "`" + `, you can define the set of scopes which this client application can request. If ` + "`" + `false` + "`" + `, this client application can request any scope which is supported by the authorization server.`,
 					},
 					"token_exchange_permitted": schema.BoolAttribute{
-						Computed: true,
-						MarkdownDescription: `Get the flag indicating whether the client is explicitly given a` + "\n" +
-							`permission to make token exchange requests ([RFC 8693][https://www.rfc-editor.org/rfc/rfc8693.html])`,
+						Computed:    true,
+						Description: `Get the flag indicating whether the client is explicitly given a permission to make token exchange requests ([RFC 8693][https://www.rfc-editor.org/rfc/rfc8693.html])`,
 					},
 				},
 			},
@@ -516,21 +453,17 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Description: `The FAPI modes for this client.`,
 			},
 			"front_channel_request_object_encryption_required": schema.BoolAttribute{
-				Computed: true,
-				MarkdownDescription: `The flag indicating whether encryption of request object is required when the request object` + "\n" +
-					`is passed through the front channel.`,
+				Computed:    true,
+				Description: `The flag indicating whether encryption of request object is required when the request object is passed through the front channel.`,
 			},
 			"grant_types": schema.ListAttribute{
 				Computed:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `A string array of grant types which the client application declares that it will restrict itself to using.` + "\n" +
-					`This property corresponds to ` + "`" + `grant_types` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0,` + "\n" +
-					`2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+				Description: `A string array of grant types which the client application declares that it will restrict itself to using. This property corresponds to ` + "`" + `grant_types` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
 			},
 			"id_token_encryption_alg": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: `this is the 'alg' header value for encrypted JWT tokens.` + "\n" +
-					`Depending upon the context, this refers to key transport scheme to be used by the client and by the server. For instance:` + "\n" +
+				MarkdownDescription: `this is the 'alg' header value for encrypted JWT tokens. Depending upon the context, this refers to key transport scheme to be used by the client and by the server. For instance:` + "\n" +
 					`- as ` + "`" + `authorizationEncryptionAlg` + "`" + ` value, it refers to the encoding algorithm used by server for transporting they keys on JARM objects` + "\n" +
 					`- as ` + "`" + `requestEncryptionAlg` + "`" + ` value, it refers to the expected key transport encoding algorithm that server expect from client when encrypting a Request Object` + "\n" +
 					`- as ` + "`" + `idTokenEncryptionAlg` + "`" + ` value, it refers to the algorithm used by the server to key transport of id_tokens` + "\n" +
@@ -539,16 +472,14 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			},
 			"id_token_encryption_enc": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: `This is the encryption algorithm to be used when encrypting a JWT on client or server side.` + "\n" +
-					`Depending upon the context, this refers to encryption done by the client or by the server. For instance:` + "\n" +
+				MarkdownDescription: `This is the encryption algorithm to be used when encrypting a JWT on client or server side. Depending upon the context, this refers to encryption done by the client or by the server. For instance:` + "\n" +
 					`  - as ` + "`" + `authorizationEncryptionEnc` + "`" + ` value, it refers to the encryption algorithm used by server when creating a JARM response` + "\n" +
 					`  - as ` + "`" + `requestEncryptionEnc` + "`" + ` value, it refers to the expected encryption algorithm used by the client when encrypting a Request Object` + "\n" +
 					`  - as ` + "`" + `idTokenEncryptionEnc` + "`" + ` value, it refers to the algorithm used by the server to encrypt id_tokens`,
 			},
 			"id_token_sign_alg": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: `The signature algorithm for JWT. This value is represented on 'alg' attribute` + "\n" +
-					`of the header of JWT.` + "\n" +
+				MarkdownDescription: `The signature algorithm for JWT. This value is represented on 'alg' attribute of the header of JWT.` + "\n" +
 					`` + "\n" +
 					`it's semantics depends upon where is this defined, for instance:` + "\n" +
 					`  - as service accessTokenSignAlg value, it defines that access token are JWT and the algorithm used to sign it. Check your [KB article](https://kb.authlete.com/en/s/oauth-and-openid-connect/a/jwt-based-access-token).` + "\n" +
@@ -556,24 +487,17 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 					`  - or as client requestSignAlg value, it specifies which is the expected signature used by [client on a Request Object](https://kb.authlete.com/en/s/oauth-and-openid-connect/a/request-objects).`,
 			},
 			"in_scope_for_token_migration": schema.BoolAttribute{
-				Computed: true,
-				MarkdownDescription: `The flag indicating whether this client is in scope for token migration ` + "\n" +
-					`operations.`,
+				Computed:    true,
+				Description: `The flag indicating whether this client is in scope for token migration operations.`,
 			},
 			"jwks": schema.StringAttribute{
-				CustomType: customtypes.PublicJWKSType{},
-				Computed:   true,
-				MarkdownDescription: `The content of the JWK Set of the client application.` + "\n" +
-					`The format is described in` + "\n" +
-					`[JSON Web Key (JWK), 5. JWK Set Format](https://datatracker.ietf.org/doc/html/rfc7517#section-5).` + "\n" +
-					`The JWK Set must not include private keys of the client application.`,
+				CustomType:  customtypes.PublicJWKSType{},
+				Computed:    true,
+				Description: `The content of the JWK Set of the client application. The format is described in [JSON Web Key (JWK), 5. JWK Set Format](https://datatracker.ietf.org/doc/html/rfc7517#section-5). The JWK Set must not include private keys of the client application.`,
 			},
 			"jwks_uri": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The URL pointing to the JWK Set of the client application.` + "\n" +
-					`The content pointed to by the URL is JSON which complies with the format described in` + "\n" +
-					`[JSON Web Key (JWK), 5. JWK Set Format](https://datatracker.ietf.org/doc/html/rfc7517#section-5).` + "\n" +
-					`The JWK Set must not include private keys of the client application.`,
+				Computed:    true,
+				Description: `The URL pointing to the JWK Set of the client application. The content pointed to by the URL is JSON which complies with the format described in [JSON Web Key (JWK), 5. JWK Set Format](https://datatracker.ietf.org/doc/html/rfc7517#section-5). The JWK Set must not include private keys of the client application.`,
 			},
 			"locked": schema.BoolAttribute{
 				Computed:    true,
@@ -583,15 +507,13 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Computed: true,
 				MarkdownDescription: `The URL which a third party can use to initiate a login by the client application.` + "\n" +
 					`` + "\n" +
-					`This property corresponds to ` + "`" + `initiate_login_uri` + "`" + ` in` + "\n" +
-					`[OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+					`This property corresponds to ` + "`" + `initiate_login_uri` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
 			},
 			"logo_uri": schema.StringAttribute{
 				Computed: true,
 				MarkdownDescription: `The URL pointing to the logo image of the client application.` + "\n" +
 					`` + "\n" +
-					`This property corresponds to ` + "`" + `logo_uri` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0, 2.` + "\n" +
-					`Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+					`This property corresponds to ` + "`" + `logo_uri` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
 			},
 			"logo_uris": schema.ListNestedAttribute{
 				Computed: true,
@@ -607,8 +529,7 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 						},
 					},
 				},
-				MarkdownDescription: `Logo image URLs with language tags. If the client application has different logo images for` + "\n" +
-					`different languages, this property can be used to register URLs of the images.`,
+				Description: `Logo image URLs with language tags. If the client application has different logo images for different languages, this property can be used to register URLs of the images.`,
 			},
 			"metadata_document_expires_at": schema.Int64Attribute{
 				Computed:    true,
@@ -630,23 +551,19 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Computed: true,
 				MarkdownDescription: `The flag indicating whether the client intends to prefer mutual TLS endpoints over non-MTLS endpoints.` + "\n" +
 					`` + "\n" +
-					`This property corresponds to the ` + "`" + `use_mtls_endpoint_aliases` + "`" + ` client metadata that is defined in` + "\n" +
-					`[FAPI 2.0 Security Profile, 8.1.1. use_mtls_endpoint_aliases](https://openid.bitbucket.io/fapi/fapi-2_0-security-profile.html#section-8.1.1).`,
+					`This property corresponds to the ` + "`" + `use_mtls_endpoint_aliases` + "`" + ` client metadata that is defined in [FAPI 2.0 Security Profile, 8.1.1. use_mtls_endpoint_aliases](https://openid.bitbucket.io/fapi/fapi-2_0-security-profile.html#section-8.1.1).`,
 			},
 			"number": schema.Int32Attribute{
 				Computed:    true,
 				Description: `The sequential number of the client. The value of this property is assigned by Authlete.`,
 			},
 			"organization_name": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The human-readable name representing the organization that manages this client. This property corresponds` + "\n" +
-					`to the organization_name client metadata that is defined in OpenID Connect Federation 1.0.`,
+				Computed:    true,
+				Description: `The human-readable name representing the organization that manages this client. This property corresponds to the organization_name client metadata that is defined in OpenID Connect Federation 1.0.`,
 			},
 			"par_required": schema.BoolAttribute{
-				Computed: true,
-				MarkdownDescription: `The flag to indicate whether this client is required to use the pushed authorization request endpoint.` + "\n" +
-					`This property corresponds to the ` + "`" + `require_pushed_authorization_requests` + "`" + ` client metadata defined` + "\n" +
-					`in "OAuth 2.0 Pushed Authorization Requests".`,
+				Computed:    true,
+				Description: `The flag to indicate whether this client is required to use the pushed authorization request endpoint. This property corresponds to the ` + "`" + `require_pushed_authorization_requests` + "`" + ` client metadata defined in "OAuth 2.0 Pushed Authorization Requests".`,
 			},
 			"pkce_required": schema.BoolAttribute{
 				Computed: true,
@@ -660,16 +577,13 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Computed: true,
 				MarkdownDescription: `The flag to indicate whether ` + "`" + `S256` + "`" + ` is always required as the code challenge method whenever [PKCE (RFC 7636)](https://tools.ietf.org/html/rfc7636) is used.` + "\n" +
 					`` + "\n" +
-					`If this flag is set to ` + "`" + `true` + "`" + `, ` + "`" + `code_challenge_method=S256` + "`" + ` must be included in the authorization request` + "\n" +
-					`whenever it includes the ` + "`" + `code_challenge` + "`" + ` request parameter.` + "\n" +
-					`Neither omission of the ` + "`" + `code_challenge_method` + "`" + ` request parameter nor use of plain (` + "`" + `code_challenge_method=plain` + "`" + `) is allowed.`,
+					`If this flag is set to ` + "`" + `true` + "`" + `, ` + "`" + `code_challenge_method=S256` + "`" + ` must be included in the authorization request whenever it includes the ` + "`" + `code_challenge` + "`" + ` request parameter. Neither omission of the ` + "`" + `code_challenge_method` + "`" + ` request parameter nor use of plain (` + "`" + `code_challenge_method=plain` + "`" + `) is allowed.`,
 			},
 			"policy_uri": schema.StringAttribute{
 				Computed: true,
 				MarkdownDescription: `The URL pointing to the page which describes the policy as to how end-user's profile data is used.` + "\n" +
 					`` + "\n" +
-					`This property corresponds to ` + "`" + `policy_uri` + "`" + ` in` + "\n" +
-					`[OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+					`This property corresponds to ` + "`" + `policy_uri` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
 			},
 			"policy_uris": schema.ListNestedAttribute{
 				Computed: true,
@@ -685,14 +599,12 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 						},
 					},
 				},
-				MarkdownDescription: `URLs of policy pages with language tags.` + "\n" +
-					`If the client application has different policy pages for different languages, this property can be used to register the URLs.`,
+				Description: `URLs of policy pages with language tags. If the client application has different policy pages for different languages, this property can be used to register the URLs.`,
 			},
 			"redirect_uris": schema.ListAttribute{
 				Computed:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `Redirect URIs that the client application uses to receive a response from the authorization endpoint.` + "\n" +
-					`Requirements for a redirect URI are as follows.`,
+				Description: `Redirect URIs that the client application uses to receive a response from the authorization endpoint. Requirements for a redirect URI are as follows.`,
 			},
 			"registration_access_token_hash": schema.StringAttribute{
 				Computed:    true,
@@ -700,8 +612,7 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			},
 			"request_encryption_alg": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: `this is the 'alg' header value for encrypted JWT tokens.` + "\n" +
-					`Depending upon the context, this refers to key transport scheme to be used by the client and by the server. For instance:` + "\n" +
+				MarkdownDescription: `this is the 'alg' header value for encrypted JWT tokens. Depending upon the context, this refers to key transport scheme to be used by the client and by the server. For instance:` + "\n" +
 					`- as ` + "`" + `authorizationEncryptionAlg` + "`" + ` value, it refers to the encoding algorithm used by server for transporting they keys on JARM objects` + "\n" +
 					`- as ` + "`" + `requestEncryptionAlg` + "`" + ` value, it refers to the expected key transport encoding algorithm that server expect from client when encrypting a Request Object` + "\n" +
 					`- as ` + "`" + `idTokenEncryptionAlg` + "`" + ` value, it refers to the algorithm used by the server to key transport of id_tokens` + "\n" +
@@ -710,35 +621,28 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			},
 			"request_encryption_enc": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: `This is the encryption algorithm to be used when encrypting a JWT on client or server side.` + "\n" +
-					`Depending upon the context, this refers to encryption done by the client or by the server. For instance:` + "\n" +
+				MarkdownDescription: `This is the encryption algorithm to be used when encrypting a JWT on client or server side. Depending upon the context, this refers to encryption done by the client or by the server. For instance:` + "\n" +
 					`  - as ` + "`" + `authorizationEncryptionEnc` + "`" + ` value, it refers to the encryption algorithm used by server when creating a JARM response` + "\n" +
 					`  - as ` + "`" + `requestEncryptionEnc` + "`" + ` value, it refers to the expected encryption algorithm used by the client when encrypting a Request Object` + "\n" +
 					`  - as ` + "`" + `idTokenEncryptionEnc` + "`" + ` value, it refers to the algorithm used by the server to encrypt id_tokens`,
 			},
 			"request_object_encryption_alg_match_required": schema.BoolAttribute{
-				Computed: true,
-				MarkdownDescription: `The flag indicating whether the JWE alg of encrypted request object must match the ` + "`" + `request_object_encryption_alg` + "`" + `` + "\n" +
-					`client metadata.`,
+				Computed:    true,
+				Description: `The flag indicating whether the JWE alg of encrypted request object must match the ` + "`" + `request_object_encryption_alg` + "`" + ` client metadata.`,
 			},
 			"request_object_encryption_enc_match_required": schema.BoolAttribute{
-				Computed: true,
-				MarkdownDescription: `The flag indicating whether the JWE enc of encrypted request object must match the ` + "`" + `request_object_encryption_enc` + "`" + `` + "\n" +
-					`client metadata.`,
+				Computed:    true,
+				Description: `The flag indicating whether the JWE enc of encrypted request object must match the ` + "`" + `request_object_encryption_enc` + "`" + ` client metadata.`,
 			},
 			"request_object_required": schema.BoolAttribute{
 				Computed: true,
-				MarkdownDescription: `The flag to indicate whether authorization requests from this client are always required to` + "\n" +
-					`utilize a request object by using either ` + "`" + `request` + "`" + ` or ` + "`" + `request_uri` + "`" + ` request parameter.` + "\n" +
+				MarkdownDescription: `The flag to indicate whether authorization requests from this client are always required to utilize a request object by using either ` + "`" + `request` + "`" + ` or ` + "`" + `request_uri` + "`" + ` request parameter.` + "\n" +
 					`` + "\n" +
-					`If this flag is set to ` + "`" + `true` + "`" + ` and the service's ` + "`" + `traditionalRequestObjectProcessingApplied` + "`" + ` is` + "\n" +
-					`set to ` + "`" + `false` + "`" + `, authorization requests from this client are processed as if ` + "`" + `require_signed_request_object` + "`" + `` + "\n" +
-					`client metadata of this client is ` + "`" + `true` + "`" + `. The metadata is defined in "JAR (JWT Secured Authorization Request)".`,
+					`If this flag is set to ` + "`" + `true` + "`" + ` and the service's ` + "`" + `traditionalRequestObjectProcessingApplied` + "`" + ` is set to ` + "`" + `false` + "`" + `, authorization requests from this client are processed as if ` + "`" + `require_signed_request_object` + "`" + ` client metadata of this client is ` + "`" + `true` + "`" + `. The metadata is defined in "JAR (JWT Secured Authorization Request)".`,
 			},
 			"request_sign_alg": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: `The signature algorithm for JWT. This value is represented on 'alg' attribute` + "\n" +
-					`of the header of JWT.` + "\n" +
+				MarkdownDescription: `The signature algorithm for JWT. This value is represented on 'alg' attribute of the header of JWT.` + "\n" +
 					`` + "\n" +
 					`it's semantics depends upon where is this defined, for instance:` + "\n" +
 					`  - as service accessTokenSignAlg value, it defines that access token are JWT and the algorithm used to sign it. Check your [KB article](https://kb.authlete.com/en/s/oauth-and-openid-connect/a/jwt-based-access-token).` + "\n" +
@@ -750,9 +654,7 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				ElementType: types.StringType,
 				MarkdownDescription: `An array of URLs each of which points to a request object.` + "\n" +
 					`` + "\n" +
-					`Authlete requires that URLs used as values for ` + "`" + `request_uri` + "`" + ` request parameter be pre-registered.` + "\n" +
-					`This property is used for the pre-registration.` + "\n" +
-					`See [OpenID Connect Core 1.0, 6.2. Passing a Request Object by Reference](https://openid.net/specs/openid-connect-core-1_0.html#RequestUriParameter) for details.`,
+					`Authlete requires that URLs used as values for ` + "`" + `request_uri` + "`" + ` request parameter be pre-registered. This property is used for the pre-registration. See [OpenID Connect Core 1.0, 6.2. Passing a Request Object by Reference](https://openid.net/specs/openid-connect-core-1_0.html#RequestUriParameter) for details.`,
 			},
 			"response_modes": schema.ListAttribute{
 				Computed:    true,
@@ -762,9 +664,7 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			"response_types": schema.ListAttribute{
 				Computed:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `A string array of response types which the client application declares that it will restrict itself to using.` + "\n" +
-					`This property corresponds to ` + "`" + `response_types` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0,` + "\n" +
-					`2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+				Description: `A string array of response types which the client application declares that it will restrict itself to using. This property corresponds to ` + "`" + `response_types` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
 			},
 			"rs_request_signed": schema.BoolAttribute{
 				Computed:    true,
@@ -775,10 +675,8 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Description: `The key ID of a JWK containing the public key used by this client to sign requests to the resource server.`,
 			},
 			"sector_identifier_uri": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The value of the sector identifier URI.` + "\n" +
-					`This represents the ` + "`" + `sector_identifier_uri` + "`" + ` client metadata which is defined in` + "\n" +
-					`[OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata)`,
+				Computed:    true,
+				Description: `The value of the sector identifier URI. This represents the ` + "`" + `sector_identifier_uri` + "`" + ` client metadata which is defined in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata)`,
 			},
 			"self_signed_certificate_key_id": schema.StringAttribute{
 				Computed:    true,
@@ -789,14 +687,12 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Description: `A service ID.`,
 			},
 			"service_number": schema.Int32Attribute{
-				Computed: true,
-				MarkdownDescription: `The sequential number of the service of the client application. The value of this property is` + "\n" +
-					`assigned by Authlete.`,
+				Computed:    true,
+				Description: `The sequential number of the service of the client application. The value of this property is assigned by Authlete.`,
 			},
 			"signed_jwks_uri": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The URI of the endpoint that returns this client's JWK Set document in the JWT format. This property` + "\n" +
-					`corresponds to the ` + "`" + `signed_jwks_uri` + "`" + ` client metadata defined in OpenID Connect Federation 1.0.`,
+				Computed:    true,
+				Description: `The URI of the endpoint that returns this client's JWK Set document in the JWT format. This property corresponds to the ` + "`" + `signed_jwks_uri` + "`" + ` client metadata defined in OpenID Connect Federation 1.0.`,
 			},
 			"single_access_token_per_subject": schema.BoolAttribute{
 				Computed: true,
@@ -808,37 +704,29 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			},
 			"software_id": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: `The unique identifier string assigned by the client developer or software publisher used by` + "\n" +
-					`registration endpoints to identify the client software to be dynamically registered.` + "\n" +
+				MarkdownDescription: `The unique identifier string assigned by the client developer or software publisher used by registration endpoints to identify the client software to be dynamically registered.` + "\n" +
 					`` + "\n" +
-					`This property corresponds to the ` + "`" + `software_id metadata` + "`" + ` defined in [2. Client Metadata](https://datatracker.ietf.org/doc/html/rfc7591#section-2)` + "\n" +
-					`of [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).`,
+					`This property corresponds to the ` + "`" + `software_id metadata` + "`" + ` defined in [2. Client Metadata](https://datatracker.ietf.org/doc/html/rfc7591#section-2) of [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).`,
 			},
 			"software_version": schema.StringAttribute{
 				Computed: true,
 				MarkdownDescription: `The version identifier string for the client software identified by the software ID.` + "\n" +
 					`` + "\n" +
-					`This property corresponds to the software_version metadata defined in [2. Client Metadata](https://datatracker.ietf.org/doc/html/rfc7591#section-2)` + "\n" +
-					`of [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).`,
+					`This property corresponds to the software_version metadata defined in [2. Client Metadata](https://datatracker.ietf.org/doc/html/rfc7591#section-2) of [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).`,
 			},
 			"spiffe_bundle_endpoint": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The endpoint URL of the SPIFFE bundle for this client. Used to fetch` + "\n" +
-					`the SPIFFE trust bundle for validating JWT-SVIDs. Corresponds to the` + "\n" +
-					`` + "`" + `spiffe_bundle_endpoint` + "`" + ` client metadata parameter.`,
+				Computed:    true,
+				Description: `The endpoint URL of the SPIFFE bundle for this client. Used to fetch the SPIFFE trust bundle for validating JWT-SVIDs. Corresponds to the ` + "`" + `spiffe_bundle_endpoint` + "`" + ` client metadata parameter.`,
 			},
 			"spiffe_id": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The SPIFFE ID of the client. Used for SPIFFE-based client authentication` + "\n" +
-					`(` + "`" + `SPIFFE_JWT` + "`" + `). Corresponds to the ` + "`" + `spiffe_id` + "`" + ` client metadata parameter.`,
+				Computed:    true,
+				Description: `The SPIFFE ID of the client. Used for SPIFFE-based client authentication (` + "`" + `SPIFFE_JWT` + "`" + `). Corresponds to the ` + "`" + `spiffe_id` + "`" + ` client metadata parameter.`,
 			},
 			"subject_type": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: `The subject type that the client application requests. Details about the subject type are described in` + "\n" +
-					`[OpenID Connect Core 1.0, 8. Subjct Identifier Types](https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes).` + "\n" +
+				MarkdownDescription: `The subject type that the client application requests. Details about the subject type are described in [OpenID Connect Core 1.0, 8. Subjct Identifier Types](https://openid.net/specs/openid-connect-core-1_0.html#SubjectIDTypes).` + "\n" +
 					`` + "\n" +
-					`This property corresponds to ` + "`" + `subject_type` + "`" + ` in` + "\n" +
-					`[OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+					`This property corresponds to ` + "`" + `subject_type` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
 			},
 			"tls_client_auth_san_dns": schema.StringAttribute{
 				Computed: true,
@@ -895,15 +783,12 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Description: `The flag to indicate whether this client use TLS client certificate bound access tokens.`,
 			},
 			"token_auth_method": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The client authentication method that the client application declares that it uses at the token` + "\n" +
-					`endpoint. This property corresponds to ` + "`" + `token_endpoint_auth_method` + "`" + ` in [OpenID Connect Dynamic` + "\n" +
-					`Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+				Computed:    true,
+				Description: `The client authentication method that the client application declares that it uses at the token endpoint. This property corresponds to ` + "`" + `token_endpoint_auth_method` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
 			},
 			"token_auth_sign_alg": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: `The signature algorithm for JWT. This value is represented on 'alg' attribute` + "\n" +
-					`of the header of JWT.` + "\n" +
+				MarkdownDescription: `The signature algorithm for JWT. This value is represented on 'alg' attribute of the header of JWT.` + "\n" +
 					`` + "\n" +
 					`it's semantics depends upon where is this defined, for instance:` + "\n" +
 					`  - as service accessTokenSignAlg value, it defines that access token are JWT and the algorithm used to sign it. Check your [KB article](https://kb.authlete.com/en/s/oauth-and-openid-connect/a/jwt-based-access-token).` + "\n" +
@@ -914,8 +799,7 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Computed: true,
 				MarkdownDescription: `The URL pointing to the "Terms Of Service" page.` + "\n" +
 					`` + "\n" +
-					`This property corresponds to ` + "`" + `tos_uri` + "`" + ` in` + "\n" +
-					`[OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+					`This property corresponds to ` + "`" + `tos_uri` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
 			},
 			"tos_uris": schema.ListNestedAttribute{
 				Computed: true,
@@ -933,24 +817,20 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				},
 				MarkdownDescription: `URLs of "Terms Of Service" pages with language tags.` + "\n" +
 					`` + "\n" +
-					`If the client application has different "Terms Of Service" pages for different languages,` + "\n" +
-					`this property can be used to register the URLs.`,
+					`If the client application has different "Terms Of Service" pages for different languages, this property can be used to register the URLs.`,
 			},
 			"trust_anchor_id": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The entity ID of the trust anchor of the trust chain that was used when this client was registered or updated by` + "\n" +
-					`the mechanism defined in OpenID Connect Federation 1.0`,
+				Computed:    true,
+				Description: `The entity ID of the trust anchor of the trust chain that was used when this client was registered or updated by the mechanism defined in OpenID Connect Federation 1.0`,
 			},
 			"trust_chain": schema.ListAttribute{
 				Computed:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `The trust chain that was used when this client was registered or updated by the mechanism defined in` + "\n" +
-					`OpenID Connect Federation 1.0`,
+				Description: `The trust chain that was used when this client was registered or updated by the mechanism defined in OpenID Connect Federation 1.0`,
 			},
 			"trust_chain_expires_at": schema.Int64Attribute{
-				Computed: true,
-				MarkdownDescription: `the expiration time of the trust chain that was used when this client was registered or updated by the mechanism` + "\n" +
-					`defined in OpenID Connect Federation 1.0. The value is represented as milliseconds elapsed since the Unix epoch (1970-01-01).`,
+				Computed:    true,
+				Description: `the expiration time of the trust chain that was used when this client was registered or updated by the mechanism defined in OpenID Connect Federation 1.0. The value is represented as milliseconds elapsed since the Unix epoch (1970-01-01).`,
 			},
 			"trust_chain_updated_at": schema.Int64Attribute{
 				Computed:    true,
@@ -958,8 +838,7 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			},
 			"user_info_encryption_alg": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: `this is the 'alg' header value for encrypted JWT tokens.` + "\n" +
-					`Depending upon the context, this refers to key transport scheme to be used by the client and by the server. For instance:` + "\n" +
+				MarkdownDescription: `this is the 'alg' header value for encrypted JWT tokens. Depending upon the context, this refers to key transport scheme to be used by the client and by the server. For instance:` + "\n" +
 					`- as ` + "`" + `authorizationEncryptionAlg` + "`" + ` value, it refers to the encoding algorithm used by server for transporting they keys on JARM objects` + "\n" +
 					`- as ` + "`" + `requestEncryptionAlg` + "`" + ` value, it refers to the expected key transport encoding algorithm that server expect from client when encrypting a Request Object` + "\n" +
 					`- as ` + "`" + `idTokenEncryptionAlg` + "`" + ` value, it refers to the algorithm used by the server to key transport of id_tokens` + "\n" +
@@ -968,16 +847,14 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			},
 			"user_info_encryption_enc": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: `This is the encryption algorithm to be used when encrypting a JWT on client or server side.` + "\n" +
-					`Depending upon the context, this refers to encryption done by the client or by the server. For instance:` + "\n" +
+				MarkdownDescription: `This is the encryption algorithm to be used when encrypting a JWT on client or server side. Depending upon the context, this refers to encryption done by the client or by the server. For instance:` + "\n" +
 					`  - as ` + "`" + `authorizationEncryptionEnc` + "`" + ` value, it refers to the encryption algorithm used by server when creating a JARM response` + "\n" +
 					`  - as ` + "`" + `requestEncryptionEnc` + "`" + ` value, it refers to the expected encryption algorithm used by the client when encrypting a Request Object` + "\n" +
 					`  - as ` + "`" + `idTokenEncryptionEnc` + "`" + ` value, it refers to the algorithm used by the server to encrypt id_tokens`,
 			},
 			"user_info_sign_alg": schema.StringAttribute{
 				Computed: true,
-				MarkdownDescription: `The signature algorithm for JWT. This value is represented on 'alg' attribute` + "\n" +
-					`of the header of JWT.` + "\n" +
+				MarkdownDescription: `The signature algorithm for JWT. This value is represented on 'alg' attribute of the header of JWT.` + "\n" +
 					`` + "\n" +
 					`it's semantics depends upon where is this defined, for instance:` + "\n" +
 					`  - as service accessTokenSignAlg value, it defines that access token are JWT and the algorithm used to sign it. Check your [KB article](https://kb.authlete.com/en/s/oauth-and-openid-connect/a/jwt-based-access-token).` + "\n" +
@@ -1032,7 +909,7 @@ func (r *ClientDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	res, err := r.client.Clients.Retrieve(ctx, *request)
+	res, err := r.client.ClientManagement.ClientGetAPI(ctx, *request)
 	if err != nil {
 		resp.Diagnostics.AddError("failure to invoke API", err.Error())
 		if res != nil && res.RawResponse != nil {

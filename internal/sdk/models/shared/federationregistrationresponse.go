@@ -48,8 +48,7 @@ type FederationRegistrationResponse struct {
 	ResultMessage *string `json:"resultMessage,omitzero"`
 	// The next action that the authorization server implementation should take.
 	Action *FederationRegistrationResponseAction `json:"action,omitzero"`
-	// The content that the authorization server implementation can use as the value of `WWW-Authenticate`
-	// header on errors.
+	// The content that the authorization server implementation can use as the value of `WWW-Authenticate` header on errors.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
 	Client          *Client `json:"client,omitzero"`

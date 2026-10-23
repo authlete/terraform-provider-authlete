@@ -29,22 +29,30 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		r.AllowableClockSkew = types.Int32PointerValue(typeconvert.IntPointerToInt32Pointer(resp.AllowableClockSkew))
 		r.APIKey = types.Int64PointerValue(resp.APIKey)
 		r.AttestationChallengeTimeWindow = types.Int64PointerValue(resp.AttestationChallengeTimeWindow)
-		r.Attributes = []tfTypes.Pair{}
+		if resp.Attributes != nil {
+			r.Attributes = []tfTypes.Pair{}
 
-		for _, attributesItem := range resp.Attributes {
-			var attributes tfTypes.Pair
+			for _, attributesItem := range resp.Attributes {
+				var attributes tfTypes.Pair
 
-			attributes.Key = types.StringPointerValue(attributesItem.Key)
-			attributes.Value = types.StringPointerValue(attributesItem.Value)
+				attributes.Key = types.StringPointerValue(attributesItem.Key)
+				attributes.Value = types.StringPointerValue(attributesItem.Value)
 
-			r.Attributes = append(r.Attributes, attributes)
+				r.Attributes = append(r.Attributes, attributes)
+			}
+		} else {
+			r.Attributes = nil
 		}
 		r.AuthenticationCallbackAPIKey = types.StringPointerValue(resp.AuthenticationCallbackAPIKey)
 		r.AuthenticationCallbackAPISecret = types.StringPointerValue(resp.AuthenticationCallbackAPISecret)
 		r.AuthenticationCallbackEndpoint = types.StringPointerValue(resp.AuthenticationCallbackEndpoint)
-		r.AuthorityHints = make([]types.String, 0, len(resp.AuthorityHints))
-		for _, v := range resp.AuthorityHints {
-			r.AuthorityHints = append(r.AuthorityHints, types.StringValue(v))
+		if resp.AuthorityHints != nil {
+			r.AuthorityHints = make([]types.String, 0, len(resp.AuthorityHints))
+			for _, v := range resp.AuthorityHints {
+				r.AuthorityHints = append(r.AuthorityHints, types.StringValue(v))
+			}
+		} else {
+			r.AuthorityHints = nil
 		}
 		r.AuthorizationCodeDuration = types.Int64PointerValue(resp.AuthorizationCodeDuration)
 		r.AuthorizationEndpoint = types.StringPointerValue(resp.AuthorizationEndpoint)
@@ -57,9 +65,14 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		r.BackchannelLogoutSupported = types.BoolPointerValue(resp.BackchannelLogoutSupported)
 		r.BackchannelPollingInterval = types.Int32PointerValue(typeconvert.IntPointerToInt32Pointer(resp.BackchannelPollingInterval))
 		r.BackchannelUserCodeParameterSupported = types.BoolPointerValue(resp.BackchannelUserCodeParameterSupported)
-		r.CimdAllowlist = make([]types.String, 0, len(resp.CimdAllowlist))
-		for _, v := range resp.CimdAllowlist {
-			r.CimdAllowlist = append(r.CimdAllowlist, types.StringValue(v))
+		r.ChallengeEndpoint = types.StringPointerValue(resp.ChallengeEndpoint)
+		if resp.CimdAllowlist != nil {
+			r.CimdAllowlist = make([]types.String, 0, len(resp.CimdAllowlist))
+			for _, v := range resp.CimdAllowlist {
+				r.CimdAllowlist = append(r.CimdAllowlist, types.StringValue(v))
+			}
+		} else {
+			r.CimdAllowlist = nil
 		}
 		r.CimdAllowlistEnabled = types.BoolPointerValue(resp.CimdAllowlistEnabled)
 		r.CimdAlwaysRetrieved = types.BoolPointerValue(resp.CimdAlwaysRetrieved)
@@ -69,9 +82,13 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		r.CimdQueryPermitted = types.BoolPointerValue(resp.CimdQueryPermitted)
 		r.ClaimShortcutRestrictive = types.BoolPointerValue(resp.ClaimShortcutRestrictive)
 		r.ClientAssertionAudRestrictedToIssuer = types.BoolPointerValue(resp.ClientAssertionAudRestrictedToIssuer)
-		r.ClientAttesterRoots = make([]types.String, 0, len(resp.ClientAttesterRoots))
-		for _, v := range resp.ClientAttesterRoots {
-			r.ClientAttesterRoots = append(r.ClientAttesterRoots, types.StringValue(v))
+		if resp.ClientAttesterRoots != nil {
+			r.ClientAttesterRoots = make([]types.String, 0, len(resp.ClientAttesterRoots))
+			for _, v := range resp.ClientAttesterRoots {
+				r.ClientAttesterRoots = append(r.ClientAttesterRoots, types.StringValue(v))
+			}
+		} else {
+			r.ClientAttesterRoots = nil
 		}
 		r.ClientAttesterRootsEnabled = types.BoolPointerValue(resp.ClientAttesterRootsEnabled)
 		r.ClientAttesterRootsOnly = types.BoolPointerValue(resp.ClientAttesterRootsOnly)
@@ -120,6 +137,21 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		r.DeveloperAuthenticationCallbackAPIKey = types.StringPointerValue(resp.DeveloperAuthenticationCallbackAPIKey)
 		r.DeveloperAuthenticationCallbackAPISecret = types.StringPointerValue(resp.DeveloperAuthenticationCallbackAPISecret)
 		r.DeveloperAuthenticationCallbackEndpoint = types.StringPointerValue(resp.DeveloperAuthenticationCallbackEndpoint)
+		if resp.DeveloperSnsCredentials != nil {
+			r.DeveloperSnsCredentials = []tfTypes.SnsCredentials{}
+
+			for _, developerSnsCredentialsItem := range resp.DeveloperSnsCredentials {
+				var developerSnsCredentials tfTypes.SnsCredentials
+
+				developerSnsCredentials.APIKey = types.StringPointerValue(developerSnsCredentialsItem.APIKey)
+				developerSnsCredentials.APISecret = types.StringPointerValue(developerSnsCredentialsItem.APISecret)
+				developerSnsCredentials.Sns = types.StringPointerValue(developerSnsCredentialsItem.Sns)
+
+				r.DeveloperSnsCredentials = append(r.DeveloperSnsCredentials, developerSnsCredentials)
+			}
+		} else {
+			r.DeveloperSnsCredentials = nil
+		}
 		r.DeviceAuthorizationEndpoint = types.StringPointerValue(resp.DeviceAuthorizationEndpoint)
 		r.DeviceFlowCodeDuration = types.Int32PointerValue(typeconvert.IntPointerToInt32Pointer(resp.DeviceFlowCodeDuration))
 		r.DeviceFlowPollingInterval = types.Int32PointerValue(typeconvert.IntPointerToInt32Pointer(resp.DeviceFlowPollingInterval))
@@ -137,9 +169,13 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		r.EndSessionEndpoint = types.StringPointerValue(resp.EndSessionEndpoint)
 		r.ErrorDescriptionOmitted = types.BoolPointerValue(resp.ErrorDescriptionOmitted)
 		r.ErrorURIOmitted = types.BoolPointerValue(resp.ErrorURIOmitted)
-		r.FapiModes = make([]types.String, 0, len(resp.FapiModes))
-		for _, v := range resp.FapiModes {
-			r.FapiModes = append(r.FapiModes, types.StringValue(string(v)))
+		if resp.FapiModes != nil {
+			r.FapiModes = make([]types.String, 0, len(resp.FapiModes))
+			for _, v := range resp.FapiModes {
+				r.FapiModes = append(r.FapiModes, types.StringValue(string(v)))
+			}
+		} else {
+			r.FapiModes = nil
 		}
 		r.FederationConfigurationDuration = types.Int64PointerValue(resp.FederationConfigurationDuration)
 		r.FederationEnabled = types.BoolPointerValue(resp.FederationEnabled)
@@ -151,24 +187,30 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		r.FrontChannelRequestObjectEncryptionRequired = types.BoolPointerValue(resp.FrontChannelRequestObjectEncryptionRequired)
 		r.GrantManagementActionRequired = types.BoolPointerValue(resp.GrantManagementActionRequired)
 		r.GrantManagementEndpoint = types.StringPointerValue(resp.GrantManagementEndpoint)
-		r.Hsks = []tfTypes.Hsk{}
+		r.HaipVersion = types.StringPointerValue(resp.HaipVersion)
+		if resp.Hsks != nil {
+			r.Hsks = []tfTypes.Hsk{}
 
-		for _, hsksItem := range resp.Hsks {
-			var hsks tfTypes.Hsk
+			for _, hsksItem := range resp.Hsks {
+				var hsks tfTypes.Hsk
 
-			hsks.Alg = types.StringPointerValue(hsksItem.Alg)
-			hsks.Handle = types.StringPointerValue(hsksItem.Handle)
-			hsks.HsmName = types.StringPointerValue(hsksItem.HsmName)
-			hsks.Kid = types.StringPointerValue(hsksItem.Kid)
-			hsks.Kty = types.StringPointerValue(hsksItem.Kty)
-			hsks.PublicKey = types.StringPointerValue(hsksItem.PublicKey)
-			hsks.Use = types.StringPointerValue(hsksItem.Use)
+				hsks.Alg = types.StringPointerValue(hsksItem.Alg)
+				hsks.Handle = types.StringPointerValue(hsksItem.Handle)
+				hsks.HsmName = types.StringPointerValue(hsksItem.HsmName)
+				hsks.Kid = types.StringPointerValue(hsksItem.Kid)
+				hsks.Kty = types.StringPointerValue(hsksItem.Kty)
+				hsks.PublicKey = types.StringPointerValue(hsksItem.PublicKey)
+				hsks.Use = types.StringPointerValue(hsksItem.Use)
 
-			r.Hsks = append(r.Hsks, hsks)
+				r.Hsks = append(r.Hsks, hsks)
+			}
+		} else {
+			r.Hsks = nil
 		}
 		r.HsmEnabled = types.BoolPointerValue(resp.HsmEnabled)
 		r.HTTPAliasProhibited = types.BoolPointerValue(resp.HTTPAliasProhibited)
 		r.IDTokenAudType = types.StringPointerValue(resp.IDTokenAudType)
+		r.IDTokenDroppedOnIssueWithoutOpenid = types.BoolPointerValue(resp.IDTokenDroppedOnIssueWithoutOpenid)
 		r.IDTokenDuration = types.Int64PointerValue(resp.IDTokenDuration)
 		r.IDTokenReissuable = types.BoolPointerValue(resp.IDTokenReissuable)
 		r.IDTokenSignatureKeyID = types.StringPointerValue(resp.IDTokenSignatureKeyID)
@@ -183,34 +225,46 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		r.JwtGrantByIdentifiableClientsOnly = types.BoolPointerValue(resp.JwtGrantByIdentifiableClientsOnly)
 		r.JwtGrantEncryptedJwtRejected = types.BoolPointerValue(resp.JwtGrantEncryptedJwtRejected)
 		r.JwtGrantUnsignedJwtRejected = types.BoolPointerValue(resp.JwtGrantUnsignedJwtRejected)
-		r.KeyAttesterRoots = make([]types.String, 0, len(resp.KeyAttesterRoots))
-		for _, v := range resp.KeyAttesterRoots {
-			r.KeyAttesterRoots = append(r.KeyAttesterRoots, types.StringValue(v))
+		if resp.KeyAttesterRoots != nil {
+			r.KeyAttesterRoots = make([]types.String, 0, len(resp.KeyAttesterRoots))
+			for _, v := range resp.KeyAttesterRoots {
+				r.KeyAttesterRoots = append(r.KeyAttesterRoots, types.StringValue(v))
+			}
+		} else {
+			r.KeyAttesterRoots = nil
 		}
 		r.KeyAttesterRootsEnabled = types.BoolPointerValue(resp.KeyAttesterRootsEnabled)
 		r.KeyAttesterRootsOnly = types.BoolPointerValue(resp.KeyAttesterRootsOnly)
 		r.LoopbackRedirectionURIVariable = types.BoolPointerValue(resp.LoopbackRedirectionURIVariable)
-		r.Metadata = []tfTypes.Pair{}
+		if resp.Metadata != nil {
+			r.Metadata = []tfTypes.Pair{}
 
-		for _, metadataItem := range resp.Metadata {
-			var metadata tfTypes.Pair
+			for _, metadataItem := range resp.Metadata {
+				var metadata tfTypes.Pair
 
-			metadata.Key = types.StringPointerValue(metadataItem.Key)
-			metadata.Value = types.StringPointerValue(metadataItem.Value)
+				metadata.Key = types.StringPointerValue(metadataItem.Key)
+				metadata.Value = types.StringPointerValue(metadataItem.Value)
 
-			r.Metadata = append(r.Metadata, metadata)
+				r.Metadata = append(r.Metadata, metadata)
+			}
+		} else {
+			r.Metadata = nil
 		}
 		r.MissingClientIDAllowed = types.BoolPointerValue(resp.MissingClientIDAllowed)
 		r.ModifiedAt = types.Int64PointerValue(resp.ModifiedAt)
-		r.MtlsEndpointAliases = []tfTypes.NamedURI{}
+		if resp.MtlsEndpointAliases != nil {
+			r.MtlsEndpointAliases = []tfTypes.NamedURI{}
 
-		for _, mtlsEndpointAliasesItem := range resp.MtlsEndpointAliases {
-			var mtlsEndpointAliases tfTypes.NamedURI
+			for _, mtlsEndpointAliasesItem := range resp.MtlsEndpointAliases {
+				var mtlsEndpointAliases tfTypes.NamedURI
 
-			mtlsEndpointAliases.Name = types.StringPointerValue(mtlsEndpointAliasesItem.Name)
-			mtlsEndpointAliases.URI = types.StringPointerValue(mtlsEndpointAliasesItem.URI)
+				mtlsEndpointAliases.Name = types.StringPointerValue(mtlsEndpointAliasesItem.Name)
+				mtlsEndpointAliases.URI = types.StringPointerValue(mtlsEndpointAliasesItem.URI)
 
-			r.MtlsEndpointAliases = append(r.MtlsEndpointAliases, mtlsEndpointAliases)
+				r.MtlsEndpointAliases = append(r.MtlsEndpointAliases, mtlsEndpointAliases)
+			}
+		} else {
+			r.MtlsEndpointAliases = nil
 		}
 		r.MutualTLSValidatePkiCertChain = types.BoolPointerValue(resp.MutualTLSValidatePkiCertChain)
 		r.NativeSsoSupported = types.BoolPointerValue(resp.NativeSsoSupported)
@@ -247,40 +301,68 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		r.ServiceOwnerNumber = types.Int32PointerValue(typeconvert.IntPointerToInt32Pointer(resp.ServiceOwnerNumber))
 		r.SignedJwksURI = types.StringPointerValue(resp.SignedJwksURI)
 		r.SingleAccessTokenPerSubject = types.BoolPointerValue(resp.SingleAccessTokenPerSubject)
-		r.SnsCredentials = []tfTypes.SnsCredentials{}
+		if resp.SnsCredentials != nil {
+			r.SnsCredentials = []tfTypes.SnsCredentials{}
 
-		for _, snsCredentialsItem := range resp.SnsCredentials {
-			var snsCredentials tfTypes.SnsCredentials
+			for _, snsCredentialsItem := range resp.SnsCredentials {
+				var snsCredentials tfTypes.SnsCredentials
 
-			snsCredentials.APIKey = types.StringPointerValue(snsCredentialsItem.APIKey)
-			snsCredentials.APISecret = types.StringPointerValue(snsCredentialsItem.APISecret)
-			snsCredentials.Sns = types.StringPointerValue(snsCredentialsItem.Sns)
+				snsCredentials.APIKey = types.StringPointerValue(snsCredentialsItem.APIKey)
+				snsCredentials.APISecret = types.StringPointerValue(snsCredentialsItem.APISecret)
+				snsCredentials.Sns = types.StringPointerValue(snsCredentialsItem.Sns)
 
-			r.SnsCredentials = append(r.SnsCredentials, snsCredentials)
+				r.SnsCredentials = append(r.SnsCredentials, snsCredentials)
+			}
+		} else {
+			r.SnsCredentials = nil
 		}
-		r.SupportedAcrs = make([]types.String, 0, len(resp.SupportedAcrs))
-		for _, v := range resp.SupportedAcrs {
-			r.SupportedAcrs = append(r.SupportedAcrs, types.StringValue(v))
+		if resp.SupportedAcrs != nil {
+			r.SupportedAcrs = make([]types.String, 0, len(resp.SupportedAcrs))
+			for _, v := range resp.SupportedAcrs {
+				r.SupportedAcrs = append(r.SupportedAcrs, types.StringValue(v))
+			}
+		} else {
+			r.SupportedAcrs = nil
 		}
-		r.SupportedAttachments = make([]types.String, 0, len(resp.SupportedAttachments))
-		for _, v := range resp.SupportedAttachments {
-			r.SupportedAttachments = append(r.SupportedAttachments, types.StringValue(string(v)))
+		if resp.SupportedAttachments != nil {
+			r.SupportedAttachments = make([]types.String, 0, len(resp.SupportedAttachments))
+			for _, v := range resp.SupportedAttachments {
+				r.SupportedAttachments = append(r.SupportedAttachments, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedAttachments = nil
 		}
-		r.SupportedAuthorizationDetailsTypes = make([]types.String, 0, len(resp.SupportedAuthorizationDetailsTypes))
-		for _, v := range resp.SupportedAuthorizationDetailsTypes {
-			r.SupportedAuthorizationDetailsTypes = append(r.SupportedAuthorizationDetailsTypes, types.StringValue(v))
+		if resp.SupportedAuthorizationDetailsTypes != nil {
+			r.SupportedAuthorizationDetailsTypes = make([]types.String, 0, len(resp.SupportedAuthorizationDetailsTypes))
+			for _, v := range resp.SupportedAuthorizationDetailsTypes {
+				r.SupportedAuthorizationDetailsTypes = append(r.SupportedAuthorizationDetailsTypes, types.StringValue(v))
+			}
+		} else {
+			r.SupportedAuthorizationDetailsTypes = nil
 		}
-		r.SupportedBackchannelTokenDeliveryModes = make([]types.String, 0, len(resp.SupportedBackchannelTokenDeliveryModes))
-		for _, v := range resp.SupportedBackchannelTokenDeliveryModes {
-			r.SupportedBackchannelTokenDeliveryModes = append(r.SupportedBackchannelTokenDeliveryModes, types.StringValue(string(v)))
+		if resp.SupportedBackchannelTokenDeliveryModes != nil {
+			r.SupportedBackchannelTokenDeliveryModes = make([]types.String, 0, len(resp.SupportedBackchannelTokenDeliveryModes))
+			for _, v := range resp.SupportedBackchannelTokenDeliveryModes {
+				r.SupportedBackchannelTokenDeliveryModes = append(r.SupportedBackchannelTokenDeliveryModes, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedBackchannelTokenDeliveryModes = nil
 		}
-		r.SupportedClaimLocales = make([]types.String, 0, len(resp.SupportedClaimLocales))
-		for _, v := range resp.SupportedClaimLocales {
-			r.SupportedClaimLocales = append(r.SupportedClaimLocales, types.StringValue(v))
+		if resp.SupportedClaimLocales != nil {
+			r.SupportedClaimLocales = make([]types.String, 0, len(resp.SupportedClaimLocales))
+			for _, v := range resp.SupportedClaimLocales {
+				r.SupportedClaimLocales = append(r.SupportedClaimLocales, types.StringValue(v))
+			}
+		} else {
+			r.SupportedClaimLocales = nil
 		}
-		r.SupportedClaims = make([]types.String, 0, len(resp.SupportedClaims))
-		for _, v := range resp.SupportedClaims {
-			r.SupportedClaims = append(r.SupportedClaims, types.StringValue(v))
+		if resp.SupportedClaims != nil {
+			r.SupportedClaims = make([]types.String, 0, len(resp.SupportedClaims))
+			for _, v := range resp.SupportedClaims {
+				r.SupportedClaims = append(r.SupportedClaims, types.StringValue(v))
+			}
+		} else {
+			r.SupportedClaims = nil
 		}
 		if resp.SupportedClaimTypes != nil {
 			r.SupportedClaimTypes = make([]types.String, 0, len(resp.SupportedClaimTypes))
@@ -290,17 +372,37 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		} else {
 			r.SupportedClaimTypes = []types.String{}
 		}
-		r.SupportedClientRegistrationTypes = make([]types.String, 0, len(resp.SupportedClientRegistrationTypes))
-		for _, v := range resp.SupportedClientRegistrationTypes {
-			r.SupportedClientRegistrationTypes = append(r.SupportedClientRegistrationTypes, types.StringValue(string(v)))
+		if resp.SupportedClientRegistrationTypes != nil {
+			r.SupportedClientRegistrationTypes = make([]types.String, 0, len(resp.SupportedClientRegistrationTypes))
+			for _, v := range resp.SupportedClientRegistrationTypes {
+				r.SupportedClientRegistrationTypes = append(r.SupportedClientRegistrationTypes, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedClientRegistrationTypes = nil
 		}
-		r.SupportedCustomClientMetadata = make([]types.String, 0, len(resp.SupportedCustomClientMetadata))
-		for _, v := range resp.SupportedCustomClientMetadata {
-			r.SupportedCustomClientMetadata = append(r.SupportedCustomClientMetadata, types.StringValue(v))
+		if resp.SupportedCustomClientMetadata != nil {
+			r.SupportedCustomClientMetadata = make([]types.String, 0, len(resp.SupportedCustomClientMetadata))
+			for _, v := range resp.SupportedCustomClientMetadata {
+				r.SupportedCustomClientMetadata = append(r.SupportedCustomClientMetadata, types.StringValue(v))
+			}
+		} else {
+			r.SupportedCustomClientMetadata = nil
 		}
-		r.SupportedDigestAlgorithms = make([]types.String, 0, len(resp.SupportedDigestAlgorithms))
-		for _, v := range resp.SupportedDigestAlgorithms {
-			r.SupportedDigestAlgorithms = append(r.SupportedDigestAlgorithms, types.StringValue(v))
+		if resp.SupportedDeveloperSnses != nil {
+			r.SupportedDeveloperSnses = make([]types.String, 0, len(resp.SupportedDeveloperSnses))
+			for _, v := range resp.SupportedDeveloperSnses {
+				r.SupportedDeveloperSnses = append(r.SupportedDeveloperSnses, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedDeveloperSnses = nil
+		}
+		if resp.SupportedDigestAlgorithms != nil {
+			r.SupportedDigestAlgorithms = make([]types.String, 0, len(resp.SupportedDigestAlgorithms))
+			for _, v := range resp.SupportedDigestAlgorithms {
+				r.SupportedDigestAlgorithms = append(r.SupportedDigestAlgorithms, types.StringValue(v))
+			}
+		} else {
+			r.SupportedDigestAlgorithms = nil
 		}
 		if resp.SupportedDisplays != nil {
 			r.SupportedDisplays = make([]types.String, 0, len(resp.SupportedDisplays))
@@ -310,33 +412,61 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		} else {
 			r.SupportedDisplays = []types.String{}
 		}
-		r.SupportedDocuments = make([]types.String, 0, len(resp.SupportedDocuments))
-		for _, v := range resp.SupportedDocuments {
-			r.SupportedDocuments = append(r.SupportedDocuments, types.StringValue(v))
+		if resp.SupportedDocuments != nil {
+			r.SupportedDocuments = make([]types.String, 0, len(resp.SupportedDocuments))
+			for _, v := range resp.SupportedDocuments {
+				r.SupportedDocuments = append(r.SupportedDocuments, types.StringValue(v))
+			}
+		} else {
+			r.SupportedDocuments = nil
 		}
-		r.SupportedDocumentsCheckMethods = make([]types.String, 0, len(resp.SupportedDocumentsCheckMethods))
-		for _, v := range resp.SupportedDocumentsCheckMethods {
-			r.SupportedDocumentsCheckMethods = append(r.SupportedDocumentsCheckMethods, types.StringValue(v))
+		if resp.SupportedDocumentsCheckMethods != nil {
+			r.SupportedDocumentsCheckMethods = make([]types.String, 0, len(resp.SupportedDocumentsCheckMethods))
+			for _, v := range resp.SupportedDocumentsCheckMethods {
+				r.SupportedDocumentsCheckMethods = append(r.SupportedDocumentsCheckMethods, types.StringValue(v))
+			}
+		} else {
+			r.SupportedDocumentsCheckMethods = nil
 		}
-		r.SupportedDocumentsMethods = make([]types.String, 0, len(resp.SupportedDocumentsMethods))
-		for _, v := range resp.SupportedDocumentsMethods {
-			r.SupportedDocumentsMethods = append(r.SupportedDocumentsMethods, types.StringValue(v))
+		if resp.SupportedDocumentsMethods != nil {
+			r.SupportedDocumentsMethods = make([]types.String, 0, len(resp.SupportedDocumentsMethods))
+			for _, v := range resp.SupportedDocumentsMethods {
+				r.SupportedDocumentsMethods = append(r.SupportedDocumentsMethods, types.StringValue(v))
+			}
+		} else {
+			r.SupportedDocumentsMethods = nil
 		}
-		r.SupportedDocumentsValidationMethods = make([]types.String, 0, len(resp.SupportedDocumentsValidationMethods))
-		for _, v := range resp.SupportedDocumentsValidationMethods {
-			r.SupportedDocumentsValidationMethods = append(r.SupportedDocumentsValidationMethods, types.StringValue(v))
+		if resp.SupportedDocumentsValidationMethods != nil {
+			r.SupportedDocumentsValidationMethods = make([]types.String, 0, len(resp.SupportedDocumentsValidationMethods))
+			for _, v := range resp.SupportedDocumentsValidationMethods {
+				r.SupportedDocumentsValidationMethods = append(r.SupportedDocumentsValidationMethods, types.StringValue(v))
+			}
+		} else {
+			r.SupportedDocumentsValidationMethods = nil
 		}
-		r.SupportedDocumentsVerificationMethods = make([]types.String, 0, len(resp.SupportedDocumentsVerificationMethods))
-		for _, v := range resp.SupportedDocumentsVerificationMethods {
-			r.SupportedDocumentsVerificationMethods = append(r.SupportedDocumentsVerificationMethods, types.StringValue(v))
+		if resp.SupportedDocumentsVerificationMethods != nil {
+			r.SupportedDocumentsVerificationMethods = make([]types.String, 0, len(resp.SupportedDocumentsVerificationMethods))
+			for _, v := range resp.SupportedDocumentsVerificationMethods {
+				r.SupportedDocumentsVerificationMethods = append(r.SupportedDocumentsVerificationMethods, types.StringValue(v))
+			}
+		} else {
+			r.SupportedDocumentsVerificationMethods = nil
 		}
-		r.SupportedElectronicRecords = make([]types.String, 0, len(resp.SupportedElectronicRecords))
-		for _, v := range resp.SupportedElectronicRecords {
-			r.SupportedElectronicRecords = append(r.SupportedElectronicRecords, types.StringValue(v))
+		if resp.SupportedElectronicRecords != nil {
+			r.SupportedElectronicRecords = make([]types.String, 0, len(resp.SupportedElectronicRecords))
+			for _, v := range resp.SupportedElectronicRecords {
+				r.SupportedElectronicRecords = append(r.SupportedElectronicRecords, types.StringValue(v))
+			}
+		} else {
+			r.SupportedElectronicRecords = nil
 		}
-		r.SupportedEvidence = make([]types.String, 0, len(resp.SupportedEvidence))
-		for _, v := range resp.SupportedEvidence {
-			r.SupportedEvidence = append(r.SupportedEvidence, types.StringValue(v))
+		if resp.SupportedEvidence != nil {
+			r.SupportedEvidence = make([]types.String, 0, len(resp.SupportedEvidence))
+			for _, v := range resp.SupportedEvidence {
+				r.SupportedEvidence = append(r.SupportedEvidence, types.StringValue(v))
+			}
+		} else {
+			r.SupportedEvidence = nil
 		}
 		if resp.SupportedGrantTypes != nil {
 			r.SupportedGrantTypes = make([]types.String, 0, len(resp.SupportedGrantTypes))
@@ -346,13 +476,21 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		} else {
 			r.SupportedGrantTypes = []types.String{}
 		}
-		r.SupportedIdentityDocuments = make([]types.String, 0, len(resp.SupportedIdentityDocuments))
-		for _, v := range resp.SupportedIdentityDocuments {
-			r.SupportedIdentityDocuments = append(r.SupportedIdentityDocuments, types.StringValue(v))
+		if resp.SupportedIdentityDocuments != nil {
+			r.SupportedIdentityDocuments = make([]types.String, 0, len(resp.SupportedIdentityDocuments))
+			for _, v := range resp.SupportedIdentityDocuments {
+				r.SupportedIdentityDocuments = append(r.SupportedIdentityDocuments, types.StringValue(v))
+			}
+		} else {
+			r.SupportedIdentityDocuments = nil
 		}
-		r.SupportedIntrospectionAuthMethods = make([]types.String, 0, len(resp.SupportedIntrospectionAuthMethods))
-		for _, v := range resp.SupportedIntrospectionAuthMethods {
-			r.SupportedIntrospectionAuthMethods = append(r.SupportedIntrospectionAuthMethods, types.StringValue(string(v)))
+		if resp.SupportedIntrospectionAuthMethods != nil {
+			r.SupportedIntrospectionAuthMethods = make([]types.String, 0, len(resp.SupportedIntrospectionAuthMethods))
+			for _, v := range resp.SupportedIntrospectionAuthMethods {
+				r.SupportedIntrospectionAuthMethods = append(r.SupportedIntrospectionAuthMethods, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedIntrospectionAuthMethods = nil
 		}
 		if resp.SupportedPromptValues != nil {
 			r.SupportedPromptValues = make([]types.String, 0, len(resp.SupportedPromptValues))
@@ -370,48 +508,68 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		} else {
 			r.SupportedResponseTypes = []types.String{}
 		}
-		r.SupportedRevocationAuthMethods = make([]types.String, 0, len(resp.SupportedRevocationAuthMethods))
-		for _, v := range resp.SupportedRevocationAuthMethods {
-			r.SupportedRevocationAuthMethods = append(r.SupportedRevocationAuthMethods, types.StringValue(string(v)))
-		}
-		r.SupportedScopes = []tfTypes.Scope{}
-
-		for _, supportedScopesItem := range resp.SupportedScopes {
-			var supportedScopes tfTypes.Scope
-
-			supportedScopes.Attributes = []tfTypes.Pair{}
-
-			for _, attributesItem1 := range supportedScopesItem.Attributes {
-				var attributes1 tfTypes.Pair
-
-				attributes1.Key = types.StringPointerValue(attributesItem1.Key)
-				attributes1.Value = types.StringPointerValue(attributesItem1.Value)
-
-				supportedScopes.Attributes = append(supportedScopes.Attributes, attributes1)
+		if resp.SupportedRevocationAuthMethods != nil {
+			r.SupportedRevocationAuthMethods = make([]types.String, 0, len(resp.SupportedRevocationAuthMethods))
+			for _, v := range resp.SupportedRevocationAuthMethods {
+				r.SupportedRevocationAuthMethods = append(r.SupportedRevocationAuthMethods, types.StringValue(string(v)))
 			}
-			supportedScopes.DefaultEntry = types.BoolPointerValue(supportedScopesItem.DefaultEntry)
-			supportedScopes.Description = types.StringPointerValue(supportedScopesItem.Description)
-			supportedScopes.Descriptions = []tfTypes.TaggedValue{}
+		} else {
+			r.SupportedRevocationAuthMethods = nil
+		}
+		if resp.SupportedScopes != nil {
+			r.SupportedScopes = []tfTypes.Scope{}
 
-			for _, descriptionsItem := range supportedScopesItem.Descriptions {
-				var descriptions tfTypes.TaggedValue
+			for _, supportedScopesItem := range resp.SupportedScopes {
+				var supportedScopes tfTypes.Scope
 
-				descriptions.Tag = types.StringPointerValue(descriptionsItem.Tag)
-				descriptions.Value = types.StringPointerValue(descriptionsItem.Value)
+				if supportedScopesItem.Attributes != nil {
+					supportedScopes.Attributes = []tfTypes.Pair{}
 
-				supportedScopes.Descriptions = append(supportedScopes.Descriptions, descriptions)
+					for _, attributesItem1 := range supportedScopesItem.Attributes {
+						var attributes1 tfTypes.Pair
+
+						attributes1.Key = types.StringPointerValue(attributesItem1.Key)
+						attributes1.Value = types.StringPointerValue(attributesItem1.Value)
+
+						supportedScopes.Attributes = append(supportedScopes.Attributes, attributes1)
+					}
+				} else {
+					supportedScopes.Attributes = nil
+				}
+				supportedScopes.DefaultEntry = types.BoolPointerValue(supportedScopesItem.DefaultEntry)
+				supportedScopes.Description = types.StringPointerValue(supportedScopesItem.Description)
+				supportedScopes.Descriptions = []tfTypes.TaggedValue{}
+
+				for _, descriptionsItem := range supportedScopesItem.Descriptions {
+					var descriptions tfTypes.TaggedValue
+
+					descriptions.Tag = types.StringPointerValue(descriptionsItem.Tag)
+					descriptions.Value = types.StringPointerValue(descriptionsItem.Value)
+
+					supportedScopes.Descriptions = append(supportedScopes.Descriptions, descriptions)
+				}
+				supportedScopes.Name = types.StringPointerValue(supportedScopesItem.Name)
+
+				r.SupportedScopes = append(r.SupportedScopes, supportedScopes)
 			}
-			supportedScopes.Name = types.StringPointerValue(supportedScopesItem.Name)
-
-			r.SupportedScopes = append(r.SupportedScopes, supportedScopes)
+		} else {
+			r.SupportedScopes = nil
 		}
-		r.SupportedServiceProfiles = make([]types.String, 0, len(resp.SupportedServiceProfiles))
-		for _, v := range resp.SupportedServiceProfiles {
-			r.SupportedServiceProfiles = append(r.SupportedServiceProfiles, types.StringValue(string(v)))
+		if resp.SupportedServiceProfiles != nil {
+			r.SupportedServiceProfiles = make([]types.String, 0, len(resp.SupportedServiceProfiles))
+			for _, v := range resp.SupportedServiceProfiles {
+				r.SupportedServiceProfiles = append(r.SupportedServiceProfiles, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedServiceProfiles = nil
 		}
-		r.SupportedSnses = make([]types.String, 0, len(resp.SupportedSnses))
-		for _, v := range resp.SupportedSnses {
-			r.SupportedSnses = append(r.SupportedSnses, types.StringValue(string(v)))
+		if resp.SupportedSnses != nil {
+			r.SupportedSnses = make([]types.String, 0, len(resp.SupportedSnses))
+			for _, v := range resp.SupportedSnses {
+				r.SupportedSnses = append(r.SupportedSnses, types.StringValue(string(v)))
+			}
+		} else {
+			r.SupportedSnses = nil
 		}
 		if resp.SupportedTokenAuthMethods != nil {
 			r.SupportedTokenAuthMethods = make([]types.String, 0, len(resp.SupportedTokenAuthMethods))
@@ -421,21 +579,37 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		} else {
 			r.SupportedTokenAuthMethods = []types.String{}
 		}
-		r.SupportedTrustFrameworks = make([]types.String, 0, len(resp.SupportedTrustFrameworks))
-		for _, v := range resp.SupportedTrustFrameworks {
-			r.SupportedTrustFrameworks = append(r.SupportedTrustFrameworks, types.StringValue(v))
+		if resp.SupportedTrustFrameworks != nil {
+			r.SupportedTrustFrameworks = make([]types.String, 0, len(resp.SupportedTrustFrameworks))
+			for _, v := range resp.SupportedTrustFrameworks {
+				r.SupportedTrustFrameworks = append(r.SupportedTrustFrameworks, types.StringValue(v))
+			}
+		} else {
+			r.SupportedTrustFrameworks = nil
 		}
-		r.SupportedUILocales = make([]types.String, 0, len(resp.SupportedUILocales))
-		for _, v := range resp.SupportedUILocales {
-			r.SupportedUILocales = append(r.SupportedUILocales, types.StringValue(v))
+		if resp.SupportedUILocales != nil {
+			r.SupportedUILocales = make([]types.String, 0, len(resp.SupportedUILocales))
+			for _, v := range resp.SupportedUILocales {
+				r.SupportedUILocales = append(r.SupportedUILocales, types.StringValue(v))
+			}
+		} else {
+			r.SupportedUILocales = nil
 		}
-		r.SupportedVerificationMethods = make([]types.String, 0, len(resp.SupportedVerificationMethods))
-		for _, v := range resp.SupportedVerificationMethods {
-			r.SupportedVerificationMethods = append(r.SupportedVerificationMethods, types.StringValue(v))
+		if resp.SupportedVerificationMethods != nil {
+			r.SupportedVerificationMethods = make([]types.String, 0, len(resp.SupportedVerificationMethods))
+			for _, v := range resp.SupportedVerificationMethods {
+				r.SupportedVerificationMethods = append(r.SupportedVerificationMethods, types.StringValue(v))
+			}
+		} else {
+			r.SupportedVerificationMethods = nil
 		}
-		r.SupportedVerifiedClaims = make([]types.String, 0, len(resp.SupportedVerifiedClaims))
-		for _, v := range resp.SupportedVerifiedClaims {
-			r.SupportedVerifiedClaims = append(r.SupportedVerifiedClaims, types.StringValue(v))
+		if resp.SupportedVerifiedClaims != nil {
+			r.SupportedVerifiedClaims = make([]types.String, 0, len(resp.SupportedVerifiedClaims))
+			for _, v := range resp.SupportedVerifiedClaims {
+				r.SupportedVerifiedClaims = append(r.SupportedVerifiedClaims, types.StringValue(v))
+			}
+		} else {
+			r.SupportedVerifiedClaims = nil
 		}
 		r.TLSClientCertificateBoundAccessTokens = types.BoolPointerValue(resp.TLSClientCertificateBoundAccessTokens)
 		r.TokenBatchNotificationEndpoint = types.StringPointerValue(resp.TokenBatchNotificationEndpoint)
@@ -448,19 +622,27 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		r.TokenExpirationLinked = types.BoolPointerValue(resp.TokenExpirationLinked)
 		r.TosURI = types.StringPointerValue(resp.TosURI)
 		r.TraditionalRequestObjectProcessingApplied = types.BoolPointerValue(resp.TraditionalRequestObjectProcessingApplied)
-		r.TrustAnchors = []tfTypes.TrustAnchor{}
+		if resp.TrustAnchors != nil {
+			r.TrustAnchors = []tfTypes.TrustAnchor{}
 
-		for _, trustAnchorsItem := range resp.TrustAnchors {
-			var trustAnchors tfTypes.TrustAnchor
+			for _, trustAnchorsItem := range resp.TrustAnchors {
+				var trustAnchors tfTypes.TrustAnchor
 
-			trustAnchors.EntityID = types.StringPointerValue(trustAnchorsItem.EntityID)
-			trustAnchors.Jwks = types.StringPointerValue(trustAnchorsItem.Jwks)
+				trustAnchors.EntityID = types.StringPointerValue(trustAnchorsItem.EntityID)
+				trustAnchors.Jwks = types.StringPointerValue(trustAnchorsItem.Jwks)
 
-			r.TrustAnchors = append(r.TrustAnchors, trustAnchors)
+				r.TrustAnchors = append(r.TrustAnchors, trustAnchors)
+			}
+		} else {
+			r.TrustAnchors = nil
 		}
-		r.TrustedRootCertificates = make([]types.String, 0, len(resp.TrustedRootCertificates))
-		for _, v := range resp.TrustedRootCertificates {
-			r.TrustedRootCertificates = append(r.TrustedRootCertificates, types.StringValue(v))
+		if resp.TrustedRootCertificates != nil {
+			r.TrustedRootCertificates = make([]types.String, 0, len(resp.TrustedRootCertificates))
+			for _, v := range resp.TrustedRootCertificates {
+				r.TrustedRootCertificates = append(r.TrustedRootCertificates, types.StringValue(v))
+			}
+		} else {
+			r.TrustedRootCertificates = nil
 		}
 		r.UnauthorizedOnClientConfigSupported = types.BoolPointerValue(resp.UnauthorizedOnClientConfigSupported)
 		if resp.UserCodeCharset != nil {
@@ -567,6 +749,42 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		clientsPerDeveloper = nil
 	}
+	var supportedDeveloperSnses []shared.SupportedDeveloperSnse
+	if r.SupportedDeveloperSnses != nil {
+		supportedDeveloperSnses = make([]shared.SupportedDeveloperSnse, 0, len(r.SupportedDeveloperSnses))
+		for _, supportedDeveloperSnsesItem := range r.SupportedDeveloperSnses {
+			supportedDeveloperSnses = append(supportedDeveloperSnses, shared.SupportedDeveloperSnse(supportedDeveloperSnsesItem.ValueString()))
+		}
+	}
+	var developerSnsCredentials []shared.SnsCredentials
+	if r.DeveloperSnsCredentials != nil {
+		developerSnsCredentials = make([]shared.SnsCredentials, 0, len(r.DeveloperSnsCredentials))
+		for developerSnsCredentialsIndex := range r.DeveloperSnsCredentials {
+			sns := new(string)
+			if !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].Sns.IsUnknown() && !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].Sns.IsNull() {
+				*sns = r.DeveloperSnsCredentials[developerSnsCredentialsIndex].Sns.ValueString()
+			} else {
+				sns = nil
+			}
+			apiKey := new(string)
+			if !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APIKey.IsUnknown() && !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APIKey.IsNull() {
+				*apiKey = r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APIKey.ValueString()
+			} else {
+				apiKey = nil
+			}
+			apiSecret := new(string)
+			if !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APISecret.IsUnknown() && !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APISecret.IsNull() {
+				*apiSecret = r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APISecret.ValueString()
+			} else {
+				apiSecret = nil
+			}
+			developerSnsCredentials = append(developerSnsCredentials, shared.SnsCredentials{
+				Sns:       sns,
+				APIKey:    apiKey,
+				APISecret: apiSecret,
+			})
+		}
+	}
 	authenticationCallbackEndpoint := new(string)
 	if !r.AuthenticationCallbackEndpoint.IsUnknown() && !r.AuthenticationCallbackEndpoint.IsNull() {
 		*authenticationCallbackEndpoint = r.AuthenticationCallbackEndpoint.ValueString()
@@ -599,13 +817,19 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 			supportedResponseTypes = append(supportedResponseTypes, shared.ResponseType(supportedResponseTypesItem.ValueString()))
 		}
 	}
-	supportedAuthorizationDetailsTypes := make([]string, 0, len(r.SupportedAuthorizationDetailsTypes))
-	for supportedAuthorizationDetailsTypesIndex := range r.SupportedAuthorizationDetailsTypes {
-		supportedAuthorizationDetailsTypes = append(supportedAuthorizationDetailsTypes, r.SupportedAuthorizationDetailsTypes[supportedAuthorizationDetailsTypesIndex].ValueString())
+	var supportedAuthorizationDetailsTypes []string
+	if r.SupportedAuthorizationDetailsTypes != nil {
+		supportedAuthorizationDetailsTypes = make([]string, 0, len(r.SupportedAuthorizationDetailsTypes))
+		for supportedAuthorizationDetailsTypesIndex := range r.SupportedAuthorizationDetailsTypes {
+			supportedAuthorizationDetailsTypes = append(supportedAuthorizationDetailsTypes, r.SupportedAuthorizationDetailsTypes[supportedAuthorizationDetailsTypesIndex].ValueString())
+		}
 	}
-	supportedServiceProfiles := make([]shared.ServiceProfile, 0, len(r.SupportedServiceProfiles))
-	for _, supportedServiceProfilesItem := range r.SupportedServiceProfiles {
-		supportedServiceProfiles = append(supportedServiceProfiles, shared.ServiceProfile(supportedServiceProfilesItem.ValueString()))
+	var supportedServiceProfiles []shared.ServiceProfile
+	if r.SupportedServiceProfiles != nil {
+		supportedServiceProfiles = make([]shared.ServiceProfile, 0, len(r.SupportedServiceProfiles))
+		for _, supportedServiceProfilesItem := range r.SupportedServiceProfiles {
+			supportedServiceProfiles = append(supportedServiceProfiles, shared.ServiceProfile(supportedServiceProfilesItem.ValueString()))
+		}
 	}
 	errorDescriptionOmitted := new(bool)
 	if !r.ErrorDescriptionOmitted.IsUnknown() && !r.ErrorDescriptionOmitted.IsNull() {
@@ -625,9 +849,12 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		authorizationEndpoint = nil
 	}
-	supportedUILocales := make([]string, 0, len(r.SupportedUILocales))
-	for supportedUILocalesIndex := range r.SupportedUILocales {
-		supportedUILocales = append(supportedUILocales, r.SupportedUILocales[supportedUILocalesIndex].ValueString())
+	var supportedUILocales []string
+	if r.SupportedUILocales != nil {
+		supportedUILocales = make([]string, 0, len(r.SupportedUILocales))
+		for supportedUILocalesIndex := range r.SupportedUILocales {
+			supportedUILocales = append(supportedUILocales, r.SupportedUILocales[supportedUILocalesIndex].ValueString())
+		}
 	}
 	var supportedDisplays []shared.Display
 	if r.SupportedDisplays != nil {
@@ -685,9 +912,12 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		revocationEndpoint = nil
 	}
-	supportedRevocationAuthMethods := make([]shared.ClientAuthMethod, 0, len(r.SupportedRevocationAuthMethods))
-	for _, supportedRevocationAuthMethodsItem := range r.SupportedRevocationAuthMethods {
-		supportedRevocationAuthMethods = append(supportedRevocationAuthMethods, shared.ClientAuthMethod(supportedRevocationAuthMethodsItem.ValueString()))
+	var supportedRevocationAuthMethods []shared.ClientAuthMethod
+	if r.SupportedRevocationAuthMethods != nil {
+		supportedRevocationAuthMethods = make([]shared.ClientAuthMethod, 0, len(r.SupportedRevocationAuthMethods))
+		for _, supportedRevocationAuthMethodsItem := range r.SupportedRevocationAuthMethods {
+			supportedRevocationAuthMethods = append(supportedRevocationAuthMethods, shared.ClientAuthMethod(supportedRevocationAuthMethodsItem.ValueString()))
+		}
 	}
 	introspectionEndpoint := new(string)
 	if !r.IntrospectionEndpoint.IsUnknown() && !r.IntrospectionEndpoint.IsNull() {
@@ -695,9 +925,12 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		introspectionEndpoint = nil
 	}
-	supportedIntrospectionAuthMethods := make([]shared.ClientAuthMethod, 0, len(r.SupportedIntrospectionAuthMethods))
-	for _, supportedIntrospectionAuthMethodsItem := range r.SupportedIntrospectionAuthMethods {
-		supportedIntrospectionAuthMethods = append(supportedIntrospectionAuthMethods, shared.ClientAuthMethod(supportedIntrospectionAuthMethodsItem.ValueString()))
+	var supportedIntrospectionAuthMethods []shared.ClientAuthMethod
+	if r.SupportedIntrospectionAuthMethods != nil {
+		supportedIntrospectionAuthMethods = make([]shared.ClientAuthMethod, 0, len(r.SupportedIntrospectionAuthMethods))
+		for _, supportedIntrospectionAuthMethodsItem := range r.SupportedIntrospectionAuthMethods {
+			supportedIntrospectionAuthMethods = append(supportedIntrospectionAuthMethods, shared.ClientAuthMethod(supportedIntrospectionAuthMethodsItem.ValueString()))
+		}
 	}
 	pushedAuthReqEndpoint := new(string)
 	if !r.PushedAuthReqEndpoint.IsUnknown() && !r.PushedAuthReqEndpoint.IsNull() {
@@ -735,28 +968,34 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		mutualTLSValidatePkiCertChain = nil
 	}
-	trustedRootCertificates := make([]string, 0, len(r.TrustedRootCertificates))
-	for trustedRootCertificatesIndex := range r.TrustedRootCertificates {
-		trustedRootCertificates = append(trustedRootCertificates, r.TrustedRootCertificates[trustedRootCertificatesIndex].ValueString())
+	var trustedRootCertificates []string
+	if r.TrustedRootCertificates != nil {
+		trustedRootCertificates = make([]string, 0, len(r.TrustedRootCertificates))
+		for trustedRootCertificatesIndex := range r.TrustedRootCertificates {
+			trustedRootCertificates = append(trustedRootCertificates, r.TrustedRootCertificates[trustedRootCertificatesIndex].ValueString())
+		}
 	}
-	mtlsEndpointAliases := make([]shared.NamedURI, 0, len(r.MtlsEndpointAliases))
-	for mtlsEndpointAliasesIndex := range r.MtlsEndpointAliases {
-		name := new(string)
-		if !r.MtlsEndpointAliases[mtlsEndpointAliasesIndex].Name.IsUnknown() && !r.MtlsEndpointAliases[mtlsEndpointAliasesIndex].Name.IsNull() {
-			*name = r.MtlsEndpointAliases[mtlsEndpointAliasesIndex].Name.ValueString()
-		} else {
-			name = nil
+	var mtlsEndpointAliases []shared.NamedURI
+	if r.MtlsEndpointAliases != nil {
+		mtlsEndpointAliases = make([]shared.NamedURI, 0, len(r.MtlsEndpointAliases))
+		for mtlsEndpointAliasesIndex := range r.MtlsEndpointAliases {
+			name := new(string)
+			if !r.MtlsEndpointAliases[mtlsEndpointAliasesIndex].Name.IsUnknown() && !r.MtlsEndpointAliases[mtlsEndpointAliasesIndex].Name.IsNull() {
+				*name = r.MtlsEndpointAliases[mtlsEndpointAliasesIndex].Name.ValueString()
+			} else {
+				name = nil
+			}
+			uri := new(string)
+			if !r.MtlsEndpointAliases[mtlsEndpointAliasesIndex].URI.IsUnknown() && !r.MtlsEndpointAliases[mtlsEndpointAliasesIndex].URI.IsNull() {
+				*uri = r.MtlsEndpointAliases[mtlsEndpointAliasesIndex].URI.ValueString()
+			} else {
+				uri = nil
+			}
+			mtlsEndpointAliases = append(mtlsEndpointAliases, shared.NamedURI{
+				Name: name,
+				URI:  uri,
+			})
 		}
-		uri := new(string)
-		if !r.MtlsEndpointAliases[mtlsEndpointAliasesIndex].URI.IsUnknown() && !r.MtlsEndpointAliases[mtlsEndpointAliasesIndex].URI.IsNull() {
-			*uri = r.MtlsEndpointAliases[mtlsEndpointAliasesIndex].URI.ValueString()
-		} else {
-			uri = nil
-		}
-		mtlsEndpointAliases = append(mtlsEndpointAliases, shared.NamedURI{
-			Name: name,
-			URI:  uri,
-		})
 	}
 	accessTokenType := new(string)
 	if !r.AccessTokenType.IsUnknown() && !r.AccessTokenType.IsNull() {
@@ -818,71 +1057,77 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		refreshTokenKept = nil
 	}
-	supportedScopes := make([]shared.Scope, 0, len(r.SupportedScopes))
-	for supportedScopesIndex := range r.SupportedScopes {
-		name1 := new(string)
-		if !r.SupportedScopes[supportedScopesIndex].Name.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Name.IsNull() {
-			*name1 = r.SupportedScopes[supportedScopesIndex].Name.ValueString()
-		} else {
-			name1 = nil
-		}
-		defaultEntry := new(bool)
-		if !r.SupportedScopes[supportedScopesIndex].DefaultEntry.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].DefaultEntry.IsNull() {
-			*defaultEntry = r.SupportedScopes[supportedScopesIndex].DefaultEntry.ValueBool()
-		} else {
-			defaultEntry = nil
-		}
-		description1 := new(string)
-		if !r.SupportedScopes[supportedScopesIndex].Description.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Description.IsNull() {
-			*description1 = r.SupportedScopes[supportedScopesIndex].Description.ValueString()
-		} else {
-			description1 = nil
-		}
-		descriptions := make([]shared.TaggedValue, 0, len(r.SupportedScopes[supportedScopesIndex].Descriptions))
-		for descriptionsIndex := range r.SupportedScopes[supportedScopesIndex].Descriptions {
-			tag := new(string)
-			if !r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Tag.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Tag.IsNull() {
-				*tag = r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Tag.ValueString()
+	var supportedScopes []shared.Scope
+	if r.SupportedScopes != nil {
+		supportedScopes = make([]shared.Scope, 0, len(r.SupportedScopes))
+		for supportedScopesIndex := range r.SupportedScopes {
+			name1 := new(string)
+			if !r.SupportedScopes[supportedScopesIndex].Name.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Name.IsNull() {
+				*name1 = r.SupportedScopes[supportedScopesIndex].Name.ValueString()
 			} else {
-				tag = nil
+				name1 = nil
 			}
-			value := new(string)
-			if !r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Value.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Value.IsNull() {
-				*value = r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Value.ValueString()
+			defaultEntry := new(bool)
+			if !r.SupportedScopes[supportedScopesIndex].DefaultEntry.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].DefaultEntry.IsNull() {
+				*defaultEntry = r.SupportedScopes[supportedScopesIndex].DefaultEntry.ValueBool()
 			} else {
-				value = nil
+				defaultEntry = nil
 			}
-			descriptions = append(descriptions, shared.TaggedValue{
-				Tag:   tag,
-				Value: value,
+			description1 := new(string)
+			if !r.SupportedScopes[supportedScopesIndex].Description.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Description.IsNull() {
+				*description1 = r.SupportedScopes[supportedScopesIndex].Description.ValueString()
+			} else {
+				description1 = nil
+			}
+			descriptions := make([]shared.TaggedValue, 0, len(r.SupportedScopes[supportedScopesIndex].Descriptions))
+			for descriptionsIndex := range r.SupportedScopes[supportedScopesIndex].Descriptions {
+				tag := new(string)
+				if !r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Tag.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Tag.IsNull() {
+					*tag = r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Tag.ValueString()
+				} else {
+					tag = nil
+				}
+				value := new(string)
+				if !r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Value.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Value.IsNull() {
+					*value = r.SupportedScopes[supportedScopesIndex].Descriptions[descriptionsIndex].Value.ValueString()
+				} else {
+					value = nil
+				}
+				descriptions = append(descriptions, shared.TaggedValue{
+					Tag:   tag,
+					Value: value,
+				})
+			}
+			var attributes []shared.Pair
+			if r.SupportedScopes[supportedScopesIndex].Attributes != nil {
+				attributes = make([]shared.Pair, 0, len(r.SupportedScopes[supportedScopesIndex].Attributes))
+				for attributesIndex := range r.SupportedScopes[supportedScopesIndex].Attributes {
+					key := new(string)
+					if !r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Key.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Key.IsNull() {
+						*key = r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Key.ValueString()
+					} else {
+						key = nil
+					}
+					value1 := new(string)
+					if !r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Value.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Value.IsNull() {
+						*value1 = r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Value.ValueString()
+					} else {
+						value1 = nil
+					}
+					attributes = append(attributes, shared.Pair{
+						Key:   key,
+						Value: value1,
+					})
+				}
+			}
+			supportedScopes = append(supportedScopes, shared.Scope{
+				Name:         name1,
+				DefaultEntry: defaultEntry,
+				Description:  description1,
+				Descriptions: descriptions,
+				Attributes:   attributes,
 			})
 		}
-		attributes := make([]shared.Pair, 0, len(r.SupportedScopes[supportedScopesIndex].Attributes))
-		for attributesIndex := range r.SupportedScopes[supportedScopesIndex].Attributes {
-			key := new(string)
-			if !r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Key.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Key.IsNull() {
-				*key = r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Key.ValueString()
-			} else {
-				key = nil
-			}
-			value1 := new(string)
-			if !r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Value.IsUnknown() && !r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Value.IsNull() {
-				*value1 = r.SupportedScopes[supportedScopesIndex].Attributes[attributesIndex].Value.ValueString()
-			} else {
-				value1 = nil
-			}
-			attributes = append(attributes, shared.Pair{
-				Key:   key,
-				Value: value1,
-			})
-		}
-		supportedScopes = append(supportedScopes, shared.Scope{
-			Name:         name1,
-			DefaultEntry: defaultEntry,
-			Description:  description1,
-			Descriptions: descriptions,
-			Attributes:   attributes,
-		})
 	}
 	scopeRequired := new(bool)
 	if !r.ScopeRequired.IsUnknown() && !r.ScopeRequired.IsNull() {
@@ -909,13 +1154,19 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 			supportedClaimTypes = append(supportedClaimTypes, shared.ClaimType(supportedClaimTypesItem.ValueString()))
 		}
 	}
-	supportedClaimLocales := make([]string, 0, len(r.SupportedClaimLocales))
-	for supportedClaimLocalesIndex := range r.SupportedClaimLocales {
-		supportedClaimLocales = append(supportedClaimLocales, r.SupportedClaimLocales[supportedClaimLocalesIndex].ValueString())
+	var supportedClaimLocales []string
+	if r.SupportedClaimLocales != nil {
+		supportedClaimLocales = make([]string, 0, len(r.SupportedClaimLocales))
+		for supportedClaimLocalesIndex := range r.SupportedClaimLocales {
+			supportedClaimLocales = append(supportedClaimLocales, r.SupportedClaimLocales[supportedClaimLocalesIndex].ValueString())
+		}
 	}
-	supportedClaims := make([]string, 0, len(r.SupportedClaims))
-	for supportedClaimsIndex := range r.SupportedClaims {
-		supportedClaims = append(supportedClaims, r.SupportedClaims[supportedClaimsIndex].ValueString())
+	var supportedClaims []string
+	if r.SupportedClaims != nil {
+		supportedClaims = make([]string, 0, len(r.SupportedClaims))
+		for supportedClaimsIndex := range r.SupportedClaims {
+			supportedClaims = append(supportedClaims, r.SupportedClaims[supportedClaimsIndex].ValueString())
+		}
 	}
 	claimShortcutRestrictive := new(bool)
 	if !r.ClaimShortcutRestrictive.IsUnknown() && !r.ClaimShortcutRestrictive.IsNull() {
@@ -1001,9 +1252,12 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		backchannelAuthenticationEndpoint = nil
 	}
-	supportedBackchannelTokenDeliveryModes := make([]shared.DeliveryMode, 0, len(r.SupportedBackchannelTokenDeliveryModes))
-	for _, supportedBackchannelTokenDeliveryModesItem := range r.SupportedBackchannelTokenDeliveryModes {
-		supportedBackchannelTokenDeliveryModes = append(supportedBackchannelTokenDeliveryModes, shared.DeliveryMode(supportedBackchannelTokenDeliveryModesItem.ValueString()))
+	var supportedBackchannelTokenDeliveryModes []shared.DeliveryMode
+	if r.SupportedBackchannelTokenDeliveryModes != nil {
+		supportedBackchannelTokenDeliveryModes = make([]shared.DeliveryMode, 0, len(r.SupportedBackchannelTokenDeliveryModes))
+		for _, supportedBackchannelTokenDeliveryModesItem := range r.SupportedBackchannelTokenDeliveryModes {
+			supportedBackchannelTokenDeliveryModes = append(supportedBackchannelTokenDeliveryModes, shared.DeliveryMode(supportedBackchannelTokenDeliveryModesItem.ValueString()))
+		}
 	}
 	backchannelAuthReqIDDuration := new(int)
 	if !r.BackchannelAuthReqIDDuration.IsUnknown() && !r.BackchannelAuthReqIDDuration.IsNull() {
@@ -1071,25 +1325,40 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		userCodeLength = nil
 	}
-	supportedTrustFrameworks := make([]string, 0, len(r.SupportedTrustFrameworks))
-	for supportedTrustFrameworksIndex := range r.SupportedTrustFrameworks {
-		supportedTrustFrameworks = append(supportedTrustFrameworks, r.SupportedTrustFrameworks[supportedTrustFrameworksIndex].ValueString())
+	var supportedTrustFrameworks []string
+	if r.SupportedTrustFrameworks != nil {
+		supportedTrustFrameworks = make([]string, 0, len(r.SupportedTrustFrameworks))
+		for supportedTrustFrameworksIndex := range r.SupportedTrustFrameworks {
+			supportedTrustFrameworks = append(supportedTrustFrameworks, r.SupportedTrustFrameworks[supportedTrustFrameworksIndex].ValueString())
+		}
 	}
-	supportedEvidence := make([]string, 0, len(r.SupportedEvidence))
-	for supportedEvidenceIndex := range r.SupportedEvidence {
-		supportedEvidence = append(supportedEvidence, r.SupportedEvidence[supportedEvidenceIndex].ValueString())
+	var supportedEvidence []string
+	if r.SupportedEvidence != nil {
+		supportedEvidence = make([]string, 0, len(r.SupportedEvidence))
+		for supportedEvidenceIndex := range r.SupportedEvidence {
+			supportedEvidence = append(supportedEvidence, r.SupportedEvidence[supportedEvidenceIndex].ValueString())
+		}
 	}
-	supportedIdentityDocuments := make([]string, 0, len(r.SupportedIdentityDocuments))
-	for supportedIdentityDocumentsIndex := range r.SupportedIdentityDocuments {
-		supportedIdentityDocuments = append(supportedIdentityDocuments, r.SupportedIdentityDocuments[supportedIdentityDocumentsIndex].ValueString())
+	var supportedIdentityDocuments []string
+	if r.SupportedIdentityDocuments != nil {
+		supportedIdentityDocuments = make([]string, 0, len(r.SupportedIdentityDocuments))
+		for supportedIdentityDocumentsIndex := range r.SupportedIdentityDocuments {
+			supportedIdentityDocuments = append(supportedIdentityDocuments, r.SupportedIdentityDocuments[supportedIdentityDocumentsIndex].ValueString())
+		}
 	}
-	supportedVerificationMethods := make([]string, 0, len(r.SupportedVerificationMethods))
-	for supportedVerificationMethodsIndex := range r.SupportedVerificationMethods {
-		supportedVerificationMethods = append(supportedVerificationMethods, r.SupportedVerificationMethods[supportedVerificationMethodsIndex].ValueString())
+	var supportedVerificationMethods []string
+	if r.SupportedVerificationMethods != nil {
+		supportedVerificationMethods = make([]string, 0, len(r.SupportedVerificationMethods))
+		for supportedVerificationMethodsIndex := range r.SupportedVerificationMethods {
+			supportedVerificationMethods = append(supportedVerificationMethods, r.SupportedVerificationMethods[supportedVerificationMethodsIndex].ValueString())
+		}
 	}
-	supportedVerifiedClaims := make([]string, 0, len(r.SupportedVerifiedClaims))
-	for supportedVerifiedClaimsIndex := range r.SupportedVerifiedClaims {
-		supportedVerifiedClaims = append(supportedVerifiedClaims, r.SupportedVerifiedClaims[supportedVerifiedClaimsIndex].ValueString())
+	var supportedVerifiedClaims []string
+	if r.SupportedVerifiedClaims != nil {
+		supportedVerifiedClaims = make([]string, 0, len(r.SupportedVerifiedClaims))
+		for supportedVerifiedClaimsIndex := range r.SupportedVerifiedClaims {
+			supportedVerifiedClaims = append(supportedVerifiedClaims, r.SupportedVerifiedClaims[supportedVerifiedClaimsIndex].ValueString())
+		}
 	}
 	verifiedClaimsValidationSchemaSet := new(shared.VerifiedClaimsValidationSchema)
 	if !r.VerifiedClaimsValidationSchemaSet.IsUnknown() && !r.VerifiedClaimsValidationSchemaSet.IsNull() {
@@ -1097,24 +1366,27 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		verifiedClaimsValidationSchemaSet = nil
 	}
-	attributes1 := make([]shared.Pair, 0, len(r.Attributes))
-	for attributesIndex1 := range r.Attributes {
-		key1 := new(string)
-		if !r.Attributes[attributesIndex1].Key.IsUnknown() && !r.Attributes[attributesIndex1].Key.IsNull() {
-			*key1 = r.Attributes[attributesIndex1].Key.ValueString()
-		} else {
-			key1 = nil
+	var attributes1 []shared.Pair
+	if r.Attributes != nil {
+		attributes1 = make([]shared.Pair, 0, len(r.Attributes))
+		for attributesIndex1 := range r.Attributes {
+			key1 := new(string)
+			if !r.Attributes[attributesIndex1].Key.IsUnknown() && !r.Attributes[attributesIndex1].Key.IsNull() {
+				*key1 = r.Attributes[attributesIndex1].Key.ValueString()
+			} else {
+				key1 = nil
+			}
+			value2 := new(string)
+			if !r.Attributes[attributesIndex1].Value.IsUnknown() && !r.Attributes[attributesIndex1].Value.IsNull() {
+				*value2 = r.Attributes[attributesIndex1].Value.ValueString()
+			} else {
+				value2 = nil
+			}
+			attributes1 = append(attributes1, shared.Pair{
+				Key:   key1,
+				Value: value2,
+			})
 		}
-		value2 := new(string)
-		if !r.Attributes[attributesIndex1].Value.IsUnknown() && !r.Attributes[attributesIndex1].Value.IsNull() {
-			*value2 = r.Attributes[attributesIndex1].Value.ValueString()
-		} else {
-			value2 = nil
-		}
-		attributes1 = append(attributes1, shared.Pair{
-			Key:   key1,
-			Value: value2,
-		})
 	}
 	nbfOptional := new(bool)
 	if !r.NbfOptional.IsUnknown() && !r.NbfOptional.IsNull() {
@@ -1128,9 +1400,12 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		issSuppressed = nil
 	}
-	supportedCustomClientMetadata := make([]string, 0, len(r.SupportedCustomClientMetadata))
-	for supportedCustomClientMetadataIndex := range r.SupportedCustomClientMetadata {
-		supportedCustomClientMetadata = append(supportedCustomClientMetadata, r.SupportedCustomClientMetadata[supportedCustomClientMetadataIndex].ValueString())
+	var supportedCustomClientMetadata []string
+	if r.SupportedCustomClientMetadata != nil {
+		supportedCustomClientMetadata = make([]string, 0, len(r.SupportedCustomClientMetadata))
+		for supportedCustomClientMetadataIndex := range r.SupportedCustomClientMetadata {
+			supportedCustomClientMetadata = append(supportedCustomClientMetadata, r.SupportedCustomClientMetadata[supportedCustomClientMetadataIndex].ValueString())
+		}
 	}
 	tokenExpirationLinked := new(bool)
 	if !r.TokenExpirationLinked.IsUnknown() && !r.TokenExpirationLinked.IsNull() {
@@ -1192,6 +1467,12 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		endSessionEndpoint = nil
 	}
+	challengeEndpoint := new(string)
+	if !r.ChallengeEndpoint.IsUnknown() && !r.ChallengeEndpoint.IsNull() {
+		*challengeEndpoint = r.ChallengeEndpoint.ValueString()
+	} else {
+		challengeEndpoint = nil
+	}
 	loopbackRedirectionURIVariable := new(bool)
 	if !r.LoopbackRedirectionURIVariable.IsUnknown() && !r.LoopbackRedirectionURIVariable.IsNull() {
 		*loopbackRedirectionURIVariable = r.LoopbackRedirectionURIVariable.ValueBool()
@@ -1210,9 +1491,12 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		accessTokenForExternalAttachmentEmbedded = nil
 	}
-	authorityHints := make([]string, 0, len(r.AuthorityHints))
-	for authorityHintsIndex := range r.AuthorityHints {
-		authorityHints = append(authorityHints, r.AuthorityHints[authorityHintsIndex].ValueString())
+	var authorityHints []string
+	if r.AuthorityHints != nil {
+		authorityHints = make([]string, 0, len(r.AuthorityHints))
+		for authorityHintsIndex := range r.AuthorityHints {
+			authorityHints = append(authorityHints, r.AuthorityHints[authorityHintsIndex].ValueString())
+		}
 	}
 	federationEnabled := new(bool)
 	if !r.FederationEnabled.IsUnknown() && !r.FederationEnabled.IsNull() {
@@ -1268,37 +1552,61 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		signedJwksURI = nil
 	}
-	supportedAttachments := make([]shared.AttachmentType, 0, len(r.SupportedAttachments))
-	for _, supportedAttachmentsItem := range r.SupportedAttachments {
-		supportedAttachments = append(supportedAttachments, shared.AttachmentType(supportedAttachmentsItem.ValueString()))
+	var supportedAttachments []shared.AttachmentType
+	if r.SupportedAttachments != nil {
+		supportedAttachments = make([]shared.AttachmentType, 0, len(r.SupportedAttachments))
+		for _, supportedAttachmentsItem := range r.SupportedAttachments {
+			supportedAttachments = append(supportedAttachments, shared.AttachmentType(supportedAttachmentsItem.ValueString()))
+		}
 	}
-	supportedDigestAlgorithms := make([]string, 0, len(r.SupportedDigestAlgorithms))
-	for supportedDigestAlgorithmsIndex := range r.SupportedDigestAlgorithms {
-		supportedDigestAlgorithms = append(supportedDigestAlgorithms, r.SupportedDigestAlgorithms[supportedDigestAlgorithmsIndex].ValueString())
+	var supportedDigestAlgorithms []string
+	if r.SupportedDigestAlgorithms != nil {
+		supportedDigestAlgorithms = make([]string, 0, len(r.SupportedDigestAlgorithms))
+		for supportedDigestAlgorithmsIndex := range r.SupportedDigestAlgorithms {
+			supportedDigestAlgorithms = append(supportedDigestAlgorithms, r.SupportedDigestAlgorithms[supportedDigestAlgorithmsIndex].ValueString())
+		}
 	}
-	supportedDocuments := make([]string, 0, len(r.SupportedDocuments))
-	for supportedDocumentsIndex := range r.SupportedDocuments {
-		supportedDocuments = append(supportedDocuments, r.SupportedDocuments[supportedDocumentsIndex].ValueString())
+	var supportedDocuments []string
+	if r.SupportedDocuments != nil {
+		supportedDocuments = make([]string, 0, len(r.SupportedDocuments))
+		for supportedDocumentsIndex := range r.SupportedDocuments {
+			supportedDocuments = append(supportedDocuments, r.SupportedDocuments[supportedDocumentsIndex].ValueString())
+		}
 	}
-	supportedDocumentsMethods := make([]string, 0, len(r.SupportedDocumentsMethods))
-	for supportedDocumentsMethodsIndex := range r.SupportedDocumentsMethods {
-		supportedDocumentsMethods = append(supportedDocumentsMethods, r.SupportedDocumentsMethods[supportedDocumentsMethodsIndex].ValueString())
+	var supportedDocumentsMethods []string
+	if r.SupportedDocumentsMethods != nil {
+		supportedDocumentsMethods = make([]string, 0, len(r.SupportedDocumentsMethods))
+		for supportedDocumentsMethodsIndex := range r.SupportedDocumentsMethods {
+			supportedDocumentsMethods = append(supportedDocumentsMethods, r.SupportedDocumentsMethods[supportedDocumentsMethodsIndex].ValueString())
+		}
 	}
-	supportedDocumentsValidationMethods := make([]string, 0, len(r.SupportedDocumentsValidationMethods))
-	for supportedDocumentsValidationMethodsIndex := range r.SupportedDocumentsValidationMethods {
-		supportedDocumentsValidationMethods = append(supportedDocumentsValidationMethods, r.SupportedDocumentsValidationMethods[supportedDocumentsValidationMethodsIndex].ValueString())
+	var supportedDocumentsValidationMethods []string
+	if r.SupportedDocumentsValidationMethods != nil {
+		supportedDocumentsValidationMethods = make([]string, 0, len(r.SupportedDocumentsValidationMethods))
+		for supportedDocumentsValidationMethodsIndex := range r.SupportedDocumentsValidationMethods {
+			supportedDocumentsValidationMethods = append(supportedDocumentsValidationMethods, r.SupportedDocumentsValidationMethods[supportedDocumentsValidationMethodsIndex].ValueString())
+		}
 	}
-	supportedDocumentsVerificationMethods := make([]string, 0, len(r.SupportedDocumentsVerificationMethods))
-	for supportedDocumentsVerificationMethodsIndex := range r.SupportedDocumentsVerificationMethods {
-		supportedDocumentsVerificationMethods = append(supportedDocumentsVerificationMethods, r.SupportedDocumentsVerificationMethods[supportedDocumentsVerificationMethodsIndex].ValueString())
+	var supportedDocumentsVerificationMethods []string
+	if r.SupportedDocumentsVerificationMethods != nil {
+		supportedDocumentsVerificationMethods = make([]string, 0, len(r.SupportedDocumentsVerificationMethods))
+		for supportedDocumentsVerificationMethodsIndex := range r.SupportedDocumentsVerificationMethods {
+			supportedDocumentsVerificationMethods = append(supportedDocumentsVerificationMethods, r.SupportedDocumentsVerificationMethods[supportedDocumentsVerificationMethodsIndex].ValueString())
+		}
 	}
-	supportedElectronicRecords := make([]string, 0, len(r.SupportedElectronicRecords))
-	for supportedElectronicRecordsIndex := range r.SupportedElectronicRecords {
-		supportedElectronicRecords = append(supportedElectronicRecords, r.SupportedElectronicRecords[supportedElectronicRecordsIndex].ValueString())
+	var supportedElectronicRecords []string
+	if r.SupportedElectronicRecords != nil {
+		supportedElectronicRecords = make([]string, 0, len(r.SupportedElectronicRecords))
+		for supportedElectronicRecordsIndex := range r.SupportedElectronicRecords {
+			supportedElectronicRecords = append(supportedElectronicRecords, r.SupportedElectronicRecords[supportedElectronicRecordsIndex].ValueString())
+		}
 	}
-	supportedClientRegistrationTypes := make([]shared.ClientRegistrationType, 0, len(r.SupportedClientRegistrationTypes))
-	for _, supportedClientRegistrationTypesItem := range r.SupportedClientRegistrationTypes {
-		supportedClientRegistrationTypes = append(supportedClientRegistrationTypes, shared.ClientRegistrationType(supportedClientRegistrationTypesItem.ValueString()))
+	var supportedClientRegistrationTypes []shared.ClientRegistrationType
+	if r.SupportedClientRegistrationTypes != nil {
+		supportedClientRegistrationTypes = make([]shared.ClientRegistrationType, 0, len(r.SupportedClientRegistrationTypes))
+		for _, supportedClientRegistrationTypesItem := range r.SupportedClientRegistrationTypes {
+			supportedClientRegistrationTypes = append(supportedClientRegistrationTypes, shared.ClientRegistrationType(supportedClientRegistrationTypesItem.ValueString()))
+		}
 	}
 	tokenExchangeByIdentifiableClientsOnly := new(bool)
 	if !r.TokenExchangeByIdentifiableClientsOnly.IsUnknown() && !r.TokenExchangeByIdentifiableClientsOnly.IsNull() {
@@ -1354,24 +1662,27 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		dcrDuplicateSoftwareIDBlocked = nil
 	}
-	trustAnchors := make([]shared.TrustAnchor, 0, len(r.TrustAnchors))
-	for trustAnchorsIndex := range r.TrustAnchors {
-		entityID := new(string)
-		if !r.TrustAnchors[trustAnchorsIndex].EntityID.IsUnknown() && !r.TrustAnchors[trustAnchorsIndex].EntityID.IsNull() {
-			*entityID = r.TrustAnchors[trustAnchorsIndex].EntityID.ValueString()
-		} else {
-			entityID = nil
+	var trustAnchors []shared.TrustAnchor
+	if r.TrustAnchors != nil {
+		trustAnchors = make([]shared.TrustAnchor, 0, len(r.TrustAnchors))
+		for trustAnchorsIndex := range r.TrustAnchors {
+			entityID := new(string)
+			if !r.TrustAnchors[trustAnchorsIndex].EntityID.IsUnknown() && !r.TrustAnchors[trustAnchorsIndex].EntityID.IsNull() {
+				*entityID = r.TrustAnchors[trustAnchorsIndex].EntityID.ValueString()
+			} else {
+				entityID = nil
+			}
+			jwks1 := new(string)
+			if !r.TrustAnchors[trustAnchorsIndex].Jwks.IsUnknown() && !r.TrustAnchors[trustAnchorsIndex].Jwks.IsNull() {
+				*jwks1 = r.TrustAnchors[trustAnchorsIndex].Jwks.ValueString()
+			} else {
+				jwks1 = nil
+			}
+			trustAnchors = append(trustAnchors, shared.TrustAnchor{
+				EntityID: entityID,
+				Jwks:     jwks1,
+			})
 		}
-		jwks1 := new(string)
-		if !r.TrustAnchors[trustAnchorsIndex].Jwks.IsUnknown() && !r.TrustAnchors[trustAnchorsIndex].Jwks.IsNull() {
-			*jwks1 = r.TrustAnchors[trustAnchorsIndex].Jwks.ValueString()
-		} else {
-			jwks1 = nil
-		}
-		trustAnchors = append(trustAnchors, shared.TrustAnchor{
-			EntityID: entityID,
-			Jwks:     jwks1,
-		})
 	}
 	openidDroppedOnRefreshWithoutOfflineAccess := new(bool)
 	if !r.OpenidDroppedOnRefreshWithoutOfflineAccess.IsUnknown() && !r.OpenidDroppedOnRefreshWithoutOfflineAccess.IsNull() {
@@ -1379,9 +1690,18 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		openidDroppedOnRefreshWithoutOfflineAccess = nil
 	}
-	supportedDocumentsCheckMethods := make([]string, 0, len(r.SupportedDocumentsCheckMethods))
-	for supportedDocumentsCheckMethodsIndex := range r.SupportedDocumentsCheckMethods {
-		supportedDocumentsCheckMethods = append(supportedDocumentsCheckMethods, r.SupportedDocumentsCheckMethods[supportedDocumentsCheckMethodsIndex].ValueString())
+	idTokenDroppedOnIssueWithoutOpenid := new(bool)
+	if !r.IDTokenDroppedOnIssueWithoutOpenid.IsUnknown() && !r.IDTokenDroppedOnIssueWithoutOpenid.IsNull() {
+		*idTokenDroppedOnIssueWithoutOpenid = r.IDTokenDroppedOnIssueWithoutOpenid.ValueBool()
+	} else {
+		idTokenDroppedOnIssueWithoutOpenid = nil
+	}
+	var supportedDocumentsCheckMethods []string
+	if r.SupportedDocumentsCheckMethods != nil {
+		supportedDocumentsCheckMethods = make([]string, 0, len(r.SupportedDocumentsCheckMethods))
+		for supportedDocumentsCheckMethodsIndex := range r.SupportedDocumentsCheckMethods {
+			supportedDocumentsCheckMethods = append(supportedDocumentsCheckMethods, r.SupportedDocumentsCheckMethods[supportedDocumentsCheckMethodsIndex].ValueString())
+		}
 	}
 	rsResponseSigned := new(bool)
 	if !r.RsResponseSigned.IsUnknown() && !r.RsResponseSigned.IsNull() {
@@ -1474,9 +1794,12 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		credentialJwks = nil
 	}
-	fapiModes := make([]shared.FapiMode, 0, len(r.FapiModes))
-	for _, fapiModesItem := range r.FapiModes {
-		fapiModes = append(fapiModes, shared.FapiMode(fapiModesItem.ValueString()))
+	var fapiModes []shared.FapiMode
+	if r.FapiModes != nil {
+		fapiModes = make([]shared.FapiMode, 0, len(r.FapiModes))
+		for _, fapiModesItem := range r.FapiModes {
+			fapiModes = append(fapiModes, shared.FapiMode(fapiModesItem.ValueString()))
+		}
 	}
 	credentialDuration := new(int64)
 	if !r.CredentialDuration.IsUnknown() && !r.CredentialDuration.IsNull() {
@@ -1601,9 +1924,12 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		cimdAllowlistEnabled = nil
 	}
-	cimdAllowlist := make([]string, 0, len(r.CimdAllowlist))
-	for cimdAllowlistIndex := range r.CimdAllowlist {
-		cimdAllowlist = append(cimdAllowlist, r.CimdAllowlist[cimdAllowlistIndex].ValueString())
+	var cimdAllowlist []string
+	if r.CimdAllowlist != nil {
+		cimdAllowlist = make([]string, 0, len(r.CimdAllowlist))
+		for cimdAllowlistIndex := range r.CimdAllowlist {
+			cimdAllowlist = append(cimdAllowlist, r.CimdAllowlist[cimdAllowlistIndex].ValueString())
+		}
 	}
 	cimdAlwaysRetrieved := new(bool)
 	if !r.CimdAlwaysRetrieved.IsUnknown() && !r.CimdAlwaysRetrieved.IsNull() {
@@ -1665,13 +1991,19 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		keyAttesterRootsOnly = nil
 	}
-	clientAttesterRoots := make([]string, 0, len(r.ClientAttesterRoots))
-	for clientAttesterRootsIndex := range r.ClientAttesterRoots {
-		clientAttesterRoots = append(clientAttesterRoots, r.ClientAttesterRoots[clientAttesterRootsIndex].ValueString())
+	var clientAttesterRoots []string
+	if r.ClientAttesterRoots != nil {
+		clientAttesterRoots = make([]string, 0, len(r.ClientAttesterRoots))
+		for clientAttesterRootsIndex := range r.ClientAttesterRoots {
+			clientAttesterRoots = append(clientAttesterRoots, r.ClientAttesterRoots[clientAttesterRootsIndex].ValueString())
+		}
 	}
-	keyAttesterRoots := make([]string, 0, len(r.KeyAttesterRoots))
-	for keyAttesterRootsIndex := range r.KeyAttesterRoots {
-		keyAttesterRoots = append(keyAttesterRoots, r.KeyAttesterRoots[keyAttesterRootsIndex].ValueString())
+	var keyAttesterRoots []string
+	if r.KeyAttesterRoots != nil {
+		keyAttesterRoots = make([]string, 0, len(r.KeyAttesterRoots))
+		for keyAttesterRootsIndex := range r.KeyAttesterRoots {
+			keyAttesterRoots = append(keyAttesterRoots, r.KeyAttesterRoots[keyAttesterRootsIndex].ValueString())
+		}
 	}
 	backchannelLogoutSupported := new(bool)
 	if !r.BackchannelLogoutSupported.IsUnknown() && !r.BackchannelLogoutSupported.IsNull() {
@@ -1685,12 +2017,20 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		backchannelLogoutSessionSupported = nil
 	}
+	haipVersion := new(string)
+	if !r.HaipVersion.IsUnknown() && !r.HaipVersion.IsNull() {
+		*haipVersion = r.HaipVersion.ValueString()
+	} else {
+		haipVersion = nil
+	}
 	out := shared.ServiceInput{
 		ServiceName:                                 serviceName,
 		Issuer:                                      issuer,
 		Description:                                 description,
 		ClientAssertionAudRestrictedToIssuer:        clientAssertionAudRestrictedToIssuer,
 		ClientsPerDeveloper:                         clientsPerDeveloper,
+		SupportedDeveloperSnses:                     supportedDeveloperSnses,
+		DeveloperSnsCredentials:                     developerSnsCredentials,
 		AuthenticationCallbackEndpoint:              authenticationCallbackEndpoint,
 		AuthenticationCallbackAPIKey:                authenticationCallbackAPIKey,
 		AuthenticationCallbackAPISecret:             authenticationCallbackAPISecret,
@@ -1785,6 +2125,7 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		UnauthorizedOnClientConfigSupported:         unauthorizedOnClientConfigSupported,
 		DcrScopeUsedAsRequestable:                   dcrScopeUsedAsRequestable,
 		EndSessionEndpoint:                          endSessionEndpoint,
+		ChallengeEndpoint:                           challengeEndpoint,
 		LoopbackRedirectionURIVariable:              loopbackRedirectionURIVariable,
 		RequestObjectAudienceChecked:                requestObjectAudienceChecked,
 		AccessTokenForExternalAttachmentEmbedded:    accessTokenForExternalAttachmentEmbedded,
@@ -1817,6 +2158,7 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		DcrDuplicateSoftwareIDBlocked:               dcrDuplicateSoftwareIDBlocked,
 		TrustAnchors:                                trustAnchors,
 		OpenidDroppedOnRefreshWithoutOfflineAccess:  openidDroppedOnRefreshWithoutOfflineAccess,
+		IDTokenDroppedOnIssueWithoutOpenid:          idTokenDroppedOnIssueWithoutOpenid,
 		SupportedDocumentsCheckMethods:              supportedDocumentsCheckMethods,
 		RsResponseSigned:                            rsResponseSigned,
 		CnonceDuration:                              cnonceDuration,
@@ -1857,6 +2199,7 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		KeyAttesterRoots:                            keyAttesterRoots,
 		BackchannelLogoutSupported:                  backchannelLogoutSupported,
 		BackchannelLogoutSessionSupported:           backchannelLogoutSessionSupported,
+		HaipVersion:                                 haipVersion,
 	}
 
 	return &out, diags

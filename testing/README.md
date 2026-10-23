@@ -21,6 +21,9 @@ in effect" warning on every command; that is expected.
 ./run.sh import      # create a service, import it, assert the plan is clean
 ./run.sh regress     # apply the regression cases, assert the second plan is empty
 ./run.sh negative    # assert the things that must be refused still are — no token needed
+./run.sh reorder     # reordering a list already in state must plan nothing
+./run.sh gone        # only a real deletion may drop a resource from state
+./run.sh statekeys   # keys read back from Authlete must never be rejected
 ./run.sh show        # dump current state
 ```
 
@@ -88,6 +91,48 @@ a token; everything else runs offline.
 | 15 | globals had no description | `provider_contract_test.go` |
 | 20 | no token gave a bare 401 per resource | `negative/no-token` |
 
+## Keys
+
+`main.tf` carries four keys on the service, so an apply exercises every input
+`jwk_from_pem` and `jwk_from_secret` accept, not just a plain RSA key:
+
+| key | what it covers |
+|---|---|
+| `tftest-service-key` | a plain RSA signing key |
+| `tftest-service-cert-key` | a key with its certificate, so `x5c`, `x5t` and `x5t#S256` are produced |
+| `tftest-service-hmac` | a shared secret through `jwk_from_secret` |
+| `tftest-service-x25519` | an X25519 key for `ECDH-ES` |
+
+The X25519 key comes from `openssl genpkey -algorithm X25519`, which `run.sh`
+runs before a plan or apply. `hashicorp/tls` cannot generate one, and the
+openssl macOS ships is LibreSSL, which has no X25519 either. When it cannot be
+generated the run says so and carries three keys instead of four, rather than
+failing.
+
+Measured after an apply, which is what the guides promise:
+
+```
+  tftest-service-key        kty=RSA  alg=RS256    x5c=no   x5t=no
+  tftest-service-cert-key   kty=RSA  alg=RS256    x5c=yes  x5t=yes
+  tftest-service-hmac       kty=oct  alg=HS256    x5c=no   x5t=no
+  tftest-service-x25519     kty=OKP  alg=ECDH-ES  x5c=no   x5t=no
+
+  served: tftest-service-key, tftest-service-cert-key, tftest-service-x25519
+```
+
+The symmetric key is stored and deliberately not served, which is the behaviour
+the documentation describes.
+
+The five key refusals live under `negative/`, and need no token:
+
+| case | what it refuses |
+|---|---|
+| `key-alg-mismatch` | an algorithm the key cannot perform, `HS256` on RSA |
+| `misspelled-kty` | `kty = "rsa"`, which Authlete accepts and silently drops |
+| `client-private-key` | a private key in a client's set, which Authlete strips |
+| `duplicate-kid` | two keys sharing a `kid` |
+| `short-secret` | a shared secret too short for `HS256` |
+
 Not guarded here, and why:
 
 | # | Problem | Why not |
@@ -129,9 +174,9 @@ The offline equivalents, which need no credentials, are
 `scripts/patch-empty-lists.sh --check`, `scripts/fill-keep-order-stubs.py --check`
 and the tests in `internal/provider/`.
 
-`supported_scopes` is deliberately absent. It is a documented limitation rather
-than a fixed bug, so including it would fail the no-drift assertion for a known
-reason and hide everything else. See `docs/guides/known-limitations.md`.
+`supported_scopes` and the client's `extension.requestable_scopes` are covered
+by `./run.sh reorder`. That test also changes their order after creation and
+imports both resources, so it catches failures an initial apply alone misses.
 
 ## Configuration
 
@@ -254,3 +299,73 @@ build rather than shipping a provider that ignores both settings.
 
 This directory is hand-written and is not tracked in `.speakeasy/gen.lock`, so
 `speakeasy run` leaves it alone. Nothing here is generated; edit it freely.
+
+## Plans that must settle, and resources that must not vanish
+
+Two modes cover the fixes that are only visible on the *second* plan, which
+is why they were missed for so long.
+
+`./run.sh reorder` applies a service and client with deliberately scrambled
+scopes, authentication methods, grants, backchannel delivery modes and
+compatible FAPI message-signing modes. It rewrites the same lists in a
+different order and asserts the plan is empty, then re-imports both resources
+and asserts another clean plan. The client also has a public JWK Set, so
+server-side JSON formatting after import is covered. Before the fix this planned a
+change for ever: the lists showed no diff, but around 180 computed attributes
+went to "known after apply", the apply sent nothing the server treated as a
+change, and the next plan said the same again. Every import hit it, because
+imported state holds Authlete's order.
+
+`./run.sh gone` covers the opposite failure, where Terraform decides a
+resource has been deleted and recreates it, leaving the original running
+unmanaged. It asserts three things against a real service:
+
+| case | must |
+|---|---|
+| a 404 with an unrelated body, from a mock | be refused, not treated as a deletion |
+| the service missing from a different host | be refused, naming both hosts |
+| the service genuinely deleted out of band | still plan for recreation |
+
+The third matters as much as the other two. Making the provider stricter is
+easy; keeping a real deletion recoverable while doing it is the part that
+breaks.
+
+Both modes were checked against the commit before each fix, where they fail:
+
+```
+reorder   Plan: 0 to add, 1 to change    183 attributes going unknown
+gone      Plan: 1 to add                 a 404 treated as a deletion
+```
+
+They need a token and create one real service each, removing it on exit.
+
+## Keys that arrive from the server, not from your configuration
+
+`./run.sh statekeys` covers the other direction: a check that is right about
+configuration and wrong about everything else.
+
+The key checks used to live on the custom type, and the framework calls that
+on every read of the value, state included. So they also judged key sets
+Authlete had handed back, which Terraform never wrote and cannot fix.
+
+| case | why it is legal |
+|---|---|
+| a client key with no `kid` | RFC 7517 makes `kid` optional |
+| a signing and an encryption key sharing a `kid` | they are told apart by `use` |
+| a client carrying `jwks = ""` | v1.3.17 stored that for every client |
+
+The first two are created through the API on purpose, because the provider
+refuses to *write* them and that refusal is correct. The point is that it
+must still *read* them. The third is what a 1.3.17 state upgrade leaves
+behind: `_ = d.Set("jwks", nil)` in its `client.go`.
+
+Against the commit before the fix, the same run gives:
+
+```
+Error: Key without a kid
+Error: Duplicate kid "k"
+Error: JWK Set is not a JSON object
+```
+
+which is every plan broken for anyone upgrading, and for any client
+registered through DCR.

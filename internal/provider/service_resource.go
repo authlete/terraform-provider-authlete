@@ -15,6 +15,7 @@ import (
 	stateupgraders "github.com/authlete/terraform-provider-authlete/v3/internal/stateupgraders"
 	custom_listvalidators "github.com/authlete/terraform-provider-authlete/v3/internal/validators/listvalidators"
 	speakeasy_objectvalidators "github.com/authlete/terraform-provider-authlete/v3/internal/validators/objectvalidators"
+	custom_stringvalidators "github.com/authlete/terraform-provider-authlete/v3/internal/validators/stringvalidators"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -66,6 +67,7 @@ type ServiceResourceModel struct {
 	BackchannelLogoutSupported                  types.Bool                        `tfsdk:"backchannel_logout_supported"`
 	BackchannelPollingInterval                  types.Int32                       `tfsdk:"backchannel_polling_interval"`
 	BackchannelUserCodeParameterSupported       types.Bool                        `tfsdk:"backchannel_user_code_parameter_supported"`
+	ChallengeEndpoint                           types.String                      `tfsdk:"challenge_endpoint"`
 	CimdAllowlist                               []types.String                    `tfsdk:"cimd_allowlist"`
 	CimdAllowlistEnabled                        types.Bool                        `tfsdk:"cimd_allowlist_enabled"`
 	CimdAlwaysRetrieved                         types.Bool                        `tfsdk:"cimd_always_retrieved"`
@@ -95,6 +97,7 @@ type ServiceResourceModel struct {
 	DeveloperAuthenticationCallbackAPIKey       types.String                      `tfsdk:"developer_authentication_callback_api_key"`
 	DeveloperAuthenticationCallbackAPISecret    types.String                      `tfsdk:"developer_authentication_callback_api_secret"`
 	DeveloperAuthenticationCallbackEndpoint     types.String                      `tfsdk:"developer_authentication_callback_endpoint"`
+	DeveloperSnsCredentials                     []tfTypes.SnsCredentials          `tfsdk:"developer_sns_credentials"`
 	DeviceAuthorizationEndpoint                 types.String                      `tfsdk:"device_authorization_endpoint"`
 	DeviceFlowCodeDuration                      types.Int32                       `tfsdk:"device_flow_code_duration"`
 	DeviceFlowPollingInterval                   types.Int32                       `tfsdk:"device_flow_polling_interval"`
@@ -121,10 +124,12 @@ type ServiceResourceModel struct {
 	FrontChannelRequestObjectEncryptionRequired types.Bool                        `tfsdk:"front_channel_request_object_encryption_required"`
 	GrantManagementActionRequired               types.Bool                        `tfsdk:"grant_management_action_required"`
 	GrantManagementEndpoint                     types.String                      `tfsdk:"grant_management_endpoint"`
+	HaipVersion                                 types.String                      `tfsdk:"haip_version"`
 	Hsks                                        []tfTypes.Hsk                     `tfsdk:"hsks"`
 	HsmEnabled                                  types.Bool                        `tfsdk:"hsm_enabled"`
 	HTTPAliasProhibited                         types.Bool                        `tfsdk:"http_alias_prohibited"`
 	IDTokenAudType                              types.String                      `tfsdk:"id_token_aud_type"`
+	IDTokenDroppedOnIssueWithoutOpenid          types.Bool                        `tfsdk:"id_token_dropped_on_issue_without_openid"`
 	IDTokenDuration                             types.Int64                       `tfsdk:"id_token_duration"`
 	IDTokenReissuable                           types.Bool                        `tfsdk:"id_token_reissuable"`
 	IDTokenSignatureKeyID                       types.String                      `tfsdk:"id_token_signature_key_id"`
@@ -191,6 +196,7 @@ type ServiceResourceModel struct {
 	SupportedClaimTypes                         []types.String                    `tfsdk:"supported_claim_types"`
 	SupportedClientRegistrationTypes            []types.String                    `tfsdk:"supported_client_registration_types"`
 	SupportedCustomClientMetadata               []types.String                    `tfsdk:"supported_custom_client_metadata"`
+	SupportedDeveloperSnses                     []types.String                    `tfsdk:"supported_developer_snses"`
 	SupportedDigestAlgorithms                   []types.String                    `tfsdk:"supported_digest_algorithms"`
 	SupportedDisplays                           []types.String                    `tfsdk:"supported_displays"`
 	SupportedDocuments                          []types.String                    `tfsdk:"supported_documents"`
@@ -247,23 +253,19 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 		Version:             1,
 		Attributes: map[string]schema.Attribute{
 			"access_token_duration": schema.Int64Attribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The duration of access tokens in seconds. This value is used as the value of ` + "`" + `expires_in` + "`" + ` property` + "\n" +
-					`in access token responses. ` + "`" + `expires_in` + "`" + ` is defined [RFC 6749, 5.1. Successful Response](https://tools.ietf.org/html/rfc6749#section-5.1).`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The duration of access tokens in seconds. This value is used as the value of ` + "`" + `expires_in` + "`" + ` property in access token responses. ` + "`" + `expires_in` + "`" + ` is defined [RFC 6749, 5.1. Successful Response](https://tools.ietf.org/html/rfc6749#section-5.1).`,
 			},
 			"access_token_for_external_attachment_embedded": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether Authlete generates access tokens for` + "\n" +
-					`external attachments and embeds them in ID tokens and userinfo` + "\n" +
-					`responses.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether Authlete generates access tokens for external attachments and embeds them in ID tokens and userinfo responses.`,
 			},
 			"access_token_sign_alg": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
-				MarkdownDescription: `The signature algorithm for JWT. This value is represented on 'alg' attribute` + "\n" +
-					`of the header of JWT.` + "\n" +
+				MarkdownDescription: `The signature algorithm for JWT. This value is represented on 'alg' attribute of the header of JWT.` + "\n" +
 					`` + "\n" +
 					`it's semantics depends upon where is this defined, for instance:` + "\n" +
 					`  - as service accessTokenSignAlg value, it defines that access token are JWT and the algorithm used to sign it. Check your [KB article](https://kb.authlete.com/en/s/oauth-and-openid-connect/a/jwt-based-access-token).` + "\n" +
@@ -295,21 +297,14 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional: true,
 				MarkdownDescription: `The key ID to identify a JWK used for signing access tokens.` + "\n" +
 					`` + "\n" +
-					`A JWK Set can be registered as a property of a service. A JWK Set can contain 0 or more JWKs.` + "\n" +
-					`Authlete Server has to pick up one JWK for signing from the JWK Set when it generates a JWT-based` + "\n" +
-					`access token. Authlete Server searches the registered JWK Set for a JWK which satisfies conditions` + "\n" +
-					`for access token signature. If the number of JWK candidates which satisfy the conditions is 1,` + "\n" +
-					`there is no problem. On the other hand, if there exist multiple candidates, a Key ID is needed` + "\n" +
-					`to be specified so that Authlete Server can pick up one JWK from among the JWK candidates.`,
+					`A JWK Set can be registered as a property of a service. A JWK Set can contain 0 or more JWKs. Authlete Server has to pick up one JWK for signing from the JWK Set when it generates a JWT-based access token. Authlete Server searches the registered JWK Set for a JWK which satisfies conditions for access token signature. If the number of JWK candidates which satisfy the conditions is 1, there is no problem. On the other hand, if there exist multiple candidates, a Key ID is needed to be specified so that Authlete Server can pick up one JWK from among the JWK candidates.`,
 			},
 			"access_token_type": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
 				MarkdownDescription: `The access token type.` + "\n" +
 					`` + "\n" +
-					`This value is used as the value of ` + "`" + `token_type` + "`" + ` property in access token responses. If this service` + "\n" +
-					`complies with [RFC 6750](https://tools.ietf.org/html/rfc6750), the value of this property should` + "\n" +
-					`be ` + "`" + `Bearer` + "`" + `.` + "\n" +
+					`This value is used as the value of ` + "`" + `token_type` + "`" + ` property in access token responses. If this service complies with [RFC 6750](https://tools.ietf.org/html/rfc6750), the value of this property should be ` + "`" + `Bearer` + "`" + `.` + "\n" +
 					`` + "\n" +
 					`See [RFC 6749 (OAuth 2.0), 7.1. Access Token Types](https://tools.ietf.org/html/rfc6749#section-7.1) for details.`,
 			},
@@ -328,10 +323,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `The service ID used in Authlete API calls. The value of this property is assigned by Authlete.`,
 			},
 			"attestation_challenge_time_window": schema.Int64Attribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The time window of attestation challenges in seconds. This is used for` + "\n" +
-					`OAuth 2.0 Attestation-Based Client Authentication.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The time window of attestation challenges in seconds. This is used for OAuth 2.0 Attestation-Based Client Authentication.`,
 			},
 			"attributes": schema.ListNestedAttribute{
 				Computed: true,
@@ -360,8 +354,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional: true,
 				MarkdownDescription: `API key for basic authentication at the authentication callback endpoint.` + "\n" +
 					`` + "\n" +
-					`If the value is not empty, Authlete generates Authorization header for Basic authentication when` + "\n" +
-					`making a request to the authentication callback endpoint.`,
+					`If the value is not empty, Authlete generates Authorization header for Basic authentication when making a request to the authentication callback endpoint.`,
 			},
 			"authentication_callback_api_secret": schema.StringAttribute{
 				Computed:    true,
@@ -374,20 +367,15 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional: true,
 				MarkdownDescription: `A Web API endpoint for user authentication which is to be prepared on the service side.` + "\n" +
 					`` + "\n" +
-					`The endpoint must be implemented if you do not implement the UI at the authorization endpoint` + "\n" +
-					`but use the one provided by Authlete.` + "\n" +
+					`The endpoint must be implemented if you do not implement the UI at the authorization endpoint but use the one provided by Authlete.` + "\n" +
 					`` + "\n" +
-					`The user authentication at the authorization endpoint provided by Authlete is performed by making` + "\n" +
-					`a ` + "`" + `POST` + "`" + ` request to this endpoint.`,
+					`The user authentication at the authorization endpoint provided by Authlete is performed by making a ` + "`" + `POST` + "`" + ` request to this endpoint.`,
 			},
 			"authority_hints": schema.ListAttribute{
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `Identifiers of entities that can issue entity statements for this` + "\n" +
-					`service. This property corresponds to the ` + "`" + `authority_hints` + "`" + `` + "\n" +
-					`property that appears in a self-signed entity statement that is` + "\n" +
-					`defined in OpenID Connect Federation 1.0.`,
+				Description: `Identifiers of entities that can issue entity statements for this service. This property corresponds to the ` + "`" + `authority_hints` + "`" + ` property that appears in a self-signed entity statement that is defined in OpenID Connect Federation 1.0.`,
 			},
 			"authorization_code_duration": schema.Int64Attribute{
 				Computed:    true,
@@ -401,19 +389,14 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`` + "\n" +
 					`A URL that starts with ` + "`" + `https://` + "`" + ` and has no fragment component. For example, ` + "`" + `https://example.com/auth/authorization` + "`" + `.` + "\n" +
 					`` + "\n" +
-					`The value of this property is used as ` + "`" + `authorization_endpoint` + "`" + ` property in the [OpenID Provider` + "\n" +
-					`Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+					`The value of this property is used as ` + "`" + `authorization_endpoint` + "`" + ` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"authorization_response_duration": schema.Int64Attribute{
 				Computed: true,
 				Optional: true,
 				MarkdownDescription: `The duration of authorization response JWTs in seconds.` + "\n" +
 					`` + "\n" +
-					`[Financial-grade API: JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)](https://openid.net/specs/openid-financial-api-jarm.html)` + "\n" +
-					`defines new values for the ` + "`" + `response_mode` + "`" + ` request parameter. They are ` + "`" + `query.jwt` + "`" + `, ` + "`" + `fragment.jwt` + "`" + `,` + "\n" +
-					`` + "`" + `form_post.jwt` + "`" + ` and ` + "`" + `jwt` + "`" + `. If one of them is specified as the response mode, response parameters` + "\n" +
-					`from the authorization endpoint will be packed into a JWT. This property is used to compute the` + "\n" +
-					`value of the ` + "`" + `exp` + "`" + ` claim of the JWT.`,
+					`[Financial-grade API: JWT Secured Authorization Response Mode for OAuth 2.0 (JARM)](https://openid.net/specs/openid-financial-api-jarm.html) defines new values for the ` + "`" + `response_mode` + "`" + ` request parameter. They are ` + "`" + `query.jwt` + "`" + `, ` + "`" + `fragment.jwt` + "`" + `, ` + "`" + `form_post.jwt` + "`" + ` and ` + "`" + `jwt` + "`" + `. If one of them is specified as the response mode, response parameters from the authorization endpoint will be packed into a JWT. This property is used to compute the value of the ` + "`" + `exp` + "`" + ` claim of the JWT.`,
 			},
 			"authorization_signature_key_id": schema.StringAttribute{
 				Computed:    true,
@@ -421,136 +404,115 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `The key ID to identify a JWK used for signing authorization responses using an asymmetric key.`,
 			},
 			"backchannel_auth_req_id_duration": schema.Int32Attribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The duration of backchannel authentication request IDs issued from the backchannel authentication` + "\n" +
-					`endpoint in seconds. This is used as the value of the ` + "`" + `expires_in` + "`" + ` property in responses from` + "\n" +
-					`the backchannel authentication endpoint.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The duration of backchannel authentication request IDs issued from the backchannel authentication endpoint in seconds. This is used as the value of the ` + "`" + `expires_in` + "`" + ` property in responses from the backchannel authentication endpoint.`,
 			},
 			"backchannel_authentication_endpoint": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The URI of backchannel authentication endpoint, which is defined in the specification of [CIBA` + "\n" +
-					`(Client Initiated Backchannel Authentication)](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html).`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The URI of backchannel authentication endpoint, which is defined in the specification of [CIBA (Client Initiated Backchannel Authentication)](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html).`,
 			},
 			"backchannel_binding_message_required_in_fapi": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag to indicate whether the ` + "`" + `binding_message` + "`" + ` request parameter is always required whenever` + "\n" +
-					`a backchannel authentication request is judged as a request for Financial-grade API.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag to indicate whether the ` + "`" + `binding_message` + "`" + ` request parameter is always required whenever a backchannel authentication request is judged as a request for Financial-grade API.`,
 			},
 			"backchannel_logout_session_supported": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether this service includes a ` + "`" + `sid` + "`" + ` (session ID)` + "\n" +
-					`claim in ID tokens, supporting per-session backchannel logout.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether this service includes a ` + "`" + `sid` + "`" + ` (session ID) claim in ID tokens, supporting per-session backchannel logout.`,
 			},
 			"backchannel_logout_supported": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether this service supports OpenID Connect` + "\n" +
-					`Back-Channel Logout 1.0.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether this service supports OpenID Connect Back-Channel Logout 1.0.`,
 			},
 			"backchannel_polling_interval": schema.Int32Attribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The minimum interval between polling requests to the token endpoint from client applications in` + "\n" +
-					`seconds. This is used as the value of the ` + "`" + `interval` + "`" + ` property in responses from the backchannel` + "\n" +
-					`authentication endpoint.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The minimum interval between polling requests to the token endpoint from client applications in seconds. This is used as the value of the ` + "`" + `interval` + "`" + ` property in responses from the backchannel authentication endpoint.`,
 			},
 			"backchannel_user_code_parameter_supported": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The boolean flag which indicates whether the ` + "`" + `user_code` + "`" + ` request parameter is supported at the` + "\n" +
-					`backchannel authentication endpoint. This property corresponds to the ` + "`" + `backchannel_user_code_parameter_supported` + "`" + `` + "\n" +
-					`metadata.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The boolean flag which indicates whether the ` + "`" + `user_code` + "`" + ` request parameter is supported at the backchannel authentication endpoint. This property corresponds to the ` + "`" + `backchannel_user_code_parameter_supported` + "`" + ` metadata.`,
+			},
+			"challenge_endpoint": schema.StringAttribute{
+				Computed:    true,
+				Optional:    true,
+				Description: `The URL of the challenge endpoint, which is defined in OAuth 2.0 Attestation-Based Client Authentication.`,
 			},
 			"cimd_allowlist": schema.ListAttribute{
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `The allowlist of CIMD endpoints (hosts/URIs) that may be used when` + "\n" +
-					`retrieving client metadata via Client ID Metadata Documents.`,
+				Description: `The allowlist of CIMD endpoints (hosts/URIs) that may be used when retrieving client metadata via Client ID Metadata Documents.`,
 			},
 			"cimd_allowlist_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `Enables the allowlist for CIMD. When ` + "`" + `true` + "`" + `, only CIMD endpoints that are` + "\n" +
-					`on the allowlist are used.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `Enables the allowlist for CIMD. When ` + "`" + `true` + "`" + `, only CIMD endpoints that are on the allowlist are used.`,
 			},
 			"cimd_always_retrieved": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `If ` + "`" + `true` + "`" + `, CIMD retrieval is always attempted for clients, regardless of` + "\n" +
-					`other conditions.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `If ` + "`" + `true` + "`" + `, CIMD retrieval is always attempted for clients, regardless of other conditions.`,
 			},
 			"cimd_http_permitted": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `Allows CIMD retrieval over plain HTTP. When ` + "`" + `false` + "`" + `, only HTTPS CIMD` + "\n" +
-					`endpoints are allowed.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `Allows CIMD retrieval over plain HTTP. When ` + "`" + `false` + "`" + `, only HTTPS CIMD endpoints are allowed.`,
 			},
 			"cimd_metadata_policy": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The metadata policy applied to client metadata obtained through the CIMD` + "\n" +
-					`mechanism. The value must follow the metadata policy grammar defined in` + "\n" +
-					`[OpenID Federation 1.0 §6.1 Metadata Policy](https://openid.net/specs/openid-federation-1_0.html#name-metadata-policy).`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The metadata policy applied to client metadata obtained through the CIMD mechanism. The value must follow the metadata policy grammar defined in [OpenID Federation 1.0 §6.1 Metadata Policy](https://openid.net/specs/openid-federation-1_0.html#name-metadata-policy).`,
 			},
 			"cimd_metadata_policy_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `Flag that controls whether the CIMD metadata policy is applied to client` + "\n" +
-					`metadata obtained through the Client ID Metadata Document (CIMD)` + "\n" +
-					`mechanism.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `Flag that controls whether the CIMD metadata policy is applied to client metadata obtained through the Client ID Metadata Document (CIMD) mechanism.`,
 			},
 			"cimd_query_permitted": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `Allows the use of query parameters when retrieving CIMD metadata. When` + "\n" +
-					`` + "`" + `false` + "`" + `, query parameters are disallowed for CIMD requests.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `Allows the use of query parameters when retrieving CIMD metadata. When ` + "`" + `false` + "`" + `, query parameters are disallowed for CIMD requests.`,
 			},
 			"claim_shortcut_restrictive": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether claims specified by shortcut scopes (e.g. ` + "`" + `profile` + "`" + `) are included` + "\n" +
-					`in the issued ID token only when no access token is issued.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether claims specified by shortcut scopes (e.g. ` + "`" + `profile` + "`" + `) are included in the issued ID token only when no access token is issued.`,
 			},
 			"client_assertion_aud_restricted_to_issuer": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether the audience of client assertion JWTs must ` + "\n" +
-					`match the issuer identifier of this service.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether the audience of client assertion JWTs must match the issuer identifier of this service.`,
 			},
 			"client_attester_roots": schema.ListAttribute{
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `The trusted root certificates (PEM-encoded X.509) for validating the` + "\n" +
-					`x5c chain in Client Attestation JWTs.`,
+				Description: `The trusted root certificates (PEM-encoded X.509) for validating the x5c chain in Client Attestation JWTs.`,
 			},
 			"client_attester_roots_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether the attester roots for Client Attestation JWT` + "\n" +
-					`x5c chain validation are enabled.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether the attester roots for Client Attestation JWT x5c chain validation are enabled.`,
 			},
 			"client_attester_roots_only": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether only client authentication validated via` + "\n" +
-					`attester roots is accepted.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether only client authentication validated via attester roots is accepted.`,
 			},
 			"client_id_alias_enabled": schema.BoolAttribute{
 				Computed:    true,
 				Description: `Deprecated. Always ` + "`" + `true` + "`" + `.`,
 			},
 			"client_id_metadata_document_supported": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `Indicates whether the Client ID Metadata Document (CIMD) mechanism is` + "\n" +
-					`supported. When ` + "`" + `true` + "`" + `, the service will attempt to retrieve client` + "\n" +
-					`metadata via CIMD where applicable.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `Indicates whether the Client ID Metadata Document (CIMD) mechanism is supported. When ` + "`" + `true` + "`" + `, the service will attempt to retrieve client metadata via CIMD where applicable.`,
 			},
 			"clients_per_developer": schema.Int32Attribute{
 				Computed:    true,
@@ -567,8 +529,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				PlanModifiers: []planmodifier.Int64{
 					custom_int64planmodifier.UseStateForUnknown(),
 				},
-				MarkdownDescription: `The time at which this service was created. The value is represented as milliseconds since the` + "\n" +
-					`UNIX epoch (` + "`" + `1970-01-01` + "`" + `).`,
+				Description: `The time at which this service was created. The value is represented as milliseconds since the UNIX epoch (` + "`" + `1970-01-01` + "`" + `).`,
 			},
 			"credential_duration": schema.Int64Attribute{
 				Computed:    true,
@@ -583,9 +544,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 						Computed:    true,
 						Optional:    true,
 						ElementType: types.StringType,
-						MarkdownDescription: `The identifiers of the authorization servers that the credential issuer relies on for authorization.` + "\n" +
-							`This property corresponds to the authorization_servers metadata. When the credential issuer works` + "\n" +
-							`as an authorization server for itself, this property should be omitted.`,
+						Description: `The identifiers of the authorization servers that the credential issuer relies on for authorization. This property corresponds to the authorization_servers metadata. When the credential issuer works as an authorization server for itself, this property should be omitted.`,
 					},
 					"batch_credential_endpoint": schema.StringAttribute{
 						Computed:    true,
@@ -593,12 +552,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 						Description: `The URL of the batch credential endpoint of the credential issuer.`,
 					},
 					"batch_size": schema.Int64Attribute{
-						Computed: true,
-						Optional: true,
-						MarkdownDescription: `The maximum array size for the ` + "`" + `proofs` + "`" + ` parameter in a credential request. This property` + "\n" +
-							`corresponds to the ` + "`" + `batch_credential_issuance.batch_size` + "`" + ` metadata. If the value of this` + "\n" +
-							`property is 2 or greater, the ` + "`" + `batch_credential_issuance` + "`" + ` parameter will appear in the` + "\n" +
-							`response from the credential issuer metadata endpoint.`,
+						Computed:    true,
+						Optional:    true,
+						Description: `The maximum array size for the ` + "`" + `proofs` + "`" + ` parameter in a credential request. This property corresponds to the ` + "`" + `batch_credential_issuance.batch_size` + "`" + ` metadata. If the value of this property is 2 or greater, the ` + "`" + `batch_credential_issuance` + "`" + ` parameter will appear in the response from the credential issuer metadata endpoint.`,
 					},
 					"credential_endpoint": schema.StringAttribute{
 						Computed:    true,
@@ -614,29 +570,24 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 						Computed:    true,
 						Optional:    true,
 						ElementType: types.StringType,
-						MarkdownDescription: `The supported JWE ` + "`" + `alg` + "`" + ` algorithms for credential response encryption. This property corresponds` + "\n" +
-							`to the ` + "`" + `credential_response_encryption.alg_values_supported` + "`" + ` metadata.`,
+						Description: `The supported JWE ` + "`" + `alg` + "`" + ` algorithms for credential response encryption. This property corresponds to the ` + "`" + `credential_response_encryption.alg_values_supported` + "`" + ` metadata.`,
 					},
 					"credential_response_encryption_enc_values_supported": schema.ListAttribute{
 						Computed:    true,
 						Optional:    true,
 						ElementType: types.StringType,
-						MarkdownDescription: `The supported JWE ` + "`" + `enc` + "`" + ` algorithms for credential response encryption. This property corresponds` + "\n" +
-							`to the ` + "`" + `credential_response_encryption.enc_values_supported` + "`" + ` metadata.`,
+						Description: `The supported JWE ` + "`" + `enc` + "`" + ` algorithms for credential response encryption. This property corresponds to the ` + "`" + `credential_response_encryption.enc_values_supported` + "`" + ` metadata.`,
 					},
 					"credential_response_encryption_zip_values_supported": schema.ListAttribute{
 						Computed:    true,
 						Optional:    true,
 						ElementType: types.StringType,
-						MarkdownDescription: `The supported JWE ` + "`" + `zip` + "`" + ` (compression) algorithms for credential response encryption. This` + "\n" +
-							`property corresponds to the ` + "`" + `credential_response_encryption.zip_values_supported` + "`" + ` metadata.`,
+						Description: `The supported JWE ` + "`" + `zip` + "`" + ` (compression) algorithms for credential response encryption. This property corresponds to the ` + "`" + `credential_response_encryption.zip_values_supported` + "`" + ` metadata.`,
 					},
 					"credentials_supported": schema.StringAttribute{
-						Computed: true,
-						Optional: true,
-						MarkdownDescription: `A JSON object describing supported credential configurations.` + "\n" +
-							`This property corresponds to the credential_configurations_supported metadata.` + "\n" +
-							`Note: Due to a breaking change in December 2023, this was changed from a JSON array to a JSON object.`,
+						Computed:    true,
+						Optional:    true,
+						Description: `A JSON object describing supported credential configurations. This property corresponds to the credential_configurations_supported metadata. Note: Due to a breaking change in December 2023, this was changed from a JSON array to a JSON object.`,
 					},
 					"deferred_credential_endpoint": schema.StringAttribute{
 						Computed:    true,
@@ -644,34 +595,27 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 						Description: `The URL of the deferred credential endpoint of the credential issuer.`,
 					},
 					"require_credential_request_encryption": schema.BoolAttribute{
-						Computed: true,
-						Optional: true,
-						MarkdownDescription: `The boolean flag indicating whether credential request encryption is required. This property` + "\n" +
-							`corresponds to the ` + "`" + `credential_request_encryption.encryption_required` + "`" + ` metadata. If this flag` + "\n" +
-							`is ` + "`" + `true` + "`" + `, every credential request to the credential issuer must be encrypted.`,
+						Computed:    true,
+						Optional:    true,
+						Description: `The boolean flag indicating whether credential request encryption is required. This property corresponds to the ` + "`" + `credential_request_encryption.encryption_required` + "`" + ` metadata. If this flag is ` + "`" + `true` + "`" + `, every credential request to the credential issuer must be encrypted.`,
 					},
 					"require_credential_response_encryption": schema.BoolAttribute{
-						Computed: true,
-						Optional: true,
-						MarkdownDescription: `The boolean flag indicating whether credential response encryption is required. This property` + "\n" +
-							`corresponds to the ` + "`" + `credential_response_encryption.encryption_required metadata` + "`" + `. If this flag` + "\n" +
-							`is ` + "`" + `true` + "`" + `, every credential request to the credential issuer must include the ` + "`" + `credential_response_encryption` + "`" + `` + "\n" +
-							`property.`,
+						Computed:    true,
+						Optional:    true,
+						Description: `The boolean flag indicating whether credential response encryption is required. This property corresponds to the ` + "`" + `credential_response_encryption.encryption_required metadata` + "`" + `. If this flag is ` + "`" + `true` + "`" + `, every credential request to the credential issuer must include the ` + "`" + `credential_response_encryption` + "`" + ` property.`,
 					},
 				},
 			},
 			"credential_jwks": schema.StringAttribute{
-				Computed:  true,
-				Optional:  true,
-				Sensitive: true,
-				MarkdownDescription: `The JWK Set document containing private keys that are used to sign` + "\n" +
-					`verifiable credentials.`,
+				Computed:    true,
+				Optional:    true,
+				Sensitive:   true,
+				Description: `The JWK Set document containing private keys that are used to sign verifiable credentials.`,
 			},
 			"credential_jwks_uri": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The URL at which the JWK Set document of the credential issuer is` + "\n" +
-					`exposed.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The URL at which the JWK Set document of the credential issuer is exposed.`,
 			},
 			"credential_offer_duration": schema.Int64Attribute{
 				Computed:    true,
@@ -679,26 +623,21 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `The default duration of credential offers in seconds.`,
 			},
 			"credential_transaction_duration": schema.Int64Attribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The duration of transaction ID in seconds that may be issued as a` + "\n" +
-					`result of a credential request or a batch credential request.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The duration of transaction ID in seconds that may be issued as a result of a credential request or a batch credential request.`,
 			},
 			"dcr_duplicate_software_id_blocked": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether to block DCR (Dynamic Client Registration)` + "\n" +
-					`requests whose "software_id" has already been used previously.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether to block DCR (Dynamic Client Registration) requests whose "software_id" has already been used previously.`,
 			},
 			"dcr_scope_used_as_requestable": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
-				MarkdownDescription: `The flag indicating whether the ` + "`" + `scope` + "`" + ` request parameter in dynamic client registration and` + "\n" +
-					`update requests (RFC 7591 and RFC 7592) is used as scopes that the client can request.` + "\n" +
+				MarkdownDescription: `The flag indicating whether the ` + "`" + `scope` + "`" + ` request parameter in dynamic client registration and update requests (RFC 7591 and RFC 7592) is used as scopes that the client can request.` + "\n" +
 					`` + "\n" +
-					`Limiting the range of scopes that a client can request is achieved by listing scopes in the` + "\n" +
-					`` + "`" + `client.extension.requestableScopes` + "`" + ` property and setting the ` + "`" + `client.extension.requestableScopesEnabled` + "`" + `` + "\n" +
-					`property to ` + "`" + `true` + "`" + `. This feature is called "requestable scopes".` + "\n" +
+					`Limiting the range of scopes that a client can request is achieved by listing scopes in the ` + "`" + `client.extension.requestableScopes` + "`" + ` property and setting the ` + "`" + `client.extension.requestableScopesEnabled` + "`" + ` property to ` + "`" + `true` + "`" + `. This feature is called "requestable scopes".` + "\n" +
 					`` + "\n" +
 					`This property affects behaviors of ` + "`" + `/api/client/registration` + "`" + ` and other family APIs.`,
 			},
@@ -708,20 +647,45 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `The description about the service.`,
 			},
 			"developer_authentication_callback_api_key": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The API key for basic authentication at the developer authentication ` + "\n" +
-					`callback endpoint.`,
+				Computed:    true,
+				Description: `The API key for basic authentication at the developer authentication callback endpoint.`,
 			},
 			"developer_authentication_callback_api_secret": schema.StringAttribute{
-				Computed:  true,
-				Sensitive: true,
-				MarkdownDescription: `The API secret for basic authentication at the developer authentication ` + "\n" +
-					`callback endpoint.`,
+				Computed:    true,
+				Sensitive:   true,
+				Description: `The API secret for basic authentication at the developer authentication callback endpoint.`,
 			},
 			"developer_authentication_callback_endpoint": schema.StringAttribute{
+				Computed:    true,
+				Description: `The endpoint for developer authentication callbacks. This is used when developers log into the developer portal.`,
+			},
+			"developer_sns_credentials": schema.ListNestedAttribute{
 				Computed: true,
-				MarkdownDescription: `The endpoint for developer authentication callbacks. This is used when ` + "\n" +
-					`developers log into the developer portal.`,
+				Optional: true,
+				NestedObject: schema.NestedAttributeObject{
+					Validators: []validator.Object{
+						speakeasy_objectvalidators.NotNull(),
+					},
+					Attributes: map[string]schema.Attribute{
+						"api_key": schema.StringAttribute{
+							Computed:    true,
+							Optional:    true,
+							Description: `API key.`,
+						},
+						"api_secret": schema.StringAttribute{
+							Computed:    true,
+							Optional:    true,
+							Sensitive:   true,
+							Description: `API secret.`,
+						},
+						"sns": schema.StringAttribute{
+							Computed:    true,
+							Optional:    true,
+							Description: `SNS.`,
+						},
+					},
+				},
+				Description: `The credentials for social login services (SNS) that are used for developer authentication.`,
 			},
 			"device_authorization_endpoint": schema.StringAttribute{
 				Computed: true,
@@ -731,66 +695,54 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`Device authorization endpoint is defined in the specification of OAuth 2.0 Device Authorization Grant.`,
 			},
 			"device_flow_code_duration": schema.Int32Attribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The duration of device verification codes and end-user verification codes issued from the device` + "\n" +
-					`authorization endpoint in seconds. This is used as the value of the ` + "`" + `expires_in` + "`" + ` property in responses` + "\n" +
-					`from the device authorization endpoint.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The duration of device verification codes and end-user verification codes issued from the device authorization endpoint in seconds. This is used as the value of the ` + "`" + `expires_in` + "`" + ` property in responses from the device authorization endpoint.`,
 			},
 			"device_flow_polling_interval": schema.Int32Attribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The minimum interval between polling requests to the token endpoint from client applications in` + "\n" +
-					`seconds in device flow. This is used as the value of the ` + "`" + `interval` + "`" + ` property in responses from` + "\n" +
-					`the device authorization endpoint.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The minimum interval between polling requests to the token endpoint from client applications in seconds in device flow. This is used as the value of the ` + "`" + `interval` + "`" + ` property in responses from the device authorization endpoint.`,
 			},
 			"device_verification_uri": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The verification URI for the device flow. This URI is used as the value of the ` + "`" + `verification_uri` + "`" + `` + "\n" +
-					`parameter in responses from the device authorization endpoint.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The verification URI for the device flow. This URI is used as the value of the ` + "`" + `verification_uri` + "`" + ` parameter in responses from the device authorization endpoint.`,
 			},
 			"device_verification_uri_complete": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The verification URI for the device flow with a placeholder for a user code. This URI is used` + "\n" +
-					`to build the value of the ` + "`" + `verification_uri_complete` + "`" + ` parameter in responses from the device` + "\n" +
-					`authorization endpoint.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The verification URI for the device flow with a placeholder for a user code. This URI is used to build the value of the ` + "`" + `verification_uri_complete` + "`" + ` parameter in responses from the device authorization endpoint.`,
 			},
 			"direct_authorization_endpoint_enabled": schema.BoolAttribute{
 				Computed:           true,
 				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
-				MarkdownDescription: `The flag to indicate whether the direct authorization endpoint is enabled or not.` + "\n" +
-					`` + "\n" +
-					`The path of the endpoint is ` + "`" + `/api/auth/authorization/direct/service-api-key` + "`" + `.`,
+				Description:        `Deprecated. The direct authorization endpoint was removed in Authlete 3.0.15, so this flag has no effect and is always returned as ` + "`" + `false` + "`" + `.`,
 			},
 			"direct_introspection_endpoint_enabled": schema.BoolAttribute{
 				Computed:           true,
 				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
-				Description:        `The flag to indicate whether the direct userinfo endpoint is enabled or not. The path of the endpoint is ` + "`" + `/api/auth/userinfo/direct/{serviceApiKey}` + "`" + `.`,
+				Description:        `Deprecated. The direct introspection endpoint was removed in Authlete 3.0.15, so this flag has no effect and is always returned as ` + "`" + `false` + "`" + `.`,
 			},
 			"direct_jwks_endpoint_enabled": schema.BoolAttribute{
 				Computed:           true,
 				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
-				MarkdownDescription: `'The flag to indicate whether the direct jwks endpoint is enabled or not. The path of the endpoint` + "\n" +
-					`is ` + "`" + `/api/service/jwks/get/direct/service-api-key` + "`" + `. '`,
+				Description:        `Deprecated. The direct JWKS endpoint was removed in Authlete 3.0.15, so this flag has no effect and is always returned as ` + "`" + `false` + "`" + `.`,
 			},
 			"direct_revocation_endpoint_enabled": schema.BoolAttribute{
 				Computed:           true,
 				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
-				Description:        `The flag to indicate whether the direct revocation endpoint is enabled or not. The URL of the endpoint is ` + "`" + `/api/auth/revocation/direct/service-api-key` + "`" + `.`,
+				Description:        `Deprecated. The direct revocation endpoint was removed in Authlete 3.0.15, so this flag has no effect and is always returned as ` + "`" + `false` + "`" + `.`,
 			},
 			"direct_token_endpoint_enabled": schema.BoolAttribute{
 				Computed:           true,
 				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
-				MarkdownDescription: `The flag to indicate whether the direct token endpoint is enabled or not. The path of the endpoint` + "\n" +
-					`is ` + "`" + `/api/auth/token/direct/service-api-key` + "`" + `.`,
+				Description:        `Deprecated. The direct token endpoint was removed in Authlete 3.0.15, so this flag has no effect and is always returned as ` + "`" + `false` + "`" + `.`,
 			},
 			"direct_user_info_endpoint_enabled": schema.BoolAttribute{
 				Computed:           true,
 				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
-				MarkdownDescription: `The flag to indicate whether the direct userinfo endpoint is enabled or not. The path` + "\n" +
-					`of the endpoint is ` + "`" + `/api/auth/userinfo/direct/service-api-key` + "`" + `.`,
+				Description:        `Deprecated. The direct userinfo endpoint was removed in Authlete 3.0.15, so this flag has no effect and is always returned as ` + "`" + `false` + "`" + `.`,
 			},
 			"dpop_nonce_duration": schema.Int64Attribute{
 				Computed:    true,
@@ -798,16 +750,14 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `The duration of nonce values for DPoP proof JWTs in seconds.`,
 			},
 			"dpop_nonce_required": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `Whether to require DPoP proof JWTs to include the ` + "`" + `nonce` + "`" + ` claim` + "\n" +
-					`whenever they are presented.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `Whether to require DPoP proof JWTs to include the ` + "`" + `nonce` + "`" + ` claim whenever they are presented.`,
 			},
 			"dynamic_registration_supported": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The boolean flag which indicates whether the [OAuth 2.0 Dynamic Client Registration Protocol](https://tools.ietf.org/html/rfc7591)` + "\n" +
-					`is supported.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The boolean flag which indicates whether the [OAuth 2.0 Dynamic Client Registration Protocol](https://tools.ietf.org/html/rfc7591) is supported.`,
 			},
 			"end_session_endpoint": schema.StringAttribute{
 				Computed: true,
@@ -816,16 +766,14 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`` + "\n" +
 					`A URL that starts with ` + "`" + `https://` + "`" + ` and has no fragment component. For example, ` + "`" + `https://example.com/auth/endSession` + "`" + `.` + "\n" +
 					`` + "\n" +
-					`The value of this property is used as ` + "`" + `end_session_endpoint` + "`" + ` property in the [OpenID Provider` + "\n" +
-					`Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+					`The value of this property is used as ` + "`" + `end_session_endpoint` + "`" + ` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"error_description_omitted": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
 				MarkdownDescription: `The flag to indicate whether the ` + "`" + `error_description` + "`" + ` response parameter is omitted.` + "\n" +
 					`` + "\n" +
-					`According to [RFC 6749](https://tools.ietf.org/html/rfc6749), an authorization server may include` + "\n" +
-					`the ` + "`" + `error_description` + "`" + ` response parameter in error responses.` + "\n" +
+					`According to [RFC 6749](https://tools.ietf.org/html/rfc6749), an authorization server may include the ` + "`" + `error_description` + "`" + ` response parameter in error responses.` + "\n" +
 					`` + "\n" +
 					`If ` + "`" + `true` + "`" + `, Authlete does not embed the ` + "`" + `error_description` + "`" + ` response parameter in error responses.`,
 			},
@@ -836,8 +784,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`` + "\n" +
 					`According to [RFC 6749](https://tools.ietf.org/html/rfc6749), an authorization server may include the ` + "`" + `error_uri` + "`" + ` response parameter in error responses.` + "\n" +
 					`` + "\n" +
-					`If ` + "`" + `true` + "`" + `, Authlete does not embed the` + "\n" +
-					`` + "`" + `error_uri` + "`" + ` response parameter in error responses.`,
+					`If ` + "`" + `true` + "`" + `, Authlete does not embed the ` + "`" + `error_uri` + "`" + ` response parameter in error responses.`,
 			},
 			"fapi_modes": schema.ListAttribute{
 				Computed: true,
@@ -848,13 +795,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				ElementType: types.StringType,
 				MarkdownDescription: `FAPI modes for this service.` + "\n" +
 					`` + "\n" +
-					`When the value of this property is not ` + "`" + `null` + "`" + `, Authlete always processes requests to this service based` + "\n" +
-					`on the specified FAPI modes if the FAPI feature is enabled in Authlete and the FAPI profile is supported` + "\n" +
-					`by this service.` + "\n" +
+					`When the value of this property is not ` + "`" + `null` + "`" + `, Authlete always processes requests to this service based on the specified FAPI modes if the FAPI feature is enabled in Authlete and the FAPI profile is supported by this service.` + "\n" +
 					`` + "\n" +
-					`For instance, when this property is set to an array containing ` + "`" + `FAPI1_ADVANCED` + "`" + ` only, Authlete always` + "\n" +
-					`processes requests to this service based on "Financial-grade API Security Profile 1.0 - Part 2:` + "\n" +
-					`Advanced" if the FAPI feature is enabled in Authlete and the FAPI profile is supported by this service.`,
+					`For instance, when this property is set to an array containing ` + "`" + `FAPI1_ADVANCED` + "`" + ` only, Authlete always processes requests to this service based on "Financial-grade API Security Profile 1.0 - Part 2: Advanced" if the FAPI feature is enabled in Authlete and the FAPI profile is supported by this service.`,
 				Validators: []validator.List{
 					custom_listvalidators.ValidEnumValues(),
 				},
@@ -870,64 +813,60 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `flag indicating whether this service supports OpenID Connect Federation 1`,
 			},
 			"federation_jwks": schema.StringAttribute{
-				CustomType: customtypes.JWKSType{},
-				Computed:   true,
-				Optional:   true,
-				Sensitive:  true,
-				MarkdownDescription: `JWK Set document containing keys that are used to sign (1) self-signed` + "\n" +
-					`entity statement of this service and (2) the response from` + "\n" +
-					`` + "`" + `signed_jwks_uri` + "`" + `.`,
+				CustomType:  customtypes.JWKSType{},
+				Computed:    true,
+				Optional:    true,
+				Sensitive:   true,
+				Description: `JWK Set document containing keys that are used to sign (1) self-signed entity statement of this service and (2) the response from ` + "`" + `signed_jwks_uri` + "`" + `.`,
+				Validators: []validator.String{
+					custom_stringvalidators.ValidJWKSet(),
+				},
 			},
 			"federation_registration_endpoint": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The URI of the federation registration endpoint. This property corresponds` + "\n" +
-					`to the ` + "`" + `federation_registration_endpoint` + "`" + ` server metadata that is` + "\n" +
-					`defined in OpenID Connect Federation 1.0.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The URI of the federation registration endpoint. This property corresponds to the ` + "`" + `federation_registration_endpoint` + "`" + ` server metadata that is defined in OpenID Connect Federation 1.0.`,
 			},
 			"federation_signature_key_id": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `A key ID to identify a JWK used to sign the entity configuration and` + "\n" +
-					`the signed JWK Set.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `A key ID to identify a JWK used to sign the entity configuration and the signed JWK Set.`,
 			},
 			"front_channel_request_object_encryption_required": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether encryption of request object is required when the request object` + "\n" +
-					`is passed through the front channel.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether encryption of request object is required when the request object is passed through the front channel.`,
 			},
 			"grant_management_action_required": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether every authorization request (and any request serving as an authorization` + "\n" +
-					`request such as CIBA backchannel authentication request and device authorization request) must` + "\n" +
-					`include the ` + "`" + `grant_management_action` + "`" + ` request parameter.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether every authorization request (and any request serving as an authorization request such as CIBA backchannel authentication request and device authorization request) must include the ` + "`" + `grant_management_action` + "`" + ` request parameter.`,
 			},
 			"grant_management_endpoint": schema.StringAttribute{
 				Computed:    true,
 				Optional:    true,
 				Description: `The URL of the grant management endpoint.`,
 			},
+			"haip_version": schema.StringAttribute{
+				Computed:    true,
+				Optional:    true,
+				Description: `The HAIP version to comply with. Valid values for this property are as follows: ` + "`" + `"1.0"` + "`" + `. If this property is set, requests to this service undergo additional validation based on the specified version of the [HAIP](https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.html) specification.`,
+			},
 			"hsks": schema.ListNestedAttribute{
 				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"alg": schema.StringAttribute{
-							Computed: true,
-							MarkdownDescription: `The algorithm of the key on the HSM. When the key use is ` + "`" + `"sig"` + "`" + `, the algorithm represents a` + "\n" +
-								`signing algorithm such as ` + "`" + `"ES256"` + "`" + `. When the key use is ` + "`" + `"enc"` + "`" + `, the algorithm represents an` + "\n" +
-								`encryption algorithm such as ` + "`" + `"RSA-OAEP-256"` + "`" + `.`,
+							Computed:    true,
+							Description: `The algorithm of the key on the HSM. When the key use is ` + "`" + `"sig"` + "`" + `, the algorithm represents a signing algorithm such as ` + "`" + `"ES256"` + "`" + `. When the key use is ` + "`" + `"enc"` + "`" + `, the algorithm represents an encryption algorithm such as ` + "`" + `"RSA-OAEP-256"` + "`" + `.`,
 						},
 						"handle": schema.StringAttribute{
-							Computed: true,
-							MarkdownDescription: `The handle for the key on the HSM.` + "\n" +
-								`A handle is a base64url-encoded 256-bit random value (43 letters) which is assigned by Authlete on the call of the /api/hsk/create API`,
+							Computed:    true,
+							Description: `The handle for the key on the HSM. A handle is a base64url-encoded 256-bit random value (43 letters) which is assigned by Authlete on the call of the /api/hsk/create API`,
 						},
 						"hsm_name": schema.StringAttribute{
-							Computed: true,
-							MarkdownDescription: `The name of the HSM.` + "\n" +
-								`The identifier for the HSM that sits behind the Authlete server. For example, "google".`,
+							Computed:    true,
+							Description: `The name of the HSM. The identifier for the HSM that sits behind the Authlete server. For example, "google".`,
 						},
 						"kid": schema.StringAttribute{
 							Computed:    true,
@@ -942,10 +881,8 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 							Description: `The public key that corresponds to the key on the HSM.`,
 						},
 						"use": schema.StringAttribute{
-							Computed: true,
-							MarkdownDescription: `Get the use of the key on the HSM.` + "\n" +
-								`When the key use is "sig" (signature), the private key on the HSM is used to sign data and the corresponding public key is used to verify the signature.` + "\n" +
-								`When the key use is "enc" (encryption), the private key on the HSM is used to decrypt encrypted data which have been encrypted with the corresponding public key`,
+							Computed:    true,
+							Description: `Get the use of the key on the HSM. When the key use is "sig" (signature), the private key on the HSM is used to sign data and the corresponding public key is used to verify the signature. When the key use is "enc" (encryption), the private key on the HSM is used to decrypt encrypted data which have been encrypted with the corresponding public key`,
 						},
 					},
 				},
@@ -962,34 +899,36 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional: true,
 				MarkdownDescription: `The flag indicating whether HSM (Hardware Security Module) support is enabled for this service.` + "\n" +
 					`` + "\n" +
-					`When this flag is ` + "`" + `false` + "`" + `, keys managed in HSMs are not used even if they exist. In addition,` + "\n" +
-					`` + "`" + `/api/hsk/*` + "`" + ` APIs reject all requests.` + "\n" +
+					`When this flag is ` + "`" + `false` + "`" + `, keys managed in HSMs are not used even if they exist. In addition, ` + "`" + `/api/hsk/*` + "`" + ` APIs reject all requests.` + "\n" +
 					`` + "\n" +
-					`Even if this flag is ` + "`" + `true` + "`" + `, HSM-related features do not work if the configuration of the Authlete` + "\n" +
-					`server you are using does not support HSM.`,
+					`Even if this flag is ` + "`" + `true` + "`" + `, HSM-related features do not work if the configuration of the Authlete server you are using does not support HSM.`,
 			},
 			"http_alias_prohibited": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `When ` + "`" + `true` + "`" + `, client ID aliases starting with ` + "`" + `https://` + "`" + ` or ` + "`" + `http://` + "`" + ` are` + "\n" +
-					`prohibited.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `When ` + "`" + `true` + "`" + `, client ID aliases starting with ` + "`" + `https://` + "`" + ` or ` + "`" + `http://` + "`" + ` are prohibited.`,
 			},
 			"id_token_aud_type": schema.StringAttribute{
 				Computed:    true,
 				Optional:    true,
 				Description: `The type of the ` + "`" + `aud` + "`" + ` claim in ID tokens.`,
 			},
-			"id_token_duration": schema.Int64Attribute{
+			"id_token_dropped_on_issue_without_openid": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
-				MarkdownDescription: `'The duration of [ID token](https://openid.net/specs/openid-connect-core-1_0.html#IDToken)s` + "\n" +
-					`in seconds. This value is used to calculate the value of ` + "`" + `exp` + "`" + ` claim in an ID token.'`,
+				MarkdownDescription: `The flag indicating whether to refrain from issuing an ID token when the ` + "`" + `openid` + "`" + ` scope has been removed from the scopes to be granted by the ` + "`" + `scopes` + "`" + ` request parameter of the ` + "`" + `/auth/authorization/issue` + "`" + ` API.` + "\n" +
+					`` + "\n" +
+					`Flows whose ` + "`" + `response_type` + "`" + ` contains ` + "`" + `id_token` + "`" + `, and flows that requested Native SSO, are not affected, because both require an ID token.`,
+			},
+			"id_token_duration": schema.Int64Attribute{
+				Computed:    true,
+				Optional:    true,
+				Description: `'The duration of [ID token](https://openid.net/specs/openid-connect-core-1_0.html#IDToken)s in seconds. This value is used to calculate the value of ` + "`" + `exp` + "`" + ` claim in an ID token.'`,
 			},
 			"id_token_reissuable": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether to enable the feature of ID token` + "\n" +
-					`reissuance in the refresh token flow.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether to enable the feature of ID token reissuance in the refresh token flow.`,
 			},
 			"id_token_signature_key_id": schema.StringAttribute{
 				Computed:    true,
@@ -1018,8 +957,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`` + "\n" +
 					`A URL that starts with  https:// and has no query or fragment component.` + "\n" +
 					`` + "\n" +
-					`The value of this property is used as ` + "`" + `iss` + "`" + ` claim in an [ID token](https://openid.net/specs/openid-connect-core-1_0.html#IDToken)` + "\n" +
-					`and ` + "`" + `issuer` + "`" + ` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+					`The value of this property is used as ` + "`" + `iss` + "`" + ` claim in an [ID token](https://openid.net/specs/openid-connect-core-1_0.html#IDToken) and ` + "`" + `issuer` + "`" + ` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"jwks": schema.StringAttribute{
 				CustomType: customtypes.JWKSType{},
@@ -1028,69 +966,55 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Sensitive:  true,
 				MarkdownDescription: `The content of the service's [JSON Web Key Set](https://tools.ietf.org/html/rfc7517) document.` + "\n" +
 					`` + "\n" +
-					`If this property is not ` + "`" + `null` + "`" + ` in a ` + "`" + `/service/create` + "`" + ` request or a ` + "`" + `/service/update` + "`" + ` request,` + "\n" +
-					`Authlete hosts the content in the database. This property must not be ` + "`" + `null` + "`" + ` and must contain` + "\n" +
-					`pairs of public/private keys if the service wants to support asymmetric signatures for ID tokens` + "\n" +
-					`and asymmetric encryption for request objects. See [OpenID Connect Core 1.0, 10. Signatures and` + "\n" +
-					`Encryption](https://openid.net/specs/openid-connect-core-1_0.html#SigEnc) for details.`,
+					`If this property is not ` + "`" + `null` + "`" + ` in a ` + "`" + `/service/create` + "`" + ` request or a ` + "`" + `/service/update` + "`" + ` request, Authlete hosts the content in the database. This property must not be ` + "`" + `null` + "`" + ` and must contain pairs of public/private keys if the service wants to support asymmetric signatures for ID tokens and asymmetric encryption for request objects. See [OpenID Connect Core 1.0, 10. Signatures and Encryption](https://openid.net/specs/openid-connect-core-1_0.html#SigEnc) for details.`,
+				Validators: []validator.String{
+					custom_stringvalidators.ValidJWKSet(),
+				},
 			},
 			"jwks_uri": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
-				MarkdownDescription: `The URL of the service's [JSON Web Key Set](https://tools.ietf.org/html/rfc7517) document. For` + "\n" +
-					`example, ` + "`" + `http://example.com/auth/jwks` + "`" + `.` + "\n" +
+				MarkdownDescription: `The URL of the service's [JSON Web Key Set](https://tools.ietf.org/html/rfc7517) document. For example, ` + "`" + `http://example.com/auth/jwks` + "`" + `.` + "\n" +
 					`` + "\n" +
-					`Client applications accesses this URL (1) to get the public key of the service to validate the` + "\n" +
-					`signature of an ID token issued by the service and (2) to get the public key of the service to` + "\n" +
-					`encrypt an request object of the client application. See [OpenID Connect Core 1.0, 10. Signatures` + "\n" +
-					`and Encryption](https://openid.net/specs/openid-connect-core-1_0.html#SigEnc) for details.` + "\n" +
+					`Client applications accesses this URL (1) to get the public key of the service to validate the signature of an ID token issued by the service and (2) to get the public key of the service to encrypt an request object of the client application. See [OpenID Connect Core 1.0, 10. Signatures and Encryption](https://openid.net/specs/openid-connect-core-1_0.html#SigEnc) for details.` + "\n" +
 					`` + "\n" +
 					`The value of this property is used as ` + "`" + `jwks_uri` + "`" + ` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"jwt_grant_by_identifiable_clients_only": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether to prohibit unidentifiable clients from` + "\n" +
-					`using the grant type "urn:ietf:params:oauth:grant-type:jwt-bearer".`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether to prohibit unidentifiable clients from using the grant type "urn:ietf:params:oauth:grant-type:jwt-bearer".`,
 			},
 			"jwt_grant_encrypted_jwt_rejected": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether to reject token requests that use an` + "\n" +
-					`encrypted JWT as an authorization grant with the grant type` + "\n" +
-					`"urn:ietf:params:oauth:grant-type:jwt-bearer".`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether to reject token requests that use an encrypted JWT as an authorization grant with the grant type "urn:ietf:params:oauth:grant-type:jwt-bearer".`,
 			},
 			"jwt_grant_unsigned_jwt_rejected": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether to reject token requests that use an` + "\n" +
-					`unsigned JWT as an authorization grant with the grant type` + "\n" +
-					`"urn:ietf:params:oauth:grant-type:jwt-bearer".`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether to reject token requests that use an unsigned JWT as an authorization grant with the grant type "urn:ietf:params:oauth:grant-type:jwt-bearer".`,
 			},
 			"key_attester_roots": schema.ListAttribute{
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `The trusted root certificates (PEM-encoded X.509) for validating the` + "\n" +
-					`x5c chain in Key Attestation JWTs.`,
+				Description: `The trusted root certificates (PEM-encoded X.509) for validating the x5c chain in Key Attestation JWTs.`,
 			},
 			"key_attester_roots_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether the attester roots for Key Attestation JWT` + "\n" +
-					`x5c chain validation are enabled.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether the attester roots for Key Attestation JWT x5c chain validation are enabled.`,
 			},
 			"key_attester_roots_only": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether only key attestation validated via` + "\n" +
-					`attester roots is accepted.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether only key attestation validated via attester roots is accepted.`,
 			},
 			"loopback_redirection_uri_variable": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether the port number component of redirection URIs can be variable when` + "\n" +
-					`the host component indicates loopback.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether the port number component of redirection URIs can be variable when the host component indicates loopback.`,
 			},
 			"metadata": schema.ListNestedAttribute{
 				Computed: true,
@@ -1126,9 +1050,8 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`This flag should not be set unless you have special reasons.`,
 			},
 			"modified_at": schema.Int64Attribute{
-				Computed: true,
-				MarkdownDescription: `The time at which this service was last modified. The value is represented as milliseconds since` + "\n" +
-					`the UNIX epoch (1970-01-01).`,
+				Computed:    true,
+				Description: `The time at which this service was last modified. The value is represented as milliseconds since the UNIX epoch (1970-01-01).`,
 			},
 			"mtls_endpoint_aliases": schema.ListNestedAttribute{
 				Computed: true,
@@ -1158,21 +1081,17 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"native_sso_supported": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
-				MarkdownDescription: `Flag that enables the [OpenID Connect Native SSO for Mobile Apps 1.0](https://openid.net/specs/openid-connect-native-sso-1_0.html)` + "\n" +
-					`specification (“Native SSO”). When this property is **not** ` + "`" + `true` + "`" + `, Native SSO specific parameters are ignored or treated as errors.` + "\n" +
-					`For example:` + "\n" +
+				MarkdownDescription: `Flag that enables the [OpenID Connect Native SSO for Mobile Apps 1.0](https://openid.net/specs/openid-connect-native-sso-1_0.html) specification (“Native SSO”). When this property is **not** ` + "`" + `true` + "`" + `, Native SSO specific parameters are ignored or treated as errors. For example:` + "\n" +
 					`` + "\n" +
 					`* The ` + "`" + `device_sso` + "`" + ` scope has no special meaning (Authlete does not embed the ` + "`" + `sid` + "`" + ` claim in ID tokens).` + "\n" +
 					`* The ` + "`" + `urn:openid:params:token-type:device-secret` + "`" + ` token type is treated as unknown and results in an error.` + "\n" +
 					`` + "\n" +
-					`When set to ` + "`" + `true` + "`" + `, the server metadata advertises ` + "`" + `"native_sso_supported": true` + "`" + `. See [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)` + "\n" +
-					`and [RFC 8414 §2](https://www.rfc-editor.org/rfc/rfc8414.html#section-2) for background. Native SSO is available in Authlete 3.0 and later.`,
+					`When set to ` + "`" + `true` + "`" + `, the server metadata advertises ` + "`" + `"native_sso_supported": true` + "`" + `. See [OpenID Connect Discovery 1.0](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata) and [RFC 8414 §2](https://www.rfc-editor.org/rfc/rfc8414.html#section-2) for background. Native SSO is available in Authlete 3.0 and later.`,
 			},
 			"nbf_optional": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether the nbf claim in the request object is optional even when the authorization` + "\n" +
-					`request is regarded as a FAPI-Part2 request.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether the nbf claim in the request object is optional even when the authorization request is regarded as a FAPI-Part2 request.`,
 			},
 			"number": schema.Int32Attribute{
 				Computed: true,
@@ -1194,27 +1113,21 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`Choose the value that matches the OID4VCI behaviour your service should expose. See the OID4VCI documentation for details.`,
 			},
 			"openid_dropped_on_refresh_without_offline_access": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether the openid scope should be dropped from` + "\n" +
-					`scopes list assigned to access token issued when a refresh token grant` + "\n" +
-					`is used.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether the openid scope should be dropped from scopes list assigned to access token issued when a refresh token grant is used.`,
 			},
 			"organization_name": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The human-readable name representing the organization that operates` + "\n" +
-					`this service. This property corresponds to the ` + "`" + `organization_name` + "`" + `` + "\n" +
-					`server metadata that is defined in OpenID Connect Federation 1.0.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The human-readable name representing the organization that operates this service. This property corresponds to the ` + "`" + `organization_name` + "`" + ` server metadata that is defined in OpenID Connect Federation 1.0.`,
 			},
 			"par_required": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
-				MarkdownDescription: `The flag to indicate whether this service requires that clients use the pushed authorization` + "\n" +
-					`request endpoint.` + "\n" +
+				MarkdownDescription: `The flag to indicate whether this service requires that clients use the pushed authorization request endpoint.` + "\n" +
 					`` + "\n" +
-					`This property corresponds to the ` + "`" + `require_pushed_authorization_requests` + "`" + ` server metadata defined` + "\n" +
-					`in [OAuth 2.0 Pushed Authorization Requests](https://tools.ietf.org/html/draft-lodderstedt-oauth-par).`,
+					`This property corresponds to the ` + "`" + `require_pushed_authorization_requests` + "`" + ` server metadata defined in [OAuth 2.0 Pushed Authorization Requests](https://tools.ietf.org/html/draft-lodderstedt-oauth-par).`,
 			},
 			"pkce_required": schema.BoolAttribute{
 				Computed: true,
@@ -1230,9 +1143,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional: true,
 				MarkdownDescription: `The flag to indicate whether ` + "`" + `S256` + "`" + ` is always required as the code challenge method whenever [PKCE (RFC 7636)](https://tools.ietf.org/html/rfc7636) is used.` + "\n" +
 					`` + "\n" +
-					`If this flag is set to ` + "`" + `true` + "`" + `, ` + "`" + `code_challenge_method=S256` + "`" + ` must be included in the authorization request` + "\n" +
-					`whenever it includes the ` + "`" + `code_challenge` + "`" + ` request parameter.` + "\n" +
-					`Neither omission of the ` + "`" + `code_challenge_method` + "`" + ` request parameter nor use of plain (` + "`" + `code_challenge_method=plain` + "`" + `) is allowed.`,
+					`If this flag is set to ` + "`" + `true` + "`" + `, ` + "`" + `code_challenge_method=S256` + "`" + ` must be included in the authorization request whenever it includes the ` + "`" + `code_challenge` + "`" + ` request parameter. Neither omission of the ` + "`" + `code_challenge_method` + "`" + ` request parameter nor use of plain (` + "`" + `code_challenge_method=plain` + "`" + `) is allowed.`,
 			},
 			"policy_uri": schema.StringAttribute{
 				Computed: true,
@@ -1242,17 +1153,14 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`The value of this property is used as ` + "`" + `op_policy_uri` + "`" + ` property in the [OpenID Provider Metadata](http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"pre_authorized_grant_anonymous_access_supported": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether token requests using the pre-authorized` + "\n" +
-					`code grant flow by unidentifiable clients are allowed.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether token requests using the pre-authorized code grant flow by unidentifiable clients are allowed.`,
 			},
 			"predefined_transformed_claims": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The transformed claims predefined by this service in JSON format.` + "\n" +
-					`This property corresponds to the ` + "`" + `transformed_claims_predefined` + "`" + `` + "\n" +
-					`server metadata.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The transformed claims predefined by this service in JSON format. This property corresponds to the ` + "`" + `transformed_claims_predefined` + "`" + ` server metadata.`,
 			},
 			"pushed_auth_req_duration": schema.Int64Attribute{
 				Computed:    true,
@@ -1272,30 +1180,21 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `The duration of refresh tokens in seconds. The related specifications have no requirements on refresh token duration, but Authlete sets expiration for refresh tokens.`,
 			},
 			"refresh_token_duration_kept": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag to indicate whether the remaining duration of the used refresh token is taken over to` + "\n" +
-					`the newly issued refresh token.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag to indicate whether the remaining duration of the used refresh token is taken over to the newly issued refresh token.`,
 			},
 			"refresh_token_duration_reset": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
-				MarkdownDescription: `The flag which indicates whether duration of refresh tokens are reset when they are used even` + "\n" +
-					`if the ` + "`" + `refreshTokenKept` + "`" + ` property of this service set to is ` + "`" + `true` + "`" + ` (= even if "Refresh Token` + "\n" +
-					`Continuous Use" is "Kept").` + "\n" +
+				MarkdownDescription: `The flag which indicates whether duration of refresh tokens are reset when they are used even if the ` + "`" + `refreshTokenKept` + "`" + ` property of this service set to is ` + "`" + `true` + "`" + ` (= even if "Refresh Token Continuous Use" is "Kept").` + "\n" +
 					`` + "\n" +
-					`This flag has no effect when the ` + "`" + `refreshTokenKept` + "`" + ` property is set to ` + "`" + `false` + "`" + `. In other words,` + "\n" +
-					`if this service issues a new refresh token on every refresh token request, the refresh token` + "\n" +
-					`will have fresh duration (unless ` + "`" + `refreshTokenDurationKept` + "`" + ` is set to ` + "`" + `true` + "`" + `) and this` + "\n" +
-					`` + "`" + `refreshTokenDurationReset` + "`" + ` property is not referenced.`,
+					`This flag has no effect when the ` + "`" + `refreshTokenKept` + "`" + ` property is set to ` + "`" + `false` + "`" + `. In other words, if this service issues a new refresh token on every refresh token request, the refresh token will have fresh duration (unless ` + "`" + `refreshTokenDurationKept` + "`" + ` is set to ` + "`" + `true` + "`" + `) and this ` + "`" + `refreshTokenDurationReset` + "`" + ` property is not referenced.`,
 			},
 			"refresh_token_idempotent": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `flag indicating whether refresh token requests with the same` + "\n" +
-					`refresh token can be made multiple times in quick succession and` + "\n" +
-					`they can obtain the same renewed refresh token within the short` + "\n" +
-					`period.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `flag indicating whether refresh token requests with the same refresh token can be made multiple times in quick succession and they can obtain the same renewed refresh token within the short period.`,
 			},
 			"refresh_token_kept": schema.BoolAttribute{
 				Computed: true,
@@ -1309,48 +1208,36 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"registration_endpoint": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
-				MarkdownDescription: `The [registration endpoint](http://openid.net/specs/openid-connect-registration-1_0.html#ClientRegistration)` + "\n" +
-					`of the service. A URL that starts with ` + "`" + `https://` + "`" + `. For example, ` + "`" + `https://example.com/auth/registration` + "`" + `.` + "\n" +
+				MarkdownDescription: `The [registration endpoint](http://openid.net/specs/openid-connect-registration-1_0.html#ClientRegistration) of the service. A URL that starts with ` + "`" + `https://` + "`" + `. For example, ` + "`" + `https://example.com/auth/registration` + "`" + `.` + "\n" +
 					`` + "\n" +
 					`The value of this property is used as ` + "`" + `registration_endpoint` + "`" + ` property in the [OpenID Provider Metadata](http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"registration_management_endpoint": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The URI of the registration management endpoint. If dynamic client registration is supported,` + "\n" +
-					`and this is set, this URI will be used as the basis of the client's management endpoint by appending` + "\n" +
-					`` + "`" + `/clientid&#125;/` + "`" + ` to it as a path element. If this is unset, the value of ` + "`" + `registrationEndpoint` + "`" + ` will` + "\n" +
-					`be used as the URI base instead.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The URI of the registration management endpoint. If dynamic client registration is supported, and this is set, this URI will be used as the basis of the client's management endpoint by appending ` + "`" + `/clientid&#125;/` + "`" + ` to it as a path element. If this is unset, the value of ` + "`" + `registrationEndpoint` + "`" + ` will be used as the URI base instead.`,
 			},
 			"request_object_audience_checked": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether Authlete checks whether the ` + "`" + `aud` + "`" + ` claim of request objects matches` + "\n" +
-					`the issuer identifier of this service.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether Authlete checks whether the ` + "`" + `aud` + "`" + ` claim of request objects matches the issuer identifier of this service.`,
 			},
 			"request_object_encryption_alg_match_required": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether the JWE alg of encrypted request object must match the ` + "`" + `request_object_encryption_alg` + "`" + `` + "\n" +
-					`client metadata of the client that has sent the request object.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether the JWE alg of encrypted request object must match the ` + "`" + `request_object_encryption_alg` + "`" + ` client metadata of the client that has sent the request object.`,
 			},
 			"request_object_encryption_enc_match_required": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether the JWE ` + "`" + `enc` + "`" + ` of encrypted request object must match the ` + "`" + `request_object_encryption_enc` + "`" + `` + "\n" +
-					`client metadata of the client that has sent the request object.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether the JWE ` + "`" + `enc` + "`" + ` of encrypted request object must match the ` + "`" + `request_object_encryption_enc` + "`" + ` client metadata of the client that has sent the request object.`,
 			},
 			"request_object_required": schema.BoolAttribute{
 				Computed: true,
 				Optional: true,
-				MarkdownDescription: `The flag to indicate whether this service requires that authorization requests always utilize` + "\n" +
-					`a request object by using either request or ` + "`" + `request_uri` + "`" + ` request parameter.` + "\n" +
+				MarkdownDescription: `The flag to indicate whether this service requires that authorization requests always utilize a request object by using either request or ` + "`" + `request_uri` + "`" + ` request parameter.` + "\n" +
 					`` + "\n" +
-					`If this flag is set to ` + "`" + `true` + "`" + ` and the value of ` + "`" + `traditionalRequestObjectProcessingApplied` + "`" + ` is` + "\n" +
-					`` + "`" + `false` + "`" + `, the value of ` + "`" + `require_signed_request_object` + "`" + ` server metadata of this service is reported` + "\n" +
-					`as ` + "`" + `true` + "`" + ` in the discovery document. The metadata is defined in JAR (JWT Secured Authorization Request).` + "\n" +
-					`That ` + "`" + `require_signed_request_object` + "`" + ` is ` + "`" + `true` + "`" + ` means that authorization requests which don't` + "\n" +
-					`conform to the JAR specification are rejected.`,
+					`If this flag is set to ` + "`" + `true` + "`" + ` and the value of ` + "`" + `traditionalRequestObjectProcessingApplied` + "`" + ` is ` + "`" + `false` + "`" + `, the value of ` + "`" + `require_signed_request_object` + "`" + ` server metadata of this service is reported as ` + "`" + `true` + "`" + ` in the discovery document. The metadata is defined in JAR (JWT Secured Authorization Request). That ` + "`" + `require_signed_request_object` + "`" + ` is ` + "`" + `true` + "`" + ` means that authorization requests which don't conform to the JAR specification are rejected.`,
 			},
 			"resource_signature_key_id": schema.StringAttribute{
 				Computed:    true,
@@ -1395,15 +1282,12 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				PlanModifiers: []planmodifier.Int32{
 					custom_int32planmodifier.UseStateForUnknown(),
 				},
-				MarkdownDescription: `The number of the organization that owns this service. This value is ` + "\n" +
-					`assigned by Authlete.`,
+				Description: `The number of the organization that owns this service. This value is assigned by Authlete.`,
 			},
 			"signed_jwks_uri": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The URI of the endpoint that returns this service's JWK Set document in` + "\n" +
-					`the JWT format. This property corresponds to the ` + "`" + `signed_jwks_uri` + "`" + `` + "\n" +
-					`server metadata defined in OpenID Connect Federation 1.0.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The URI of the endpoint that returns this service's JWK Set document in the JWT format. This property corresponds to the ` + "`" + `signed_jwks_uri` + "`" + ` server metadata defined in OpenID Connect Federation 1.0.`,
 			},
 			"single_access_token_per_subject": schema.BoolAttribute{
 				Computed: true,
@@ -1433,16 +1317,14 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 						},
 					},
 				},
-				MarkdownDescription: `The credentials for social login services (SNS) that are used for ` + "\n" +
-					`end-user authentication.`,
+				Description: `The credentials for social login services (SNS) that are used for end-user authentication.`,
 			},
 			"supported_acrs": schema.ListAttribute{
 				Computed:    true,
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of acrs (authentication context class references) that the service supports.` + "\n" +
 					`` + "\n" +
-					`The value of this property is used as ` + "`" + `acr_values_supported` + "`" + `` + "\n" +
-					`property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+					`The value of this property is used as ` + "`" + `acr_values_supported` + "`" + ` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"supported_attachments": schema.ListAttribute{
 				Computed: true,
@@ -1451,9 +1333,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					custom_listplanmodifier.KeepOrderSupportedAttachments(),
 				},
 				ElementType: types.StringType,
-				MarkdownDescription: `Supported attachment types. This property corresponds to the &#123;@code` + "\n" +
-					`attachments_supported&#125; server metadata which was added by the third` + "\n" +
-					`implementer's draft of OpenID Connect for Identity Assurance 1.0.`,
+				Description: `Supported attachment types. This property corresponds to the &#123;@code attachments_supported&#125; server metadata which was added by the third implementer's draft of OpenID Connect for Identity Assurance 1.0.`,
 				Validators: []validator.List{
 					custom_listvalidators.ValidEnumValues(),
 				},
@@ -1464,8 +1344,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				ElementType: types.StringType,
 				MarkdownDescription: `The supported data types that can be used as values of the type field in ` + "`" + `authorization_details` + "`" + `.` + "\n" +
 					`` + "\n" +
-					`This property corresponds to the ` + "`" + `authorization_details_types_supported` + "`" + ` metadata. See "OAuth 2.0` + "\n" +
-					`Rich Authorization Requests" (RAR) for details.`,
+					`This property corresponds to the ` + "`" + `authorization_details_types_supported` + "`" + ` metadata. See "OAuth 2.0 Rich Authorization Requests" (RAR) for details.`,
 			},
 			"supported_backchannel_token_delivery_modes": schema.ListAttribute{
 				Computed: true,
@@ -1474,11 +1353,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					custom_listplanmodifier.KeepOrderSupportedBackchannelTokenDeliveryModes(),
 				},
 				ElementType: types.StringType,
-				MarkdownDescription: `The supported backchannel token delivery modes. This property corresponds to the ` + "`" + `backchannel_token_delivery_modes_supported` + "`" + `` + "\n" +
-					`metadata.` + "\n" +
+				MarkdownDescription: `The supported backchannel token delivery modes. This property corresponds to the ` + "`" + `backchannel_token_delivery_modes_supported` + "`" + ` metadata.` + "\n" +
 					`` + "\n" +
-					`Backchannel token delivery modes are defined in the specification of [CIBA (Client Initiated` + "\n" +
-					`Backchannel Authentication)](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html).`,
+					`Backchannel token delivery modes are defined in the specification of [CIBA (Client Initiated Backchannel Authentication)](https://openid.net/specs/openid-client-initiated-backchannel-authentication-core-1_0.html).`,
 				Validators: []validator.List{
 					custom_listvalidators.ValidEnumValues(),
 				},
@@ -1487,12 +1364,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `Claim locales that the service supports. Each element is a language tag defined in [RFC 5646](https://tools.ietf.org/html/rfc5646).` + "\n" +
-					`For example, ` + "`" + `en-US` + "`" + ` and ` + "`" + `ja-JP` + "`" + `. See [OpenID Connect Core 1.0, 5.2. Languages and Scripts](https://openid.net/specs/openid-connect-core-1_0.html#ClaimsLanguagesAndScripts)` + "\n" +
-					`for details.` + "\n" +
+				MarkdownDescription: `Claim locales that the service supports. Each element is a language tag defined in [RFC 5646](https://tools.ietf.org/html/rfc5646). For example, ` + "`" + `en-US` + "`" + ` and ` + "`" + `ja-JP` + "`" + `. See [OpenID Connect Core 1.0, 5.2. Languages and Scripts](https://openid.net/specs/openid-connect-core-1_0.html#ClaimsLanguagesAndScripts) for details.` + "\n" +
 					`` + "\n" +
-					`The value of this property is used as ` + "`" + `claims_locales_supported` + "`" + ` property in the` + "\n" +
-					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+					`The value of this property is used as ` + "`" + `claims_locales_supported` + "`" + ` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"supported_claim_types": schema.ListAttribute{
 				Computed: true,
@@ -1501,11 +1375,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					custom_listplanmodifier.KeepOrderSupportedClaimTypes(),
 				},
 				ElementType: types.StringType,
-				MarkdownDescription: `Claim types supported by the service. Valid values are listed in Claim Type. Note that Authlete` + "\n" +
-					`currently doesn't provide any API to help implementations for ` + "`" + `AGGREGATED` + "`" + ` and ` + "`" + `DISTRIBUTED` + "`" + `.` + "\n" +
+				MarkdownDescription: `Claim types supported by the service. Valid values are listed in Claim Type. Note that Authlete currently doesn't provide any API to help implementations for ` + "`" + `AGGREGATED` + "`" + ` and ` + "`" + `DISTRIBUTED` + "`" + `.` + "\n" +
 					`` + "\n" +
-					`The value of this property is used as ` + "`" + `claim_types_supported` + "`" + ` property in the [OpenID Provider` + "\n" +
-					`Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+					`The value of this property is used as ` + "`" + `claim_types_supported` + "`" + ` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 				Validators: []validator.List{
 					custom_listvalidators.ValidEnumValues(),
 				},
@@ -1517,9 +1389,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					custom_listplanmodifier.KeepOrderSupportedClaims(),
 				},
 				ElementType: types.StringType,
-				MarkdownDescription: `Claim names that the service supports. The standard claim names listed in [OpenID Connect Core 1.0,` + "\n" +
-					`5.1. Standard Claim](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims) should` + "\n" +
-					`be supported. The following is the list of standard claims.`,
+				Description: `Claim names that the service supports. The standard claim names listed in [OpenID Connect Core 1.0, 5.1. Standard Claim](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims) should be supported. The following is the list of standard claims.`,
 			},
 			"supported_client_registration_types": schema.ListAttribute{
 				Computed: true,
@@ -1538,15 +1408,17 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				ElementType: types.StringType,
 				Description: `custom client metadata supported by this service.`,
 			},
+			"supported_developer_snses": schema.ListAttribute{
+				Computed:    true,
+				Optional:    true,
+				ElementType: types.StringType,
+				Description: `Social login services (SNS) that this service supports for developer authentication.`,
+			},
 			"supported_digest_algorithms": schema.ListAttribute{
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `Supported algorithms used to compute digest values of external` + "\n" +
-					`attachments. This property corresponds to the` + "\n" +
-					`` + "`" + `digest_algorithms_supported` + "`" + ` server metadata which was added` + "\n" +
-					`by the third implementer's draft of OpenID Connect for Identity` + "\n" +
-					`Assurance 1.0.`,
+				Description: `Supported algorithms used to compute digest values of external attachments. This property corresponds to the ` + "`" + `digest_algorithms_supported` + "`" + ` server metadata which was added by the third implementer's draft of OpenID Connect for Identity Assurance 1.0.`,
 			},
 			"supported_displays": schema.ListAttribute{
 				Computed: true,
@@ -1566,55 +1438,39 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `Document types supported by this service. This property corresponds` + "\n" +
-					`to the ` + "`" + `documents_supported` + "`" + ` server metadata.`,
+				Description: `Document types supported by this service. This property corresponds to the ` + "`" + `documents_supported` + "`" + ` server metadata.`,
 			},
 			"supported_documents_check_methods": schema.ListAttribute{
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `Supported document check methods. This property corresponds to the ` + "`" + `documents_check_methods_supported` + "`" + `` + "\n" +
-					`server metadata which was added by the fourth implementer's draft of OpenID Connect for Identity` + "\n" +
-					`Assurance 1.0.`,
+				Description: `Supported document check methods. This property corresponds to the ` + "`" + `documents_check_methods_supported` + "`" + ` server metadata which was added by the fourth implementer's draft of OpenID Connect for Identity Assurance 1.0.`,
 			},
 			"supported_documents_methods": schema.ListAttribute{
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `validation and verification processes supported by this service.` + "\n" +
-					`This property corresponds to the ` + "`" + `documents_methods_supported` + "`" + `` + "\n" +
-					`server metadata.` + "\n" +
+				MarkdownDescription: `validation and verification processes supported by this service. This property corresponds to the ` + "`" + `documents_methods_supported` + "`" + ` server metadata.` + "\n" +
 					`` + "\n" +
-					`The third implementer's draft of [OpenID Connect for Identity Assurance 1.0](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html)` + "\n" +
-					`renamed the` + "\n" +
-					`` + "`" + `id_documents_verification_methods_supported` + "`" + ` server metadata to` + "\n" +
-					`` + "`" + `documents_methods_supported` + "`" + `.`,
+					`The third implementer's draft of [OpenID Connect for Identity Assurance 1.0](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html) renamed the ` + "`" + `id_documents_verification_methods_supported` + "`" + ` server metadata to ` + "`" + `documents_methods_supported` + "`" + `.`,
 			},
 			"supported_documents_validation_methods": schema.ListAttribute{
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `Document validation methods supported by this service. This property` + "\n" +
-					`corresponds to the ` + "`" + `documents_validation_methods_supported` + "`" + ` server` + "\n" +
-					`metadata which was added by the third implementer's draft of`,
+				Description: `Document validation methods supported by this service. This property corresponds to the ` + "`" + `documents_validation_methods_supported` + "`" + ` server metadata which was added by the third implementer's draft of`,
 			},
 			"supported_documents_verification_methods": schema.ListAttribute{
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `Document verification methods supported by this service. This property` + "\n" +
-					`corresponds to the ` + "`" + `documents_verification_methods_supported` + "`" + ` server` + "\n" +
-					`metadata which was added by the third implementer's draft of` + "\n" +
-					`[OpenID Connect for Identity Assurance 1.0](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html)`,
+				Description: `Document verification methods supported by this service. This property corresponds to the ` + "`" + `documents_verification_methods_supported` + "`" + ` server metadata which was added by the third implementer's draft of [OpenID Connect for Identity Assurance 1.0](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html)`,
 			},
 			"supported_electronic_records": schema.ListAttribute{
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `Electronic record types supported by this service. This property` + "\n" +
-					`corresponds to the ` + "`" + `electronic_records_supported` + "`" + ` server metadata` + "\n" +
-					`which was added by the third implementer's draft of` + "\n" +
-					`[OpenID Connect for Identity Assurance 1.0](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html)`,
+				Description: `Electronic record types supported by this service. This property corresponds to the ` + "`" + `electronic_records_supported` + "`" + ` server metadata which was added by the third implementer's draft of [OpenID Connect for Identity Assurance 1.0](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html)`,
 			},
 			"supported_evidence": schema.ListAttribute{
 				Computed:    true,
@@ -1631,8 +1487,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of ` + "`" + `grant_type` + "`" + ` request parameter that the service supports.` + "\n" +
 					`` + "\n" +
-					`The value of this property is used as ` + "`" + `grant_types_supported property` + "`" + ` in the` + "\n" +
-					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+					`The value of this property is used as ` + "`" + `grant_types_supported property` + "`" + ` in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 				Validators: []validator.List{
 					custom_listvalidators.ValidEnumValues(),
 				},
@@ -1641,8 +1496,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `Identity documents supported by this service. This corresponds to the ` + "`" + `id_documents_supported` + "`" + `` + "\n" +
-					`[metadata](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#rfc.section.7).`,
+				Description: `Identity documents supported by this service. This corresponds to the ` + "`" + `id_documents_supported` + "`" + ` [metadata](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#rfc.section.7).`,
 			},
 			"supported_introspection_auth_methods": schema.ListAttribute{
 				Computed: true,
@@ -1675,11 +1529,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					custom_listplanmodifier.KeepOrderSupportedResponseTypes(),
 				},
 				ElementType: types.StringType,
-				MarkdownDescription: `Values of ` + "`" + `response_type` + "`" + ` request parameter that` + "\n" +
-					`the service supports. Valid values are listed in Response Type.` + "\n" +
+				MarkdownDescription: `Values of ` + "`" + `response_type` + "`" + ` request parameter that the service supports. Valid values are listed in Response Type.` + "\n" +
 					`` + "\n" +
-					`The value of this property is used as ` + "`" + `response_types_supported` + "`" + ` property in the` + "\n" +
-					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+					`The value of this property is used as ` + "`" + `response_types_supported` + "`" + ` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 				Validators: []validator.List{
 					custom_listvalidators.ValidEnumValues(),
 				},
@@ -1787,8 +1639,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"supported_snses": schema.ListAttribute{
 				Computed:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `Social login services (SNS) that this service supports for end-user ` + "\n" +
-					`authentication.`,
+				Description: `Social login services (SNS) that this service supports for end-user authentication.`,
 			},
 			"supported_token_auth_methods": schema.ListAttribute{
 				Computed: true,
@@ -1799,8 +1650,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				ElementType: types.StringType,
 				MarkdownDescription: `Client authentication methods supported by the token endpoint of the service.` + "\n" +
 					`` + "\n" +
-					`The value of this property is used as ` + "`" + `token_endpoint_auth_methods_supports` + "`" + ` property in the` + "\n" +
-					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+					`The value of this property is used as ` + "`" + `token_endpoint_auth_methods_supports` + "`" + ` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 				Validators: []validator.List{
 					custom_listvalidators.ValidEnumValues(),
 				},
@@ -1809,8 +1659,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `Trust frameworks supported by this service. This corresponds to the ` + "`" + `trust_frameworks_supported` + "`" + `` + "\n" +
-					`[metadata](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#rfc.section.7).`,
+				Description: `Trust frameworks supported by this service. This corresponds to the ` + "`" + `trust_frameworks_supported` + "`" + ` [metadata](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#rfc.section.7).`,
 			},
 			"supported_ui_locales": schema.ListAttribute{
 				Computed:    true,
@@ -1826,15 +1675,13 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `Verification methods supported by this service. This corresponds to the ` + "`" + `id_documents_verification_methods_supported` + "`" + `` + "\n" +
-					`[metadata](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#rfc.section.7).`,
+				Description: `Verification methods supported by this service. This corresponds to the ` + "`" + `id_documents_verification_methods_supported` + "`" + ` [metadata](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#rfc.section.7).`,
 			},
 			"supported_verified_claims": schema.ListAttribute{
 				Computed:    true,
 				Optional:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: `Verified claims supported by this service. This corresponds to the ` + "`" + `claims_in_verified_claims_supported` + "`" + `` + "\n" +
-					`[metadata](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#rfc.section.7).`,
+				Description: `Verified claims supported by this service. This corresponds to the ` + "`" + `claims_in_verified_claims_supported` + "`" + ` [metadata](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#rfc.section.7).`,
 			},
 			"tls_client_certificate_bound_access_tokens": schema.BoolAttribute{
 				Computed:    true,
@@ -1842,9 +1689,8 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `The flag to indicate whether this service supports issuing TLS client certificate bound access tokens.`,
 			},
 			"token_batch_notification_endpoint": schema.StringAttribute{
-				Computed: true,
-				MarkdownDescription: `The endpoint for batch token notifications. This endpoint is called when ` + "\n" +
-					`multiple tokens are issued or revoked in a batch operation.`,
+				Computed:    true,
+				Description: `The endpoint for batch token notifications. This endpoint is called when multiple tokens are issued or revoked in a batch operation.`,
 			},
 			"token_endpoint": schema.StringAttribute{
 				Computed: true,
@@ -1853,44 +1699,37 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`` + "\n" +
 					`A URL that starts with ` + "`" + `https://` + "`" + ` and has not fragment component. For example, ` + "`" + `https://example.com/auth/token` + "`" + `.` + "\n" +
 					`` + "\n" +
-					`The value of this property is used as ` + "`" + `token_endpoint` + "`" + ` property in the` + "\n" +
-					`[OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
+					`The value of this property is used as ` + "`" + `token_endpoint` + "`" + ` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"token_exchange_by_confidential_clients_only": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether to prohibit public clients from making` + "\n" +
-					`token exchange requests.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether to prohibit public clients from making token exchange requests.`,
 			},
 			"token_exchange_by_identifiable_clients_only": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether to prohibit unidentifiable clients from` + "\n" +
-					`making token exchange requests.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether to prohibit unidentifiable clients from making token exchange requests.`,
 			},
 			"token_exchange_by_permitted_clients_only": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether to prohibit clients that have no explicit` + "\n" +
-					`permission from making token exchange requests.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether to prohibit clients that have no explicit permission from making token exchange requests.`,
 			},
 			"token_exchange_encrypted_jwt_rejected": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether to reject token exchange requests which` + "\n" +
-					`use encrypted JWTs as input tokens.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether to reject token exchange requests which use encrypted JWTs as input tokens.`,
 			},
 			"token_exchange_unsigned_jwt_rejected": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether to reject token exchange requests which` + "\n" +
-					`use unsigned JWTs as input tokens.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether to reject token exchange requests which use unsigned JWTs as input tokens.`,
 			},
 			"token_expiration_linked": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether the expiration date of an access token never exceeds that of the` + "\n" +
-					`corresponding refresh token.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether the expiration date of an access token never exceeds that of the corresponding refresh token.`,
 			},
 			"tos_uri": schema.StringAttribute{
 				Computed: true,
@@ -1900,11 +1739,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 					`The value of this property is used as ` + "`" + `op_tos_uri` + "`" + ` property in the [OpenID Provider Metadata](http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
 			"traditional_request_object_processing_applied": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag to indicate whether a request object is processed based on rules defined in` + "\n" +
-					`[OpenID Connect Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html) or JAR (JWT` + "\n" +
-					`Secured Authorization Request).`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag to indicate whether a request object is processed based on rules defined in [OpenID Connect Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html) or JAR (JWT Secured Authorization Request).`,
 			},
 			"trust_anchors": schema.ListNestedAttribute{
 				Computed: true,
@@ -1926,12 +1763,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 						},
 					},
 				},
-				MarkdownDescription: `The trust anchors that are referenced when this service resolves` + "\n" +
-					`trust chains of relying parties.` + "\n" +
+				MarkdownDescription: `The trust anchors that are referenced when this service resolves trust chains of relying parties.` + "\n" +
 					`` + "\n" +
-					`If this property is empty, client registration fails regardless of` + "\n" +
-					`whether its type is ` + "`" + `automatic` + "`" + ` or ` + "`" + `explicit` + "`" + `. It means` + "\n" +
-					`that OpenID Connect Federation 1.0 does not work.`,
+					`If this property is empty, client registration fails regardless of whether its type is ` + "`" + `automatic` + "`" + ` or ` + "`" + `explicit` + "`" + `. It means that OpenID Connect Federation 1.0 does not work.`,
 			},
 			"trusted_root_certificates": schema.ListAttribute{
 				Computed:    true,
@@ -1940,10 +1774,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `The list of root certificates trusted by this service for PKI-based client mutual TLS authentication.`,
 			},
 			"unauthorized_on_client_config_supported": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether Authlete's ` + "`" + `/api/client/registration` + "`" + ` API uses ` + "`" + `UNAUTHORIZED` + "`" + ` as` + "\n" +
-					`a value of the ` + "`" + `action` + "`" + ` response parameter when appropriate.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `The flag indicating whether Authlete's ` + "`" + `/api/client/registration` + "`" + ` API uses ` + "`" + `UNAUTHORIZED` + "`" + ` as a value of the ` + "`" + `action` + "`" + ` response parameter when appropriate.`,
 			},
 			"user_code_charset": schema.StringAttribute{
 				Computed:    true,
@@ -1964,8 +1797,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"user_info_endpoint": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
-				MarkdownDescription: `The [user info endpoint](http://openid.net/specs/openid-connect-core-1_0.html#UserInfo) of the` + "\n" +
-					`service. A URL that starts with ` + "`" + `https://` + "`" + `. For example, ` + "`" + `https://example.com/auth/userinfo` + "`" + `.` + "\n" +
+				MarkdownDescription: `The [user info endpoint](http://openid.net/specs/openid-connect-core-1_0.html#UserInfo) of the service. A URL that starts with ` + "`" + `https://` + "`" + `. For example, ` + "`" + `https://example.com/auth/userinfo` + "`" + `.` + "\n" +
 					`` + "\n" +
 					`The value of this property is used as ` + "`" + `userinfo_endpoint` + "`" + ` property in the [OpenID Provider Metadata](http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).`,
 			},
@@ -1980,10 +1812,9 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `The default length of user PINs.`,
 			},
 			"verifiable_credentials_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `Get the flag indicating whether the feature of Verifiable Credentials` + "\n" +
-					`for this service is enabled or not.`,
+				Computed:    true,
+				Optional:    true,
+				Description: `Get the flag indicating whether the feature of Verifiable Credentials for this service is enabled or not.`,
 			},
 			"verified_claims_validation_schema_set": schema.StringAttribute{
 				Computed:    true,
@@ -2071,6 +1902,7 @@ func (r *ServiceResource) Create(ctx context.Context, req resource.CreateRequest
 		resp.Diagnostics.AddError(fmt.Sprintf("unexpected response from API. Got an unexpected response code %v", res.StatusCode), debugResponse(res.RawResponse))
 		return
 	}
+	rememberHost(ctx, resp.Private, res.RawResponse) // scripts/patch-missing-service.py
 	if !(res.Service != nil) {
 		resp.Diagnostics.AddError("unexpected response from API. Got an unexpected response body", debugResponse(res.RawResponse))
 		return
@@ -2115,7 +1947,7 @@ func (r *ServiceResource) Read(ctx context.Context, req resource.ReadRequest, re
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	res, err := r.client.Services.Retrieve(ctx, *request)
+	res, err := r.client.ServiceManagement.ServiceGetAPI(ctx, *request)
 	if err != nil {
 		resp.Diagnostics.AddError("failure to invoke API", err.Error())
 		if res != nil && res.RawResponse != nil {
@@ -2127,11 +1959,12 @@ func (r *ServiceResource) Read(ctx context.Context, req resource.ReadRequest, re
 		resp.Diagnostics.AddError("unexpected response from API", fmt.Sprintf("%v", res))
 		return
 	}
-	if res.StatusCode == 404 {
-		resp.State.RemoveResource(ctx)
-		return
-	}
 	if serviceIsGone(res.RawResponse) { // scripts/patch-missing-service.py
+		if ok, summary, detail := mayTreatAsGone(ctx, req.Private, res.RawResponse,
+			"service", fmt.Sprintf("%v", request.ServiceID), nil); !ok {
+			resp.Diagnostics.AddError(summary, detail)
+			return
+		}
 		resp.State.RemoveResource(ctx)
 		return
 	}
@@ -2139,6 +1972,7 @@ func (r *ServiceResource) Read(ctx context.Context, req resource.ReadRequest, re
 		resp.Diagnostics.AddError(fmt.Sprintf("unexpected response from API. Got an unexpected response code %v", res.StatusCode), debugResponse(res.RawResponse))
 		return
 	}
+	rememberHost(ctx, resp.Private, res.RawResponse) // scripts/patch-missing-service.py
 	if !(res.Service != nil) {
 		resp.Diagnostics.AddError("unexpected response from API. Got an unexpected response body", debugResponse(res.RawResponse))
 		return
@@ -2176,7 +2010,7 @@ func (r *ServiceResource) Update(ctx context.Context, req resource.UpdateRequest
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	res, err := r.client.Services.Update(ctx, *request)
+	res, err := r.client.ServiceManagement.ServiceUpdateAPI(ctx, *request)
 	if err != nil {
 		resp.Diagnostics.AddError("failure to invoke API", err.Error())
 		if res != nil && res.RawResponse != nil {
@@ -2260,10 +2094,17 @@ func (r *ServiceResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 	switch res.StatusCode {
-	case 204, 404:
+	case 204: // scripts/patch-missing-service.py
 		break
 	default:
-		if serviceIsGone(res.RawResponse) { // scripts/patch-missing-service.py
+		if serviceIsGone(res.RawResponse) {
+			if ok, summary, detail := mayTreatAsGone(ctx, req.Private, res.RawResponse,
+				"service", fmt.Sprintf("%v", request.ServiceID), func() (bool, bool) {
+					return serviceStillExists(ctx, r.client.ServiceManagement, request.ServiceID)
+				}); !ok {
+				resp.Diagnostics.AddError(summary, detail)
+				return
+			}
 			break // already gone, so there is nothing to delete
 		}
 		resp.Diagnostics.AddError(fmt.Sprintf("unexpected response from API. Got an unexpected response code %v", res.StatusCode), debugResponse(res.RawResponse))

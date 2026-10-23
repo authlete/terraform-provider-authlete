@@ -7,14 +7,10 @@ import (
 )
 
 type ClientAuthorizationUpdateRequest struct {
-	// The subject (= unique identifier) of the end-user who has granted authorization to the client
-	// application.
+	// The subject (= unique identifier) of the end-user who has granted authorization to the client application.
 	//
 	Subject string `json:"subject" form:"name=subject"`
-	// An array of new scopes. Optional. If a non-null value is given, the new scopes are set to all
-	// existing access tokens. If an API call is made using `"Content-Type: application/x-www-form-urlencoded"`,
-	// scope names listed in this request parameter should be delimited by spaces (after form encoding,
-	// spaces are converted to `+`).
+	// An array of new scopes. Optional. If a non-null value is given, the new scopes are set to all existing access tokens. If an API call is made using `"Content-Type: application/x-www-form-urlencoded"`, scope names listed in this request parameter should be delimited by spaces (after form encoding, spaces are converted to `+`).
 	//
 	Scopes []string `json:"scopes,omitzero" form:"name=scopes"`
 }

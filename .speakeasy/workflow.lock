@@ -2,8 +2,8 @@ speakeasyVersion: 1.795.1
 sources:
     Authlete-OAS:
         sourceNamespace: authlete-oas
-        sourceRevisionDigest: sha256:303fa18ce7338d30ea91de8d241f2d785d03f96722a1ed53b8ad80ecfcb45704
-        sourceBlobDigest: sha256:0a804c815f86b63d1024b74490ad5de2882e3072f2a7b84144a5a70733bc0841
+        sourceRevisionDigest: sha256:f6b669d292ade660002ea0930dfbe870dee4b27ac30da6bc36343fd94430d768
+        sourceBlobDigest: sha256:b3de39e873856c804fbba488735d2302ca132b3f598d86303a6fe4f52fa7400f
         tags:
             - latest
             - 3.0.16
@@ -11,15 +11,15 @@ targets:
     authlete:
         source: Authlete-OAS
         sourceNamespace: authlete-oas
-        sourceRevisionDigest: sha256:303fa18ce7338d30ea91de8d241f2d785d03f96722a1ed53b8ad80ecfcb45704
-        sourceBlobDigest: sha256:0a804c815f86b63d1024b74490ad5de2882e3072f2a7b84144a5a70733bc0841
+        sourceRevisionDigest: sha256:f6b669d292ade660002ea0930dfbe870dee4b27ac30da6bc36343fd94430d768
+        sourceBlobDigest: sha256:b3de39e873856c804fbba488735d2302ca132b3f598d86303a6fe4f52fa7400f
 workflow:
     workflowVersion: 1.0.0
     speakeasyVersion: 1.795.1
     sources:
         Authlete-OAS:
             inputs:
-                - location: registry.speakeasyapi.dev/authlete/sdk-workspace/authlete-oas:main
+                - location: https://raw.githubusercontent.com/authlete/openapi/main/spec_next.yaml
             overlays:
                 - location: .speakeasy/terraform_overlay.yaml
             output: .speakeasy/out.openapi.yaml

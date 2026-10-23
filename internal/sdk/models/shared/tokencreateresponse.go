@@ -71,25 +71,19 @@ type TokenCreateResponse struct {
 	// Scopes which are associated with the access token.
 	//
 	Scopes []string `json:"scopes,omitzero"`
-	// The subject (= unique identifier) of the user associated with the newly issued access
-	// token.
+	// The subject (= unique identifier) of the user associated with the newly issued access token.
 	//
 	Subject *string `json:"subject,omitzero"`
 	// The token type of the access token.
 	//
 	TokenType *string `json:"tokenType,omitzero"`
-	// If the authorization server is configured to issue JWT-based access tokens (= if `Service.accessTokenSignAlg`
-	// is set to a `non-null` value), a JWT-based access token is issued along with the original
-	// random-string one.
+	// If the authorization server is configured to issue JWT-based access tokens (= if `Service.accessTokenSignAlg` is set to a `non-null` value), a JWT-based access token is issued along with the original random-string one.
 	//
 	JwtAccessToken *string `json:"jwtAccessToken,omitzero"`
-	// The authorization details. This represents the value of the `authorization_details`
-	// request parameter in the preceding device authorization request which is defined in
-	// "OAuth 2.0 Rich Authorization Requests".
+	// The authorization details. This represents the value of the `authorization_details` request parameter in the preceding device authorization request which is defined in "OAuth 2.0 Rich Authorization Requests".
 	//
 	AuthorizationDetails *AuthzDetails `json:"authorizationDetails,omitzero"`
-	// the flag which indicates whether the access token is for an external
-	// attachment.
+	// the flag which indicates whether the access token is for an external attachment.
 	//
 	ForExternalAttachment *bool `json:"forExternalAttachment,omitzero"`
 	// Set the unique token identifier.
@@ -103,9 +97,7 @@ type TokenCreateResponse struct {
 	ClientIdentifier *string `json:"clientIdentifier,omitzero"`
 	// The session ID associated with a newly created access token.
 	//
-	// NOTE: A refresh token must be associated with a session ID, which is the ID of the user's authentication
-	// session, in order to be used to obtain a [Native SSO](https://openid.net/specs/openid-connect-native-sso-1_0.html)-compliant
-	// ID token in the refresh token flow.
+	// NOTE: A refresh token must be associated with a session ID, which is the ID of the user's authentication session, in order to be used to obtain a [Native SSO](https://openid.net/specs/openid-connect-native-sso-1_0.html)-compliant ID token in the refresh token flow.
 	//
 	SessionID *string `json:"sessionId,omitzero"`
 }

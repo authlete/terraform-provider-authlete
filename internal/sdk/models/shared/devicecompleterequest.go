@@ -8,8 +8,7 @@ import (
 	"github.com/authlete/terraform-provider-authlete/v3/internal/sdk/internal/utils"
 )
 
-// DeviceCompleteRequestResult - The result of the end-user authentication and authorization. One of the following. Details are
-// described in the description.
+// DeviceCompleteRequestResult - The result of the end-user authentication and authorization. One of the following. Details are described in the description.
 type DeviceCompleteRequestResult string
 
 const (
@@ -43,8 +42,7 @@ type DeviceCompleteRequest struct {
 	// A user code.
 	//
 	UserCode string `json:"userCode" form:"name=userCode"`
-	// The result of the end-user authentication and authorization. One of the following. Details are
-	// described in the description.
+	// The result of the end-user authentication and authorization. One of the following. Details are described in the description.
 	//
 	Result DeviceCompleteRequestResult `json:"result" form:"name=result"`
 	// The subject (= unique identifier) of the end-user.
@@ -65,42 +63,32 @@ type DeviceCompleteRequest struct {
 	// The extra properties associated with the access token.
 	//
 	Properties []Property `json:"properties,omitzero" form:"name=properties,json"`
-	// Scopes to replace the scopes specified in the original device authorization request with.
-	// When nothing is specified for this parameter, replacement is not performed.
+	// Scopes to replace the scopes specified in the original device authorization request with. When nothing is specified for this parameter, replacement is not performed.
 	//
 	Scopes []string `json:"scopes,omitzero" form:"name=scopes"`
-	// The description of the error. If this optional request parameter is given, its value is used as
-	// the value of the `error_description` property, but it is used only when the result is not `AUTHORIZED`.
-	// To comply with the specification strictly, the description must not include characters outside
-	// the set `%x20-21 / %x23-5B / %x5D-7E`.
+	// The description of the error. If this optional request parameter is given, its value is used as the value of the `error_description` property, but it is used only when the result is not `AUTHORIZED`. To comply with the specification strictly, the description must not include characters outside the set `%x20-21 / %x23-5B / %x5D-7E`.
 	//
 	ErrorDescription *string `json:"errorDescription,omitzero" form:"name=errorDescription"`
-	// The URI of a document which describes the error in detail. This corresponds to the `error_uri`
-	// property in the response to the client.
+	// The URI of a document which describes the error in detail. This corresponds to the `error_uri` property in the response to the client.
 	//
 	ErrorURI *string `json:"errorUri,omitzero" form:"name=errorUri"`
 	// JSON that represents additional JWS header parameters for ID tokens.
 	//
 	IdtHeaderParams *string `json:"idtHeaderParams,omitzero" form:"name=idtHeaderParams"`
-	// the claims that the user has consented for the client application
-	// to know.
+	// the claims that the user has consented for the client application to know.
 	//
 	ConsentedClaims []string `json:"consentedClaims,omitzero" form:"name=consentedClaims"`
 	// Additional claims that are added to the payload part of the JWT access token.
 	//
 	JwtAtClaims *string `json:"jwtAtClaims,omitzero" form:"name=jwtAtClaims"`
-	// The duration (in seconds) of the access token that may be issued as a result of the Authlete
-	// API call.
+	// The duration (in seconds) of the access token that may be issued as a result of the Authlete API call.
 	//
-	// When this request parameter holds a positive integer, it is used as the duration of the access
-	// token in. In other cases, this request parameter is ignored.
+	// When this request parameter holds a positive integer, it is used as the duration of the access token in. In other cases, this request parameter is ignored.
 	//
 	AccessTokenDuration *int64 `json:"accessTokenDuration,omitzero" form:"name=accessTokenDuration"`
-	// The duration (in seconds) of the refresh token that may be issued as a result of the Authlete
-	// API call.
+	// The duration (in seconds) of the refresh token that may be issued as a result of the Authlete API call.
 	//
-	// When this request parameter holds a positive integer, it is used as the duration of the refresh
-	// token in. In other cases, this request parameter is ignored.
+	// When this request parameter holds a positive integer, it is used as the duration of the refresh token in. In other cases, this request parameter is ignored.
 	//
 	RefreshTokenDuration *int64 `json:"refreshTokenDuration,omitzero" form:"name=refreshTokenDuration"`
 	// The type of the `aud` claim of the ID token being issued. Valid values are as follows.

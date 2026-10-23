@@ -2,10 +2,13 @@
 package provider
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
 func response(status int, body string) *http.Response {
@@ -89,5 +92,260 @@ func TestServiceGoneMessage(t *testing.T) {
 	// real and the token works.
 	if !strings.Contains(detail, "jp.authlete.com") {
 		t.Error("detail does not give the wrong-cluster case a concrete shape")
+	}
+}
+
+// The bug these guard: the generated code treated any 404 as "this is gone",
+// and Terraform's answer to gone is to recreate. A proxy, a maintenance page
+// or a typo in server_url all return a 404, usually with HTML.
+func TestA404AloneIsNotProofOfAnythingGone(t *testing.T) {
+	for name, body := range map[string]string{
+		"an nginx error page":              "<html><head><title>404 Not Found</title></head><body>nginx</body></html>",
+		"an empty body":                    "",
+		"an unrelated result":              `{"resultCode":"A999999","resultMessage":"[A999999] something else"}`,
+		"a json error object":              `{"error":"not_found"}`,
+		"plain text":                       "Not Found",
+		"a different not-found":            `{"error":"Client is not found"}`,
+		"html quoting the service message": `<html>Service is not found</html>`,
+		"html quoting a client code":       `<html>A001214</html>`,
+		"code in an unrelated message":     `{"resultCode":"OTHER","resultMessage":"A001212"}`,
+		"a longer code":                    `{"resultCode":"A0012120"}`,
+		"a longer service error":           `{"error":"Service is not found in this proxy"}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if serviceIsGone(response(http.StatusNotFound, body)) {
+				t.Error("treated as a deleted service, which would recreate it and orphan the original")
+			}
+			if clientIsGone(response(http.StatusNotFound, body)) {
+				t.Error("treated as a deleted client, which would recreate it")
+			}
+		})
+	}
+}
+
+// What Authlete actually says when something is really gone, per endpoint.
+func TestTheBodiesThatDoMeanGone(t *testing.T) {
+	for name, tc := range map[string]struct {
+		status  int
+		body    string
+		service bool
+		client  bool
+	}{
+		"service read, server": {
+			http.StatusForbidden,
+			`{"resultCode":"A458203","resultMessage":"[A458203] (/service/get/) Service not found: entity is null."}`,
+			true, false,
+		},
+		"service delete, IdP": {
+			http.StatusNotFound, `{"error":"Service is not found"}`, true, false,
+		},
+		"client read": {
+			http.StatusNotFound,
+			`{"resultCode":"A001212","resultMessage":"[A001212] /client/get/{clientId}, The client (ID = 1) does not exist."}`,
+			false, true,
+		},
+		"client delete": {
+			http.StatusNotFound, `{"resultCode":"A001214","resultMessage":"[A001214] no such client"}`, false, true,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if got := serviceIsGone(response(tc.status, tc.body)); got != tc.service {
+				t.Errorf("serviceIsGone = %v, want %v", got, tc.service)
+			}
+			if got := clientIsGone(response(tc.status, tc.body)); got != tc.client {
+				t.Errorf("clientIsGone = %v, want %v", got, tc.client)
+			}
+			// A client's path carries the service id, so either answer means
+			// the client is no longer there.
+			if !clientOrServiceIsGone(response(tc.status, tc.body)) {
+				t.Error("clientOrServiceIsGone should accept both")
+			}
+		})
+	}
+}
+
+// A 403 that is not A458203 is a permission problem, not a deletion. Dropping
+// the resource then would plan a second service beside one that still exists.
+func TestA403WithoutTheCodeIsNotGone(t *testing.T) {
+	for name, body := range map[string]string{
+		"insufficient rights":    `{"resultCode":"A457101","resultMessage":"[A457101] access token does not have sufficient access."}`,
+		"an html forbidden":      "<html>403 Forbidden</html>",
+		"empty":                  "",
+		"code only in a message": `{"resultCode":"OTHER","resultMessage":"A458203"}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if serviceIsGone(response(http.StatusForbidden, body)) {
+				t.Error("a permission failure was read as a deletion")
+			}
+		})
+	}
+}
+
+// fakePrivate stands in for the framework's private state, which is what
+// carries the host between runs.
+type fakePrivate struct {
+	data map[string][]byte
+	err  bool
+}
+
+func (f *fakePrivate) SetKey(_ context.Context, key string, value []byte) diag.Diagnostics {
+	var diags diag.Diagnostics
+	if f.err {
+		diags.AddError("set failed", "")
+		return diags
+	}
+	if f.data == nil {
+		f.data = map[string][]byte{}
+	}
+	f.data[key] = value
+	return diags
+}
+
+func (f *fakePrivate) GetKey(_ context.Context, key string) ([]byte, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	if f.err {
+		diags.AddError("get failed", "")
+		return nil, diags
+	}
+	return f.data[key], diags
+}
+
+func responseFrom(host string, status int, body string) *http.Response {
+	res := response(status, body)
+	req, _ := http.NewRequest(http.MethodGet, "https://"+host+"/api/1/service/get", nil)
+	res.Request = req
+	return res
+}
+
+// The guard that stops a wrong server_url recreating everything. It must fire
+// only when the host actually changed, or a genuine deletion stops working.
+func TestMovedHost(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("nothing recorded yet means nothing to object to", func(t *testing.T) {
+		if was := movedHost(ctx, &fakePrivate{}, responseFrom("jp.authlete.com", 403, "")); was != "" {
+			t.Errorf("objected with no recorded host: %q", was)
+		}
+	})
+
+	t.Run("the same host is not a move", func(t *testing.T) {
+		p := &fakePrivate{}
+		rememberHost(ctx, p, responseFrom("jp.authlete.com", 200, ""))
+		if was := movedHost(ctx, p, responseFrom("jp.authlete.com", 403, "")); was != "" {
+			t.Errorf("a genuine deletion would be refused: %q", was)
+		}
+	})
+
+	t.Run("a different host is a move", func(t *testing.T) {
+		p := &fakePrivate{}
+		rememberHost(ctx, p, responseFrom("jp.authlete.com", 200, ""))
+		if was := movedHost(ctx, p, responseFrom("us.authlete.com", 403, "")); was != "jp.authlete.com" {
+			t.Errorf("movedHost = %q, want jp.authlete.com", was)
+		}
+	})
+
+	// Failing to read private state must not invent a move, which would turn
+	// a recoverable situation into a blocked one.
+	t.Run("an unreadable private state is not a move", func(t *testing.T) {
+		if was := movedHost(ctx, &fakePrivate{err: true}, responseFrom("us.authlete.com", 403, "")); was != "" {
+			t.Errorf("objected on a private-state failure: %q", was)
+		}
+	})
+
+	t.Run("a response with no request carries no host", func(t *testing.T) {
+		p := &fakePrivate{}
+		rememberHost(ctx, p, response(200, ""))
+		if len(p.data) != 0 {
+			t.Errorf("recorded something from a response with no request: %v", p.data)
+		}
+	})
+}
+
+func TestGoneElsewhereMessageNamesBothHosts(t *testing.T) {
+	summary, detail := goneElsewhereMessage("jp.authlete.com", "us.authlete.com")
+	if summary == "" {
+		t.Error("no summary")
+	}
+	for _, want := range []string{"jp.authlete.com", "us.authlete.com", "import"} {
+		if !strings.Contains(detail, want) {
+			t.Errorf("the detail does not mention %q, so the reader cannot act on it:\n%s", want, detail)
+		}
+	}
+}
+
+// responseAt builds a response the capturing transport has annotated, which
+// is how the provider sees one in practice: the location is the configured
+// one, not the host that answered.
+func responseAt(where Location, status int, body string) *http.Response {
+	res := response(status, body)
+	req, _ := http.NewRequest(http.MethodGet, "https://"+where.Host+"/api/1/service/get", nil)
+	res.Request = req.WithContext(context.WithValue(req.Context(), noteKey{}, &note{where: where}))
+	return res
+}
+
+// Deleting a service goes through the IdP, which looks the service up under
+// an organization on an api server and answers "Service is not found" when
+// any of those is wrong. Comparing the cluster alone missed that: a destroy
+// run against the right cluster with the wrong organization reported success
+// and deleted nothing, leaving the service running and unmanaged.
+//
+// Reported in review, after the cluster check was already in place.
+func TestTheIdpCoordinatesArePartOfWhereAResourceLives(t *testing.T) {
+	ctx := context.Background()
+	lived := Location{Host: "api.authlete.local", IdpHost: "login.authlete.local", Org: 11, API: 53285}
+
+	for _, tc := range []struct {
+		name string
+		now  Location
+		want bool
+	}{
+		{"the same place is not a move", lived, false},
+		{"a different cluster", Location{Host: "us.authlete.com", IdpHost: "login.authlete.local", Org: 11, API: 53285}, true},
+		{"a different identity server", Location{Host: "api.authlete.local", IdpHost: "login.example.test", Org: 11, API: 53285}, true},
+		{"a different organization", Location{Host: "api.authlete.local", IdpHost: "login.authlete.local", Org: 12, API: 53285}, true},
+		{"a different api server", Location{Host: "api.authlete.local", IdpHost: "login.authlete.local", Org: 11, API: 99999}, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			p := &fakePrivate{}
+			rememberHost(ctx, p, responseAt(lived, 200, ""))
+			was := movedHost(ctx, p, responseAt(tc.now, 404, `{"error":"Service is not found"}`))
+			if (was != "") != tc.want {
+				t.Fatalf("movedHost = %q, want a move: %v.\n\n"+
+					"A place that never had the service answers exactly as one that "+
+					"deleted it. Treating that as a deletion orphans the original.",
+					was, tc.want)
+			}
+		})
+	}
+}
+
+// State written before the IdP coordinates were recorded holds a bare host.
+// Treating it as a mismatch would refuse every genuine deletion after an
+// upgrade, which is worse than the gap it closes.
+func TestAHostRecordedByAnEarlierVersionStillWorks(t *testing.T) {
+	ctx := context.Background()
+	p := &fakePrivate{data: map[string][]byte{hostKey: []byte(`"jp.authlete.com"`)}}
+
+	if was := movedHost(ctx, p, responseAt(Location{Host: "jp.authlete.com", Org: 11}, 403, "")); was != "" {
+		t.Errorf("a genuine deletion would be refused after an upgrade: %q", was)
+	}
+	if was := movedHost(ctx, p, responseAt(Location{Host: "us.authlete.com"}, 403, "")); was == "" {
+		t.Error("a changed cluster must still be caught when the record is an old bare host")
+	}
+}
+
+// The message has to name what to put back, not only that something moved.
+func TestTheMessageNamesEveryPartThatCanMove(t *testing.T) {
+	detail := Location{Host: "api.authlete.local", IdpHost: "login.authlete.local", Org: 11, API: 53285}.Describe()
+	for _, want := range []string{"api.authlete.local", "login.authlete.local", "organization 11", "api server 53285"} {
+		if !strings.Contains(detail, want) {
+			t.Errorf("Describe() omits %q:\n%s", want, detail)
+		}
+	}
+	_, msg := goneElsewhereMessage("a", "b")
+	for _, want := range []string{"server_url", "idp_host", "organization_id", "api_server_id"} {
+		if !strings.Contains(msg, want) {
+			t.Errorf("the message does not mention %q, so the reader cannot act on it", want)
+		}
 	}
 }

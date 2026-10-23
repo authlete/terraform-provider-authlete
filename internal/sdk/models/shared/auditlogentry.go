@@ -41,8 +41,7 @@ type AuditLogEntry struct {
 	Event *string `json:"event,omitzero"`
 	// Whether the action completed successfully or failed.
 	Status *Status `json:"status,omitzero"`
-	// When the event occurred (ISO 8601). May be null for entries without a recorded
-	// timestamp; such entries are only returned on the first page of results.
+	// When the event occurred (ISO 8601). May be null for entries without a recorded timestamp; such entries are only returned on the first page of results.
 	//
 	Timestamp *time.Time `json:"timestamp,omitzero"`
 	// The cluster or region where the event occurred.

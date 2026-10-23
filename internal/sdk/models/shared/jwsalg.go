@@ -7,8 +7,7 @@ import (
 	"fmt"
 )
 
-// JwsAlg - The signature algorithm for JWT. This value is represented on 'alg' attribute
-// of the header of JWT.
+// JwsAlg - The signature algorithm for JWT. This value is represented on 'alg' attribute of the header of JWT.
 //
 // it's semantics depends upon where is this defined, for instance:
 //   - as service accessTokenSignAlg value, it defines that access token are JWT and the algorithm used to sign it. Check your [KB article](https://kb.authlete.com/en/s/oauth-and-openid-connect/a/jwt-based-access-token).

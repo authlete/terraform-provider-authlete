@@ -44,8 +44,7 @@ type IdtokenReissueResponse struct {
 	ResultMessage *string `json:"resultMessage,omitzero"`
 	// The next action that the implementation of the token endpoint should take.
 	Action *IdtokenReissueResponseAction `json:"action,omitzero"`
-	// The response content that can be used as the message body of the token response that should
-	// be returned from the token endpoint.
+	// The response content that can be used as the message body of the token response that should be returned from the token endpoint.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
 	// The reissued ID token

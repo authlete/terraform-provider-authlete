@@ -12,27 +12,20 @@ type UserinfoRequest struct {
 	Token string `json:"token" form:"name=token"`
 	// Client certificate used in the TLS connection established between the client application and the userinfo endpoint.
 	//
-	// The value of this request parameter is referred to when the access token given to the userinfo endpoint was bound to
-	// a client certificate when it was issued. See [OAuth 2.0 Mutual TLS Client Authentication and Certificate-Bound Access Tokens]
-	// (https://datatracker.ietf.org/doc/rfc8705/) for details about the specification of certificate-bound access tokens.
+	// The value of this request parameter is referred to when the access token given to the userinfo endpoint was bound to a client certificate when it was issued. See [OAuth 2.0 Mutual TLS Client Authentication and Certificate-Bound Access Tokens] (https://datatracker.ietf.org/doc/rfc8705/) for details about the specification of certificate-bound access tokens.
 	//
 	ClientCertificate *string `json:"clientCertificate,omitzero" form:"name=clientCertificate"`
 	// `DPoP` header presented by the client during the request to the user info endpoint.
 	//
-	// The header contains a signed JWT which includes the public key that is paired with the private key used to sign the JWT.
-	// See [OAuth 2.0 Demonstration of Proof-of-Possession at the Application Layer (DPoP)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop)
-	// for details.
+	// The header contains a signed JWT which includes the public key that is paired with the private key used to sign the JWT. See [OAuth 2.0 Demonstration of Proof-of-Possession at the Application Layer (DPoP)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop) for details.
 	//
 	Dpop *string `json:"dpop,omitzero" form:"name=dpop"`
-	// HTTP method of the user info request. This field is used to validate the DPoP header.
-	// In normal cases, the value is either `GET` or `POST`.
+	// HTTP method of the user info request. This field is used to validate the DPoP header. In normal cases, the value is either `GET` or `POST`.
 	//
 	Htm *string `json:"htm,omitzero" form:"name=htm"`
 	// URL of the user info endpoint. This field is used to validate the DPoP header.
 	//
-	// If this parameter is omitted, the `userInfoEndpoint` property of the service is used as the default value.
-	// See [OAuth 2.0 Demonstration of Proof-of-Possession at the Application Layer (DPoP)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop)
-	// for details.
+	// If this parameter is omitted, the `userInfoEndpoint` property of the service is used as the default value. See [OAuth 2.0 Demonstration of Proof-of-Possession at the Application Layer (DPoP)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop) for details.
 	//
 	Htu *string `json:"htu,omitzero" form:"name=htu"`
 	// The full URL of the userinfo endpoint.
@@ -41,8 +34,7 @@ type UserinfoRequest struct {
 	// The HTTP message body of the request, if present.
 	//
 	Message *string `json:"message,omitzero" form:"name=message"`
-	// HTTP headers to be included in processing the signature. If this is a signed request, this must include the
-	// Signature and Signature-Input headers, as well as any additional headers covered by the signature.
+	// HTTP headers to be included in processing the signature. If this is a signed request, this must include the Signature and Signature-Input headers, as well as any additional headers covered by the signature.
 	//
 	Headers []Pair `json:"headers,omitzero" form:"name=headers,json"`
 	// The target URI of the userinfo request, including the query part, if any.
@@ -50,10 +42,7 @@ type UserinfoRequest struct {
 	TargetURI *string `json:"targetUri,omitzero" form:"name=targetUri"`
 	// The flag indicating whether to check if the DPoP proof JWT includes the expected `nonce` value.
 	//
-	// If this request parameter is set to `true` or if the service's `dpopNonceRequired` property is
-	// set to `true`, the `/auth/userinfo` API checks if the DPoP proof JWT includes the expected `nonce`
-	// value. In this case, the response from the `/auth/userinfo` API will include the `dpopNonce` response
-	// parameter, which should be used as the value of the DPoP-Nonce HTTP header.
+	// If this request parameter is set to `true` or if the service's `dpopNonceRequired` property is set to `true`, the `/auth/userinfo` API checks if the DPoP proof JWT includes the expected `nonce` value. In this case, the response from the `/auth/userinfo` API will include the `dpopNonce` response parameter, which should be used as the value of the DPoP-Nonce HTTP header.
 	//
 	DpopNonceRequired *bool `json:"dpopNonceRequired,omitzero" form:"name=dpopNonceRequired"`
 	// The flag indicating whether the userinfo request contains a request body.

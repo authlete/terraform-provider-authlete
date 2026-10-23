@@ -3,7 +3,7 @@ speakeasyVersion: 1.795.1
 sources:
     Authlete-OAS:
         inputs:
-            - location: registry.speakeasyapi.dev/authlete/sdk-workspace/authlete-oas:main
+            - location: https://raw.githubusercontent.com/authlete/openapi/main/spec_next.yaml
         overlays:
             - location: .speakeasy/terraform_overlay.yaml
         output: .speakeasy/out.openapi.yaml

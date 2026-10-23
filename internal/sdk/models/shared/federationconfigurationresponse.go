@@ -44,8 +44,7 @@ type FederationConfigurationResponse struct {
 	ResultMessage *string `json:"resultMessage,omitzero"`
 	// The next action that the authorization server implementation should take.
 	Action *FederationConfigurationResponseAction `json:"action,omitzero"`
-	// The content that the authorization server implementation is to return to the client application.
-	// Its format varies depending on the value of `action` parameter.
+	// The content that the authorization server implementation is to return to the client application. Its format varies depending on the value of `action` parameter.
 	//
 	ResponseContent *string `json:"responseContent,omitzero"`
 }

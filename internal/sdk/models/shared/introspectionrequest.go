@@ -9,54 +9,41 @@ import (
 type IntrospectionRequest struct {
 	// An access token to introspect.
 	Token string `json:"token" form:"name=token"`
-	// A string array listing names of scopes which the caller (= a protected resource endpoint of the
-	// service) requires. When the content type of the request from the service is `application/x-www-form-urlencoded`,
-	// the format of `scopes` is a space-separated list of scope names.
+	// A string array listing names of scopes which the caller (= a protected resource endpoint of the service) requires. When the content type of the request from the service is `application/x-www-form-urlencoded`, the format of `scopes` is a space-separated list of scope names.
 	//
-	// If this parameter is a non-empty array and if it contains a scope which is not covered by the
-	// access token,`action=FORBIDDEN` with `error=insufficient_scope` is returned from Authlete.
+	// If this parameter is a non-empty array and if it contains a scope which is not covered by the access token,`action=FORBIDDEN` with `error=insufficient_scope` is returned from Authlete.
 	//
 	Scopes []string `json:"scopes,omitzero" form:"name=scopes"`
-	// A subject (= a user account managed by the service) whom the caller (= a protected resource
-	// endpoint of the service) requires.
+	// A subject (= a user account managed by the service) whom the caller (= a protected resource endpoint of the service) requires.
 	//
-	// If this parameter is not `null` and if the value does not match the subject who is associated
-	// with the access token, `action=FORBIDDEN` with `error=invalid_request` is returned from Authlete.
+	// If this parameter is not `null` and if the value does not match the subject who is associated with the access token, `action=FORBIDDEN` with `error=invalid_request` is returned from Authlete.
 	//
 	Subject *string `json:"subject,omitzero" form:"name=subject"`
-	// Client certificate in PEM format, used to validate binding against access tokens using the TLS
-	// client certificate confirmation method.
+	// Client certificate in PEM format, used to validate binding against access tokens using the TLS client certificate confirmation method.
 	//
 	ClientCertificate *string `json:"clientCertificate,omitzero" form:"name=clientCertificate"`
 	// `DPoP` header presented by the client during the request to the resource server.
 	//
-	// The header contains a signed JWT which includes the public key that is paired with the private
-	// key used to sign the JWT. See [OAuth 2.0 Demonstration of Proof-of-Possession at the Application
-	// Layer (DPoP)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop) for details.
+	// The header contains a signed JWT which includes the public key that is paired with the private key used to sign the JWT. See [OAuth 2.0 Demonstration of Proof-of-Possession at the Application Layer (DPoP)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop) for details.
 	//
 	Dpop *string `json:"dpop,omitzero" form:"name=dpop"`
-	// HTTP method of the request from the client to the protected resource endpoint. This field is
-	// used to validate the `DPoP` header.
+	// HTTP method of the request from the client to the protected resource endpoint. This field is used to validate the `DPoP` header.
 	//
-	// See [OAuth 2.0 Demonstration of Proof-of-Possession at the Application Layer (DPoP)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop)
-	// for details.
+	// See [OAuth 2.0 Demonstration of Proof-of-Possession at the Application Layer (DPoP)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop) for details.
 	//
 	Htm *string `json:"htm,omitzero" form:"name=htm"`
 	// URL of the protected resource endpoint. This field is used to validate the `DPoP` header.
 	//
-	// See [OAuth 2.0 Demonstration of Proof-of-Possession at the Application Layer (DPoP)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop)
-	// for details.
+	// See [OAuth 2.0 Demonstration of Proof-of-Possession at the Application Layer (DPoP)](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop) for details.
 	//
 	Htu *string `json:"htu,omitzero" form:"name=htu"`
 	// The resources specified by the `resource` request parameters in the token request. See "Resource Indicators for OAuth 2.0" for details.
 	//
 	Resources []string `json:"resources,omitzero" form:"name=resources"`
-	// Authentication Context Class Reference values one of which the user authentication performed during the course
-	// of issuing the access token must satisfy.
+	// Authentication Context Class Reference values one of which the user authentication performed during the course of issuing the access token must satisfy.
 	//
 	AcrValues []string `json:"acrValues,omitzero" form:"name=acrValues"`
-	// The maximum authentication age which is the maximum allowable elapsed time since the user authentication
-	// was performed during the course of issuing the access token.
+	// The maximum authentication age which is the maximum allowable elapsed time since the user authentication was performed during the course of issuing the access token.
 	//
 	MaxAge *int64 `json:"maxAge,omitzero" form:"name=maxAge"`
 	// HTTP Message Components required to be in the signature. If absent, defaults to [ "@method", "@target-uri", "authorization" ].
@@ -68,8 +55,7 @@ type IntrospectionRequest struct {
 	// The HTTP message body of the request, if present.
 	//
 	Message *string `json:"message,omitzero" form:"name=message"`
-	// HTTP headers to be included in processing the signature. If this is a signed request, this must include the
-	// Signature and Signature-Input headers, as well as any additional headers covered by the signature.
+	// HTTP headers to be included in processing the signature. If this is a signed request, this must include the Signature and Signature-Input headers, as well as any additional headers covered by the signature.
 	//
 	Headers []Pair `json:"headers,omitzero" form:"name=headers,json"`
 	// The target URI of the resource request, including the query part, if any.
@@ -77,21 +63,14 @@ type IntrospectionRequest struct {
 	TargetURI *string `json:"targetUri,omitzero" form:"name=targetUri"`
 	// The flag indicating whether to check if the DPoP proof JWT includes the expected `nonce` value.
 	//
-	// If this request parameter is set to `true` or if the service's `dpopNonceRequired` property is
-	// set to `true`, the `/auth/introspection` API checks if the DPoP proof JWT includes the expected
-	// `nonce` value. In this case, the response from the `/auth/introspection` API will include the
-	// `dpopNonce` response parameter, which should be used as the value of the DPoP-Nonce HTTP header.
+	// If this request parameter is set to `true` or if the service's `dpopNonceRequired` property is set to `true`, the `/auth/introspection` API checks if the DPoP proof JWT includes the expected `nonce` value. In this case, the response from the `/auth/introspection` API will include the `dpopNonce` response parameter, which should be used as the value of the DPoP-Nonce HTTP header.
 	//
 	DpopNonceRequired *bool `json:"dpopNonceRequired,omitzero" form:"name=dpopNonceRequired"`
 	// The flag indicating whether the resource request contains a request body.
 	//
-	// When the resource request must comply with the HTTP message signing requirements defined in the
-	// FAPI 2.0 Message Signing specification, the `"content-digest"` component identifier must be included
-	// in the signature base of the HTTP message signature (see [RFC 9421 HTTP Message Signatures](https://www.rfc-editor.org/rfc/rfc9421.html))
-	// if the resource request contains a request body.
+	// When the resource request must comply with the HTTP message signing requirements defined in the FAPI 2.0 Message Signing specification, the `"content-digest"` component identifier must be included in the signature base of the HTTP message signature (see [RFC 9421 HTTP Message Signatures](https://www.rfc-editor.org/rfc/rfc9421.html)) if the resource request contains a request body.
 	//
-	// When this `requestBodyContained` parameter is set to `true`, Authlete checks whether `"content-digest"`
-	// is included in the signature base, if the FAPI profile applies to the resource request.
+	// When this `requestBodyContained` parameter is set to `true`, Authlete checks whether `"content-digest"` is included in the signature base, if the FAPI profile applies to the resource request.
 	//
 	RequestBodyContained *bool `json:"requestBodyContained,omitzero" form:"name=requestBodyContained"`
 }

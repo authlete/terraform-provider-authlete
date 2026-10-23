@@ -13,9 +13,7 @@ type TokenIssueRequest struct {
 	// The subject (= unique identifier) of the authenticated user.
 	//
 	Subject string `json:"subject" form:"name=subject"`
-	// Extra properties to associate with a newly created access token. Note that properties parameter is accepted only
-	// when `Content-Type` of the request is `application/json`, so don't use `application/x-www-form-urlencoded`
-	// if you want to specify properties.
+	// Extra properties to associate with a newly created access token. Note that properties parameter is accepted only when `Content-Type` of the request is `application/json`, so don't use `application/x-www-form-urlencoded` if you want to specify properties.
 	//
 	Properties []Property `json:"properties,omitzero" form:"name=properties,json"`
 	// Additional claims that are added to the payload part of the JWT access token.
@@ -24,18 +22,14 @@ type TokenIssueRequest struct {
 	// The representation of an access token that may be issued as a result of the Authlete API call.
 	//
 	AccessToken *string `json:"accessToken,omitzero" form:"name=accessToken"`
-	// The duration (in seconds) of the access token that may be issued as a result of the Authlete
-	// API call.
+	// The duration (in seconds) of the access token that may be issued as a result of the Authlete API call.
 	//
-	// When this request parameter holds a positive integer, it is used as the duration of the access
-	// token in. In other cases, this request parameter is ignored.
+	// When this request parameter holds a positive integer, it is used as the duration of the access token in. In other cases, this request parameter is ignored.
 	//
 	AccessTokenDuration *int64 `json:"accessTokenDuration,omitzero" form:"name=accessTokenDuration"`
-	// The duration (in seconds) of the refresh token that may be issued as a result of the Authlete
-	// API call.
+	// The duration (in seconds) of the refresh token that may be issued as a result of the Authlete API call.
 	//
-	// When this request parameter holds a positive integer, it is used as the duration of the refresh
-	// token in. In other cases, this request parameter is ignored.
+	// When this request parameter holds a positive integer, it is used as the duration of the refresh token in. In other cases, this request parameter is ignored.
 	//
 	RefreshTokenDuration *int64 `json:"refreshTokenDuration,omitzero" form:"name=refreshTokenDuration"`
 }

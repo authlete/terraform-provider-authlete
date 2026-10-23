@@ -16,6 +16,7 @@ import (
 	"net/http"
 )
 
+// DynamicClientRegistration - API endpoints for implementing OAuth 2.0 Dynamic Client Registration.
 type DynamicClientRegistration struct {
 	rootSDK          *Authlete
 	sdkConfiguration config.SDKConfiguration
@@ -30,11 +31,9 @@ func newDynamicClientRegistration(rootSDK *Authlete, sdkConfig config.SDKConfigu
 	}
 }
 
-// Register Client
-// Register a client. This API is supposed to be used to implement a client registration endpoint that
-// complies with [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591) (OAuth 2.0 Dynamic Client
-// Registration Protocol).
-func (s *DynamicClientRegistration) Register(ctx context.Context, request operations.ClientRegistrationAPIRequest, opts ...operations.Option) (*operations.ClientRegistrationAPIResponse, error) {
+// ClientRegistrationAPI - Register Client
+// Register a client. This API is supposed to be used to implement a client registration endpoint that complies with [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591) (OAuth 2.0 Dynamic Client Registration Protocol).
+func (s *DynamicClientRegistration) ClientRegistrationAPI(ctx context.Context, request operations.ClientRegistrationAPIRequest, opts ...operations.Option) (*operations.ClientRegistrationAPIResponse, error) {
 	o := operations.Options{}
 	supportedOptions := []string{
 		operations.SupportedOptionRetries,
@@ -307,11 +306,9 @@ func (s *DynamicClientRegistration) Register(ctx context.Context, request operat
 
 }
 
-// Retrieve - Get Client
-// Get a dynamically registered client. This API is supposed to be used to implement a client registration
-// management endpoint that complies with [RFC 7592](https://datatracker.ietf.org/doc/html/rfc7592)
-// (OAuth 2.0 Dynamic Registration Management).
-func (s *DynamicClientRegistration) Retrieve(ctx context.Context, request operations.ClientRegistrationGetAPIRequest, opts ...operations.Option) (*operations.ClientRegistrationGetAPIResponse, error) {
+// ClientRegistrationGetAPI - Get Client
+// Get a dynamically registered client. This API is supposed to be used to implement a client registration management endpoint that complies with [RFC 7592](https://datatracker.ietf.org/doc/html/rfc7592) (OAuth 2.0 Dynamic Registration Management).
+func (s *DynamicClientRegistration) ClientRegistrationGetAPI(ctx context.Context, request operations.ClientRegistrationGetAPIRequest, opts ...operations.Option) (*operations.ClientRegistrationGetAPIResponse, error) {
 	o := operations.Options{}
 	supportedOptions := []string{
 		operations.SupportedOptionRetries,
@@ -584,11 +581,9 @@ func (s *DynamicClientRegistration) Retrieve(ctx context.Context, request operat
 
 }
 
-// Update Client
-// Update a dynamically registered client. This API is supposed to be used to implement a client
-// registration management endpoint that complies with [RFC 7592](https://datatracker.ietf.org/doc/html/rfc7592)
-// (OAuth 2.0 Dynamic Registration Management).
-func (s *DynamicClientRegistration) Update(ctx context.Context, request operations.ClientRegistrationUpdateAPIRequest, opts ...operations.Option) (*operations.ClientRegistrationUpdateAPIResponse, error) {
+// ClientRegistrationUpdateAPI - Update Client
+// Update a dynamically registered client. This API is supposed to be used to implement a client registration management endpoint that complies with [RFC 7592](https://datatracker.ietf.org/doc/html/rfc7592) (OAuth 2.0 Dynamic Registration Management).
+func (s *DynamicClientRegistration) ClientRegistrationUpdateAPI(ctx context.Context, request operations.ClientRegistrationUpdateAPIRequest, opts ...operations.Option) (*operations.ClientRegistrationUpdateAPIResponse, error) {
 	o := operations.Options{}
 	supportedOptions := []string{
 		operations.SupportedOptionRetries,
@@ -861,11 +856,9 @@ func (s *DynamicClientRegistration) Update(ctx context.Context, request operatio
 
 }
 
-// Destroy - Delete Client
-// Delete a dynamically registered client. This API is supposed to be used to implement a client
-// registration management endpoint that complies with [RFC 7592](https://datatracker.ietf.org/doc/html/rfc7592)
-// (OAuth 2.0 Dynamic Registration Management).
-func (s *DynamicClientRegistration) Destroy(ctx context.Context, request operations.ClientRegistrationDeleteAPIRequest, opts ...operations.Option) (*operations.ClientRegistrationDeleteAPIResponse, error) {
+// ClientRegistrationDeleteAPI - Delete Client
+// Delete a dynamically registered client. This API is supposed to be used to implement a client registration management endpoint that complies with [RFC 7592](https://datatracker.ietf.org/doc/html/rfc7592) (OAuth 2.0 Dynamic Registration Management).
+func (s *DynamicClientRegistration) ClientRegistrationDeleteAPI(ctx context.Context, request operations.ClientRegistrationDeleteAPIRequest, opts ...operations.Option) (*operations.ClientRegistrationDeleteAPIResponse, error) {
 	o := operations.Options{}
 	supportedOptions := []string{
 		operations.SupportedOptionRetries,

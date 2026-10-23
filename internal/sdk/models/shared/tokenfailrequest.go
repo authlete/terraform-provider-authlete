@@ -14,6 +14,9 @@ const (
 	TokenFailRequestReasonUnknown                         TokenFailRequestReason = "UNKNOWN"
 	TokenFailRequestReasonInvalidResourceOwnerCredentials TokenFailRequestReason = "INVALID_RESOURCE_OWNER_CREDENTIALS"
 	TokenFailRequestReasonInvalidTarget                   TokenFailRequestReason = "INVALID_TARGET"
+	TokenFailRequestReasonInvalidClient                   TokenFailRequestReason = "INVALID_CLIENT"
+	TokenFailRequestReasonUnauthorizedClient              TokenFailRequestReason = "UNAUTHORIZED_CLIENT"
+	TokenFailRequestReasonInvalidScope                    TokenFailRequestReason = "INVALID_SCOPE"
 )
 
 func (e TokenFailRequestReason) ToPointer() *TokenFailRequestReason {
@@ -30,6 +33,12 @@ func (e *TokenFailRequestReason) UnmarshalJSON(data []byte) error {
 	case "INVALID_RESOURCE_OWNER_CREDENTIALS":
 		fallthrough
 	case "INVALID_TARGET":
+		fallthrough
+	case "INVALID_CLIENT":
+		fallthrough
+	case "UNAUTHORIZED_CLIENT":
+		fallthrough
+	case "INVALID_SCOPE":
 		*e = TokenFailRequestReason(v)
 		return nil
 	default:

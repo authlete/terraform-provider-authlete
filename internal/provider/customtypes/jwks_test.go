@@ -3,6 +3,8 @@ package customtypes
 
 import (
 	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/attr/xattr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -43,10 +45,7 @@ func TestJWKSSemanticEquals(t *testing.T) {
 
 func validateJWKS(t *testing.T, doc string) diag.Diagnostics {
 	t.Helper()
-	var resp xattr.ValidateAttributeResponse
-	NewJWKSValue(doc).ValidateAttribute(context.Background(),
-		xattr.ValidateAttributeRequest{Path: path.Root("jwks")}, &resp)
-	return resp.Diagnostics
+	return ValidateDocument(path.Root("jwks"), doc, false)
 }
 
 // TestDuplicateKidIsRefused covers what jwk_from_pem cannot see: that function
@@ -382,6 +381,53 @@ func TestX5CIsChecked(t *testing.T) {
 			}
 			if !tc.ok && !d.HasError() {
 				t.Errorf("accepted a malformed chain: %s", tc.doc)
+			}
+		})
+	}
+}
+
+// The checks must not run against a value read back from Authlete.
+//
+// They used to live on the custom type's ValidateAttribute, which the
+// framework calls from data_value.go on every read, state included. A client
+// whose keys were registered through DCR, or a set that predates these checks,
+// would then fail every refresh. Two shapes are legal per RFC 7517 and are
+// exactly what the server may hand back:
+//
+//	a key with no kid
+//	two keys sharing a kid, one for signing and one for encryption
+//
+// This asserts the type no longer carries the hook at all, which is what makes
+// the checks configuration-only. Without it the mechanism could be moved back
+// and nothing would notice until someone's refresh broke.
+func TestValidationIsNotAttachedToTheType(t *testing.T) {
+	for name, v := range map[string]attr.Value{
+		"a service's JWK Set": NewJWKSValue(`{"keys":[{"kty":"RSA"}]}`),
+		"a client's JWK Set":  NewPublicJWKSValue(`{"keys":[{"kty":"RSA"}]}`),
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, carries := v.(xattr.ValidateableAttribute); carries {
+				t.Error("the type implements ValidateableAttribute, so these checks " +
+					"run on every read of the value, state included. They belong on " +
+					"an attribute validator, which sees configuration only.")
+			}
+		})
+	}
+}
+
+// What a server-side key set may legitimately look like. None of these should
+// ever be reported, because they only reach us from Authlete.
+func TestServerSideSetsThatMustNotBreakRefresh(t *testing.T) {
+	for name, doc := range map[string]string{
+		// v1.3.17 stored this for every client.
+		"the empty string a 1.3.17 state upgrade carries": ``,
+		"a key with no kid":                             `{"keys":[{"kty":"RSA","n":"AQAB","e":"AQAB"}]}`,
+		"a signing and an encryption key sharing a kid": `{"keys":[{"kty":"RSA","kid":"k","use":"sig","n":"AQAB","e":"AQAB"},{"kty":"RSA","kid":"k","use":"enc","n":"AQAB","e":"AQAB"}]}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			// Reading it back is what a refresh does, and it must stay quiet.
+			if _, carries := any(NewJWKSValue(doc)).(xattr.ValidateableAttribute); carries {
+				t.Fatalf("reading %q back would be validated, so a refresh would fail", name)
 			}
 		})
 	}
