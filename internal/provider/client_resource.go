@@ -1461,13 +1461,8 @@ func (r *ClientResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 	if clientOrServiceIsGone(res.RawResponse) { // scripts/patch-missing-service.py
-		if was := movedHost(ctx, req.Private, res.RawResponse); was != "" {
-			summary, detail := goneElsewhereMessage(was, responseHost(res.RawResponse))
-			resp.Diagnostics.AddError(summary, detail)
-			return
-		}
-		if !hasRecord(ctx, req.Private) {
-			summary, detail := noRecordMessage("client", fmt.Sprintf("%v", request.ClientID))
+		if ok, summary, detail := mayTreatAsGone(ctx, req.Private, res.RawResponse,
+			"client", fmt.Sprintf("%v", request.ClientID), nil); !ok {
 			resp.Diagnostics.AddError(summary, detail)
 			return
 		}
@@ -1593,13 +1588,8 @@ func (r *ClientResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		break
 	default:
 		if clientOrServiceIsGone(res.RawResponse) {
-			if was := movedHost(ctx, req.Private, res.RawResponse); was != "" {
-				summary, detail := goneElsewhereMessage(was, responseHost(res.RawResponse))
-				resp.Diagnostics.AddError(summary, detail)
-				return
-			}
-			if !hasRecord(ctx, req.Private) {
-				summary, detail := noRecordMessage("client", fmt.Sprintf("%v", request.ClientID))
+			if ok, summary, detail := mayTreatAsGone(ctx, req.Private, res.RawResponse,
+				"client", fmt.Sprintf("%v", request.ClientID), nil); !ok {
 				resp.Diagnostics.AddError(summary, detail)
 				return
 			}

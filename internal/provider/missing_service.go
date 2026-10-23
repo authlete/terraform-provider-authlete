@@ -351,3 +351,51 @@ func hasRecord(ctx context.Context, p interface {
 	_, _, ok := decodeLocation(raw)
 	return ok
 }
+
+// privateReader is the part of private state these decisions need.
+type privateReader interface {
+	GetKey(context.Context, string) ([]byte, diag.Diagnostics)
+}
+
+// mayTreatAsGone is the single decision behind every "drop this resource" in
+// the provider. Read and Delete, service and client, all come here.
+//
+// It lives in one place because the same bug was found in three reviews, each
+// time at one call site that had been given a check the others had not. The
+// last of them was service Delete, the only path with no check that anything
+// had ever been recorded.
+//
+// confirm is optional, and is the only independent evidence available. It is
+// supplied for a service Delete, where the identity server's answer depends
+// on coordinates the cluster does not use. It is not supplied where the
+// answer already came from the cluster, since asking the same host twice
+// proves nothing. Note that it cannot stand in for the record check either:
+// it reaches the host in the current configuration, so a wrong server_url is
+// confirmed by the wrong cluster.
+func mayTreatAsGone(
+	ctx context.Context,
+	p privateReader,
+	res *http.Response,
+	what, id string,
+	confirm func() (exists, known bool),
+) (gone bool, summary, detail string) {
+	// Somewhere other than where it was last seen cannot report it missing.
+	if was := movedHost(ctx, p, res); was != "" {
+		s, d := goneElsewhereMessage(was, responseHost(res))
+		return false, s, d
+	}
+	// Nothing was ever recorded, so there is nothing to check the answer
+	// against. State from 3.0.0-beta3 and from 1.3.x arrives this way, and
+	// the first run is when a mistyped server_url is most likely.
+	if !hasRecord(ctx, p) {
+		s, d := noRecordMessage(what, id)
+		return false, s, d
+	}
+	if confirm != nil {
+		if exists, known := confirm(); exists || !known {
+			s, d := serviceStillThereMessage(id, locationOf(res))
+			return false, s, d
+		}
+	}
+	return true, "", ""
+}

@@ -98,7 +98,9 @@ READ_V2 = '''	if GONE(res.RawResponse) { MARK
     "\tif !(res.PAYLOAD != nil) {",
     "\trememberHost(ctx, resp.Private, res.RawResponse) " + MARK + "\n\tif !(res.PAYLOAD != nil) {")
 
-READ_AFTER = '''	if GONE(res.RawResponse) { MARK
+# Read, as the version with the checks written out inline left it, before
+# they moved into mayTreatAsGone.
+READ_V3 = '''	if GONE(res.RawResponse) { MARK
 		if was := movedHost(ctx, req.Private, res.RawResponse); was != "" {
 			summary, detail := goneElsewhereMessage(was, responseHost(res.RawResponse))
 			resp.Diagnostics.AddError(summary, detail)
@@ -106,6 +108,19 @@ READ_AFTER = '''	if GONE(res.RawResponse) { MARK
 		}
 		if !hasRecord(ctx, req.Private) {
 			summary, detail := noRecordMessage("PAYLOAD_LOWER", fmt.Sprintf("%v", request.IDFIELD))
+			resp.Diagnostics.AddError(summary, detail)
+			return
+		}
+		resp.State.RemoveResource(ctx)
+		return
+	}
+'''.replace("MARK", MARK) + TAIL.replace(
+    "\tif !(res.PAYLOAD != nil) {",
+    "\trememberHost(ctx, resp.Private, res.RawResponse) " + MARK + "\n\tif !(res.PAYLOAD != nil) {")
+
+READ_AFTER = '''	if GONE(res.RawResponse) { MARK
+		if ok, summary, detail := mayTreatAsGone(ctx, req.Private, res.RawResponse,
+			"PAYLOAD_LOWER", fmt.Sprintf("%v", request.IDFIELD), nil); !ok {
 			resp.Diagnostics.AddError(summary, detail)
 			return
 		}
@@ -151,12 +166,11 @@ DELETE_AFTER = '''	switch res.StatusCode {
 		break
 	default:
 		if GONE(res.RawResponse) {
-			if was := movedHost(ctx, req.Private, res.RawResponse); was != "" {
-				summary, detail := goneElsewhereMessage(was, responseHost(res.RawResponse))
+			if ok, summary, detail := mayTreatAsGone(ctx, req.Private, res.RawResponse,
+				"PAYLOAD_LOWER", fmt.Sprintf("%v", request.IDFIELD), CONFIRM); !ok {
 				resp.Diagnostics.AddError(summary, detail)
 				return
 			}
-			CONFIRM
 			break // already gone, so there is nothing to delete
 		}
 '''.replace("MARK", MARK)
@@ -166,29 +180,43 @@ DELETE_AFTER = '''	switch res.StatusCode {
 # place. The record cannot catch that, because a read rewrites it from the same
 # wrong configuration. The cluster can: it resolves a service id without
 # reference to any of the three.
-SERVICE_CONFIRM = '''if exists, known := serviceStillExists(ctx, r.client.ServiceManagement, request.ServiceID); exists || !known {
+SERVICE_CONFIRM = """func() (bool, bool) {
+					return serviceStillExists(ctx, r.client.ServiceManagement, request.ServiceID)
+				}"""
+
+CLIENT_CONFIRM = "nil"
+
+# The same, as the version before the host check left it, so reapplying over
+# an already-patched tree is a no-op rather than a failure.
+# Delete, as the version with the comment-only client confirmation left it.
+# Delete, as the version with the checks written out inline left it.
+DELETE_V5 = '''	switch res.StatusCode {
+	case 204: MARK
+		break
+	default:
+		if GONE(res.RawResponse) {
+			if was := movedHost(ctx, req.Private, res.RawResponse); was != "" {
+				summary, detail := goneElsewhereMessage(was, responseHost(res.RawResponse))
+				resp.Diagnostics.AddError(summary, detail)
+				return
+			}
+			INLINE
+			break // already gone, so there is nothing to delete
+		}
+'''.replace("MARK", MARK)
+
+SERVICE_INLINE = '''if exists, known := serviceStillExists(ctx, r.client.ServiceManagement, request.ServiceID); exists || !known {
 				summary, detail := serviceStillThereMessage(fmt.Sprintf("%v", request.ServiceID), locationOf(res.RawResponse))
 				resp.Diagnostics.AddError(summary, detail)
 				return
 			}'''
 
-# A client delete is answered by the cluster itself, so there is nothing
-# further to confirm: the host check already covers the only place it could
-# have come from.
-# A client delete is answered by the cluster, so there is no second place to
-# ask. But a wrong server_url answers for the service with A458203, which
-# counts as the client being gone too, and with nothing recorded there is
-# nothing to compare that against. Refuse rather than report a deletion that
-# did not happen.
-CLIENT_CONFIRM = '''if !hasRecord(ctx, req.Private) {
+CLIENT_INLINE = '''if !hasRecord(ctx, req.Private) {
 				summary, detail := noRecordMessage("client", fmt.Sprintf("%v", request.ClientID))
 				resp.Diagnostics.AddError(summary, detail)
 				return
 			}'''
 
-# The same, as the version before the host check left it, so reapplying over
-# an already-patched tree is a no-op rather than a failure.
-# Delete, as the version with the comment-only client confirmation left it.
 DELETE_V4 = '''	switch res.StatusCode {
 	case 204: MARK
 		break
@@ -232,8 +260,8 @@ DELETE_V2 = '''	switch res.StatusCode {
 # answers with the service's 403; its clients went with the service.
 # gone test, payload field, and the identifier Read already has in scope.
 RESOURCES = {
-    "internal/provider/service_resource.go": ("serviceIsGone", "Service", "ServiceID", SERVICE_CONFIRM),
-    "internal/provider/client_resource.go": ("clientOrServiceIsGone", "Client", "ClientID", CLIENT_CONFIRM),
+    "internal/provider/service_resource.go": ("serviceIsGone", "Service", "ServiceID", SERVICE_CONFIRM, SERVICE_INLINE),
+    "internal/provider/client_resource.go": ("clientOrServiceIsGone", "Client", "ClientID", CLIENT_CONFIRM, CLIENT_INLINE),
 }
 
 
@@ -281,14 +309,14 @@ def main():
         open(path, "w").write(src.replace(DS_BEFORE, DS_AFTER, 1))
         sites += 1
 
-    for path, (gone, payload, idfield, confirm) in RESOURCES.items():
+    for path, (gone, payload, idfield, confirm, inline) in RESOURCES.items():
         src = open(path).read()
         out = src
         missing = []
 
         out, ok = apply_one(
             out, "Read",
-            [fill(READ_V2, gone, payload), fill(READ_V1, gone, payload), fill(READ_PRISTINE, gone, payload)],
+            [fill(READ_V3, gone, payload, idfield), fill(READ_V2, gone, payload), fill(READ_V1, gone, payload), fill(READ_PRISTINE, gone, payload)],
             fill(READ_AFTER, gone, payload, idfield), check, missing)
         sites += ok
 
@@ -299,7 +327,7 @@ def main():
 
         out, ok = apply_one(
             out, "Delete",
-            [fill(DELETE_V4, gone, payload), fill(DELETE_V3, gone, payload), fill(DELETE_V2, gone, payload), DELETE_V1, DELETE_PRISTINE],
+            [fill(DELETE_V5, gone, payload).replace("INLINE", inline), fill(DELETE_V4, gone, payload), fill(DELETE_V3, gone, payload), fill(DELETE_V2, gone, payload), DELETE_V1, DELETE_PRISTINE],
             fill(DELETE_AFTER, gone, payload, idfield, confirm), check, missing)
         sites += ok
 

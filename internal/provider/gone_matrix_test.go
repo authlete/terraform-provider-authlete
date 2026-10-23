@@ -235,3 +235,62 @@ func (s stubReader) ServiceGetAPI(ctx context.Context, req operations.ServiceGet
 }
 
 var errStub = fmt.Errorf("transport failure")
+
+// Every call site now routes through one decision, so the table covers all
+// four at once: service and client, Read and Delete.
+//
+// The case that prompted it: service Delete had no check that anything had
+// ever been recorded, and its cluster confirmation asks the host from the
+// same configuration. With no record and a wrong server_url, the wrong
+// cluster answers A458203, the confirmation agrees, and destroy reported
+// success while the service kept running.
+func TestMatrixMayTreatAsGone(t *testing.T) {
+	ctx := context.Background()
+	clusterSaysGone := func() (bool, bool) { return false, true }
+	clusterSaysThere := func() (bool, bool) { return true, true }
+	clusterCannotTell := func() (bool, bool) { return false, false }
+
+	for _, tc := range []struct {
+		name    string
+		record  *Location
+		now     Location
+		confirm func() (bool, bool)
+		want    bool
+		expect  string // a phrase the refusal must carry
+	}{
+		// Read paths, no second place to ask.
+		{"read, record matches", &locHere, locHere, nil, true, ""},
+		{"read, no record", nil, locHere, nil, false, "state rm"},
+		{"read, wrong cluster", &locHere, locHost, nil, false, "last seen"},
+		{"read, wrong organization", &locHere, locOrg, nil, false, "last seen"},
+
+		// Client delete behaves exactly as client read.
+		{"client delete, no record", nil, locHere, nil, false, "state rm"},
+
+		// Service delete, where the identity server answered.
+		{"service delete, record matches, cluster agrees", &locHere, locHere, clusterSaysGone, true, ""},
+		{"service delete, record matches, cluster still has it", &locHere, locHere, clusterSaysThere, false, "still exists"},
+		{"service delete, record matches, cluster cannot tell", &locHere, locHere, clusterCannotTell, false, "still exists"},
+		{"service delete, wrong organization", &locHere, locOrg, clusterSaysGone, false, "last seen"},
+
+		// The gap: no record, wrong cluster. The confirmation asks that same
+		// wrong cluster, so it is not independent evidence.
+		{"service delete, no record, wrong cluster", nil, locHost, clusterSaysGone, false, "state rm"},
+		{"service delete, no record, right cluster", nil, locHere, clusterSaysGone, false, "state rm"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			p := recordOf(t, tc.record)
+			res := matrixResponse(tc.now, 403, bodyServerGone)
+			gone, summary, detail := mayTreatAsGone(ctx, p, res, "service", "42", tc.confirm)
+			if gone != tc.want {
+				t.Fatalf("mayTreatAsGone = %v, want %v (%s)", gone, tc.want, summary)
+			}
+			if tc.want {
+				return
+			}
+			if !strings.Contains(summary+detail, tc.expect) {
+				t.Errorf("the refusal does not mention %q:\n%s\n%s", tc.expect, summary, detail)
+			}
+		})
+	}
+}

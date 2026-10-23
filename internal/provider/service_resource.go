@@ -1960,13 +1960,8 @@ func (r *ServiceResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 	if serviceIsGone(res.RawResponse) { // scripts/patch-missing-service.py
-		if was := movedHost(ctx, req.Private, res.RawResponse); was != "" {
-			summary, detail := goneElsewhereMessage(was, responseHost(res.RawResponse))
-			resp.Diagnostics.AddError(summary, detail)
-			return
-		}
-		if !hasRecord(ctx, req.Private) {
-			summary, detail := noRecordMessage("service", fmt.Sprintf("%v", request.ServiceID))
+		if ok, summary, detail := mayTreatAsGone(ctx, req.Private, res.RawResponse,
+			"service", fmt.Sprintf("%v", request.ServiceID), nil); !ok {
 			resp.Diagnostics.AddError(summary, detail)
 			return
 		}
@@ -2103,13 +2098,10 @@ func (r *ServiceResource) Delete(ctx context.Context, req resource.DeleteRequest
 		break
 	default:
 		if serviceIsGone(res.RawResponse) {
-			if was := movedHost(ctx, req.Private, res.RawResponse); was != "" {
-				summary, detail := goneElsewhereMessage(was, responseHost(res.RawResponse))
-				resp.Diagnostics.AddError(summary, detail)
-				return
-			}
-			if exists, known := serviceStillExists(ctx, r.client.ServiceManagement, request.ServiceID); exists || !known {
-				summary, detail := serviceStillThereMessage(fmt.Sprintf("%v", request.ServiceID), locationOf(res.RawResponse))
+			if ok, summary, detail := mayTreatAsGone(ctx, req.Private, res.RawResponse,
+				"service", fmt.Sprintf("%v", request.ServiceID), func() (bool, bool) {
+					return serviceStillExists(ctx, r.client.ServiceManagement, request.ServiceID)
+				}); !ok {
 				resp.Diagnostics.AddError(summary, detail)
 				return
 			}
