@@ -107,14 +107,36 @@ if not stubs:
     sys.exit(f"error: no KeepOrder stubs in {DIR}. The overlay entries that "
              "declare them have most likely been removed.")
 
-todo = [p for p in stubs if "TODO" in open(p).read()]
+# A stub counts as implemented only if it actually calls the modifier. The
+# earlier test was "does the file still say TODO", which is what Speakeasy
+# emits, so it caught a regeneration and nothing else: a stub whose body was
+# emptied some other way read as healthy, compiled, and silently stopped
+# keeping the stored order. Check the call, not the marker.
+def implemented(path):
+    src = open(path).read()
+    if "TODO" in src:
+        return False
+    # Scoped to PlanModifyList, because the same call appears in Description
+    # and Markdown. An emptied PlanModifyList with those two intact compiles,
+    # reads as healthy on a whole-file search, and quietly stops keeping the
+    # stored order, which is the failure this guard exists to catch.
+    m = re.search(r"func \([^)]*\) PlanModifyList\([^)]*\) \{\n(.*?)\n\}", src, re.S)
+    if m is None:
+        return False
+    wanted = ("authletepm.KeepOrderByKeyWhenSatisfied("
+              if os.path.basename(path).startswith("keep_order_by_name_")
+              else "authletepm.KeepOrderWhenUnchanged(")
+    return wanted in m.group(1)
+
+
+todo = [p for p in stubs if not implemented(p)]
 
 if check:
     if todo:
         names = "\n".join("  " + os.path.basename(p) for p in todo)
         sys.exit(
-            f"error: {len(todo)} of {len(stubs)} KeepOrder plan modifiers are "
-            f"unimplemented stubs:\n\n{names}\n\n"
+            f"error: {len(todo)} of {len(stubs)} KeepOrder plan modifiers do not "
+            f"call the modifier:\n\n{names}\n\n"
             "Those attributes raise \"TODO: implement\" on every plan instead of "
             "keeping the stored order, so a configuration listing the same values "
             "in a different order fails.\n\n"

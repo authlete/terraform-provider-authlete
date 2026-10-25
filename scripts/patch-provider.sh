@@ -25,7 +25,24 @@ FILE=internal/provider/provider.go
 # Check the functional calls, not a comment. An earlier version keyed on the
 # comment above the patch, which meant a regeneration that kept the comment and
 # dropped the code read as healthy -- and the file still compiles either way.
-REQUIRED_CALLS=("NewIdpRoutingTransport(" "NewLogRedactingTransport(")
+#
+# The list is derived from the patch below rather than written out, because a
+# written list goes stale. It did: NewBodyCapturingTransport was added to the
+# provider and not to the list, so --check passed on a tree where the repair
+# had just restored a chain without it. The provider still compiled, and the
+# body-based "is this resource gone" checks silently lost the body they read.
+# Adding a transport to the patch now extends the check automatically.
+REQUIRED_CALLS=()
+while IFS= read -r call; do
+  REQUIRED_CALLS+=("$call")
+done < <(
+  sed -n '/^# PATCH_BEGIN$/,/^# PATCH_END$/p' "$0" |
+  grep -oE 'New[A-Za-z]+Transport\(' | sort -u
+)
+if [[ ${#REQUIRED_CALLS[@]} -eq 0 ]]; then
+  echo "error: could not read the transport calls out of this script" >&2
+  exit 1
+fi
 ANCHOR="	httpClient.Transport = NewProviderHTTPTransport(providerHTTPTransportOpts)"
 
 CHECK=false
@@ -75,6 +92,7 @@ EOF
 python3 - "$FILE" "$ANCHOR" <<'PY'
 import sys
 path, anchor = sys.argv[1], sys.argv[2]
+# PATCH_BEGIN
 patch = '''
 	// hand-added, see idp_routing.go -- the only edit to this generated file,
 	// re-applied by scripts/patch-provider.sh.
@@ -103,9 +121,15 @@ patch = '''
 	}
 	// Redaction sits outside the generated logging transport, which records
 	// every request and response body verbatim. See log_redaction.go.
-	httpClient.Transport = NewLogRedactingTransport(
-		NewIdpRoutingTransport(serverUrl, idpHost, apiServerID, organizationID, httpClient.Transport))
+	//
+	// Body capture sits outermost, so it is the last thing to touch a response
+	// before the SDK does. The SDK drains a 404 body, which is what the "is
+	// this gone" checks read. See captured_body.go.
+	httpClient.Transport = NewBodyCapturingTransport(serverUrl, idpHost, organizationID, apiServerID,
+		NewLogRedactingTransport(
+			NewIdpRoutingTransport(serverUrl, idpHost, apiServerID, organizationID, httpClient.Transport)))
 '''
+# PATCH_END
 src = open(path).read()
 src = src.replace(anchor + "\n", anchor + "\n" + patch, 1)
 open(path, "w").write(src)
