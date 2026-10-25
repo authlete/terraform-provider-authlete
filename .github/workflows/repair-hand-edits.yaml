@@ -1,15 +1,22 @@
-# Repairs the hand edit in provider.go after a regeneration.
+# Repairs the post-generation patches after a regeneration.
 #
-# Speakeasy's Generate workflow can drop our one hand edit -- the line that wraps
-# the HTTP transport so idp_host and organization_id actually take effect. The
-# file still compiles without it, so nothing obvious breaks.
+# Speakeasy's Generate workflow can drop the edits that survive only through its
+# three-way merge. None of them breaks the build, which is the whole problem:
+# the provider still compiles, and the damage shows up as a customer-visible
+# misbehaviour instead of a red build.
 #
-# This workflow runs after Generate finishes, checks the edit, and if it is
-# missing opens a pull request that puts it back.
+# This workflow runs after Generate finishes, checks every patch, and if any are
+# missing re-applies them and pushes the fix back to the same branch -- so the
+# generation pull request is simply correct, rather than correct-after-you-merge
+# a second pull request into it.
 #
 # It uses workflow_run rather than pull_request deliberately: Generate
 # authenticates with GITHUB_TOKEN, and GitHub does not trigger pull_request
 # workflows from events created by that token. workflow_run fires regardless.
+#
+# Note that the push below also uses GITHUB_TOKEN, so it will not trigger Test
+# either. Run Test manually against the branch, or give Generate a PAT or GitHub
+# App token -- see the comment in test.yaml.
 name: Repair hand edits
 
 on:
@@ -48,64 +55,114 @@ jobs:
           ref: ${{ steps.target.outputs.branch }}
           fetch-depth: 0
 
+      - uses: actions/setup-go@v5
+        if: steps.target.outputs.skip != 'true'
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      # Every patch test.yaml checks is repaired here. If the two lists ever
+      # drift apart, a regeneration that drops the unlisted one leaves CI red
+      # with nothing to fix it -- which is the situation this workflow exists to
+      # prevent.
       - name: Are the patches still there?
         if: steps.target.outputs.skip != 'true'
         id: check
         run: |
-          if ./scripts/patch-provider.sh --check && ./scripts/patch-empty-lists.sh --check \
-             && python3 scripts/fill-keep-order-stubs.py --check; then
+          missing=()
+          ./scripts/patch-provider.sh --check            || missing+=("patch-provider.sh")
+          ./scripts/patch-empty-lists.sh --check         || missing+=("patch-empty-lists.sh")
+          python3 scripts/fill-keep-order-stubs.py --check || missing+=("fill-keep-order-stubs.py")
+          python3 scripts/patch-list-order.py --check    || missing+=("patch-list-order.py")
+          python3 scripts/patch-missing-service.py --check || missing+=("patch-missing-service.py")
+
+          if [ ${#missing[@]} -eq 0 ]; then
+            echo "All patches are present."
             echo "needs_repair=false" >> "$GITHUB_OUTPUT"
           else
+            echo "Missing: ${missing[*]}"
             echo "needs_repair=true" >> "$GITHUB_OUTPUT"
+            echo "missing=${missing[*]}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Re-apply them and open a pull request
+      - name: Re-apply them
         if: steps.check.outputs.needs_repair == 'true'
+        id: repair
         env:
           GH_TOKEN: ${{ github.token }}
-          BASE: ${{ steps.target.outputs.branch }}
+          BRANCH: ${{ steps.target.outputs.branch }}
+          MISSING: ${{ steps.check.outputs.missing }}
         run: |
           set -euo pipefail
+
           ./scripts/patch-provider.sh
           ./scripts/patch-empty-lists.sh
           python3 scripts/fill-keep-order-stubs.py
+          python3 scripts/patch-list-order.py
+          python3 scripts/patch-missing-service.py
 
-          fix_branch="repair/provider-patch-${GITHUB_RUN_ID}"
+          # Confirm the repair actually worked before committing anything. A
+          # script whose anchor has moved exits non-zero rather than silently
+          # doing nothing, and that must fail the job, not produce an empty
+          # commit that looks like a fix.
+          ./scripts/patch-provider.sh --check
+          ./scripts/patch-empty-lists.sh --check
+          python3 scripts/fill-keep-order-stubs.py --check
+          python3 scripts/patch-list-order.py --check
+          python3 scripts/patch-missing-service.py --check
+
+          # The checks above only prove the markers are back, not that the
+          # result compiles. A patch whose inserted text has drifted from what
+          # the file now needs -- say it redeclares a variable the generator
+          # already emits -- satisfies every check and still produces code that
+          # will not build. Found exactly that while testing this workflow, so
+          # the repair is not trusted until the compiler and the tests agree.
+          go build ./...
+          go vet ./...
+          go test -count=1 ./...
+
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$fix_branch"
           git add -A internal/provider
+
+          if git diff --cached --quiet; then
+            echo "Patches report as missing but re-applying changed nothing."
+            echo "This usually means a script's check and apply disagree." >&2
+            exit 1
+          fi
+
           git commit -m "Re-apply the post-generation patches
 
-          The last regeneration dropped one or both of the edits that survive
-          through Speakeasy's three-way merge. Neither failure breaks the build,
-          which is why they are caught here.
+          The last regeneration dropped: ${MISSING}
 
-          provider.go: without the transport wrapper, idp_host and
-          organization_id are accepted and silently ignored, so service create
-          and delete go to Authlete's shared cloud regardless of configuration.
+          These edits survive only through Speakeasy's three-way merge, and none
+          of them breaks the build when lost -- which is why they are caught here
+          rather than by the compiler.
 
-          The *_sdk.go reads: without the empty-list mapping, a list explicitly
-          set to [] reads back as null, so the configuration plans the same
-          change forever.
+          Re-applied automatically by .github/workflows/repair-hand-edits.yaml."
 
-          Re-applied with scripts/patch-provider.sh and
-          scripts/patch-empty-lists.sh."
-          git push origin "$fix_branch"
+          default_branch="${{ github.event.repository.default_branch }}"
+          if [ "$BRANCH" = "$default_branch" ]; then
+            # Never push straight to the default branch: it is usually protected,
+            # and a silent commit there deserves review. Open a pull request.
+            fix_branch="repair/post-generation-patches-${GITHUB_RUN_ID}"
+            git checkout -b "$fix_branch"
+            git push origin "$fix_branch"
+            gh pr create \
+              --base "$BRANCH" \
+              --head "$fix_branch" \
+              --title "Re-apply the post-generation patches" \
+              --body "A regeneration dropped: \`${MISSING}\`
 
-          gh pr create \
-            --base "$BASE" \
-            --head "$fix_branch" \
-            --title "Re-apply the post-generation patches" \
-            --body "The last regeneration dropped one or both of the edits under \`internal/provider\`.
+          These edits survive only through Speakeasy's three-way merge, and none of them breaks the build when lost, so this is caught by a check rather than by the compiler.
 
-          Neither failure breaks the build, which is why this is caught here rather than by the compiler.
-
-          - \`provider.go\`: without the transport wrapper, \`idp_host\` and \`organization_id\` are accepted and silently ignored, so service create and delete go to Authlete's shared cloud regardless of configuration.
-          - the \`*_sdk.go\` reads: without the empty-list mapping, a list explicitly set to \`[]\` reads back as null, so the configuration plans the same change forever.
-
-          Re-applied automatically with \`scripts/patch-provider.sh\` and \`scripts/patch-empty-lists.sh\`. Merge this into \`$BASE\` before merging that branch."
+          Re-applied automatically with the scripts under \`scripts/\`."
+            echo "Opened a pull request into $BRANCH."
+          else
+            git push origin "HEAD:$BRANCH"
+            echo "Pushed the repair to $BRANCH."
+          fi
 
       - name: Nothing to do
         if: steps.check.outputs.needs_repair == 'false'
-        run: echo "Both patches are present on ${{ steps.target.outputs.branch }}."
+        run: echo "Every patch is present on ${{ steps.target.outputs.branch }}."
