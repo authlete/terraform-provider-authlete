@@ -300,6 +300,23 @@ actions:
       x-speakeasy-plan-validators:
         - ValidJWKSet
 
+  # credentialJwks was missed when the other three were done. It holds the keys
+  # an issuer signs verifiable credentials with, so it is private like the two
+  # above, not public like a client's. Without the type it is compared byte for
+  # byte against a set Authlete has reordered, so it plans a change on every
+  # run -- and because it is also marked sensitive, the plan shows the change
+  # without showing anything that would explain it.
+  - target: $.components.schemas.service.properties.credentialJwks
+    description: Compare the credential JWK Set by meaning, not bytes
+    update:
+      x-speakeasy-terraform-custom-type:
+        imports:
+          - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
+        schemaType: customtypes.JWKSType{}
+        valueType: customtypes.JWKS
+      x-speakeasy-plan-validators:
+        - ValidJWKSet
+
   # ---------- Fields the server does not accept ----------
   # These are described as writable in the spec but never read from the request
   # by the server, so Terraform proposes a change, the server ignores it, the

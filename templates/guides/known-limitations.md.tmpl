@@ -107,11 +107,11 @@ A client's localised attributes are accepted, saved by Authlete and then left
 out of every read:
 
 - `client_names`
-- `logo_uris`
+- `descriptions`
 - `client_uris`
+- `logo_uris`
 - `policy_uris`
 - `tos_uris`
-- `descriptions`
 
 So the value is applied correctly and the server holds it, but the refresh
 brings back nothing and the next plan offers the same change again. After
@@ -137,12 +137,57 @@ too, so remove it once the server fix is in place.
 Most likely to affect you if you serve Japanese end users, since the localised
 entry is the one that carries the translation.
 
+## Credential issuer encryption lists come back in Authlete's order
+
+Inside `credential_issuer_metadata`, the three encryption lists are returned
+in the order Authlete defines the values, not the order you wrote them:
+
+- `credential_response_encryption_alg_values_supported`
+- `credential_response_encryption_enc_values_supported`
+- `credential_response_encryption_zip_values_supported`
+
+So `["ECDH_ES", "RSA_OAEP_256"]` reads back as `["RSA_OAEP_256", "ECDH_ES"]`,
+and the plan offers to put it back on every run. The apply works and the server
+holds the right values; only the order differs.
+
+The lists that Authlete reorders at the top level of a service are already held
+in the order you wrote, and these three will be too. Until then, write them in
+Authlete's own order and the diff goes away:
+
+```terraform
+credential_response_encryption_alg_values_supported = ["RSA_OAEP_256", "ECDH_ES"]
+```
+
+Run a plan once to find the order it wants, then write that.
+
+Expected in a patch release.
+
+## Attester root certificates gain a trailing newline
+
+`client_attester_roots` and `key_attester_roots` hold PEM certificates, and
+Authlete stores each one with a newline on the end. A certificate read with
+`trimspace(file(...))` therefore differs from what comes back, and the plan
+offers the same change on every run.
+
+Drop the `trimspace`:
+
+```terraform
+client_attester_roots = [file("${path.module}/attester.pem")]
+```
+
+`file()` keeps the trailing newline the file already has, which is what
+Authlete stores, so the two match.
+
+Expected in a patch release, after which either form will work.
+
 ## A description on a standard scope is replaced by Authlete's own
 
-Set `description` on a scope Authlete defines itself, `openid` for instance,
-and the server stores its own wording instead. The apply succeeds, the scope is
-correct in every other respect, and the next plan offers your description
-again.
+Set `description`, `descriptions` or `attributes` on a scope Authlete defines
+itself and the server stores its own wording instead. The apply succeeds, the
+scope is correct in every other respect, and the next plan offers yours again.
+
+The scopes concerned are `openid`, `profile`, `email`, `address`, `phone` and
+`offline_access`.
 
 Leave the description unset on standard scopes. Your own scopes keep whatever
 you write:

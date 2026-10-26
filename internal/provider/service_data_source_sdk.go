@@ -127,7 +127,9 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 			r.CredentialIssuerMetadata.RequireCredentialRequestEncryption = types.BoolPointerValue(resp.CredentialIssuerMetadata.RequireCredentialRequestEncryption)
 			r.CredentialIssuerMetadata.RequireCredentialResponseEncryption = types.BoolPointerValue(resp.CredentialIssuerMetadata.RequireCredentialResponseEncryption)
 		}
-		r.CredentialJwks = types.StringPointerValue(resp.CredentialJwks)
+		credentialJwksValuable, credentialJwksDiags := customtypes.JWKSType{}.ValueFromString(ctx, types.StringPointerValue(resp.CredentialJwks))
+		diags.Append(credentialJwksDiags...)
+		r.CredentialJwks = credentialJwksValuable.(customtypes.JWKS)
 		r.CredentialJwksURI = types.StringPointerValue(resp.CredentialJwksURI)
 		r.CredentialOfferDuration = types.Int64PointerValue(resp.CredentialOfferDuration)
 		r.CredentialTransactionDuration = types.Int64PointerValue(resp.CredentialTransactionDuration)

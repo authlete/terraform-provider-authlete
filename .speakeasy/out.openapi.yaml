@@ -11622,6 +11622,13 @@ components:
           description: |
             The JWK Set document containing private keys that are used to sign verifiable credentials.
           x-speakeasy-param-sensitive: true
+          x-speakeasy-terraform-custom-type:
+            imports:
+              - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
+            schemaType: customtypes.JWKSType{}
+            valueType: customtypes.JWKS
+          x-speakeasy-plan-validators:
+            - ValidJWKSet
         fapiModes:
           type: array
           nullable: true
