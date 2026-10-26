@@ -127,7 +127,15 @@ var safeDumpHeaders = map[string]bool{
 // headerLine matches one header of an HTTP dump, capturing the name and value
 // separately. Anchored to the line so a body that happens to contain a colon
 // is left alone: the body is handled by secretFields instead.
-var headerLine = regexp.MustCompile(`(?m)^([A-Za-z0-9-]+): (.*)$`)
+//
+// The name class is RFC 7230's token, not [A-Za-z0-9-]. A first version used
+// the narrower class and leaked: a header called X_API_KEY or X.Gateway.Key
+// did not match the pattern at all, so the line was passed through whole
+// rather than masked. Found in review against a real 400, and it is the shape
+// a gateway credential actually arrives in, which is the one case this exists
+// for. Masking that fails open on the names it has not seen is worse than no
+// masking, because it reads as protection.
+var headerLine = regexp.MustCompile("(?m)^([!#$%&'*+.^_`|~0-9A-Za-z-]+): (.*)$")
 
 // redactDump removes secrets from the request and response dump that
 // debugResponse puts into a diagnostic.

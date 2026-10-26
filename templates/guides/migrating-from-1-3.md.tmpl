@@ -36,13 +36,21 @@ then pick up the new version:
 terraform init -upgrade
 ```
 
-Plain `terraform init` will not do it. The lock file pins 1.3.x, and without
-`-upgrade` Terraform honours the lock and carries on with the old provider.
-The symptom is that none of the changes below appear to apply: the attributes
-you renamed are rejected, and the ones you removed are still demanded.
+Plain `terraform init` will not do it. The lock file still pins 1.3.x, which
+no longer satisfies the constraint, so it stops:
 
-Expect errors on the first plan after this. That is the point: they are the
-list of what this guide asks you to change.
+```
+Error: Failed to query available provider packages
+
+  locked provider registry.terraform.io/authlete/authlete 1.3.17
+  does not match configured version constraint ~> 3.0; must use
+  terraform init -upgrade to allow selection of new versions
+```
+
+That is the message to expect, and `-upgrade` is the answer to it.
+
+Expect errors on the first plan afterwards too. That is the point: they are
+the list of what this guide asks you to change.
 
 ## If 1.3.x has started failing with a bare 400
 
@@ -107,16 +115,19 @@ nothing were configured at all.
 
 `AUTHLETE_ORGANIZATION_ID` and `AUTHLETE_API_SERVER_ID` keep their names.
 
-**Set `AUTHLETE_SERVER_URL` before your first plan.** This is the one rename
-that fails quietly. With it unset the provider uses `https://us.authlete.com`,
-so a pipeline that had `AUTHLETE_API_SERVER` pointed at Japan, Europe, Brazil
-or a host you run yourself will reach the US cluster instead, find none of your
-services there, and plan to create them. Nothing in the output says the host
-changed.
+**Set `AUTHLETE_SERVER_URL` before your first plan.** With it unset the
+provider uses `https://us.authlete.com`, so a pipeline that had
+`AUTHLETE_API_SERVER` pointed at Japan, Europe, Brazil or a host you run
+yourself reaches the US cluster instead.
 
-The delete guards catch the worst version of this: a destroy against a cluster
-that does not match the one a resource was created on is refused rather than
-carried out. They do not stop a create.
+If you already have state, this is caught. The service id in your state does
+not resolve on the US cluster, and the provider stops with `Service <id> does
+not exist`, which names `server_url` and `AUTHLETE_SERVER_URL` as the things to
+check. Nothing is destroyed and nothing is recreated.
+
+Starting from empty state is the case to be careful with. There is no id to
+fail on, so a plan simply proposes creating everything, on the wrong cluster.
+Check the host before the first apply of a new configuration.
 
 ### `id` became `api_key`
 

@@ -237,6 +237,14 @@ func TestTheDiagnosticDumpIsRedacted(t *testing.T) {
 func TestAnUnknownHeaderIsMaskedByDefault(t *testing.T) {
 	for _, header := range []string{
 		"X-Gateway-Token", "apikey", "X-Something-Nobody-Has-Thought-Of",
+		// Found in review: these three did not match the header pattern at
+		// all, so the line was passed through whole rather than masked.
+		// Underscores and dots are both RFC 7230 token characters, and a
+		// gateway credential is exactly what arrives under a name like these.
+		"X_API_KEY", "X.Gateway.Key", "x_apigee_token",
+		// The rest of the token character set, so the class is not narrowed
+		// again by someone tidying it.
+		"X~Odd", "X|Pipe", "X'Quote", "X*Star", "X+Plus", "X!Bang",
 	} {
 		got := redactDump(header + ": LEAKED\r\n")
 		if strings.Contains(got, "LEAKED") {
