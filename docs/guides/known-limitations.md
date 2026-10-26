@@ -45,24 +45,30 @@ deleting the one you did mean to reach, which is what this section is about.
 
 ## A failed create can leave a service behind
 
-If the reply to a create is lost, to a gateway timeout or a dropped
-connection, the provider retries the request. Authlete has no way to tell the
-retry apart from a new request, so if the first attempt did reach it, you get
-two services. Terraform records the second. The first exists, holds the
-configuration you asked for, and nothing in your state refers to it.
+A create that reaches Authlete and does not answer leaves a service behind.
+There is no idempotency key, so Authlete cannot tell a repeat of that request
+from a new one. How you arrive at the repeat differs, and so does whether you
+had any say in it.
 
-The same applies when the apply fails outright and you run it again: the
-service from the first attempt is still there.
+**If Authlete answers with a server error**, a 500 or a 503, the provider
+retries by itself. The first attempt may already have created the service, so
+the retry creates a second. Terraform records the second. The first exists,
+holds the configuration you asked for, and nothing in your state refers to it.
+This happens inside one apply, with nothing to see.
+
+**If the connection drops**, the provider does not retry. The apply fails and
+stops. The service from the attempt may still exist, so running `apply` again
+is what creates the duplicate.
 
 **After a create fails, look at the service list in the console before running
-`apply` again.** Delete the one that was left behind, or import it instead of
-creating another.
+`apply` again.** If one was left behind, `terraform import` it rather than
+creating another. Import recovers both services and clients.
 
-This is rare. It needs the request to reach Authlete and the answer not to
-come back. But nothing in the plan or the error will tell you it has happened,
-which is why it is written down here.
+How often this happens is not something we can put a number to. What matters
+is that nothing in the plan or the error will tell you it has, which is why it
+is written down here.
 
-The same is true of a client, with a smaller blast radius.
+Clients work the same way.
 
 ## Plans show many attributes as "known after apply"
 
