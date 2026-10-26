@@ -285,6 +285,8 @@ combinations at plan time:
 - a document that is not a JWK Set at all
 - a private or symmetric key in a *client's* key set, which Authlete edits
   silently rather than refusing
+- a private or symmetric key in a *trust anchor's* key set, which is a third
+  party's and public by definition
 
 A configuration that hits one of these was already producing a malformed key
 set. Fix the key rather than working around the error.

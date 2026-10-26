@@ -629,7 +629,9 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 				var trustAnchors tfTypes.TrustAnchor
 
 				trustAnchors.EntityID = types.StringPointerValue(trustAnchorsItem.EntityID)
-				trustAnchors.Jwks = types.StringPointerValue(trustAnchorsItem.Jwks)
+				jwksValuable1, jwksDiags1 := customtypes.PublicJWKSType{}.ValueFromString(ctx, types.StringPointerValue(trustAnchorsItem.Jwks))
+				diags.Append(jwksDiags1...)
+				trustAnchors.Jwks = jwksValuable1.(customtypes.PublicJWKS)
 
 				r.TrustAnchors = append(r.TrustAnchors, trustAnchors)
 			}

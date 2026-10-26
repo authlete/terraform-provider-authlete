@@ -1400,6 +1400,7 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 							Description: `the entity ID of the trust anchor`,
 						},
 						"jwks": schema.StringAttribute{
+							CustomType:  customtypes.PublicJWKSType{},
 							Computed:    true,
 							Description: `the JWK Set document containing public keys of the trust anchor`,
 						},
