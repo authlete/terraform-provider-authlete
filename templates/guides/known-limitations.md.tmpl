@@ -7,9 +7,15 @@ description: |-
 
 # Known limitations
 
-Each of these is known, deliberate, and will look like a bug the first time you
-meet it. None of them prevents the provider from managing a service or a client
+Each of these is known and will look like a bug the first time you meet it.
+None of them prevents the provider from managing a service or a client
 correctly.
+
+Most are deliberate and will not change. A few are defects awaiting a fix, and
+those say so and name the release that removes the need for the workaround.
+Where the workaround is `ignore_changes`, take it out again once that release
+is in place: left behind, it goes on hiding real drift on that attribute long
+after the reason for it has gone.
 
 ## Plans show many attributes as "known after apply"
 
@@ -48,32 +54,102 @@ on scope name, so a reordering shows nothing while an edit to a description
 still shows as the change it is. It is worth knowing only because the Authlete
 console lists the scopes in its own order rather than yours.
 
-## Private keys are held in Terraform state
+## Translated names and URIs are stored but not read back
 
-A service's `jwks` is one string attribute, and Terraform stores a string
-attribute in state whole. Any private key in that key set is therefore in your
-state file, whether you built it with `jwk_from_pem`, pasted it in, or never
-mentioned it at all: `jwks` is computed, so a refresh reads back whatever
+A client's localised attributes are accepted, saved by Authlete and then left
+out of every read:
+
+- `client_names`
+- `logo_uris`
+- `client_uris`
+- `policy_uris`
+- `tos_uris`
+- `descriptions`
+
+So the value is applied correctly and the server holds it, but the refresh
+brings back nothing and the next plan offers the same change again. After
+`terraform import` the attributes are empty even though the console shows them.
+
+This is a server defect, fixed but not yet released, so the provider cannot
+work around it: there is nothing in the response to read. Until the fix ships,
+either accept the repeating diff, which applies harmlessly, or hold the
+attributes out of the comparison:
+
+```terraform
+resource "authlete_client" "my_client" {
+  # ...
+  lifecycle {
+    ignore_changes = [client_names, logo_uris]
+  }
+}
+```
+
+`ignore_changes` here stops Terraform noticing a later edit to those attributes
+too, so remove it once the server fix is in place.
+
+Most likely to affect you if you serve Japanese end users, since the localised
+entry is the one that carries the translation.
+
+## A description on a standard scope is replaced by Authlete's own
+
+Set `description` on a scope Authlete defines itself, `openid` for instance,
+and the server stores its own wording instead. The apply succeeds, the scope is
+correct in every other respect, and the next plan offers your description
+again.
+
+Leave the description unset on standard scopes. Your own scopes keep whatever
+you write:
+
+```terraform
+supported_scopes = [
+  { name = "openid" },                                        # no description
+  { name = "payments", description = "Initiate a payment" },  # kept
+]
+```
+
+A fix is expected in a patch release. Until then an explicit description on a
+standard scope is the one thing to avoid, rather than something to work around.
+
+## Secrets and private keys are held in Terraform state
+
+Terraform stores every attribute in state, and a string attribute whole. Seven
+attributes hold key material or a shared secret, so each of them is in your
+state file in plain text:
+
+| Attribute | Where |
+| --- | --- |
+| `jwks` | `authlete_service` |
+| `federation_jwks` | `authlete_service` |
+| `credential_jwks` | `authlete_service` |
+| `authentication_callback_api_secret` | `authlete_service` |
+| `developer_authentication_callback_api_secret` | `authlete_service` |
+| `client_secret` | `authlete_client` |
+| `http_headers` | provider configuration |
+
+This holds whether you set the value, built it with `jwk_from_pem`, or never
+mentioned it: all of these are computed, so a refresh reads back whatever
 Authlete holds.
 
-Use a state backend that encrypts at rest. The attribute is marked sensitive,
-so it does not appear in plan output, but that governs the console and not the
-file.
+**Use a state backend that encrypts at rest.** Everything above except
+`http_headers` is marked sensitive, so it does not appear in plan output, but
+that governs the console and not the file. Leaving an attribute out of your
+configuration keeps it out of version control, which is worth doing, but it
+does not keep it out of state.
 
-Leaving `jwks` out of your configuration keeps the key out of version control,
-which is worth doing, but it does not keep it out of state.
+Two key sets are deliberately absent from that list. A client's `jwks` and a
+trust anchor's are public by contract, and the provider refuses private
+material in either at plan time, so neither can carry a secret into state.
 
-## A secret in `http_headers` is held in Terraform state
+### `http_headers` in particular
 
 `http_headers` sets headers on every request the provider makes, and some
 deployments use it to carry a gateway credential. Those values are masked in
-`TF_LOG=DEBUG` output, alongside client secrets and private key sets, but the
-attribute is not marked sensitive, so the value appears in plan output and in
-the state file.
+`TF_LOG=DEBUG` output alongside client secrets and private key sets, but the
+attribute is not marked sensitive, so the value appears in plan output as well
+as in state.
 
-This is the same property as `jwks` above, and the same advice applies: use a
-state backend that encrypts at rest. A gateway credential that must not be in
-state is better supplied to the pipeline directly than through the provider.
+A gateway credential that must not reach a state file is better supplied to the
+pipeline directly than through the provider.
 
 ## Client secrets are rotated outside Terraform
 
