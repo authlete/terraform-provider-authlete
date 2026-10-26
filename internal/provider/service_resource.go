@@ -1758,9 +1758,13 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 							Description: `the entity ID of the trust anchor`,
 						},
 						"jwks": schema.StringAttribute{
+							CustomType:  customtypes.PublicJWKSType{},
 							Computed:    true,
 							Optional:    true,
 							Description: `the JWK Set document containing public keys of the trust anchor`,
+							Validators: []validator.String{
+								custom_stringvalidators.ValidPublicJWKSet(),
+							},
 						},
 					},
 				},

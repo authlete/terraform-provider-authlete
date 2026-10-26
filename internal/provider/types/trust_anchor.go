@@ -4,10 +4,11 @@
 package types
 
 import (
+	"github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 type TrustAnchor struct {
-	EntityID types.String `tfsdk:"entity_id"`
-	Jwks     types.String `tfsdk:"jwks"`
+	EntityID types.String           `tfsdk:"entity_id"`
+	Jwks     customtypes.PublicJWKS `tfsdk:"jwks"`
 }
