@@ -88,7 +88,7 @@ type ServiceResourceModel struct {
 	CreatedAt                                   types.Int64                       `tfsdk:"created_at"`
 	CredentialDuration                          types.Int64                       `tfsdk:"credential_duration"`
 	CredentialIssuerMetadata                    *tfTypes.CredentialIssuerMetadata `tfsdk:"credential_issuer_metadata"`
-	CredentialJwks                              types.String                      `tfsdk:"credential_jwks"`
+	CredentialJwks                              customtypes.JWKS                  `tfsdk:"credential_jwks"`
 	CredentialJwksURI                           types.String                      `tfsdk:"credential_jwks_uri"`
 	CredentialOfferDuration                     types.Int64                       `tfsdk:"credential_offer_duration"`
 	CredentialTransactionDuration               types.Int64                       `tfsdk:"credential_transaction_duration"`
@@ -605,10 +605,14 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				},
 			},
 			"credential_jwks": schema.StringAttribute{
+				CustomType:  customtypes.JWKSType{},
 				Computed:    true,
 				Optional:    true,
 				Sensitive:   true,
 				Description: `The JWK Set document containing private keys that are used to sign verifiable credentials.`,
+				Validators: []validator.String{
+					custom_stringvalidators.ValidJWKSet(),
+				},
 			},
 			"credential_jwks_uri": schema.StringAttribute{
 				Computed:    true,
