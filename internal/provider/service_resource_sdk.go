@@ -127,7 +127,9 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 			r.CredentialIssuerMetadata.RequireCredentialRequestEncryption = types.BoolPointerValue(resp.CredentialIssuerMetadata.RequireCredentialRequestEncryption)
 			r.CredentialIssuerMetadata.RequireCredentialResponseEncryption = types.BoolPointerValue(resp.CredentialIssuerMetadata.RequireCredentialResponseEncryption)
 		}
-		r.CredentialJwks = types.StringPointerValue(resp.CredentialJwks)
+		credentialJwksValuable, credentialJwksDiags := customtypes.JWKSType{}.ValueFromString(ctx, types.StringPointerValue(resp.CredentialJwks))
+		diags.Append(credentialJwksDiags...)
+		r.CredentialJwks = credentialJwksValuable.(customtypes.JWKS)
 		r.CredentialJwksURI = types.StringPointerValue(resp.CredentialJwksURI)
 		r.CredentialOfferDuration = types.Int64PointerValue(resp.CredentialOfferDuration)
 		r.CredentialTransactionDuration = types.Int64PointerValue(resp.CredentialTransactionDuration)
@@ -137,21 +139,6 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		r.DeveloperAuthenticationCallbackAPIKey = types.StringPointerValue(resp.DeveloperAuthenticationCallbackAPIKey)
 		r.DeveloperAuthenticationCallbackAPISecret = types.StringPointerValue(resp.DeveloperAuthenticationCallbackAPISecret)
 		r.DeveloperAuthenticationCallbackEndpoint = types.StringPointerValue(resp.DeveloperAuthenticationCallbackEndpoint)
-		if resp.DeveloperSnsCredentials != nil {
-			r.DeveloperSnsCredentials = []tfTypes.SnsCredentials{}
-
-			for _, developerSnsCredentialsItem := range resp.DeveloperSnsCredentials {
-				var developerSnsCredentials tfTypes.SnsCredentials
-
-				developerSnsCredentials.APIKey = types.StringPointerValue(developerSnsCredentialsItem.APIKey)
-				developerSnsCredentials.APISecret = types.StringPointerValue(developerSnsCredentialsItem.APISecret)
-				developerSnsCredentials.Sns = types.StringPointerValue(developerSnsCredentialsItem.Sns)
-
-				r.DeveloperSnsCredentials = append(r.DeveloperSnsCredentials, developerSnsCredentials)
-			}
-		} else {
-			r.DeveloperSnsCredentials = nil
-		}
 		r.DeviceAuthorizationEndpoint = types.StringPointerValue(resp.DeviceAuthorizationEndpoint)
 		r.DeviceFlowCodeDuration = types.Int32PointerValue(typeconvert.IntPointerToInt32Pointer(resp.DeviceFlowCodeDuration))
 		r.DeviceFlowPollingInterval = types.Int32PointerValue(typeconvert.IntPointerToInt32Pointer(resp.DeviceFlowPollingInterval))
@@ -388,14 +375,6 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		} else {
 			r.SupportedCustomClientMetadata = nil
 		}
-		if resp.SupportedDeveloperSnses != nil {
-			r.SupportedDeveloperSnses = make([]types.String, 0, len(resp.SupportedDeveloperSnses))
-			for _, v := range resp.SupportedDeveloperSnses {
-				r.SupportedDeveloperSnses = append(r.SupportedDeveloperSnses, types.StringValue(string(v)))
-			}
-		} else {
-			r.SupportedDeveloperSnses = nil
-		}
 		if resp.SupportedDigestAlgorithms != nil {
 			r.SupportedDigestAlgorithms = make([]types.String, 0, len(resp.SupportedDigestAlgorithms))
 			for _, v := range resp.SupportedDigestAlgorithms {
@@ -629,7 +608,9 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 				var trustAnchors tfTypes.TrustAnchor
 
 				trustAnchors.EntityID = types.StringPointerValue(trustAnchorsItem.EntityID)
-				trustAnchors.Jwks = types.StringPointerValue(trustAnchorsItem.Jwks)
+				jwksValuable1, jwksDiags1 := customtypes.PublicJWKSType{}.ValueFromString(ctx, types.StringPointerValue(trustAnchorsItem.Jwks))
+				diags.Append(jwksDiags1...)
+				trustAnchors.Jwks = jwksValuable1.(customtypes.PublicJWKS)
 
 				r.TrustAnchors = append(r.TrustAnchors, trustAnchors)
 			}
@@ -748,42 +729,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		*clientsPerDeveloper = int(r.ClientsPerDeveloper.ValueInt32())
 	} else {
 		clientsPerDeveloper = nil
-	}
-	var supportedDeveloperSnses []shared.SupportedDeveloperSnse
-	if r.SupportedDeveloperSnses != nil {
-		supportedDeveloperSnses = make([]shared.SupportedDeveloperSnse, 0, len(r.SupportedDeveloperSnses))
-		for _, supportedDeveloperSnsesItem := range r.SupportedDeveloperSnses {
-			supportedDeveloperSnses = append(supportedDeveloperSnses, shared.SupportedDeveloperSnse(supportedDeveloperSnsesItem.ValueString()))
-		}
-	}
-	var developerSnsCredentials []shared.SnsCredentials
-	if r.DeveloperSnsCredentials != nil {
-		developerSnsCredentials = make([]shared.SnsCredentials, 0, len(r.DeveloperSnsCredentials))
-		for developerSnsCredentialsIndex := range r.DeveloperSnsCredentials {
-			sns := new(string)
-			if !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].Sns.IsUnknown() && !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].Sns.IsNull() {
-				*sns = r.DeveloperSnsCredentials[developerSnsCredentialsIndex].Sns.ValueString()
-			} else {
-				sns = nil
-			}
-			apiKey := new(string)
-			if !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APIKey.IsUnknown() && !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APIKey.IsNull() {
-				*apiKey = r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APIKey.ValueString()
-			} else {
-				apiKey = nil
-			}
-			apiSecret := new(string)
-			if !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APISecret.IsUnknown() && !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APISecret.IsNull() {
-				*apiSecret = r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APISecret.ValueString()
-			} else {
-				apiSecret = nil
-			}
-			developerSnsCredentials = append(developerSnsCredentials, shared.SnsCredentials{
-				Sns:       sns,
-				APIKey:    apiKey,
-				APISecret: apiSecret,
-			})
-		}
 	}
 	authenticationCallbackEndpoint := new(string)
 	if !r.AuthenticationCallbackEndpoint.IsUnknown() && !r.AuthenticationCallbackEndpoint.IsNull() {
@@ -2029,8 +1974,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		Description:                                 description,
 		ClientAssertionAudRestrictedToIssuer:        clientAssertionAudRestrictedToIssuer,
 		ClientsPerDeveloper:                         clientsPerDeveloper,
-		SupportedDeveloperSnses:                     supportedDeveloperSnses,
-		DeveloperSnsCredentials:                     developerSnsCredentials,
 		AuthenticationCallbackEndpoint:              authenticationCallbackEndpoint,
 		AuthenticationCallbackAPIKey:                authenticationCallbackAPIKey,
 		AuthenticationCallbackAPISecret:             authenticationCallbackAPISecret,

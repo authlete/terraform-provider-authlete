@@ -109,7 +109,6 @@ This property affects behaviors of `/api/client/registration` and other family A
 - `developer_authentication_callback_api_key` (String) The API key for basic authentication at the developer authentication callback endpoint.
 - `developer_authentication_callback_api_secret` (String, Sensitive) The API secret for basic authentication at the developer authentication callback endpoint.
 - `developer_authentication_callback_endpoint` (String) The endpoint for developer authentication callbacks. This is used when developers log into the developer portal.
-- `developer_sns_credentials` (Attributes List) The credentials for social login services (SNS) that are used for developer authentication. (see [below for nested schema](#nestedatt--developer_sns_credentials))
 - `device_authorization_endpoint` (String) The URI of the device authorization endpoint.
 
 Device authorization endpoint is defined in the specification of OAuth 2.0 Device Authorization Grant.
@@ -308,7 +307,6 @@ The value of this property is used as `claim_types_supported` property in the [O
 - `supported_claims` (List of String) Claim names that the service supports. The standard claim names listed in [OpenID Connect Core 1.0, 5.1. Standard Claim](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims) should be supported. The following is the list of standard claims.
 - `supported_client_registration_types` (List of String)
 - `supported_custom_client_metadata` (List of String) custom client metadata supported by this service.
-- `supported_developer_snses` (List of String) Social login services (SNS) that this service supports for developer authentication.
 - `supported_digest_algorithms` (List of String) Supported algorithms used to compute digest values of external attachments. This property corresponds to the `digest_algorithms_supported` server metadata which was added by the third implementer's draft of OpenID Connect for Identity Assurance 1.0.
 - `supported_displays` (List of String) Values of `display` request parameter that service supports.
 
@@ -406,16 +404,6 @@ Read-Only:
 - `deferred_credential_endpoint` (String) The URL of the deferred credential endpoint of the credential issuer.
 - `require_credential_request_encryption` (Boolean) The boolean flag indicating whether credential request encryption is required. This property corresponds to the `credential_request_encryption.encryption_required` metadata. If this flag is `true`, every credential request to the credential issuer must be encrypted.
 - `require_credential_response_encryption` (Boolean) The boolean flag indicating whether credential response encryption is required. This property corresponds to the `credential_response_encryption.encryption_required metadata`. If this flag is `true`, every credential request to the credential issuer must include the `credential_response_encryption` property.
-
-
-<a id="nestedatt--developer_sns_credentials"></a>
-### Nested Schema for `developer_sns_credentials`
-
-Read-Only:
-
-- `api_key` (String) API key.
-- `api_secret` (String, Sensitive) API secret.
-- `sns` (String) SNS.
 
 
 <a id="nestedatt--hsks"></a>

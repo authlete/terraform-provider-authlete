@@ -87,7 +87,7 @@ type ServiceResourceModel struct {
 	CreatedAt                                   types.Int64                       `tfsdk:"created_at"`
 	CredentialDuration                          types.Int64                       `tfsdk:"credential_duration"`
 	CredentialIssuerMetadata                    *tfTypes.CredentialIssuerMetadata `tfsdk:"credential_issuer_metadata"`
-	CredentialJwks                              types.String                      `tfsdk:"credential_jwks"`
+	CredentialJwks                              customtypes.JWKS                  `tfsdk:"credential_jwks"`
 	CredentialJwksURI                           types.String                      `tfsdk:"credential_jwks_uri"`
 	CredentialOfferDuration                     types.Int64                       `tfsdk:"credential_offer_duration"`
 	CredentialTransactionDuration               types.Int64                       `tfsdk:"credential_transaction_duration"`
@@ -97,7 +97,6 @@ type ServiceResourceModel struct {
 	DeveloperAuthenticationCallbackAPIKey       types.String                      `tfsdk:"developer_authentication_callback_api_key"`
 	DeveloperAuthenticationCallbackAPISecret    types.String                      `tfsdk:"developer_authentication_callback_api_secret"`
 	DeveloperAuthenticationCallbackEndpoint     types.String                      `tfsdk:"developer_authentication_callback_endpoint"`
-	DeveloperSnsCredentials                     []tfTypes.SnsCredentials          `tfsdk:"developer_sns_credentials"`
 	DeviceAuthorizationEndpoint                 types.String                      `tfsdk:"device_authorization_endpoint"`
 	DeviceFlowCodeDuration                      types.Int32                       `tfsdk:"device_flow_code_duration"`
 	DeviceFlowPollingInterval                   types.Int32                       `tfsdk:"device_flow_polling_interval"`
@@ -180,7 +179,6 @@ type ServiceResourceModel struct {
 	RevocationEndpoint                          types.String                      `tfsdk:"revocation_endpoint"`
 	RsResponseSigned                            types.Bool                        `tfsdk:"rs_response_signed"`
 	ScopeRequired                               types.Bool                        `tfsdk:"scope_required"`
-	ServerURL                                   types.String                      `tfsdk:"server_url"`
 	ServiceDocumentation                        types.String                      `tfsdk:"service_documentation"`
 	ServiceName                                 types.String                      `tfsdk:"service_name"`
 	ServiceOwnerNumber                          types.Int32                       `tfsdk:"service_owner_number"`
@@ -196,7 +194,6 @@ type ServiceResourceModel struct {
 	SupportedClaimTypes                         []types.String                    `tfsdk:"supported_claim_types"`
 	SupportedClientRegistrationTypes            []types.String                    `tfsdk:"supported_client_registration_types"`
 	SupportedCustomClientMetadata               []types.String                    `tfsdk:"supported_custom_client_metadata"`
-	SupportedDeveloperSnses                     []types.String                    `tfsdk:"supported_developer_snses"`
 	SupportedDigestAlgorithms                   []types.String                    `tfsdk:"supported_digest_algorithms"`
 	SupportedDisplays                           []types.String                    `tfsdk:"supported_displays"`
 	SupportedDocuments                          []types.String                    `tfsdk:"supported_documents"`
@@ -607,10 +604,14 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				},
 			},
 			"credential_jwks": schema.StringAttribute{
+				CustomType:  customtypes.JWKSType{},
 				Computed:    true,
 				Optional:    true,
 				Sensitive:   true,
 				Description: `The JWK Set document containing private keys that are used to sign verifiable credentials.`,
+				Validators: []validator.String{
+					custom_stringvalidators.ValidJWKSet(),
+				},
 			},
 			"credential_jwks_uri": schema.StringAttribute{
 				Computed:    true,
@@ -658,34 +659,6 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			"developer_authentication_callback_endpoint": schema.StringAttribute{
 				Computed:    true,
 				Description: `The endpoint for developer authentication callbacks. This is used when developers log into the developer portal.`,
-			},
-			"developer_sns_credentials": schema.ListNestedAttribute{
-				Computed: true,
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Validators: []validator.Object{
-						speakeasy_objectvalidators.NotNull(),
-					},
-					Attributes: map[string]schema.Attribute{
-						"api_key": schema.StringAttribute{
-							Computed:    true,
-							Optional:    true,
-							Description: `API key.`,
-						},
-						"api_secret": schema.StringAttribute{
-							Computed:    true,
-							Optional:    true,
-							Sensitive:   true,
-							Description: `API secret.`,
-						},
-						"sns": schema.StringAttribute{
-							Computed:    true,
-							Optional:    true,
-							Description: `SNS.`,
-						},
-					},
-				},
-				Description: `The credentials for social login services (SNS) that are used for developer authentication.`,
 			},
 			"device_authorization_endpoint": schema.StringAttribute{
 				Computed: true,
@@ -1261,10 +1234,6 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional:    true,
 				Description: `The flag to indicate whether requests that request no scope are rejected or not.`,
 			},
-			"server_url": schema.StringAttribute{
-				MarkdownDescription: `IDP Server`,
-				Optional:            true,
-			},
 			"service_documentation": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
@@ -1407,12 +1376,6 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional:    true,
 				ElementType: types.StringType,
 				Description: `custom client metadata supported by this service.`,
-			},
-			"supported_developer_snses": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
-				ElementType: types.StringType,
-				Description: `Social login services (SNS) that this service supports for developer authentication.`,
 			},
 			"supported_digest_algorithms": schema.ListAttribute{
 				Computed:    true,
@@ -1757,9 +1720,13 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 							Description: `the entity ID of the trust anchor`,
 						},
 						"jwks": schema.StringAttribute{
+							CustomType:  customtypes.PublicJWKSType{},
 							Computed:    true,
 							Optional:    true,
 							Description: `the JWK Set document containing public keys of the trust anchor`,
+							Validators: []validator.String{
+								custom_stringvalidators.ValidPublicJWKSet(),
+							},
 						},
 					},
 				},
@@ -1877,14 +1844,6 @@ func (r *ServiceResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 
 	createOptions := make([]operations.Option, 0, 1)
-
-	if !data.ServerURL.IsNull() && !data.ServerURL.IsUnknown() {
-		serverURL := data.ServerURL.ValueString()
-
-		if serverURL != "" {
-			createOptions = append(createOptions, operations.WithServerURL(serverURL))
-		}
-	}
 
 	res, err := r.client.Service.Create(ctx, *request, createOptions...)
 	if err != nil {
@@ -2072,14 +2031,6 @@ func (r *ServiceResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	removeOptions := make([]operations.Option, 0, 1)
-
-	if !data.ServerURL.IsNull() && !data.ServerURL.IsUnknown() {
-		serverURL := data.ServerURL.ValueString()
-
-		if serverURL != "" {
-			removeOptions = append(removeOptions, operations.WithServerURL(serverURL))
-		}
-	}
 
 	res, err := r.client.Service.Remove(ctx, *request, removeOptions...)
 	if err != nil {

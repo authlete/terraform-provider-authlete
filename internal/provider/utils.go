@@ -42,7 +42,11 @@ func debugResponse(response *http.Response) string {
 			return err.Error()
 		}
 	}
-	return fmt.Sprintf("**Request**:\n%s\n**Response**:\n%s", string(dumpReq), string(dumpRes))
+	// hand-added, re-applied by scripts/patch-debug-response.sh. See
+	// log_redaction.go: this dump goes into a diagnostic, which Terraform
+	// prints on the terminal with debug logging off, so the TF_LOG masking
+	// never sees it.
+	return redactDump(fmt.Sprintf("**Request**:\n%s\n**Response**:\n%s", string(dumpReq), string(dumpRes)))
 }
 
 func merge(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse, target interface{}) {

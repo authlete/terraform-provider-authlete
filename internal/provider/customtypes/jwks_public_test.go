@@ -34,6 +34,42 @@ func TestClientRefusesAPrivateKey(t *testing.T) {
 	}
 }
 
+// "oth" carries the additional primes of a multi-prime RSA private key. It is
+// an array of objects, not a string, so the loop over privateMembers steps
+// straight past it and the key reads as public. Found in review: a key set
+// written by hand with oth passed validation and the primes reached state.
+//
+// RFC 7518 requires d, p, q, dp, dq and qi alongside oth, so a well-formed
+// key is caught by those anyway. A hand-written one need not be well formed,
+// and the private material is there regardless.
+func TestClientRefusesOtherPrimes(t *testing.T) {
+	for name, doc := range map[string]string{
+		"oth alone": `{"keys":[{"kty":"RSA","kid":"k","n":"AQAB","e":"AQAB",` +
+			`"oth":[{"r":"cHJpbWU","d":"ZXhwb25lbnQ","t":"Y29lZmY"}]}]}`,
+		"oth alongside the members it is supposed to accompany": `{"keys":[{"kty":"RSA","kid":"k","n":"AQAB","e":"AQAB",` +
+			`"d":"ZA","p":"cA","q":"cQ","dp":"ZHA","dq":"ZHE","qi":"cWk",` +
+			`"oth":[{"r":"cHJpbWU","d":"ZXhwb25lbnQ","t":"Y29lZmY"}]}]}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			d := validatePublicJWKS(t, doc)
+			if !d.HasError() {
+				t.Fatal("accepted a key carrying other-primes data, so the private " +
+					"primes reach Terraform state for a key Authlete never kept")
+			}
+		})
+	}
+}
+
+// An empty or absent oth must not be refused. A public key that happens to
+// carry "oth":[] holds no private material.
+func TestClientAcceptsAnEmptyOtherPrimes(t *testing.T) {
+	d := validatePublicJWKS(t,
+		`{"keys":[{"kty":"RSA","kid":"k","alg":"RS256","use":"sig","n":"AQAB","e":"AQAB","oth":[]}]}`)
+	if d.HasError() {
+		t.Errorf("refused a public key with an empty oth: %v", d.Errors())
+	}
+}
+
 // Measured: a symmetric key sent to a client is stored as {"keys":[]}.
 func TestClientRefusesASymmetricKey(t *testing.T) {
 	d := validatePublicJWKS(t,

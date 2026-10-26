@@ -145,6 +145,35 @@ actions:
       type: integer
       format: int64
 
+  # A client belongs to the service it was created under, and Authlete has no
+  # operation that moves one. Without force-new, editing service_id plans an
+  # in-place update, the API refuses it, and the apply fails with a message
+  # about the request rather than about the move. Recreating is what actually
+  # has to happen, so plan it.
+  #
+  # Safe across import, unlike organizationId below: ImportState sets
+  # service_id from the import ID and errors when it is absent, so state and
+  # configuration always agree on it after an import.
+  - target: $.paths['/api/{serviceId}/client/create'].post.parameters[?(@.name=='serviceId')].schema
+    description: Moving a client between services recreates it
+    update:
+      x-speakeasy-param-force-new: true
+
+  - target: $.paths['/api/{serviceId}/client/get/{clientId}'].get.parameters[?(@.name=='serviceId')].schema
+    description: Moving a client between services recreates it
+    update:
+      x-speakeasy-param-force-new: true
+
+  - target: $.paths['/api/{serviceId}/client/update/{clientId}'].post.parameters[?(@.name=='serviceId')].schema
+    description: Moving a client between services recreates it
+    update:
+      x-speakeasy-param-force-new: true
+
+  - target: $.paths['/api/{serviceId}/client/delete/{clientId}'].delete.parameters[?(@.name=='serviceId')].schema
+    description: Moving a client between services recreates it
+    update:
+      x-speakeasy-param-force-new: true
+
   # ---------- Secret handling ----------
   # Conceal server-assigned secrets from plan and apply console output. This is
   # console masking only: the values are still written to the state file, because
@@ -231,6 +260,24 @@ actions:
       x-speakeasy-plan-validators:
         - ValidPublicJWKSet
 
+  # A trust anchor's set is a third party's, so it is public by definition --
+  # the description says so, and a trust anchor is an entity this service
+  # verifies signatures from, never one it signs as. A private key here is
+  # always a mistake, and an expensive one: Terraform stores a string attribute
+  # in state whole, so the key would sit in the state file for an entity that
+  # has no use for it. Refusing it at plan time is the only point at which the
+  # practitioner can still act on it.
+  - target: $.components.schemas.trust_anchor.properties.jwks
+    description: Compare the trust anchor JWK Set by meaning, and require public keys
+    update:
+      x-speakeasy-terraform-custom-type:
+        imports:
+          - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
+        schemaType: customtypes.PublicJWKSType{}
+        valueType: customtypes.PublicJWKS
+      x-speakeasy-plan-validators:
+        - ValidPublicJWKSet
+
   - target: $.components.schemas.service.properties.jwks
     description: Compare the service JWK Set by meaning, not bytes
     update:
@@ -244,6 +291,23 @@ actions:
 
   - target: $.components.schemas.service.properties.federationJwks
     description: Compare the federation JWK Set by meaning, not bytes
+    update:
+      x-speakeasy-terraform-custom-type:
+        imports:
+          - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
+        schemaType: customtypes.JWKSType{}
+        valueType: customtypes.JWKS
+      x-speakeasy-plan-validators:
+        - ValidJWKSet
+
+  # credentialJwks was missed when the other three were done. It holds the keys
+  # an issuer signs verifiable credentials with, so it is private like the two
+  # above, not public like a client's. Without the type it is compared byte for
+  # byte against a set Authlete has reordered, so it plans a change on every
+  # run -- and because it is also marked sensitive, the plan shows the change
+  # without showing anything that would explain it.
+  - target: $.components.schemas.service.properties.credentialJwks
+    description: Compare the credential JWK Set by meaning, not bytes
     update:
       x-speakeasy-terraform-custom-type:
         imports:
@@ -420,6 +484,39 @@ actions:
       x-speakeasy-terraform-ignore: true
   - target: $.components.schemas.service_create_idp_request.properties.apiServerId
     description: Supplied by the provider, not modelled as a resource attribute
+    update:
+      x-speakeasy-terraform-ignore: true
+
+  # Authlete 2.x social login for the developer console, deprecated in the 3.0
+  # server. Both are settable, so a practitioner can write one, see the apply
+  # succeed, and never learn it did nothing. The read-only halves of the same
+  # feature, snsCredentials and supportedSnses, can never be populated either,
+  # and the only value the sns enum admits is FACEBOOK. These two differ from
+  # those only in being settable, which makes them worse.
+  #
+  # Removing them has to happen before 3.0.0: taking an attribute away
+  # afterwards is a major version.
+  #
+  # idTokenDroppedOnIssueWithoutOpenid was removed alongside these and has been
+  # put back. It was taken out on a report that the server disregarded it, which
+  # this file then restated as fact. Measured since: true -> false -> true
+  # persists and reads back. Whether the token flow honours the flag is a
+  # separate question, and not one the provider answers: its job is to set and
+  # read a documented service setting faithfully, which it does. Deleting the
+  # attribute would not fix a server that ignored it, only stop a customer
+  # configuring a field the API documents.
+  #
+  # The asymmetry is worth recording, because the deadline argues the wrong way
+  # on its own. Putting an attribute back is not a breaking change; taking one
+  # away is. So an unverified removal is the expensive mistake and an unverified
+  # keep is the cheap one, and "before the tag" is a reason to measure sooner,
+  # not to remove sooner.
+  - target: $.components.schemas.service.properties.developerSnsCredentials
+    description: Authlete 2.x social login, accepted and disregarded
+    update:
+      x-speakeasy-terraform-ignore: true
+  - target: $.components.schemas.service.properties.supportedDeveloperSnses
+    description: Authlete 2.x social login, accepted and disregarded
     update:
       x-speakeasy-terraform-ignore: true
 

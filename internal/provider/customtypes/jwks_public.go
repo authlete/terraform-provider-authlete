@@ -33,8 +33,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// privateMembers are the JWK members that exist only in a private key. "d"
-// covers RSA, EC and OKP alike; the rest are RSA's CRT parameters.
+// privateMembers are the string-valued JWK members that exist only in a
+// private key. "d" covers RSA, EC and OKP alike; the rest are RSA's CRT
+// parameters.
+//
+// RSA's seventh private member, "oth", is deliberately not here. It is an
+// array of objects rather than a string, so the string check that reads this
+// list cannot see it; ValidateDocument tests for it separately.
 var privateMembers = []string{"d", "p", "q", "dp", "dq", "qi"}
 
 // --- type -------------------------------------------------------------------

@@ -120,13 +120,20 @@ patch = '''
 		apiServerID, _ = APIServerIDForServerURL(serverUrl)
 	}
 	// Redaction sits outside the generated logging transport, which records
-	// every request and response body verbatim. See log_redaction.go.
+	// every request and response body verbatim, and every request header, of
+	// which it masks only Authorization. The names of the configured
+	// http_headers are passed in so their values are masked too. See
+	// log_redaction.go.
 	//
 	// Body capture sits outermost, so it is the last thing to touch a response
 	// before the SDK does. The SDK drains a 404 body, which is what the "is
 	// this gone" checks read. See captured_body.go.
+	headerNames := make([]string, 0, len(providerHTTPTransportOpts.SetHeaders))
+	for name := range providerHTTPTransportOpts.SetHeaders {
+		headerNames = append(headerNames, name)
+	}
 	httpClient.Transport = NewBodyCapturingTransport(serverUrl, idpHost, organizationID, apiServerID,
-		NewLogRedactingTransport(
+		NewLogRedactingTransport(headerNames,
 			NewIdpRoutingTransport(serverUrl, idpHost, apiServerID, organizationID, httpClient.Transport)))
 '''
 # PATCH_END

@@ -166,7 +166,7 @@ resource "authlete_client" "my_client" {
 
 ### Required
 
-- `service_id` (String) A service ID.
+- `service_id` (String) A service ID. Requires replacement if changed.
 
 ### Optional
 

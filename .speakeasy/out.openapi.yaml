@@ -1218,6 +1218,7 @@ paths:
           required: true
           schema:
             type: string
+            x-speakeasy-param-force-new: true
         - in: path
           name: clientId
           schema:
@@ -1467,6 +1468,7 @@ paths:
           required: true
           schema:
             type: string
+            x-speakeasy-param-force-new: true
       requestBody:
         required: true
         content:
@@ -1607,6 +1609,7 @@ paths:
           required: true
           schema:
             type: string
+            x-speakeasy-param-force-new: true
         - in: path
           name: clientId
           schema:
@@ -1767,6 +1770,7 @@ paths:
           required: true
           schema:
             type: string
+            x-speakeasy-param-force-new: true
         - in: path
           name: clientId
           schema:
@@ -10259,6 +10263,7 @@ components:
               - FACEBOOK
           description: |
             Social login services (SNS) that this service supports for developer authentication.
+          x-speakeasy-terraform-ignore: true
         developerSnsCredentials:
           type: array
           nullable: true
@@ -10266,6 +10271,7 @@ components:
             $ref: '#/components/schemas/sns_credentials'
           description: |
             The credentials for social login services (SNS) that are used for developer authentication.
+          x-speakeasy-terraform-ignore: true
         clientIdAliasEnabled:
           type: boolean
           readOnly: true
@@ -11615,6 +11621,13 @@ components:
           description: |
             The JWK Set document containing private keys that are used to sign verifiable credentials.
           x-speakeasy-param-sensitive: true
+          x-speakeasy-terraform-custom-type:
+            imports:
+              - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
+            schemaType: customtypes.JWKSType{}
+            valueType: customtypes.JWKS
+          x-speakeasy-plan-validators:
+            - ValidJWKSet
         fapiModes:
           type: array
           nullable: true
@@ -12112,6 +12125,13 @@ components:
           type: string
           description: |
             the JWK Set document containing public keys of the trust anchor
+          x-speakeasy-terraform-custom-type:
+            imports:
+              - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
+            schemaType: customtypes.PublicJWKSType{}
+            valueType: customtypes.PublicJWKS
+          x-speakeasy-plan-validators:
+            - ValidPublicJWKSet
     fapi_mode:
       type: string
       enum:

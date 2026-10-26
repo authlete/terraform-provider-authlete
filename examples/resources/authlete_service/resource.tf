@@ -79,24 +79,17 @@ resource "authlete_service" "my_service" {
   dcr_duplicate_software_id_blocked = false
   dcr_scope_used_as_requestable     = true
   description                       = "...my_description..."
-  developer_sns_credentials = [
-    {
-      api_key    = "...my_api_key..."
-      api_secret = "...my_api_secret..."
-      sns        = "...my_sns..."
-    }
-  ]
-  device_authorization_endpoint    = "https://nimble-secrecy.name/"
-  device_flow_code_duration        = 8
-  device_flow_polling_interval     = 3
-  device_verification_uri          = "https://brilliant-cannon.biz/"
-  device_verification_uri_complete = "https://agile-handover.name"
-  dpop_nonce_duration              = 4
-  dpop_nonce_required              = false
-  dynamic_registration_supported   = false
-  end_session_endpoint             = "https://defensive-casket.net/"
-  error_description_omitted        = false
-  error_uri_omitted                = true
+  device_authorization_endpoint     = "https://nimble-secrecy.name/"
+  device_flow_code_duration         = 8
+  device_flow_polling_interval      = 3
+  device_verification_uri           = "https://brilliant-cannon.biz/"
+  device_verification_uri_complete  = "https://agile-handover.name"
+  dpop_nonce_duration               = 4
+  dpop_nonce_required               = false
+  dynamic_registration_supported    = false
+  end_session_endpoint              = "https://defensive-casket.net/"
+  error_description_omitted         = false
+  error_uri_omitted                 = true
   fapi_modes = [
     "FAPI2_MESSAGE_SIGNING_AUTH_RES"
   ]
@@ -167,7 +160,6 @@ resource "authlete_service" "my_service" {
   revocation_endpoint                              = "https://true-planula.biz"
   rs_response_signed                               = true
   scope_required                                   = false
-  server_url                                       = "https://login.authlete.com"
   service_documentation                            = "https://shrill-noon.name"
   service_name                                     = "...my_service_name..."
   signed_jwks_uri                                  = "...my_signed_jwks_uri..."
@@ -195,9 +187,6 @@ resource "authlete_service" "my_service" {
   ]
   supported_custom_client_metadata = [
     "..."
-  ]
-  supported_developer_snses = [
-    "FACEBOOK"
   ]
   supported_digest_algorithms = [
     "..."
