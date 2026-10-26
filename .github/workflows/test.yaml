@@ -53,6 +53,13 @@ jobs:
       - name: Check the provider.go patch is present
         run: ./scripts/patch-provider.sh --check
 
+      # server_url on the service resource has no schema node for the overlay
+      # to ignore, so it comes back on every regeneration. Setting it sends
+      # service create and delete straight to that URL, past the transport that
+      # injects organizationId and apiServerId.
+      - name: Check the resource-level server_url is still removed
+        run: python3 scripts/patch-resource-server-url.py --check
+
       # debugResponse puts a full request and response dump into a diagnostic,
       # which Terraform prints on the terminal on any API error, with debug
       # logging off. The TF_LOG masking never sees it, so unredacted it prints

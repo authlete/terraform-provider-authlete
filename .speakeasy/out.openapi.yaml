@@ -10263,6 +10263,7 @@ components:
               - FACEBOOK
           description: |
             Social login services (SNS) that this service supports for developer authentication.
+          x-speakeasy-terraform-ignore: true
         developerSnsCredentials:
           type: array
           nullable: true
@@ -10270,6 +10271,7 @@ components:
             $ref: '#/components/schemas/sns_credentials'
           description: |
             The credentials for social login services (SNS) that are used for developer authentication.
+          x-speakeasy-terraform-ignore: true
         clientIdAliasEnabled:
           type: boolean
           readOnly: true
@@ -11535,6 +11537,7 @@ components:
             The flag indicating whether to refrain from issuing an ID token when the `openid` scope has been removed from the scopes to be granted by the `scopes` request parameter of the `/auth/authorization/issue` API.
 
             Flows whose `response_type` contains `id_token`, and flows that requested Native SSO, are not affected, because both require an ID token.
+          x-speakeasy-terraform-ignore: true
         supportedDocumentsCheckMethods:
           type: array
           nullable: true

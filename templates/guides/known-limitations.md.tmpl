@@ -43,6 +43,27 @@ and the error names the setting that disagrees. That protects you from
 deleting a service you did not mean to reach. It cannot protect you from
 deleting the one you did mean to reach, which is what this section is about.
 
+## A failed create can leave a service behind
+
+If the reply to a create is lost, to a gateway timeout or a dropped
+connection, the provider retries the request. Authlete has no way to tell the
+retry apart from a new request, so if the first attempt did reach it, you get
+two services. Terraform records the second. The first exists, holds the
+configuration you asked for, and nothing in your state refers to it.
+
+The same applies when the apply fails outright and you run it again: the
+service from the first attempt is still there.
+
+**After a create fails, look at the service list in the console before running
+`apply` again.** Delete the one that was left behind, or import it instead of
+creating another.
+
+This is rare. It needs the request to reach Authlete and the answer not to
+come back. But nothing in the plan or the error will tell you it has happened,
+which is why it is written down here.
+
+The same is true of a client, with a smaller blast radius.
+
 ## Plans show many attributes as "known after apply"
 
 Change one attribute on a service or a client and the plan shows most of the

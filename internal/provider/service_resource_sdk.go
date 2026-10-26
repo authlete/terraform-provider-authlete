@@ -137,21 +137,6 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		r.DeveloperAuthenticationCallbackAPIKey = types.StringPointerValue(resp.DeveloperAuthenticationCallbackAPIKey)
 		r.DeveloperAuthenticationCallbackAPISecret = types.StringPointerValue(resp.DeveloperAuthenticationCallbackAPISecret)
 		r.DeveloperAuthenticationCallbackEndpoint = types.StringPointerValue(resp.DeveloperAuthenticationCallbackEndpoint)
-		if resp.DeveloperSnsCredentials != nil {
-			r.DeveloperSnsCredentials = []tfTypes.SnsCredentials{}
-
-			for _, developerSnsCredentialsItem := range resp.DeveloperSnsCredentials {
-				var developerSnsCredentials tfTypes.SnsCredentials
-
-				developerSnsCredentials.APIKey = types.StringPointerValue(developerSnsCredentialsItem.APIKey)
-				developerSnsCredentials.APISecret = types.StringPointerValue(developerSnsCredentialsItem.APISecret)
-				developerSnsCredentials.Sns = types.StringPointerValue(developerSnsCredentialsItem.Sns)
-
-				r.DeveloperSnsCredentials = append(r.DeveloperSnsCredentials, developerSnsCredentials)
-			}
-		} else {
-			r.DeveloperSnsCredentials = nil
-		}
 		r.DeviceAuthorizationEndpoint = types.StringPointerValue(resp.DeviceAuthorizationEndpoint)
 		r.DeviceFlowCodeDuration = types.Int32PointerValue(typeconvert.IntPointerToInt32Pointer(resp.DeviceFlowCodeDuration))
 		r.DeviceFlowPollingInterval = types.Int32PointerValue(typeconvert.IntPointerToInt32Pointer(resp.DeviceFlowPollingInterval))
@@ -210,7 +195,6 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		r.HsmEnabled = types.BoolPointerValue(resp.HsmEnabled)
 		r.HTTPAliasProhibited = types.BoolPointerValue(resp.HTTPAliasProhibited)
 		r.IDTokenAudType = types.StringPointerValue(resp.IDTokenAudType)
-		r.IDTokenDroppedOnIssueWithoutOpenid = types.BoolPointerValue(resp.IDTokenDroppedOnIssueWithoutOpenid)
 		r.IDTokenDuration = types.Int64PointerValue(resp.IDTokenDuration)
 		r.IDTokenReissuable = types.BoolPointerValue(resp.IDTokenReissuable)
 		r.IDTokenSignatureKeyID = types.StringPointerValue(resp.IDTokenSignatureKeyID)
@@ -387,14 +371,6 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 			}
 		} else {
 			r.SupportedCustomClientMetadata = nil
-		}
-		if resp.SupportedDeveloperSnses != nil {
-			r.SupportedDeveloperSnses = make([]types.String, 0, len(resp.SupportedDeveloperSnses))
-			for _, v := range resp.SupportedDeveloperSnses {
-				r.SupportedDeveloperSnses = append(r.SupportedDeveloperSnses, types.StringValue(string(v)))
-			}
-		} else {
-			r.SupportedDeveloperSnses = nil
 		}
 		if resp.SupportedDigestAlgorithms != nil {
 			r.SupportedDigestAlgorithms = make([]types.String, 0, len(resp.SupportedDigestAlgorithms))
@@ -750,42 +726,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		*clientsPerDeveloper = int(r.ClientsPerDeveloper.ValueInt32())
 	} else {
 		clientsPerDeveloper = nil
-	}
-	var supportedDeveloperSnses []shared.SupportedDeveloperSnse
-	if r.SupportedDeveloperSnses != nil {
-		supportedDeveloperSnses = make([]shared.SupportedDeveloperSnse, 0, len(r.SupportedDeveloperSnses))
-		for _, supportedDeveloperSnsesItem := range r.SupportedDeveloperSnses {
-			supportedDeveloperSnses = append(supportedDeveloperSnses, shared.SupportedDeveloperSnse(supportedDeveloperSnsesItem.ValueString()))
-		}
-	}
-	var developerSnsCredentials []shared.SnsCredentials
-	if r.DeveloperSnsCredentials != nil {
-		developerSnsCredentials = make([]shared.SnsCredentials, 0, len(r.DeveloperSnsCredentials))
-		for developerSnsCredentialsIndex := range r.DeveloperSnsCredentials {
-			sns := new(string)
-			if !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].Sns.IsUnknown() && !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].Sns.IsNull() {
-				*sns = r.DeveloperSnsCredentials[developerSnsCredentialsIndex].Sns.ValueString()
-			} else {
-				sns = nil
-			}
-			apiKey := new(string)
-			if !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APIKey.IsUnknown() && !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APIKey.IsNull() {
-				*apiKey = r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APIKey.ValueString()
-			} else {
-				apiKey = nil
-			}
-			apiSecret := new(string)
-			if !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APISecret.IsUnknown() && !r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APISecret.IsNull() {
-				*apiSecret = r.DeveloperSnsCredentials[developerSnsCredentialsIndex].APISecret.ValueString()
-			} else {
-				apiSecret = nil
-			}
-			developerSnsCredentials = append(developerSnsCredentials, shared.SnsCredentials{
-				Sns:       sns,
-				APIKey:    apiKey,
-				APISecret: apiSecret,
-			})
-		}
 	}
 	authenticationCallbackEndpoint := new(string)
 	if !r.AuthenticationCallbackEndpoint.IsUnknown() && !r.AuthenticationCallbackEndpoint.IsNull() {
@@ -1692,12 +1632,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		openidDroppedOnRefreshWithoutOfflineAccess = nil
 	}
-	idTokenDroppedOnIssueWithoutOpenid := new(bool)
-	if !r.IDTokenDroppedOnIssueWithoutOpenid.IsUnknown() && !r.IDTokenDroppedOnIssueWithoutOpenid.IsNull() {
-		*idTokenDroppedOnIssueWithoutOpenid = r.IDTokenDroppedOnIssueWithoutOpenid.ValueBool()
-	} else {
-		idTokenDroppedOnIssueWithoutOpenid = nil
-	}
 	var supportedDocumentsCheckMethods []string
 	if r.SupportedDocumentsCheckMethods != nil {
 		supportedDocumentsCheckMethods = make([]string, 0, len(r.SupportedDocumentsCheckMethods))
@@ -2031,8 +1965,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		Description:                                 description,
 		ClientAssertionAudRestrictedToIssuer:        clientAssertionAudRestrictedToIssuer,
 		ClientsPerDeveloper:                         clientsPerDeveloper,
-		SupportedDeveloperSnses:                     supportedDeveloperSnses,
-		DeveloperSnsCredentials:                     developerSnsCredentials,
 		AuthenticationCallbackEndpoint:              authenticationCallbackEndpoint,
 		AuthenticationCallbackAPIKey:                authenticationCallbackAPIKey,
 		AuthenticationCallbackAPISecret:             authenticationCallbackAPISecret,
@@ -2160,7 +2092,6 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		DcrDuplicateSoftwareIDBlocked:               dcrDuplicateSoftwareIDBlocked,
 		TrustAnchors:                                trustAnchors,
 		OpenidDroppedOnRefreshWithoutOfflineAccess:  openidDroppedOnRefreshWithoutOfflineAccess,
-		IDTokenDroppedOnIssueWithoutOpenid:          idTokenDroppedOnIssueWithoutOpenid,
 		SupportedDocumentsCheckMethods:              supportedDocumentsCheckMethods,
 		RsResponseSigned:                            rsResponseSigned,
 		CnonceDuration:                              cnonceDuration,

@@ -94,24 +94,17 @@ resource "authlete_service" "my_service" {
   dcr_duplicate_software_id_blocked = false
   dcr_scope_used_as_requestable     = true
   description                       = "...my_description..."
-  developer_sns_credentials = [
-    {
-      api_key    = "...my_api_key..."
-      api_secret = "...my_api_secret..."
-      sns        = "...my_sns..."
-    }
-  ]
-  device_authorization_endpoint    = "https://nimble-secrecy.name/"
-  device_flow_code_duration        = 8
-  device_flow_polling_interval     = 3
-  device_verification_uri          = "https://brilliant-cannon.biz/"
-  device_verification_uri_complete = "https://agile-handover.name"
-  dpop_nonce_duration              = 4
-  dpop_nonce_required              = false
-  dynamic_registration_supported   = false
-  end_session_endpoint             = "https://defensive-casket.net/"
-  error_description_omitted        = false
-  error_uri_omitted                = true
+  device_authorization_endpoint     = "https://nimble-secrecy.name/"
+  device_flow_code_duration         = 8
+  device_flow_polling_interval      = 3
+  device_verification_uri           = "https://brilliant-cannon.biz/"
+  device_verification_uri_complete  = "https://agile-handover.name"
+  dpop_nonce_duration               = 4
+  dpop_nonce_required               = false
+  dynamic_registration_supported    = false
+  end_session_endpoint              = "https://defensive-casket.net/"
+  error_description_omitted         = false
+  error_uri_omitted                 = true
   fapi_modes = [
     "FAPI2_MESSAGE_SIGNING_AUTH_RES"
   ]
@@ -127,7 +120,6 @@ resource "authlete_service" "my_service" {
   hsm_enabled                                      = true
   http_alias_prohibited                            = true
   id_token_aud_type                                = "...my_id_token_aud_type..."
-  id_token_dropped_on_issue_without_openid         = false
   id_token_duration                                = 10
   id_token_reissuable                              = true
   id_token_signature_key_id                        = "...my_id_token_signature_key_id..."
@@ -182,7 +174,6 @@ resource "authlete_service" "my_service" {
   revocation_endpoint                              = "https://true-planula.biz"
   rs_response_signed                               = true
   scope_required                                   = false
-  server_url                                       = "https://login.authlete.com"
   service_documentation                            = "https://shrill-noon.name"
   service_name                                     = "...my_service_name..."
   signed_jwks_uri                                  = "...my_signed_jwks_uri..."
@@ -210,9 +201,6 @@ resource "authlete_service" "my_service" {
   ]
   supported_custom_client_metadata = [
     "..."
-  ]
-  supported_developer_snses = [
-    "FACEBOOK"
   ]
   supported_digest_algorithms = [
     "..."
@@ -409,7 +397,6 @@ Limiting the range of scopes that a client can request is achieved by listing sc
 
 This property affects behaviors of `/api/client/registration` and other family APIs.
 - `description` (String) The description about the service.
-- `developer_sns_credentials` (Attributes List) The credentials for social login services (SNS) that are used for developer authentication. (see [below for nested schema](#nestedatt--developer_sns_credentials))
 - `device_authorization_endpoint` (String) The URI of the device authorization endpoint.
 
 Device authorization endpoint is defined in the specification of OAuth 2.0 Device Authorization Grant.
@@ -456,9 +443,6 @@ When this flag is `false`, keys managed in HSMs are not used even if they exist.
 Even if this flag is `true`, HSM-related features do not work if the configuration of the Authlete server you are using does not support HSM.
 - `http_alias_prohibited` (Boolean) When `true`, client ID aliases starting with `https://` or `http://` are prohibited.
 - `id_token_aud_type` (String) The type of the `aud` claim in ID tokens.
-- `id_token_dropped_on_issue_without_openid` (Boolean) The flag indicating whether to refrain from issuing an ID token when the `openid` scope has been removed from the scopes to be granted by the `scopes` request parameter of the `/auth/authorization/issue` API.
-
-Flows whose `response_type` contains `id_token`, and flows that requested Native SSO, are not affected, because both require an ID token.
 - `id_token_duration` (Number) 'The duration of [ID token](https://openid.net/specs/openid-connect-core-1_0.html#IDToken)s in seconds. This value is used to calculate the value of `exp` claim in an ID token.'
 - `id_token_reissuable` (Boolean) The flag indicating whether to enable the feature of ID token reissuance in the refresh token flow.
 - `id_token_signature_key_id` (String) The key ID to identify a JWK used for ID token signature using an asymmetric key.
@@ -554,7 +538,6 @@ If this flag is set to `true` and the value of `traditionalRequestObjectProcessi
 A URL that starts with `https://`. For example, `https://example.com/auth/revocation`.
 - `rs_response_signed` (Boolean) The flag indicating whether this service signs responses from the resource server.
 - `scope_required` (Boolean) The flag to indicate whether requests that request no scope are rejected or not.
-- `server_url` (String) IDP Server
 - `service_documentation` (String) The URL of a page where documents for developers can be found.
 
 The value of this property is used as `service_documentation` property in the [OpenID Provider Metadata](http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
@@ -581,7 +564,6 @@ The value of this property is used as `claim_types_supported` property in the [O
 - `supported_claims` (List of String) Claim names that the service supports. The standard claim names listed in [OpenID Connect Core 1.0, 5.1. Standard Claim](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims) should be supported. The following is the list of standard claims.
 - `supported_client_registration_types` (List of String)
 - `supported_custom_client_metadata` (List of String) custom client metadata supported by this service.
-- `supported_developer_snses` (List of String) Social login services (SNS) that this service supports for developer authentication.
 - `supported_digest_algorithms` (List of String) Supported algorithms used to compute digest values of external attachments. This property corresponds to the `digest_algorithms_supported` server metadata which was added by the third implementer's draft of OpenID Connect for Identity Assurance 1.0.
 - `supported_displays` (List of String) Values of `display` request parameter that service supports.
 
@@ -716,16 +698,6 @@ Optional:
 - `deferred_credential_endpoint` (String) The URL of the deferred credential endpoint of the credential issuer.
 - `require_credential_request_encryption` (Boolean) The boolean flag indicating whether credential request encryption is required. This property corresponds to the `credential_request_encryption.encryption_required` metadata. If this flag is `true`, every credential request to the credential issuer must be encrypted.
 - `require_credential_response_encryption` (Boolean) The boolean flag indicating whether credential response encryption is required. This property corresponds to the `credential_response_encryption.encryption_required metadata`. If this flag is `true`, every credential request to the credential issuer must include the `credential_response_encryption` property.
-
-
-<a id="nestedatt--developer_sns_credentials"></a>
-### Nested Schema for `developer_sns_credentials`
-
-Optional:
-
-- `api_key` (String) API key.
-- `api_secret` (String, Sensitive) API secret.
-- `sns` (String) SNS.
 
 
 <a id="nestedatt--mtls_endpoint_aliases"></a>

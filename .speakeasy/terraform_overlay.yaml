@@ -470,6 +470,32 @@ actions:
     update:
       x-speakeasy-terraform-ignore: true
 
+  # Three settings Authlete 3.0 accepts and then disregards. Each is settable,
+  # so a practitioner can write one, see the apply succeed, and never learn
+  # that it did nothing. Removing them is the only honest option, and it has to
+  # happen before 3.0.0: taking an attribute away afterwards is a major
+  # version.
+  #
+  # idTokenDroppedOnIssueWithoutOpenid has no behaviour behind it in 3.0.
+  #
+  # developerSnsCredentials and supportedDeveloperSnses are Authlete 2.x social
+  # login for the developer console. The only value the sns enum admits is
+  # FACEBOOK, and the read-only halves of the same feature -- snsCredentials
+  # and supportedSnses -- can never be populated either. These two differ only
+  # in being settable, which makes them worse.
+  - target: $.components.schemas.service.properties.idTokenDroppedOnIssueWithoutOpenid
+    description: Accepted and disregarded by Authlete 3.0
+    update:
+      x-speakeasy-terraform-ignore: true
+  - target: $.components.schemas.service.properties.developerSnsCredentials
+    description: Authlete 2.x social login, accepted and disregarded
+    update:
+      x-speakeasy-terraform-ignore: true
+  - target: $.components.schemas.service.properties.supportedDeveloperSnses
+    description: Authlete 2.x social login, accepted and disregarded
+    update:
+      x-speakeasy-terraform-ignore: true
+
   # Authlete 2.x authenticated API calls with an apiKey and apiSecret pair.
   # 3.0 uses an Organization Token or a Service Access Token, and no endpoint
   # returns apiSecret any more: a create response carries 107 fields and a get
