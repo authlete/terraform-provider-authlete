@@ -8,8 +8,9 @@ Connect clients with Terraform.
 >
 > Coming from 1.3.x? `v1.3.17` is the last release of that line, and 3.x is
 > not an upgrade of it: your configuration and your state both need changes.
-> Read the [migration guide](https://registry.terraform.io/providers/authlete/authlete/latest/docs/guides/migrating-from-1-3)
-> before you change the version constraint.
+> Read the migration guide before you change the version constraint:
+> [on the registry](https://registry.terraform.io/providers/authlete/authlete/latest/docs/guides/migrating-from-1-3),
+> or [in this repository](docs/guides/migrating-from-1-3.md).
 >
 > Please report any issue you run into.
 
