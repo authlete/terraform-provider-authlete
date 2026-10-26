@@ -11537,7 +11537,6 @@ components:
             The flag indicating whether to refrain from issuing an ID token when the `openid` scope has been removed from the scopes to be granted by the `scopes` request parameter of the `/auth/authorization/issue` API.
 
             Flows whose `response_type` contains `id_token`, and flows that requested Native SSO, are not affected, because both require an ID token.
-          x-speakeasy-terraform-ignore: true
         supportedDocumentsCheckMethods:
           type: array
           nullable: true

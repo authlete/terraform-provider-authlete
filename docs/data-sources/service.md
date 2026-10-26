@@ -168,6 +168,9 @@ When this flag is `false`, keys managed in HSMs are not used even if they exist.
 Even if this flag is `true`, HSM-related features do not work if the configuration of the Authlete server you are using does not support HSM.
 - `http_alias_prohibited` (Boolean) When `true`, client ID aliases starting with `https://` or `http://` are prohibited.
 - `id_token_aud_type` (String) The type of the `aud` claim in ID tokens.
+- `id_token_dropped_on_issue_without_openid` (Boolean) The flag indicating whether to refrain from issuing an ID token when the `openid` scope has been removed from the scopes to be granted by the `scopes` request parameter of the `/auth/authorization/issue` API.
+
+Flows whose `response_type` contains `id_token`, and flows that requested Native SSO, are not affected, because both require an ID token.
 - `id_token_duration` (Number) 'The duration of [ID token](https://openid.net/specs/openid-connect-core-1_0.html#IDToken)s in seconds. This value is used to calculate the value of `exp` claim in an ID token.'
 - `id_token_reissuable` (Boolean) The flag indicating whether to enable the feature of ID token reissuance in the refresh token flow.
 - `id_token_signature_key_id` (String) The key ID to identify a JWK used for ID token signature using an asymmetric key.

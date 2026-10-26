@@ -105,6 +105,7 @@ resource "authlete_service" "my_service" {
   hsm_enabled                                      = true
   http_alias_prohibited                            = true
   id_token_aud_type                                = "...my_id_token_aud_type..."
+  id_token_dropped_on_issue_without_openid         = false
   id_token_duration                                = 10
   id_token_reissuable                              = true
   id_token_signature_key_id                        = "...my_id_token_signature_key_id..."

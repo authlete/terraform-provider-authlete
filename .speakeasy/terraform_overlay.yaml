@@ -487,23 +487,30 @@ actions:
     update:
       x-speakeasy-terraform-ignore: true
 
-  # Three settings Authlete 3.0 accepts and then disregards. Each is settable,
-  # so a practitioner can write one, see the apply succeed, and never learn
-  # that it did nothing. Removing them is the only honest option, and it has to
-  # happen before 3.0.0: taking an attribute away afterwards is a major
-  # version.
+  # Authlete 2.x social login for the developer console, deprecated in the 3.0
+  # server. Both are settable, so a practitioner can write one, see the apply
+  # succeed, and never learn it did nothing. The read-only halves of the same
+  # feature, snsCredentials and supportedSnses, can never be populated either,
+  # and the only value the sns enum admits is FACEBOOK. These two differ from
+  # those only in being settable, which makes them worse.
   #
-  # idTokenDroppedOnIssueWithoutOpenid has no behaviour behind it in 3.0.
+  # Removing them has to happen before 3.0.0: taking an attribute away
+  # afterwards is a major version.
   #
-  # developerSnsCredentials and supportedDeveloperSnses are Authlete 2.x social
-  # login for the developer console. The only value the sns enum admits is
-  # FACEBOOK, and the read-only halves of the same feature -- snsCredentials
-  # and supportedSnses -- can never be populated either. These two differ only
-  # in being settable, which makes them worse.
-  - target: $.components.schemas.service.properties.idTokenDroppedOnIssueWithoutOpenid
-    description: Accepted and disregarded by Authlete 3.0
-    update:
-      x-speakeasy-terraform-ignore: true
+  # idTokenDroppedOnIssueWithoutOpenid was removed alongside these and has been
+  # put back. It was taken out on a report that the server disregarded it, which
+  # this file then restated as fact. Measured since: true -> false -> true
+  # persists and reads back. Whether the token flow honours the flag is a
+  # separate question, and not one the provider answers: its job is to set and
+  # read a documented service setting faithfully, which it does. Deleting the
+  # attribute would not fix a server that ignored it, only stop a customer
+  # configuring a field the API documents.
+  #
+  # The asymmetry is worth recording, because the deadline argues the wrong way
+  # on its own. Putting an attribute back is not a breaking change; taking one
+  # away is. So an unverified removal is the expensive mistake and an unverified
+  # keep is the cheap one, and "before the tag" is a reason to measure sooner,
+  # not to remove sooner.
   - target: $.components.schemas.service.properties.developerSnsCredentials
     description: Authlete 2.x social login, accepted and disregarded
     update:

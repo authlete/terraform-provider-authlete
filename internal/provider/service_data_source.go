@@ -115,6 +115,7 @@ type ServiceDataSourceModel struct {
 	HsmEnabled                                  types.Bool                        `tfsdk:"hsm_enabled"`
 	HTTPAliasProhibited                         types.Bool                        `tfsdk:"http_alias_prohibited"`
 	IDTokenAudType                              types.String                      `tfsdk:"id_token_aud_type"`
+	IDTokenDroppedOnIssueWithoutOpenid          types.Bool                        `tfsdk:"id_token_dropped_on_issue_without_openid"`
 	IDTokenDuration                             types.Int64                       `tfsdk:"id_token_duration"`
 	IDTokenReissuable                           types.Bool                        `tfsdk:"id_token_reissuable"`
 	IDTokenSignatureKeyID                       types.String                      `tfsdk:"id_token_signature_key_id"`
@@ -747,6 +748,12 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			"id_token_aud_type": schema.StringAttribute{
 				Computed:    true,
 				Description: `The type of the ` + "`" + `aud` + "`" + ` claim in ID tokens.`,
+			},
+			"id_token_dropped_on_issue_without_openid": schema.BoolAttribute{
+				Computed: true,
+				MarkdownDescription: `The flag indicating whether to refrain from issuing an ID token when the ` + "`" + `openid` + "`" + ` scope has been removed from the scopes to be granted by the ` + "`" + `scopes` + "`" + ` request parameter of the ` + "`" + `/auth/authorization/issue` + "`" + ` API.` + "\n" +
+					`` + "\n" +
+					`Flows whose ` + "`" + `response_type` + "`" + ` contains ` + "`" + `id_token` + "`" + `, and flows that requested Native SSO, are not affected, because both require an ID token.`,
 			},
 			"id_token_duration": schema.Int64Attribute{
 				Computed:    true,
