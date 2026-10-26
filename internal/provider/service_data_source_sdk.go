@@ -138,21 +138,6 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		r.DeveloperAuthenticationCallbackAPIKey = types.StringPointerValue(resp.DeveloperAuthenticationCallbackAPIKey)
 		r.DeveloperAuthenticationCallbackAPISecret = types.StringPointerValue(resp.DeveloperAuthenticationCallbackAPISecret)
 		r.DeveloperAuthenticationCallbackEndpoint = types.StringPointerValue(resp.DeveloperAuthenticationCallbackEndpoint)
-		if resp.DeveloperSnsCredentials != nil {
-			r.DeveloperSnsCredentials = []tfTypes.SnsCredentials{}
-
-			for _, developerSnsCredentialsItem := range resp.DeveloperSnsCredentials {
-				var developerSnsCredentials tfTypes.SnsCredentials
-
-				developerSnsCredentials.APIKey = types.StringPointerValue(developerSnsCredentialsItem.APIKey)
-				developerSnsCredentials.APISecret = types.StringPointerValue(developerSnsCredentialsItem.APISecret)
-				developerSnsCredentials.Sns = types.StringPointerValue(developerSnsCredentialsItem.Sns)
-
-				r.DeveloperSnsCredentials = append(r.DeveloperSnsCredentials, developerSnsCredentials)
-			}
-		} else {
-			r.DeveloperSnsCredentials = nil
-		}
 		r.DeviceAuthorizationEndpoint = types.StringPointerValue(resp.DeviceAuthorizationEndpoint)
 		r.DeviceFlowCodeDuration = types.Int32PointerValue(typeconvert.IntPointerToInt32Pointer(resp.DeviceFlowCodeDuration))
 		r.DeviceFlowPollingInterval = types.Int32PointerValue(typeconvert.IntPointerToInt32Pointer(resp.DeviceFlowPollingInterval))
@@ -211,7 +196,6 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		r.HsmEnabled = types.BoolPointerValue(resp.HsmEnabled)
 		r.HTTPAliasProhibited = types.BoolPointerValue(resp.HTTPAliasProhibited)
 		r.IDTokenAudType = types.StringPointerValue(resp.IDTokenAudType)
-		r.IDTokenDroppedOnIssueWithoutOpenid = types.BoolPointerValue(resp.IDTokenDroppedOnIssueWithoutOpenid)
 		r.IDTokenDuration = types.Int64PointerValue(resp.IDTokenDuration)
 		r.IDTokenReissuable = types.BoolPointerValue(resp.IDTokenReissuable)
 		r.IDTokenSignatureKeyID = types.StringPointerValue(resp.IDTokenSignatureKeyID)
@@ -388,14 +372,6 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 			}
 		} else {
 			r.SupportedCustomClientMetadata = nil
-		}
-		if resp.SupportedDeveloperSnses != nil {
-			r.SupportedDeveloperSnses = make([]types.String, 0, len(resp.SupportedDeveloperSnses))
-			for _, v := range resp.SupportedDeveloperSnses {
-				r.SupportedDeveloperSnses = append(r.SupportedDeveloperSnses, types.StringValue(string(v)))
-			}
-		} else {
-			r.SupportedDeveloperSnses = nil
 		}
 		if resp.SupportedDigestAlgorithms != nil {
 			r.SupportedDigestAlgorithms = make([]types.String, 0, len(resp.SupportedDigestAlgorithms))

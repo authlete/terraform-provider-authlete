@@ -79,24 +79,17 @@ resource "authlete_service" "my_service" {
   dcr_duplicate_software_id_blocked = false
   dcr_scope_used_as_requestable     = true
   description                       = "...my_description..."
-  developer_sns_credentials = [
-    {
-      api_key    = "...my_api_key..."
-      api_secret = "...my_api_secret..."
-      sns        = "...my_sns..."
-    }
-  ]
-  device_authorization_endpoint    = "https://nimble-secrecy.name/"
-  device_flow_code_duration        = 8
-  device_flow_polling_interval     = 3
-  device_verification_uri          = "https://brilliant-cannon.biz/"
-  device_verification_uri_complete = "https://agile-handover.name"
-  dpop_nonce_duration              = 4
-  dpop_nonce_required              = false
-  dynamic_registration_supported   = false
-  end_session_endpoint             = "https://defensive-casket.net/"
-  error_description_omitted        = false
-  error_uri_omitted                = true
+  device_authorization_endpoint     = "https://nimble-secrecy.name/"
+  device_flow_code_duration         = 8
+  device_flow_polling_interval      = 3
+  device_verification_uri           = "https://brilliant-cannon.biz/"
+  device_verification_uri_complete  = "https://agile-handover.name"
+  dpop_nonce_duration               = 4
+  dpop_nonce_required               = false
+  dynamic_registration_supported    = false
+  end_session_endpoint              = "https://defensive-casket.net/"
+  error_description_omitted         = false
+  error_uri_omitted                 = true
   fapi_modes = [
     "FAPI2_MESSAGE_SIGNING_AUTH_RES"
   ]
@@ -112,7 +105,6 @@ resource "authlete_service" "my_service" {
   hsm_enabled                                      = true
   http_alias_prohibited                            = true
   id_token_aud_type                                = "...my_id_token_aud_type..."
-  id_token_dropped_on_issue_without_openid         = false
   id_token_duration                                = 10
   id_token_reissuable                              = true
   id_token_signature_key_id                        = "...my_id_token_signature_key_id..."
@@ -195,9 +187,6 @@ resource "authlete_service" "my_service" {
   ]
   supported_custom_client_metadata = [
     "..."
-  ]
-  supported_developer_snses = [
-    "FACEBOOK"
   ]
   supported_digest_algorithms = [
     "..."

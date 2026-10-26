@@ -98,7 +98,6 @@ type ServiceResourceModel struct {
 	DeveloperAuthenticationCallbackAPIKey       types.String                      `tfsdk:"developer_authentication_callback_api_key"`
 	DeveloperAuthenticationCallbackAPISecret    types.String                      `tfsdk:"developer_authentication_callback_api_secret"`
 	DeveloperAuthenticationCallbackEndpoint     types.String                      `tfsdk:"developer_authentication_callback_endpoint"`
-	DeveloperSnsCredentials                     []tfTypes.SnsCredentials          `tfsdk:"developer_sns_credentials"`
 	DeviceAuthorizationEndpoint                 types.String                      `tfsdk:"device_authorization_endpoint"`
 	DeviceFlowCodeDuration                      types.Int32                       `tfsdk:"device_flow_code_duration"`
 	DeviceFlowPollingInterval                   types.Int32                       `tfsdk:"device_flow_polling_interval"`
@@ -130,7 +129,6 @@ type ServiceResourceModel struct {
 	HsmEnabled                                  types.Bool                        `tfsdk:"hsm_enabled"`
 	HTTPAliasProhibited                         types.Bool                        `tfsdk:"http_alias_prohibited"`
 	IDTokenAudType                              types.String                      `tfsdk:"id_token_aud_type"`
-	IDTokenDroppedOnIssueWithoutOpenid          types.Bool                        `tfsdk:"id_token_dropped_on_issue_without_openid"`
 	IDTokenDuration                             types.Int64                       `tfsdk:"id_token_duration"`
 	IDTokenReissuable                           types.Bool                        `tfsdk:"id_token_reissuable"`
 	IDTokenSignatureKeyID                       types.String                      `tfsdk:"id_token_signature_key_id"`
@@ -197,7 +195,6 @@ type ServiceResourceModel struct {
 	SupportedClaimTypes                         []types.String                    `tfsdk:"supported_claim_types"`
 	SupportedClientRegistrationTypes            []types.String                    `tfsdk:"supported_client_registration_types"`
 	SupportedCustomClientMetadata               []types.String                    `tfsdk:"supported_custom_client_metadata"`
-	SupportedDeveloperSnses                     []types.String                    `tfsdk:"supported_developer_snses"`
 	SupportedDigestAlgorithms                   []types.String                    `tfsdk:"supported_digest_algorithms"`
 	SupportedDisplays                           []types.String                    `tfsdk:"supported_displays"`
 	SupportedDocuments                          []types.String                    `tfsdk:"supported_documents"`
@@ -660,34 +657,6 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed:    true,
 				Description: `The endpoint for developer authentication callbacks. This is used when developers log into the developer portal.`,
 			},
-			"developer_sns_credentials": schema.ListNestedAttribute{
-				Computed: true,
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Validators: []validator.Object{
-						speakeasy_objectvalidators.NotNull(),
-					},
-					Attributes: map[string]schema.Attribute{
-						"api_key": schema.StringAttribute{
-							Computed:    true,
-							Optional:    true,
-							Description: `API key.`,
-						},
-						"api_secret": schema.StringAttribute{
-							Computed:    true,
-							Optional:    true,
-							Sensitive:   true,
-							Description: `API secret.`,
-						},
-						"sns": schema.StringAttribute{
-							Computed:    true,
-							Optional:    true,
-							Description: `SNS.`,
-						},
-					},
-				},
-				Description: `The credentials for social login services (SNS) that are used for developer authentication.`,
-			},
 			"device_authorization_endpoint": schema.StringAttribute{
 				Computed: true,
 				Optional: true,
@@ -913,13 +882,6 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Computed:    true,
 				Optional:    true,
 				Description: `The type of the ` + "`" + `aud` + "`" + ` claim in ID tokens.`,
-			},
-			"id_token_dropped_on_issue_without_openid": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
-				MarkdownDescription: `The flag indicating whether to refrain from issuing an ID token when the ` + "`" + `openid` + "`" + ` scope has been removed from the scopes to be granted by the ` + "`" + `scopes` + "`" + ` request parameter of the ` + "`" + `/auth/authorization/issue` + "`" + ` API.` + "\n" +
-					`` + "\n" +
-					`Flows whose ` + "`" + `response_type` + "`" + ` contains ` + "`" + `id_token` + "`" + `, and flows that requested Native SSO, are not affected, because both require an ID token.`,
 			},
 			"id_token_duration": schema.Int64Attribute{
 				Computed:    true,
@@ -1408,12 +1370,6 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional:    true,
 				ElementType: types.StringType,
 				Description: `custom client metadata supported by this service.`,
-			},
-			"supported_developer_snses": schema.ListAttribute{
-				Computed:    true,
-				Optional:    true,
-				ElementType: types.StringType,
-				Description: `Social login services (SNS) that this service supports for developer authentication.`,
 			},
 			"supported_digest_algorithms": schema.ListAttribute{
 				Computed:    true,
