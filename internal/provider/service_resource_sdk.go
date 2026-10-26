@@ -198,6 +198,7 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		r.HsmEnabled = types.BoolPointerValue(resp.HsmEnabled)
 		r.HTTPAliasProhibited = types.BoolPointerValue(resp.HTTPAliasProhibited)
 		r.IDTokenAudType = types.StringPointerValue(resp.IDTokenAudType)
+		r.IDTokenDroppedOnIssueWithoutOpenid = types.BoolPointerValue(resp.IDTokenDroppedOnIssueWithoutOpenid)
 		r.IDTokenDuration = types.Int64PointerValue(resp.IDTokenDuration)
 		r.IDTokenReissuable = types.BoolPointerValue(resp.IDTokenReissuable)
 		r.IDTokenSignatureKeyID = types.StringPointerValue(resp.IDTokenSignatureKeyID)
@@ -1635,6 +1636,12 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		openidDroppedOnRefreshWithoutOfflineAccess = nil
 	}
+	idTokenDroppedOnIssueWithoutOpenid := new(bool)
+	if !r.IDTokenDroppedOnIssueWithoutOpenid.IsUnknown() && !r.IDTokenDroppedOnIssueWithoutOpenid.IsNull() {
+		*idTokenDroppedOnIssueWithoutOpenid = r.IDTokenDroppedOnIssueWithoutOpenid.ValueBool()
+	} else {
+		idTokenDroppedOnIssueWithoutOpenid = nil
+	}
 	var supportedDocumentsCheckMethods []string
 	if r.SupportedDocumentsCheckMethods != nil {
 		supportedDocumentsCheckMethods = make([]string, 0, len(r.SupportedDocumentsCheckMethods))
@@ -2095,6 +2102,7 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		DcrDuplicateSoftwareIDBlocked:               dcrDuplicateSoftwareIDBlocked,
 		TrustAnchors:                                trustAnchors,
 		OpenidDroppedOnRefreshWithoutOfflineAccess:  openidDroppedOnRefreshWithoutOfflineAccess,
+		IDTokenDroppedOnIssueWithoutOpenid:          idTokenDroppedOnIssueWithoutOpenid,
 		SupportedDocumentsCheckMethods:              supportedDocumentsCheckMethods,
 		RsResponseSigned:                            rsResponseSigned,
 		CnonceDuration:                              cnonceDuration,
