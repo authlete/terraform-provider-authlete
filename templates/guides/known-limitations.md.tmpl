@@ -9,13 +9,39 @@ description: |-
 
 Each of these is known and will look like a bug the first time you meet it.
 None of them prevents the provider from managing a service or a client
-correctly.
+correctly, and only the first can cost you anything: read that one before your
+first destroy.
 
 Most are deliberate and will not change. A few are defects awaiting a fix, and
 those say so and name the release that removes the need for the workaround.
 Where the workaround is `ignore_changes`, take it out again once that release
 is in place: left behind, it goes on hiding real drift on that attribute long
 after the reason for it has gone.
+
+## Destroying a service destroys every client under it
+
+A client belongs to a service, and Authlete deletes the clients with it. That
+includes clients this configuration has never seen: ones created in the
+console, through Dynamic Client Registration, or by another team.
+
+So the blast radius of
+
+```bash
+terraform destroy -target=authlete_service.my_service
+```
+
+is the whole authorization server, not the one resource named on the command
+line, and Terraform's plan cannot show you the part it does not know about. It
+lists the clients in your state and nothing else.
+
+This is how Authlete works and the provider does not change it. Before
+destroying a service, look at its client list in the console.
+
+The provider does guard the related mistake. A destroy aimed at the wrong
+cluster, organization or identity server is refused rather than carried out,
+and the error names the setting that disagrees. That protects you from
+deleting a service you did not mean to reach. It cannot protect you from
+deleting the one you did mean to reach, which is what this section is about.
 
 ## Plans show many attributes as "known after apply"
 
