@@ -171,20 +171,36 @@ Expected in a patch release.
 ## Attester root certificates gain a trailing newline
 
 `client_attester_roots` and `key_attester_roots` hold PEM certificates, and
-Authlete stores each one with a newline on the end. A certificate read with
-`trimspace(file(...))` therefore differs from what comes back, and the plan
-offers the same change on every run.
+Authlete stores each one with LF line endings and exactly one newline on the
+end. A certificate that does not already look like that differs from what
+comes back, and the plan offers the same change on every run. Reading one with
+`trimspace(file(...))` is the usual way to hit this, since it removes the
+trailing newline Authlete then puts back.
 
-Drop the `trimspace`:
+If your file is already LF with exactly one trailing newline, plain `file()`
+is enough:
 
 ```terraform
 client_attester_roots = [file("${path.module}/attester.pem")]
 ```
 
-`file()` keeps the trailing newline the file already has, which is what
-Authlete stores, so the two match.
+That is a real condition, not a formality. A file with CRLF line endings, no
+trailing newline, or more than one will still differ. Rather than check every
+certificate, normalise:
 
-Expected in a patch release, after which either form will work.
+```terraform
+locals {
+  pem = { for name, path in var.attester_certificates :
+    name => format("%s\n", replace(trimspace(file(path)), "\r\n", "\n"))
+  }
+}
+```
+
+That converts CRLF to LF, strips whatever whitespace is on the ends, and puts
+back exactly the one newline Authlete stores. It settles for both certificate
+attributes whatever shape the file arrives in.
+
+Expected in a patch release, after which none of this will be needed.
 
 ## A description on a standard scope is replaced by Authlete's own
 
