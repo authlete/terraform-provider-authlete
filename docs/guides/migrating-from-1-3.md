@@ -14,6 +14,36 @@ from you rather than a rename.
 
 Read it before upgrading. Two of these change where your private keys live.
 
+## Start here: move the version pin
+
+Nothing else in this guide takes effect until Terraform is actually running
+3.0. Change the constraint:
+
+```terraform
+terraform {
+  required_providers {
+    authlete = {
+      source  = "authlete/authlete"
+      version = "~> 3.0"
+    }
+  }
+}
+```
+
+then pick up the new version:
+
+```bash
+terraform init -upgrade
+```
+
+Plain `terraform init` will not do it. The lock file pins 1.3.x, and without
+`-upgrade` Terraform honours the lock and carries on with the old provider.
+The symptom is that none of the changes below appear to apply: the attributes
+you renamed are rejected, and the ones you removed are still demanded.
+
+Expect errors on the first plan after this. That is the point: they are the
+list of what this guide asks you to change.
+
 ## If 1.3.x has started failing with a bare 400
 
 This is not a migration problem, but it is the first thing people hit, and it
@@ -59,6 +89,46 @@ provider "authlete" {
 
 The token comes from `AUTHLETE_TOKEN`, or from `bearer` in the provider block.
 `AUTHLETE_SERVER_URL` and `AUTHLETE_ORGANIZATION_ID` cover the other two.
+
+### The environment variables were renamed
+
+Every variable 1.3.x read under its own name is gone. None of them produces a
+warning, so a pipeline that still exports the old names starts up as though
+nothing were configured at all.
+
+| 1.3.x | 3.0 |
+| --- | --- |
+| `AUTHLETE_SO_KEY`, `AUTHLETE_SO_SECRET` | `AUTHLETE_TOKEN` |
+| `AUTHLETE_API_KEY`, `AUTHLETE_API_SECRET` | `AUTHLETE_TOKEN` |
+| `AUTHLETE_API_SERVER` | `AUTHLETE_SERVER_URL` |
+| `AUTHLETE_IDP_SERVER` | `AUTHLETE_IDP_HOST` |
+| `AUTHLETE_API_VERSION`, `AUTHLETE_VERSION` | no longer used |
+| `AUTHLETE_TLS_INSECURE` | `tls_skip_verify` in the provider block |
+
+`AUTHLETE_ORGANIZATION_ID` and `AUTHLETE_API_SERVER_ID` keep their names.
+
+**Set `AUTHLETE_SERVER_URL` before your first plan.** This is the one rename
+that fails quietly. With it unset the provider uses `https://us.authlete.com`,
+so a pipeline that had `AUTHLETE_API_SERVER` pointed at Japan, Europe, Brazil
+or a host you run yourself will reach the US cluster instead, find none of your
+services there, and plan to create them. Nothing in the output says the host
+changed.
+
+The delete guards catch the worst version of this: a destroy against a cluster
+that does not match the one a resource was created on is refused rather than
+carried out. They do not stop a create.
+
+### `id` became `api_key`
+
+1.3.x set the service resource's `id` to the service's API key. 3.0 has no `id`
+attribute; the same value is `api_key`. Any reference has to move:
+
+```terraform
+service_id = authlete_service.my_service.api_key   # was .id
+```
+
+A configuration that still reads `.id` fails at plan time with an unsupported
+attribute error, so this one cannot pass unnoticed.
 
 `api_secret` is gone from the service resource. Authlete 3.0 never returns one,
 so the attribute could only ever resolve to null. If your configuration reads
