@@ -63,6 +63,18 @@ file.
 Leaving `jwks` out of your configuration keeps the key out of version control,
 which is worth doing, but it does not keep it out of state.
 
+## A secret in `http_headers` is held in Terraform state
+
+`http_headers` sets headers on every request the provider makes, and some
+deployments use it to carry a gateway credential. Those values are masked in
+`TF_LOG=DEBUG` output, alongside client secrets and private key sets, but the
+attribute is not marked sensitive, so the value appears in plan output and in
+the state file.
+
+This is the same property as `jwks` above, and the same advice applies: use a
+state backend that encrypts at rest. A gateway credential that must not be in
+state is better supplied to the pipeline directly than through the provider.
+
 ## Client secrets are rotated outside Terraform
 
 A client secret can be rotated, but not from Terraform. `client_secret` is

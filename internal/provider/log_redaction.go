@@ -51,19 +51,52 @@ import (
 var secretFields = regexp.MustCompile(
 	`(?i)"([a-z0-9_]*(?:secret|password)[a-z0-9_]*|[a-z0-9_]*jwks)"\s*:\s*"(?:\\.|[^"\\])*"`)
 
+// headerKeys are the http_headers the provider was configured with, in the
+// canonical form the log uses.
+//
+// The body redaction above cannot reach these. decomposeRequestForLogging
+// writes every request header as its own tflog field, keyed by header name,
+// and the regex only matches a JSON field inside a body. So a secret a
+// customer puts in http_headers is written to the log in full, while the same
+// secret in a request body is masked.
+//
+// Only Authorization is handled already, by the generated transport itself.
+// Everything else arrives here untouched.
+//
+// Canonical form matters. The log reads its headers back through
+// textproto.ReadMIMEHeader, which canonicalises them, so a header configured
+// as "x-api-key" is logged under "X-Api-Key". Masking the configured spelling
+// alone would match nothing and read as protection while leaking.
+//
+// Only the names are held, never the values. The values stay in the transport
+// that sets them.
+//
+// This governs the log, and nothing else. Terraform state holds the header
+// value in plain text either way, as it does for every other provider and for
+// client secrets and private keys already. See the known limitations guide.
+
 // redactingTransport installs tflog masking on the request context, so the
 // generated logging transport further down the chain redacts as it writes.
 type redactingTransport struct {
-	next http.RoundTripper
+	headerKeys []string
+	next       http.RoundTripper
 }
 
 // NewLogRedactingTransport wraps next so that secret values in request and
-// response bodies are masked in TF_LOG output.
-func NewLogRedactingTransport(next http.RoundTripper) http.RoundTripper {
-	return &redactingTransport{next: next}
+// response bodies, and the values of the named headers, are masked in TF_LOG
+// output. headerNames are the keys of the provider's http_headers.
+func NewLogRedactingTransport(headerNames []string, next http.RoundTripper) http.RoundTripper {
+	keys := make([]string, 0, len(headerNames))
+	for _, name := range headerNames {
+		keys = append(keys, http.CanonicalHeaderKey(name))
+	}
+	return &redactingTransport{headerKeys: keys, next: next}
 }
 
 func (t *redactingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	ctx := tflog.MaskAllFieldValuesRegexes(req.Context(), secretFields)
+	if len(t.headerKeys) > 0 {
+		ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, t.headerKeys...)
+	}
 	return t.next.RoundTrip(req.WithContext(ctx))
 }

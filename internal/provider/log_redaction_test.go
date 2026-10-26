@@ -79,9 +79,49 @@ func TestSecretFieldsAreRedacted(t *testing.T) {
 // deployments.
 func TestRedactionWrapsEveryTransport(t *testing.T) {
 	inner := &capture{}
-	if rt := NewLogRedactingTransport(inner); rt == http.RoundTripper(inner) {
+	if rt := NewLogRedactingTransport(nil, inner); rt == http.RoundTripper(inner) {
 		t.Fatal("NewLogRedactingTransport returned its inner transport unchanged; " +
 			"redaction must apply on every path, including shared cloud")
+	}
+}
+
+// The log keys its header fields by the canonical MIME name, because
+// decomposeRequestForLogging reads them back through textproto.ReadMIMEHeader.
+// A customer writes http_headers in whatever case they like. Masking the
+// spelling they wrote would match nothing, which reads as protection while
+// leaking the value in full.
+func TestConfiguredHeaderNamesAreCanonicalised(t *testing.T) {
+	for _, tc := range []struct {
+		configured string
+		want       string
+	}{
+		{"x-api-key", "X-Api-Key"},
+		{"X-API-KEY", "X-Api-Key"},
+		{"x-jcb-signature", "X-Jcb-Signature"},
+		{"Authorization", "Authorization"},
+	} {
+		t.Run(tc.configured, func(t *testing.T) {
+			rt, ok := NewLogRedactingTransport([]string{tc.configured}, &capture{}).(*redactingTransport)
+			if !ok {
+				t.Fatal("NewLogRedactingTransport did not return a *redactingTransport")
+			}
+			if len(rt.headerKeys) != 1 || rt.headerKeys[0] != tc.want {
+				t.Errorf("header %q masked under %v, want [%s].\n\n"+
+					"The log writes this header under its canonical name, so masking "+
+					"any other spelling leaves the value readable in TF_LOG=DEBUG.",
+					tc.configured, rt.headerKeys, tc.want)
+			}
+		})
+	}
+}
+
+// No configured headers must mean no masking keys, not a single empty one.
+// Masking on "" would be a key the log never writes, and an empty key list
+// passed to tflog is worth avoiding regardless.
+func TestNoConfiguredHeadersMasksNothing(t *testing.T) {
+	rt := NewLogRedactingTransport(nil, &capture{}).(*redactingTransport)
+	if len(rt.headerKeys) != 0 {
+		t.Errorf("headerKeys = %v, want none", rt.headerKeys)
 	}
 }
 
@@ -114,6 +154,16 @@ func TestRedactionIsWiredIntoConfigure(t *testing.T) {
 		t.Fatal("provider.go never calls NewLogRedactingTransport.\n\n" +
 			"Nothing installs masking, so TF_LOG=DEBUG writes client secrets, " +
 			"callback secrets and private keys verbatim into the log.\n\n" +
+			"A regeneration has most likely dropped the edit. Run:\n\n" +
+			"  ./scripts/patch-provider.sh")
+	}
+
+	if !strings.Contains(body, "NewLogRedactingTransport(headerNames,") {
+		t.Error("provider.go calls NewLogRedactingTransport without the configured " +
+			"header names.\n\n" +
+			"The generated logging transport writes every request header as a log " +
+			"field and masks only Authorization, so a secret in http_headers goes " +
+			"into TF_LOG=DEBUG verbatim.\n\n" +
 			"A regeneration has most likely dropped the edit. Run:\n\n" +
 			"  ./scripts/patch-provider.sh")
 	}
