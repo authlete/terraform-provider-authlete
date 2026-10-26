@@ -182,3 +182,94 @@ func TestRedactionIsWiredIntoConfigure(t *testing.T) {
 			"Redaction must be the outermost transport.")
 	}
 }
+
+// --- diagnostics -------------------------------------------------------------
+
+// The dump debugResponse builds goes into a diagnostic, not into tflog, so
+// none of the masking above reaches it. Terraform prints a diagnostic on the
+// terminal on any API error, with debug logging off.
+//
+// Found in review: "Still leaks on API errors, in terminal output and debug
+// logs, even with debug logging disabled." The header values were the reported
+// part. The bodies are the larger one.
+func TestTheDiagnosticDumpIsRedacted(t *testing.T) {
+	dump := "**Request**:\n" +
+		"POST /api/service/create HTTP/1.1\r\n" +
+		"Host: login.authlete.com\r\n" +
+		"Authorization: (sensitive)\r\n" +
+		"X-Api-Key: APIGEE-CANARY\r\n" +
+		"Content-Type: application/json\r\n" +
+		"User-Agent: terraform-provider-authlete\r\n" +
+		"\r\n" +
+		`{"serviceName":"svc","jwks":"{\"keys\":[{\"kid\":\"JWKS-CANARY\"}]}"}` + "\n" +
+		"**Response**:\n" +
+		"HTTP/1.1 400 Bad Request\r\n" +
+		"Content-Type: application/json\r\n" +
+		"\r\n" +
+		`{"resultCode":"A031219","clientSecret":"SECRET-CANARY"}`
+
+	got := redactDump(dump)
+
+	for _, secret := range []string{"APIGEE-CANARY", "JWKS-CANARY", "SECRET-CANARY"} {
+		if strings.Contains(got, secret) {
+			t.Errorf("%q survived redaction.\n\nA diagnostic is printed on the "+
+				"terminal on any API error, whether or not debug logging is on.\n\n%s",
+				secret, got)
+		}
+	}
+
+	// Over-redacting makes the diagnostic useless, which is the reason it is
+	// printed at all. The error code in particular is what support asks for.
+	for _, keep := range []string{
+		"POST /api/service/create", "400 Bad Request", "A031219",
+		"Host: login.authlete.com", "Content-Type: application/json",
+		"User-Agent: terraform-provider-authlete", "X-Api-Key",
+	} {
+		if !strings.Contains(got, keep) {
+			t.Errorf("%q was removed but should have been kept.\n\n%s", keep, got)
+		}
+	}
+}
+
+// An allowlist, so a header nobody anticipated is masked rather than shown.
+// The reported leak was a gateway key, and the provider cannot know what a
+// customer will call one.
+func TestAnUnknownHeaderIsMaskedByDefault(t *testing.T) {
+	for _, header := range []string{
+		"X-Gateway-Token", "apikey", "X-Something-Nobody-Has-Thought-Of",
+	} {
+		got := redactDump(header + ": LEAKED\r\n")
+		if strings.Contains(got, "LEAKED") {
+			t.Errorf("the value of %q was printed; only the allowlist may be shown", header)
+		}
+		if !strings.Contains(got, header) {
+			t.Errorf("the name %q was removed; only the value should be", header)
+		}
+	}
+}
+
+// Case is not fixed in a raw dump, and the allowlist is canonical.
+func TestTheAllowlistIgnoresHeaderCase(t *testing.T) {
+	got := redactDump("content-type: application/json\r\n")
+	if !strings.Contains(got, "application/json") {
+		t.Error("a safe header was masked because its case differed from the allowlist")
+	}
+}
+
+// The wiring, like TestRedactionIsWiredIntoConfigure above. utils.go is
+// generated, so a regeneration can drop the wrapper, and the file compiles
+// either way.
+func TestDebugResponseIsWiredToTheRedactor(t *testing.T) {
+	src, err := os.ReadFile("utils.go")
+	if err != nil {
+		t.Fatalf("cannot read utils.go: %v", err)
+	}
+	if !strings.Contains(string(src), "return redactDump(fmt.Sprintf(") {
+		t.Fatal("debugResponse no longer redacts its dump.\n\n" +
+			"Every API error would print the full request and response to the " +
+			"terminal: the JWK Sets a service create sends, the client secret a " +
+			"client create returns, and anything in http_headers.\n\n" +
+			"A regeneration has most likely dropped the edit. Run:\n\n" +
+			"  ./scripts/patch-debug-response.sh")
+	}
+}

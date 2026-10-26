@@ -53,6 +53,14 @@ jobs:
       - name: Check the provider.go patch is present
         run: ./scripts/patch-provider.sh --check
 
+      # debugResponse puts a full request and response dump into a diagnostic,
+      # which Terraform prints on the terminal on any API error, with debug
+      # logging off. The TF_LOG masking never sees it, so unredacted it prints
+      # the JWK Sets a service create sends, the client secret a client create
+      # returns, and anything set in http_headers.
+      - name: Check the debugResponse redaction is present
+        run: ./scripts/patch-debug-response.sh --check
+
       # The read-path patch that lets an explicitly empty list round-trip. Like
       # the one above it survives regeneration through a merge that can drop it
       # silently, and the provider still builds without it -- a configuration

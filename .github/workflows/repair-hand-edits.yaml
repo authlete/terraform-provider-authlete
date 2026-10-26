@@ -53,6 +53,7 @@ jobs:
         id: check
         run: |
           if ./scripts/patch-provider.sh --check && ./scripts/patch-empty-lists.sh --check \
+             && ./scripts/patch-debug-response.sh --check \
              && python3 scripts/fill-keep-order-stubs.py --check; then
             echo "needs_repair=false" >> "$GITHUB_OUTPUT"
           else
@@ -68,6 +69,7 @@ jobs:
           set -euo pipefail
           ./scripts/patch-provider.sh
           ./scripts/patch-empty-lists.sh
+          ./scripts/patch-debug-response.sh
           python3 scripts/fill-keep-order-stubs.py
 
           fix_branch="repair/provider-patch-${GITHUB_RUN_ID}"

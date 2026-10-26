@@ -169,10 +169,11 @@ material in either at plan time, so neither can carry a secret into state.
 ### `http_headers` in particular
 
 `http_headers` sets headers on every request the provider makes, and some
-deployments use it to carry a gateway credential. Those values are masked in
-`TF_LOG=DEBUG` output alongside client secrets and private key sets, but the
-attribute is not marked sensitive, so the value appears in plan output as well
-as in state.
+deployments use it to carry a gateway credential. Those values are masked
+wherever the provider prints them, in `TF_LOG=DEBUG` output and in the request
+dump an API error puts on the terminal, alongside client secrets and private
+key sets. The attribute itself is not marked sensitive, so the value still
+appears in plan output as well as in state.
 
 A gateway credential that must not reach a state file is better supplied to the
 pipeline directly than through the provider.

@@ -517,6 +517,28 @@ func checkClientKey(diags *diag.Diagnostics, at path.Path, i int, k map[string]a
 		return
 	}
 
+	// "oth" is RSA's other-primes array, so it is a JSON array rather than a
+	// string and the loop below steps straight over it. Checked first and on
+	// its own, because a key carrying oth carries private primes in r and d
+	// whatever else it does or does not hold.
+	if oth, ok := k["oth"].([]interface{}); ok && len(oth) > 0 {
+		diags.AddAttributeError(
+			at,
+			"Private key in a client's JWK Set",
+			fmt.Sprintf("The key at position %d has an %q member, which holds the "+
+				"additional primes of a private RSA key with more than two of "+
+				"them.\n\n"+
+				"A client publishes its public keys; the private half stays with "+
+				"the client. Authlete strips the private members without "+
+				"reporting an error, so the plan would never settle, and the "+
+				"private key would sit in Terraform state for a key the server "+
+				"never kept.\n\n"+
+				"Pass the client's public key PEM to jwk_from_pem rather than "+
+				"its private key.", i, "oth"),
+		)
+		return
+	}
+
 	for _, m := range privateMembers {
 		if s, ok := k[m].(string); ok && s != "" {
 			diags.AddAttributeError(

@@ -100,3 +100,56 @@ func (t *redactingTransport) RoundTrip(req *http.Request) (*http.Response, error
 	}
 	return t.next.RoundTrip(req.WithContext(ctx))
 }
+
+// --- diagnostics -------------------------------------------------------------
+
+// safeDumpHeaders are the headers whose values may appear in a diagnostic.
+//
+// An allowlist rather than a denylist. The values at risk are the ones a
+// customer puts in http_headers, and the provider cannot know what those will
+// be called: a gateway key might arrive as x-api-key, apikey, or a name chosen
+// by whoever runs the gateway. Naming what is safe to show covers every header
+// we have not thought of, including ones the API grows later.
+var safeDumpHeaders = map[string]bool{
+	"Accept":            true,
+	"Accept-Encoding":   true,
+	"Cache-Control":     true,
+	"Connection":        true,
+	"Content-Length":    true,
+	"Content-Type":      true,
+	"Date":              true,
+	"Host":              true,
+	"Transfer-Encoding": true,
+	"User-Agent":        true,
+	"Vary":              true,
+}
+
+// headerLine matches one header of an HTTP dump, capturing the name and value
+// separately. Anchored to the line so a body that happens to contain a colon
+// is left alone: the body is handled by secretFields instead.
+var headerLine = regexp.MustCompile(`(?m)^([A-Za-z0-9-]+): (.*)$`)
+
+// redactDump removes secrets from the request and response dump that
+// debugResponse puts into a diagnostic.
+//
+// This is a separate path from the TF_LOG masking above and needs its own
+// treatment. A diagnostic is printed by Terraform itself, on the terminal, on
+// any API error, with debug logging off. tflog never sees it, so none of the
+// masking installed on the request context applies.
+//
+// Both halves of the dump carry secrets. The headers carry whatever the
+// customer set in http_headers. The bodies carry what the bodies always carry:
+// a service create sends its JWK Sets, a client create response returns the
+// generated client secret. Before this, a single 400 from Authlete printed all
+// of it to the console, and the migration guide documents a 400 that migrating
+// customers hit routinely.
+func redactDump(dump string) string {
+	dump = headerLine.ReplaceAllStringFunc(dump, func(line string) string {
+		m := headerLine.FindStringSubmatch(line)
+		if safeDumpHeaders[http.CanonicalHeaderKey(m[1])] {
+			return line
+		}
+		return m[1] + ": (sensitive)"
+	})
+	return secretFields.ReplaceAllString(dump, "***")
+}
