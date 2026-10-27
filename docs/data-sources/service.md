@@ -332,7 +332,7 @@ The value of this property is used as `response_types_supported` property in the
 - `supported_revocation_auth_methods` (List of String) Client authentication methods supported at the revocation endpoint.
 - `supported_scopes` (Attributes List) The scopes supported by the service.
 
-Authlete returns this list in an order of its own and fills in fields a configuration naming only the scope does not set, so a plan may offer to rewrite it even when nothing has changed. Applying is harmless and the stored scopes are correct. The sibling lists this affected are compared without regard to order; this one cannot be, because reordering cannot be told apart from an edit to a scope's description. (see [below for nested schema](#nestedatt--supported_scopes))
+Authlete returns this list in an order of its own and fills in fields a configuration naming only the scope does not set. Neither shows as a change: the configured order is held in state and matched on scope name, so a reordering plans nothing while an edit to a scope still plans as the change it is. The Management Console lists the scopes in Authlete's order rather than yours, which is the only place the difference remains visible. (see [below for nested schema](#nestedatt--supported_scopes))
 - `supported_service_profiles` (List of String) The profiles that this service supports.
 - `supported_snses` (List of String) Social login services (SNS) that this service supports for end-user authentication.
 - `supported_token_auth_methods` (List of String) Client authentication methods supported by the token endpoint of the service.
