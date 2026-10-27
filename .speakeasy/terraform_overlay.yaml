@@ -317,6 +317,33 @@ actions:
       x-speakeasy-plan-validators:
         - ValidJWKSet
 
+  # supportedAcrs is marked readOnly in the API description, which makes it
+  # Computed and so unsettable: `terraform validate` refuses a configuration
+  # that names it, before any plan and without a token. The server takes it on
+  # the ordinary create and update path, and it is where acr_values_supported
+  # in the discovery document comes from, so it is an ordinary setting rather
+  # than something the server owns.
+  #
+  # 1.3.17 let you set it, which makes this a regression for anyone migrating
+  # rather than a new restriction. Raised by a customer on 3.0.0 (Redmine
+  # #5333). The migration guide already called it out as the odd one in the
+  # read-only list, which should have been the question rather than the
+  # footnote.
+  #
+  # The spec is the right place to fix this and an issue is open there. This
+  # entry overrides it meanwhile and should be deleted once the description
+  # carries the correct value, because every SDK generated from that document
+  # has the same fault, not only Terraform.
+  #
+  # Reviewed against the 3.0.38 server: of the 21 read-only attributes on a
+  # service and the 27 on a client, this is the only one the normal
+  # create/update path reads. The rest are server-generated, deprecated, or set
+  # only through Federation, a metadata document, or DCR.
+  - target: $.components.schemas.service.properties.supportedAcrs
+    description: An ordinary setting the server accepts, not a server-owned value
+    update:
+      readOnly: false
+
   # ---------- Fields the server does not accept ----------
   # These are described as writable in the spec but never read from the request
   # by the server, so Terraform proposes a change, the server ignores it, the
