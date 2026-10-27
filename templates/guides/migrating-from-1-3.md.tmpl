@@ -445,15 +445,14 @@ created_at                 registration_access_token_hash
 derived_sector_identifier
 ```
 
-And these eleven on a service:
+And these ten on a service:
 
 ```
-client_id_alias_enabled                       direct_jwks_endpoint_enabled
-developer_authentication_callback_api_key     direct_revocation_endpoint_enabled
-developer_authentication_callback_api_secret  direct_token_endpoint_enabled
-developer_authentication_callback_endpoint    direct_user_info_endpoint_enabled
-direct_authorization_endpoint_enabled         supported_acrs
-direct_introspection_endpoint_enabled
+client_id_alias_enabled                       direct_introspection_endpoint_enabled
+developer_authentication_callback_api_key     direct_jwks_endpoint_enabled
+developer_authentication_callback_api_secret  direct_revocation_endpoint_enabled
+developer_authentication_callback_endpoint    direct_token_endpoint_enabled
+direct_authorization_endpoint_enabled         direct_user_info_endpoint_enabled
 ```
 
 Both lists are the intersection of what v1.3.17's schema accepted and what 3.0
@@ -461,8 +460,12 @@ marks read-only, taken from the two schemas rather than written by hand.
 
 `developer` is the one most configurations carry: 1.3.x required it on
 Authlete 2.x and rejected an empty value. `client_id_alias_enabled` is
-deprecated and always true. `supported_acrs` is the one worth noticing, since
-it is an ordinary setting rather than an identifier or a flag.
+deprecated and always true.
+
+`supported_acrs` was on this list in 3.0.0 and should not have been. The API
+description marked it read-only, the server accepts it on create and update,
+and 1.3.x let you set it. It is settable again from 3.0.1. If you are on
+3.0.0, set it in the Management Console until you upgrade.
 
 Other attributes are read-only in 3.0 too, but those did not exist in 1.3.17,
 so nothing you are migrating can be setting them. The resource pages list them
