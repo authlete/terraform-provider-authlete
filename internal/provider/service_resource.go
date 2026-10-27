@@ -1585,7 +1585,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				},
 				MarkdownDescription: `The scopes supported by the service.` + "\n" +
 					`` + "\n" +
-					`Authlete returns this list in an order of its own and fills in fields a configuration naming only the scope does not set, so a plan may offer to rewrite it even when nothing has changed. Applying is harmless and the stored scopes are correct. The sibling lists this affected are compared without regard to order; this one cannot be, because reordering cannot be told apart from an edit to a scope's description.`,
+					`Authlete returns this list in an order of its own and fills in fields a configuration naming only the scope does not set. Neither shows as a change: the configured order is held in state and matched on scope name, so a reordering plans nothing while an edit to a scope still plans as the change it is. The Management Console lists the scopes in Authlete's order rather than yours, which is the only place the difference remains visible.`,
 			},
 			"supported_service_profiles": schema.ListAttribute{
 				Computed: true,
