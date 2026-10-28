@@ -1296,6 +1296,7 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 			},
 			"supported_acrs": schema.ListAttribute{
 				Computed:    true,
+				Optional:    true,
 				ElementType: types.StringType,
 				MarkdownDescription: `Values of acrs (authentication context class references) that the service supports.` + "\n" +
 					`` + "\n" +

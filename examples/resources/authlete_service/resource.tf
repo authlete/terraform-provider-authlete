@@ -165,6 +165,9 @@ resource "authlete_service" "my_service" {
   service_name                                     = "...my_service_name..."
   signed_jwks_uri                                  = "...my_signed_jwks_uri..."
   single_access_token_per_subject                  = true
+  supported_acrs = [
+    "..."
+  ]
   supported_attachments = [
     "EMBEDDED"
   ]

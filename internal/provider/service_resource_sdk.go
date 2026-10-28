@@ -749,6 +749,13 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		authenticationCallbackAPISecret = nil
 	}
+	var supportedAcrs []string
+	if r.SupportedAcrs != nil {
+		supportedAcrs = make([]string, 0, len(r.SupportedAcrs))
+		for supportedAcrsIndex := range r.SupportedAcrs {
+			supportedAcrs = append(supportedAcrs, r.SupportedAcrs[supportedAcrsIndex].ValueString())
+		}
+	}
 	var supportedGrantTypes []shared.GrantType
 	if r.SupportedGrantTypes != nil {
 		supportedGrantTypes = make([]shared.GrantType, 0, len(r.SupportedGrantTypes))
@@ -1978,6 +1985,7 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		AuthenticationCallbackEndpoint:              authenticationCallbackEndpoint,
 		AuthenticationCallbackAPIKey:                authenticationCallbackAPIKey,
 		AuthenticationCallbackAPISecret:             authenticationCallbackAPISecret,
+		SupportedAcrs:                               supportedAcrs,
 		SupportedGrantTypes:                         supportedGrantTypes,
 		SupportedResponseTypes:                      supportedResponseTypes,
 		SupportedAuthorizationDetailsTypes:          supportedAuthorizationDetailsTypes,

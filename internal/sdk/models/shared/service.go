@@ -2395,6 +2395,11 @@ type ServiceInput struct {
 	AuthenticationCallbackAPIKey *string `json:"authenticationCallbackApiKey,omitzero" form:"name=authenticationCallbackApiKey"`
 	// API secret for `basic` authentication at the authentication callback endpoint.
 	AuthenticationCallbackAPISecret *string `json:"authenticationCallbackApiSecret,omitzero" form:"name=authenticationCallbackApiSecret"`
+	// Values of acrs (authentication context class references) that the service supports.
+	//
+	// The value of this property is used as `acr_values_supported` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
+	//
+	SupportedAcrs []string `json:"supportedAcrs,omitzero" form:"name=supportedAcrs"`
 	// Values of `grant_type` request parameter that the service supports.
 	//
 	// The value of this property is used as `grant_types_supported property` in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
@@ -3096,6 +3101,13 @@ func (s *ServiceInput) GetAuthenticationCallbackAPISecret() *string {
 		return nil
 	}
 	return s.AuthenticationCallbackAPISecret
+}
+
+func (s *ServiceInput) GetSupportedAcrs() []string {
+	if s == nil {
+		return nil
+	}
+	return s.SupportedAcrs
 }
 
 func (s *ServiceInput) GetSupportedGrantTypes() []GrantType {
