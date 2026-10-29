@@ -77,6 +77,7 @@ type ClientDataSourceModel struct {
 	FapiModes                                   []types.String           `tfsdk:"fapi_modes"`
 	FrontChannelRequestObjectEncryptionRequired types.Bool               `tfsdk:"front_channel_request_object_encryption_required"`
 	GrantTypes                                  []types.String           `tfsdk:"grant_types"`
+	HaipVersion                                 types.String             `tfsdk:"haip_version"`
 	IDTokenEncryptionAlg                        types.String             `tfsdk:"id_token_encryption_alg"`
 	IDTokenEncryptionEnc                        types.String             `tfsdk:"id_token_encryption_enc"`
 	IDTokenSignAlg                              types.String             `tfsdk:"id_token_sign_alg"`
@@ -461,6 +462,10 @@ func (r *ClientDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Computed:    true,
 				ElementType: types.StringType,
 				Description: `A string array of grant types which the client application declares that it will restrict itself to using. This property corresponds to ` + "`" + `grant_types` + "`" + ` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).`,
+			},
+			"haip_version": schema.StringAttribute{
+				Computed:    true,
+				Description: `The HAIP version to comply with. Valid values for this property are as follows: ` + "`" + `"1.0"` + "`" + `. If this property is set, requests from this client undergo additional validation based on the specified version of the [HAIP](https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.html) specification.`,
 			},
 			"id_token_encryption_alg": schema.StringAttribute{
 				Computed: true,
