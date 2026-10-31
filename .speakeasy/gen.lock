@@ -1,18 +1,18 @@
 lockVersion: 2.0.0
 id: 7e867910-e09d-4298-9f10-26fd4e4fca44
 management:
-  docChecksum: 15ca87b1232665bcb36aa9d0b5d75809
+  docChecksum: 861314dd476a2397cafafd8b506c28e0
   docVersion: 3.0.16
   speakeasyVersion: 1.795.1
   generationVersion: 2.932.9
-  releaseVersion: 3.0.0
-  configChecksum: afd856237bc81e6771ac1d9d42d099cf
+  releaseVersion: 3.0.1
+  configChecksum: d9515478e924dd7deb97a010a853c480
   repoURL: https://github.com/authlete/terraform-provider-authlete.git
   installationURL: https://github.com/authlete/terraform-provider-authlete
 persistentEdits:
-  generation_id: 42227b14-e0ff-4e78-872c-7bf4dafa13a6
-  pristine_commit_hash: cc89a10700b3d42b4c12b16686116d81f4a46320
-  pristine_tree_hash: 4f94579233696deb0e5f120bdc299bb2b759436c
+  generation_id: 9a4f881a-18bc-4c10-974b-72993bfad1b9
+  pristine_commit_hash: 7ab732afb00e88b32f5f96f472f29542c54aabc5
+  pristine_tree_hash: 20bb19aed546ac49e2cf79e17b243b1bbf222b9b
 features:
   terraform:
     additionalDependencies: 0.1.0
@@ -51,8 +51,8 @@ trackedFiles:
     pristine_git_object: a7612b46be14c305cfcda66b10ebdea5e948143c
   examples/provider/provider.tf:
     id: 954e955c0240
-    last_write_checksum: sha1:6175e13a5b6483d5d8e02c57d7777c192f743357
-    pristine_git_object: badf6395abf4026f849108bc15dd9daf1685783b
+    last_write_checksum: sha1:15f1541f362f9204785a7ded1667abeb4d61453d
+    pristine_git_object: 0e75fdd5ef1fa3bd6d1a6d56e1d1ed589d24bd0e
   examples/resources/authlete_client/import-by-string-id.tf:
     id: 9efa3322fdf0
     last_write_checksum: sha1:2b9b0b56ea4e5c910964d78d3896cc058fdfd4fd
@@ -63,8 +63,8 @@ trackedFiles:
     pristine_git_object: 515214f24d5034adfdb808f38863b4cfe6e4a146
   examples/resources/authlete_client/resource.tf:
     id: 46b2a4097c26
-    last_write_checksum: sha1:461d84e846a9536431808b29afacae607c795730
-    pristine_git_object: ec6493bf8b3162f56c1fc201c9b2a0476d4216df
+    last_write_checksum: sha1:9147ad6dceb7c9f84cf5cd2744907abbea508c7c
+    pristine_git_object: 9001ba15eb09ad7f7a48656b8f84dc3df7fd99d6
   examples/resources/authlete_service/import-by-string-id.tf:
     id: ba89489f4552
     last_write_checksum: sha1:a5377f937d36a5c76f6cd8d4f22c9f94c6c471e3
@@ -75,8 +75,8 @@ trackedFiles:
     pristine_git_object: cc518f33c5a5e63233e15cac02daa2ff11b16a40
   examples/resources/authlete_service/resource.tf:
     id: 0f9495d21061
-    last_write_checksum: sha1:b888b28ccbe012b7ceedf1ec9110c4dc1510384e
-    pristine_git_object: 50ecf56a2a00267557113bc131e78adb78bcd2b7
+    last_write_checksum: sha1:7d284444f2977d9d35552af3583d8374e548e9f3
+    pristine_git_object: a801cadae7af22deffac7115b8a201ecf58fc666
   go.mod:
     id: c47645c391ad
     last_write_checksum: sha1:8c093d7c512bdb60ea2ecd40c6d1990d02a843a6
@@ -223,20 +223,20 @@ trackedFiles:
     pristine_git_object: cd0dbf813362d30f2c7b2f489f99a65ea2d528e0
   internal/provider/client_data_source.go:
     id: c790cbda3c1d
-    last_write_checksum: sha1:4653bd74e908ce1e41059286c0ec37be37ee9b2a
-    pristine_git_object: 64e76aa4441276aae6ea4f801abd5d8fc026e874
+    last_write_checksum: sha1:1ffef7cc2596fc206ffcada033b776b22b7c48f8
+    pristine_git_object: bb4bbde6b4b781ed16c06ec15b3aa1220b9481d5
   internal/provider/client_data_source_sdk.go:
     id: c4266febcd1a
-    last_write_checksum: sha1:e026871144dace375963425b729e91e07e7836e8
-    pristine_git_object: d34f6c1c571f882033bd458cb879d106a3ab1197
+    last_write_checksum: sha1:57b3b4ffe3274dca0613577aa7e8141b73904951
+    pristine_git_object: bd6ce86f42e50a5e4bc83cefebba92149bcfecf4
   internal/provider/client_resource.go:
     id: 3860e6dd0586
-    last_write_checksum: sha1:8e470ef23c99df8984407eb1d00ae3b1181be3d5
-    pristine_git_object: 6cc55ab1cea250d84ec0765a9df0d07369e7b059
+    last_write_checksum: sha1:d255465c0938c860c5da1e55a666e168cede6cac
+    pristine_git_object: f1095c0830fed250f13777a7c403f9fba0eadd74
   internal/provider/client_resource_sdk.go:
     id: 4e9ceaded2eb
-    last_write_checksum: sha1:6d69c5b89ac913ab981d2d11853ddd10af528faf
-    pristine_git_object: 4899934303e9e10d93ebe4818b873953bf369dd3
+    last_write_checksum: sha1:2be50782ce744ad615ec9d58466e3e81178af45f
+    pristine_git_object: 99721ca4520b2af4bfee9e0844a599536b7eefd9
   internal/provider/provider.go:
     id: 1e7e86841cf3
     last_write_checksum: sha1:51372c697530d4dd7522f6ef87959d6bbbe449c1
@@ -299,20 +299,20 @@ trackedFiles:
     pristine_git_object: 2e7d63a4864472f1837e48f18da0524ea87f3c3b
   internal/provider/service_data_source.go:
     id: ab1f452a03fc
-    last_write_checksum: sha1:d73a24d88c3939b76bcdf9fd1c55deca7202ed24
-    pristine_git_object: 6318106ca8935c756d63ca6a4c5ac3e812e9eab6
+    last_write_checksum: sha1:dfd0d004999338acf895cef35e54ef92f73cc12c
+    pristine_git_object: 36b66e2079627d57cf0816c1e5ffd7ad8c48a5c7
   internal/provider/service_data_source_sdk.go:
     id: 1e912e1489eb
-    last_write_checksum: sha1:ab473fc6576f2f555aa0958003c7ab0c771cb26e
-    pristine_git_object: 6e5f52183ee54292a9e1b837aa1f98385714030f
+    last_write_checksum: sha1:811aa4e58adae9a97a9e450a66303dfe3ff2127f
+    pristine_git_object: aae05b6c0a12e88b1405f6582f755696241109e0
   internal/provider/service_resource.go:
     id: 48455625b204
-    last_write_checksum: sha1:2825afc1fbf9f5c8da7af910d2467a8153bbcdf5
-    pristine_git_object: adeeb0420b3511b9f40b28d00bb9247a745e2836
+    last_write_checksum: sha1:8eeb6a81fe5b5aa415bc5d7dfb05ff0c3616f7f6
+    pristine_git_object: a9312889be7e75a21ae979f17a889284ded6437a
   internal/provider/service_resource_sdk.go:
     id: 09d622ad7c17
-    last_write_checksum: sha1:d7da964f34745624690c8a3f100b296beadb051c
-    pristine_git_object: 32828a61a8d3208c9e0dfb6e58f1e5ee0a277953
+    last_write_checksum: sha1:6d5a6a5160340a4370244053a4c54f108c015c8b
+    pristine_git_object: d66ddfc802dd3781e8c933a9d9edae244c273013
   internal/provider/typeconvert/date.go:
     id: dfe2bc95ad1b
     last_write_checksum: sha1:cbe078d8732ff18afa887e76e105f9acce50f672
@@ -331,8 +331,8 @@ trackedFiles:
     pristine_git_object: 183a1a48812af787b5a84f3346d2aa8a29d0b95f
   internal/provider/types/credential_issuer_metadata.go:
     id: 28178886db82
-    last_write_checksum: sha1:67aba3a070062ec96231e639d5b7e5323d2883bc
-    pristine_git_object: 95449726a7408b3d92fc192415a1b2fb208b8762
+    last_write_checksum: sha1:017062d18e6b99161d5050ef2c4400deeb2d2d4d
+    pristine_git_object: a6fb43323a520ae3debdb5377683fddbfe88bab7
   internal/provider/types/hsk.go:
     id: 90831762815c
     last_write_checksum: sha1:838b32ac1453acb5a2d1c87c5f87e197e0da927c
@@ -375,8 +375,8 @@ trackedFiles:
     pristine_git_object: 2ac211fbb61135424e32c37edaaa44db9581ef20
   internal/sdk/authlete.go:
     id: 81104225f83a
-    last_write_checksum: sha1:de24f2f71ad99e34a730a84228706b68aaa5839c
-    pristine_git_object: 06f2b1feae9229801ee4684bb7d23d6b70b3932b
+    last_write_checksum: sha1:126a93c0a32d5dfd092bb2dcf6ee9bb40928b96b
+    pristine_git_object: 31387809f923860ef17268b5f370f87d210567cd
   internal/sdk/authorizationendpoint.go:
     id: 372506d1dfd3
     last_write_checksum: sha1:bf8191bf8f7b132d0dafa27af52a4534865520dc
@@ -923,8 +923,8 @@ trackedFiles:
     pristine_git_object: faefea6f9d426e2e1bc2743057b94ab027e41fe1
   internal/sdk/models/shared/authorizationresponse.go:
     id: 3a4a317b1690
-    last_write_checksum: sha1:84b0bfa1f4a79ebd8509e1792f9d7927ad5cadc1
-    pristine_git_object: 27b49e38359e42f394f105969e269c5b0220a9a5
+    last_write_checksum: sha1:07c01cda452ba6a6fdf1cfd9e05a53e7caa15f85
+    pristine_git_object: ccd5d51e4dc77cbc403fe2c5b9f2767412ed6618
   internal/sdk/models/shared/authorizationticketinfo.go:
     id: b4d6eb905f0f
     last_write_checksum: sha1:04727ca6e14537ebe0cdeeaaf18968cf5f9b1434
@@ -999,8 +999,8 @@ trackedFiles:
     pristine_git_object: c34447b10b4663ef1f0eb38d3871bd0f4e5972d8
   internal/sdk/models/shared/client.go:
     id: deed25f741a6
-    last_write_checksum: sha1:1af6b5bee5053b36669a94f09b61a89f0fe46972
-    pristine_git_object: 6e992fee8904e1798a3cc2b27f3447f77d77033f
+    last_write_checksum: sha1:7db545b2c19588f62b997dd0591b697364d29b3a
+    pristine_git_object: 4180793be577a53ab675c3a7183a4146fb65e118
   internal/sdk/models/shared/clientauthmethod.go:
     id: d1ed87700653
     last_write_checksum: sha1:38003f7a520864b5fbf6d0ac2b43002118cbd698
@@ -1015,8 +1015,8 @@ trackedFiles:
     pristine_git_object: f5abf18e3a6cc723b15105fc159c118fa34e54ac
   internal/sdk/models/shared/clientauthorizationgetlistresponse.go:
     id: 7bcc3ece581c
-    last_write_checksum: sha1:1780b372bc4d1354e4cd46a3e0aaa596f4cd56ba
-    pristine_git_object: 91a7b44bb4d64c43a63dabafea3b332ad7106fbb
+    last_write_checksum: sha1:f7b45997922d874ba40900c0e3087636965ed730
+    pristine_git_object: 025692784863c59394455bbb7ebb888a7bf9a7ff
   internal/sdk/models/shared/clientauthorizationupdaterequest.go:
     id: 81d6a37cffb2
     last_write_checksum: sha1:4e06b9df48b439f0f86771e5e3f5d2bf19e3b0d5
@@ -1061,14 +1061,6 @@ trackedFiles:
     id: e1d863ac382c
     last_write_checksum: sha1:fea0217518745374287be14dacbe2a3390d213a5
     pristine_git_object: 1223a1c09d45923de8d535a515e1e4ce23e5a080
-  internal/sdk/models/shared/clientlimited.go:
-    id: 8f01dcc40058
-    last_write_checksum: sha1:034302d0569c961e5c99e6b192186b7498c0d4f0
-    pristine_git_object: 0daa4929e0d3640d9071d3b75af8db5176e8c8f1
-  internal/sdk/models/shared/clientlimitedauthorization.go:
-    id: a8384a15cea4
-    last_write_checksum: sha1:214a4da0c1bfc143f217f92c85e4a2edf76f7836
-    pristine_git_object: 0fb260306cbd76c568e3516076ba802c5b892047
   internal/sdk/models/shared/clientregistrationresponse.go:
     id: fd3e9352cca5
     last_write_checksum: sha1:9e4c162114c9827c73106a571500553ff6598d50
@@ -1323,8 +1315,8 @@ trackedFiles:
     pristine_git_object: bffd5532c87a43016a361c8c66996e9e30b11783
   internal/sdk/models/shared/service.go:
     id: 9069f70fdcdc
-    last_write_checksum: sha1:d463d2314614d4994a52d2fcc33806f149a10650
-    pristine_git_object: 36b8b570b9483d963b27b51ab2219ac23b4922f6
+    last_write_checksum: sha1:afe1e4e32fe2f7610dc24c5e3ed354393bfb31b6
+    pristine_git_object: 47934cf79536d621c43450c5f441d3ee6155f7db
   internal/sdk/models/shared/servicecreateidprequest.go:
     id: b1b9a5d451f9
     last_write_checksum: sha1:954cb18250f76c2aa554a4b7bf39c6e89675f6e2
@@ -1383,8 +1375,8 @@ trackedFiles:
     pristine_git_object: adcb1af89c947b240c78054a3fbe37643755fb99
   internal/sdk/models/shared/tokengetlistresponse.go:
     id: efed8ec9306b
-    last_write_checksum: sha1:7a000ff55fb7e48e75a9abef44aae1131b167505
-    pristine_git_object: 6829e595a439497d889fcb1d04eb438b98de8c95
+    last_write_checksum: sha1:0a05525141b78d1dfa16ce0e29537917994c30ed
+    pristine_git_object: e3d4ae11756161a3ae11925dd8f02579d12f3f54
   internal/sdk/models/shared/tokeninfo.go:
     id: 40b9960f0ddf
     last_write_checksum: sha1:af466c1cd2b813580e4b12289e1ed93f7163b746
@@ -1986,7 +1978,7 @@ examples:
           subject: "<value>"
       responses:
         "200":
-          application/json: {}
+          application/json: {"clients": [{"number": 1140735077, "serviceNumber": 715948317, "clientName": "My Test Client", "clientId": 1140735077, "clientSecret": "gXz97ISgLs4HuXwOZWch8GEmgL4YMvUJwu3er_kDVVGcA0UOhA9avLPbEmoeZdagi9yC_-tEiT2BdRyH9dbrQQ", "clientType": "PUBLIC", "grantTypes": ["AUTHORIZATION_CODE"], "responseTypes": ["CODE"], "redirectUris": ["https://example.com/callback"]}]}
         "400":
           application/json: {}
         "429":
@@ -2110,7 +2102,7 @@ examples:
           subject: "<value>"
       responses:
         "200":
-          application/json: {}
+          application/json: {"clients": [{"number": 1140735077, "serviceNumber": 715948317, "clientName": "My Test Client", "clientId": 1140735077, "clientSecret": "gXz97ISgLs4HuXwOZWch8GEmgL4YMvUJwu3er_kDVVGcA0UOhA9avLPbEmoeZdagi9yC_-tEiT2BdRyH9dbrQQ", "clientType": "PUBLIC", "grantTypes": ["AUTHORIZATION_CODE"], "responseTypes": ["CODE"], "redirectUris": ["https://example.com/callback"]}]}
         "400":
           application/json: {}
         "429":
@@ -2127,7 +2119,7 @@ examples:
         application/x-www-form-urlencoded: {"subject": "<value>"}
       responses:
         "200":
-          application/json: {}
+          application/json: {"clients": [{"number": 1140735077, "serviceNumber": 715948317, "clientName": "My Test Client", "clientId": 1140735077, "clientSecret": "gXz97ISgLs4HuXwOZWch8GEmgL4YMvUJwu3er_kDVVGcA0UOhA9avLPbEmoeZdagi9yC_-tEiT2BdRyH9dbrQQ", "clientType": "PUBLIC", "grantTypes": ["AUTHORIZATION_CODE"], "responseTypes": ["CODE"], "redirectUris": ["https://example.com/callback"]}]}
         "400":
           application/json: {}
         "429":
@@ -2240,7 +2232,7 @@ examples:
         application/x-www-form-urlencoded: {"parameters": "<value>"}
       responses:
         "200":
-          application/json: {"service": {"number": 715948317, "serviceName": "My Test Service", "issuer": "https://example.com", "supportedGrantTypes": ["AUTHORIZATION_CODE", "REFRESH_TOKEN"], "supportedResponseTypes": ["CODE"], "supportedScopes": [{}, {}, {}]}}
+          application/json: {"client": {"number": 1140735077, "serviceNumber": 715948317, "clientName": "My Test Client", "clientId": 1140735077, "clientSecret": "gXz97ISgLs4HuXwOZWch8GEmgL4YMvUJwu3er_kDVVGcA0UOhA9avLPbEmoeZdagi9yC_-tEiT2BdRyH9dbrQQ", "clientType": "PUBLIC", "grantTypes": ["AUTHORIZATION_CODE"], "responseTypes": ["CODE"], "redirectUris": ["https://example.com/callback"]}, "service": {"number": 715948317, "serviceName": "My Test Service", "issuer": "https://example.com", "supportedGrantTypes": ["AUTHORIZATION_CODE", "REFRESH_TOKEN"], "supportedResponseTypes": ["CODE"], "supportedScopes": [{}, {}, {}]}}
         "400":
           application/json: {}
         "429":
@@ -2455,7 +2447,7 @@ examples:
           serviceId: "<id>"
       responses:
         "200":
-          application/json: {}
+          application/json: {"client": {"number": 1140735077, "serviceNumber": 715948317, "clientName": "My Test Client", "clientId": 1140735077, "clientSecret": "gXz97ISgLs4HuXwOZWch8GEmgL4YMvUJwu3er_kDVVGcA0UOhA9avLPbEmoeZdagi9yC_-tEiT2BdRyH9dbrQQ", "clientType": "PUBLIC", "grantTypes": ["AUTHORIZATION_CODE"], "responseTypes": ["CODE"], "redirectUris": ["https://example.com/callback"]}}
         "400":
           application/json: {}
         "429":
@@ -3176,3 +3168,4 @@ examples:
           application/json: {}
   misc_echo_api: {}
 examplesVersion: 1.0.2
+releaseNotes: "## Terraform SDK Changes:\n* `Authlete.Service Management.service_get_api()`:  `response` **Changed**\n* `Authlete.Service Management.service_get_list_api()`:  `response.services[]` **Changed**\n* `Authlete.Service Management.service_create_api()`: \n  *  `request` **Changed**\n  *  `response` **Changed**\n* `Authlete.Service Management.service_update_api()`: \n  *  `request.body` **Changed**\n  *  `response` **Changed**\n* `Authlete.service.create()`: \n  *  `request.service` **Changed**\n  *  `response` **Changed**\n* `Authlete.Client Management.client_get_api()`:  `response.haipVersion` **Added**\n* `Authlete.Client Management.client_get_list_api()`:  `response.clients[].haipVersion` **Added**\n* `Authlete.Client Management.client_create_api()`: \n  *  `request.body.haipVersion` **Added**\n  *  `response.haipVersion` **Added**\n* `Authlete.Client Management.client_update_api()`: \n  *  `request.body.haipVersion` **Added**\n  *  `response.haipVersion` **Added**\n* `Authlete.Client Management.client_authorization_get_list_api()`:  `response.clients[]` **Changed**\n* `Authlete.Client Management.client_authorization_get_list_api_post()`:  `response.clients[]` **Changed**\n* `Authlete.Client Management.client_authorization_get_list_by_subject_api()`:  `response.clients[]` **Changed**\n* `Authlete.Client Management.client_cursor_list_api()`:  `response.union(client_cursor_list_response).entities[].haipVersion` **Added**\n* `Authlete.Client Management.client_search_api()`:  `response.union(client_search_response).entities[].haipVersion` **Added**\n* `Authlete.Authorization Endpoint.auth_authorization_api()`:  `response` **Changed**\n* `Authlete.Dynamic Client Registration.client_registration_api()`:  `response.client.haipVersion` **Added**\n* `Authlete.Dynamic Client Registration.client_registration_get_api()`:  `response.client.haipVersion` **Added**\n* `Authlete.Dynamic Client Registration.client_registration_update_api()`:  `response.client.haipVersion` **Added**\n* `Authlete.Dynamic Client Registration.client_registration_delete_api()`:  `response.client.haipVersion` **Added**\n* `Authlete.Token Operations.auth_token_get_list_api()`:  `response.client` **Changed**\n* `Authlete.Federation Endpoint.federation_registration_api()`:  `response.client.haipVersion` **Added**\n"

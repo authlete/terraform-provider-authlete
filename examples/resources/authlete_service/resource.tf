@@ -58,6 +58,13 @@ resource "authlete_service" "my_service" {
     batch_size                = 5
     credential_endpoint       = "https://vivid-molasses.net"
     credential_issuer         = "...my_credential_issuer..."
+    credential_request_encryption_enc_values_supported = [
+      "..."
+    ]
+    credential_request_encryption_jwks = "...my_credential_request_encryption_jwks..."
+    credential_request_encryption_zip_values_supported = [
+      "..."
+    ]
     credential_response_encryption_alg_values_supported = [
       "..."
     ]
@@ -69,6 +76,9 @@ resource "authlete_service" "my_service" {
     ]
     credentials_supported                  = "...my_credentials_supported..."
     deferred_credential_endpoint           = "...my_deferred_credential_endpoint..."
+    display                                = "...my_display..."
+    nonce_endpoint                         = "https://specific-wriggler.info"
+    notification_endpoint                  = "https://plump-responsibility.info/"
     require_credential_request_encryption  = true
     require_credential_response_encryption = true
   }
@@ -157,6 +167,7 @@ resource "authlete_service" "my_service" {
   request_object_encryption_enc_match_required     = false
   request_object_required                          = true
   resource_signature_key_id                        = "...my_resource_signature_key_id..."
+  return_full_payload                              = false
   revocation_endpoint                              = "https://true-planula.biz"
   rs_response_signed                               = true
   scope_required                                   = false
@@ -164,6 +175,9 @@ resource "authlete_service" "my_service" {
   service_name                                     = "...my_service_name..."
   signed_jwks_uri                                  = "...my_signed_jwks_uri..."
   single_access_token_per_subject                  = true
+  supported_acrs = [
+    "..."
+  ]
   supported_attachments = [
     "EMBEDDED"
   ]

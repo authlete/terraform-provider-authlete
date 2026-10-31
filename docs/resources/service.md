@@ -73,6 +73,13 @@ resource "authlete_service" "my_service" {
     batch_size                = 5
     credential_endpoint       = "https://vivid-molasses.net"
     credential_issuer         = "...my_credential_issuer..."
+    credential_request_encryption_enc_values_supported = [
+      "..."
+    ]
+    credential_request_encryption_jwks = "...my_credential_request_encryption_jwks..."
+    credential_request_encryption_zip_values_supported = [
+      "..."
+    ]
     credential_response_encryption_alg_values_supported = [
       "..."
     ]
@@ -84,6 +91,9 @@ resource "authlete_service" "my_service" {
     ]
     credentials_supported                  = "...my_credentials_supported..."
     deferred_credential_endpoint           = "...my_deferred_credential_endpoint..."
+    display                                = "...my_display..."
+    nonce_endpoint                         = "https://specific-wriggler.info"
+    notification_endpoint                  = "https://plump-responsibility.info/"
     require_credential_request_encryption  = true
     require_credential_response_encryption = true
   }
@@ -172,6 +182,7 @@ resource "authlete_service" "my_service" {
   request_object_encryption_enc_match_required     = false
   request_object_required                          = true
   resource_signature_key_id                        = "...my_resource_signature_key_id..."
+  return_full_payload                              = false
   revocation_endpoint                              = "https://true-planula.biz"
   rs_response_signed                               = true
   scope_required                                   = false
@@ -179,6 +190,9 @@ resource "authlete_service" "my_service" {
   service_name                                     = "...my_service_name..."
   signed_jwks_uri                                  = "...my_signed_jwks_uri..."
   single_access_token_per_subject                  = true
+  supported_acrs = [
+    "..."
+  ]
   supported_attachments = [
     "EMBEDDED"
   ]
@@ -537,6 +551,7 @@ The value of this property is used as `registration_endpoint` property in the [O
 
 If this flag is set to `true` and the value of `traditionalRequestObjectProcessingApplied` is `false`, the value of `require_signed_request_object` server metadata of this service is reported as `true` in the discovery document. The metadata is defined in JAR (JWT Secured Authorization Request). That `require_signed_request_object` is `true` means that authorization requests which don't conform to the JAR specification are rejected.
 - `resource_signature_key_id` (String) The key ID of the key for signing introspection responses.
+- `return_full_payload` (Boolean) The flag indicating whether the `/auth/authorization`, `/auth/token/get/list` and `/client/authorization/get/list` APIs return full representations of the service and its clients.
 - `revocation_endpoint` (String) The [revocation endpoint](https://tools.ietf.org/html/rfc7009) of the service.
 
 A URL that starts with `https://`. For example, `https://example.com/auth/revocation`.
@@ -552,6 +567,9 @@ The value of this property is used as `service_documentation` property in the [O
 If `true`, an attempt to issue a new access token invalidates existing access tokens that are associated with the same subject and the same client.
 
 Note that, however, attempts by [Client Credentials Flow](https://tools.ietf.org/html/rfc6749#section-4.4) do not invalidate existing access tokens because access tokens issued by Client Credentials Flow are not associated with any end-user's subject. Also note that an attempt by [Refresh Token Flow](https://tools.ietf.org/html/rfc6749#section-6) invalidates the coupled access token only and this invalidation is always performed regardless of whether the value of this setting item is `true` or `false`.
+- `supported_acrs` (List of String) Values of acrs (authentication context class references) that the service supports.
+
+The value of this property is used as `acr_values_supported` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
 - `supported_attachments` (List of String) Supported attachment types. This property corresponds to the &#123;@code attachments_supported&#125; server metadata which was added by the third implementer's draft of OpenID Connect for Identity Assurance 1.0.
 - `supported_authorization_details_types` (List of String) The supported data types that can be used as values of the type field in `authorization_details`.
 
@@ -670,9 +688,6 @@ Read-only. Authlete owns these values -- `clientCount` changes as clients are ad
 - `number` (Number) The sequential number of the service. The value of this property is assigned by Authlete.
 - `service_owner_number` (Number) The number of the organization that owns this service. This value is assigned by Authlete.
 - `sns_credentials` (Attributes List) The credentials for social login services (SNS) that are used for end-user authentication. (see [below for nested schema](#nestedatt--sns_credentials))
-- `supported_acrs` (List of String) Values of acrs (authentication context class references) that the service supports.
-
-The value of this property is used as `acr_values_supported` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
 - `supported_snses` (List of String) Social login services (SNS) that this service supports for end-user authentication.
 - `token_batch_notification_endpoint` (String) The endpoint for batch token notifications. This endpoint is called when multiple tokens are issued or revoked in a batch operation.
 
@@ -695,11 +710,17 @@ Optional:
 - `batch_size` (Number) The maximum array size for the `proofs` parameter in a credential request. This property corresponds to the `batch_credential_issuance.batch_size` metadata. If the value of this property is 2 or greater, the `batch_credential_issuance` parameter will appear in the response from the credential issuer metadata endpoint.
 - `credential_endpoint` (String) The URL of the credential endpoint of the credential issuer.
 - `credential_issuer` (String) The identifier of a credential request.
+- `credential_request_encryption_enc_values_supported` (List of String) The supported JWE `enc` algorithms for credential request encryption. This property corresponds to the `credential_request_encryption.enc_values_supported` metadata.
+- `credential_request_encryption_jwks` (String) The JWK Set document containing private keys for credential request encryption. The public part of this JWK Set is used as the value of the `credential_request_encryption.jwks` metadata when `credentialRequestEncryptionEncValuesSupported` is also set.
+- `credential_request_encryption_zip_values_supported` (List of String) The supported JWE `zip` (compression) algorithms for credential request encryption. This property corresponds to the `credential_request_encryption.zip_values_supported` metadata.
 - `credential_response_encryption_alg_values_supported` (List of String) The supported JWE `alg` algorithms for credential response encryption. This property corresponds to the `credential_response_encryption.alg_values_supported` metadata.
 - `credential_response_encryption_enc_values_supported` (List of String) The supported JWE `enc` algorithms for credential response encryption. This property corresponds to the `credential_response_encryption.enc_values_supported` metadata.
 - `credential_response_encryption_zip_values_supported` (List of String) The supported JWE `zip` (compression) algorithms for credential response encryption. This property corresponds to the `credential_response_encryption.zip_values_supported` metadata.
 - `credentials_supported` (String) A JSON object describing supported credential configurations. This property corresponds to the credential_configurations_supported metadata. Note: Due to a breaking change in December 2023, this was changed from a JSON array to a JSON object.
 - `deferred_credential_endpoint` (String) The URL of the deferred credential endpoint of the credential issuer.
+- `display` (String) The display properties of the credential issuer in JSON array format. This property corresponds to the `display` metadata.
+- `nonce_endpoint` (String) The URL of the nonce endpoint of the credential issuer. This property corresponds to the `nonce_endpoint` metadata.
+- `notification_endpoint` (String) The URL of the notification endpoint of the credential issuer. This property corresponds to the `notification_endpoint` metadata.
 - `require_credential_request_encryption` (Boolean) The boolean flag indicating whether credential request encryption is required. This property corresponds to the `credential_request_encryption.encryption_required` metadata. If this flag is `true`, every credential request to the credential issuer must be encrypted.
 - `require_credential_response_encryption` (Boolean) The boolean flag indicating whether credential response encryption is required. This property corresponds to the `credential_response_encryption.encryption_required metadata`. If this flag is `true`, every credential request to the credential issuer must include the `credential_response_encryption` property.
 

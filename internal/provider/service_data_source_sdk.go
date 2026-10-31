@@ -110,6 +110,15 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 			r.CredentialIssuerMetadata.BatchSize = types.Int64PointerValue(resp.CredentialIssuerMetadata.BatchSize)
 			r.CredentialIssuerMetadata.CredentialEndpoint = types.StringPointerValue(resp.CredentialIssuerMetadata.CredentialEndpoint)
 			r.CredentialIssuerMetadata.CredentialIssuer = types.StringPointerValue(resp.CredentialIssuerMetadata.CredentialIssuer)
+			r.CredentialIssuerMetadata.CredentialRequestEncryptionEncValuesSupported = make([]types.String, 0, len(resp.CredentialIssuerMetadata.CredentialRequestEncryptionEncValuesSupported))
+			for _, v := range resp.CredentialIssuerMetadata.CredentialRequestEncryptionEncValuesSupported {
+				r.CredentialIssuerMetadata.CredentialRequestEncryptionEncValuesSupported = append(r.CredentialIssuerMetadata.CredentialRequestEncryptionEncValuesSupported, types.StringValue(v))
+			}
+			r.CredentialIssuerMetadata.CredentialRequestEncryptionJwks = types.StringPointerValue(resp.CredentialIssuerMetadata.CredentialRequestEncryptionJwks)
+			r.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported = make([]types.String, 0, len(resp.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported))
+			for _, v := range resp.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported {
+				r.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported = append(r.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported, types.StringValue(v))
+			}
 			r.CredentialIssuerMetadata.CredentialResponseEncryptionAlgValuesSupported = make([]types.String, 0, len(resp.CredentialIssuerMetadata.CredentialResponseEncryptionAlgValuesSupported))
 			for _, v := range resp.CredentialIssuerMetadata.CredentialResponseEncryptionAlgValuesSupported {
 				r.CredentialIssuerMetadata.CredentialResponseEncryptionAlgValuesSupported = append(r.CredentialIssuerMetadata.CredentialResponseEncryptionAlgValuesSupported, types.StringValue(v))
@@ -124,6 +133,9 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 			}
 			r.CredentialIssuerMetadata.CredentialsSupported = types.StringPointerValue(resp.CredentialIssuerMetadata.CredentialsSupported)
 			r.CredentialIssuerMetadata.DeferredCredentialEndpoint = types.StringPointerValue(resp.CredentialIssuerMetadata.DeferredCredentialEndpoint)
+			r.CredentialIssuerMetadata.Display = types.StringPointerValue(resp.CredentialIssuerMetadata.Display)
+			r.CredentialIssuerMetadata.NonceEndpoint = types.StringPointerValue(resp.CredentialIssuerMetadata.NonceEndpoint)
+			r.CredentialIssuerMetadata.NotificationEndpoint = types.StringPointerValue(resp.CredentialIssuerMetadata.NotificationEndpoint)
 			r.CredentialIssuerMetadata.RequireCredentialRequestEncryption = types.BoolPointerValue(resp.CredentialIssuerMetadata.RequireCredentialRequestEncryption)
 			r.CredentialIssuerMetadata.RequireCredentialResponseEncryption = types.BoolPointerValue(resp.CredentialIssuerMetadata.RequireCredentialResponseEncryption)
 		}
@@ -280,6 +292,7 @@ func (r *ServiceDataSourceModel) RefreshFromSharedService(ctx context.Context, r
 		r.RequestObjectEncryptionEncMatchRequired = types.BoolPointerValue(resp.RequestObjectEncryptionEncMatchRequired)
 		r.RequestObjectRequired = types.BoolPointerValue(resp.RequestObjectRequired)
 		r.ResourceSignatureKeyID = types.StringPointerValue(resp.ResourceSignatureKeyID)
+		r.ReturnFullPayload = types.BoolPointerValue(resp.ReturnFullPayload)
 		r.RevocationEndpoint = types.StringPointerValue(resp.RevocationEndpoint)
 		r.RsResponseSigned = types.BoolPointerValue(resp.RsResponseSigned)
 		r.ScopeRequired = types.BoolPointerValue(resp.ScopeRequired)
