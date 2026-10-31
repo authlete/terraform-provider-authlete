@@ -159,6 +159,7 @@ func (r *ClientResourceModel) RefreshFromSharedClient(ctx context.Context, resp 
 		for _, v := range resp.GrantTypes {
 			r.GrantTypes = append(r.GrantTypes, types.StringValue(string(v)))
 		}
+		r.HaipVersion = types.StringPointerValue(resp.HaipVersion)
 		if resp.IDTokenEncryptionAlg != nil {
 			r.IDTokenEncryptionAlg = types.StringValue(string(*resp.IDTokenEncryptionAlg))
 		} else {
@@ -813,6 +814,12 @@ func (r *ClientResourceModel) ToSharedClientInput(ctx context.Context) (*shared.
 	} else {
 		bcUserCodeRequired = nil
 	}
+	haipVersion := new(string)
+	if !r.HaipVersion.IsUnknown() && !r.HaipVersion.IsNull() {
+		*haipVersion = r.HaipVersion.ValueString()
+	} else {
+		haipVersion = nil
+	}
 	backchannelLogoutURI := new(string)
 	if !r.BackchannelLogoutURI.IsUnknown() && !r.BackchannelLogoutURI.IsNull() {
 		*backchannelLogoutURI = r.BackchannelLogoutURI.ValueString()
@@ -1064,6 +1071,7 @@ func (r *ClientResourceModel) ToSharedClientInput(ctx context.Context) (*shared.
 		BcNotificationEndpoint:                bcNotificationEndpoint,
 		BcRequestSignAlg:                      bcRequestSignAlg,
 		BcUserCodeRequired:                    bcUserCodeRequired,
+		HaipVersion:                           haipVersion,
 		BackchannelLogoutURI:                  backchannelLogoutURI,
 		BackchannelLogoutSessionRequired:      backchannelLogoutSessionRequired,
 		Attributes:                            attributes,

@@ -111,6 +111,15 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 			r.CredentialIssuerMetadata.BatchSize = types.Int64PointerValue(resp.CredentialIssuerMetadata.BatchSize)
 			r.CredentialIssuerMetadata.CredentialEndpoint = types.StringPointerValue(resp.CredentialIssuerMetadata.CredentialEndpoint)
 			r.CredentialIssuerMetadata.CredentialIssuer = types.StringPointerValue(resp.CredentialIssuerMetadata.CredentialIssuer)
+			r.CredentialIssuerMetadata.CredentialRequestEncryptionEncValuesSupported = make([]types.String, 0, len(resp.CredentialIssuerMetadata.CredentialRequestEncryptionEncValuesSupported))
+			for _, v := range resp.CredentialIssuerMetadata.CredentialRequestEncryptionEncValuesSupported {
+				r.CredentialIssuerMetadata.CredentialRequestEncryptionEncValuesSupported = append(r.CredentialIssuerMetadata.CredentialRequestEncryptionEncValuesSupported, types.StringValue(v))
+			}
+			r.CredentialIssuerMetadata.CredentialRequestEncryptionJwks = types.StringPointerValue(resp.CredentialIssuerMetadata.CredentialRequestEncryptionJwks)
+			r.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported = make([]types.String, 0, len(resp.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported))
+			for _, v := range resp.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported {
+				r.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported = append(r.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported, types.StringValue(v))
+			}
 			r.CredentialIssuerMetadata.CredentialResponseEncryptionAlgValuesSupported = make([]types.String, 0, len(resp.CredentialIssuerMetadata.CredentialResponseEncryptionAlgValuesSupported))
 			for _, v := range resp.CredentialIssuerMetadata.CredentialResponseEncryptionAlgValuesSupported {
 				r.CredentialIssuerMetadata.CredentialResponseEncryptionAlgValuesSupported = append(r.CredentialIssuerMetadata.CredentialResponseEncryptionAlgValuesSupported, types.StringValue(v))
@@ -125,6 +134,9 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 			}
 			r.CredentialIssuerMetadata.CredentialsSupported = types.StringPointerValue(resp.CredentialIssuerMetadata.CredentialsSupported)
 			r.CredentialIssuerMetadata.DeferredCredentialEndpoint = types.StringPointerValue(resp.CredentialIssuerMetadata.DeferredCredentialEndpoint)
+			r.CredentialIssuerMetadata.Display = types.StringPointerValue(resp.CredentialIssuerMetadata.Display)
+			r.CredentialIssuerMetadata.NonceEndpoint = types.StringPointerValue(resp.CredentialIssuerMetadata.NonceEndpoint)
+			r.CredentialIssuerMetadata.NotificationEndpoint = types.StringPointerValue(resp.CredentialIssuerMetadata.NotificationEndpoint)
 			r.CredentialIssuerMetadata.RequireCredentialRequestEncryption = types.BoolPointerValue(resp.CredentialIssuerMetadata.RequireCredentialRequestEncryption)
 			r.CredentialIssuerMetadata.RequireCredentialResponseEncryption = types.BoolPointerValue(resp.CredentialIssuerMetadata.RequireCredentialResponseEncryption)
 		}
@@ -281,6 +293,7 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 		r.RequestObjectEncryptionEncMatchRequired = types.BoolPointerValue(resp.RequestObjectEncryptionEncMatchRequired)
 		r.RequestObjectRequired = types.BoolPointerValue(resp.RequestObjectRequired)
 		r.ResourceSignatureKeyID = types.StringPointerValue(resp.ResourceSignatureKeyID)
+		r.ReturnFullPayload = types.BoolPointerValue(resp.ReturnFullPayload)
 		r.RevocationEndpoint = types.StringPointerValue(resp.RevocationEndpoint)
 		r.RsResponseSigned = types.BoolPointerValue(resp.RsResponseSigned)
 		r.ScopeRequired = types.BoolPointerValue(resp.ScopeRequired)
@@ -748,6 +761,13 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		*authenticationCallbackAPISecret = r.AuthenticationCallbackAPISecret.ValueString()
 	} else {
 		authenticationCallbackAPISecret = nil
+	}
+	var supportedAcrs []string
+	if r.SupportedAcrs != nil {
+		supportedAcrs = make([]string, 0, len(r.SupportedAcrs))
+		for supportedAcrsIndex := range r.SupportedAcrs {
+			supportedAcrs = append(supportedAcrs, r.SupportedAcrs[supportedAcrsIndex].ValueString())
+		}
 	}
 	var supportedGrantTypes []shared.GrantType
 	if r.SupportedGrantTypes != nil {
@@ -1642,6 +1662,12 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 	} else {
 		idTokenDroppedOnIssueWithoutOpenid = nil
 	}
+	returnFullPayload := new(bool)
+	if !r.ReturnFullPayload.IsUnknown() && !r.ReturnFullPayload.IsNull() {
+		*returnFullPayload = r.ReturnFullPayload.ValueBool()
+	} else {
+		returnFullPayload = nil
+	}
 	var supportedDocumentsCheckMethods []string
 	if r.SupportedDocumentsCheckMethods != nil {
 		supportedDocumentsCheckMethods = make([]string, 0, len(r.SupportedDocumentsCheckMethods))
@@ -1783,6 +1809,18 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		} else {
 			deferredCredentialEndpoint = nil
 		}
+		notificationEndpoint := new(string)
+		if !r.CredentialIssuerMetadata.NotificationEndpoint.IsUnknown() && !r.CredentialIssuerMetadata.NotificationEndpoint.IsNull() {
+			*notificationEndpoint = r.CredentialIssuerMetadata.NotificationEndpoint.ValueString()
+		} else {
+			notificationEndpoint = nil
+		}
+		nonceEndpoint := new(string)
+		if !r.CredentialIssuerMetadata.NonceEndpoint.IsUnknown() && !r.CredentialIssuerMetadata.NonceEndpoint.IsNull() {
+			*nonceEndpoint = r.CredentialIssuerMetadata.NonceEndpoint.ValueString()
+		} else {
+			nonceEndpoint = nil
+		}
 		credentialsSupported := new(string)
 		if !r.CredentialIssuerMetadata.CredentialsSupported.IsUnknown() && !r.CredentialIssuerMetadata.CredentialsSupported.IsNull() {
 			*credentialsSupported = r.CredentialIssuerMetadata.CredentialsSupported.ValueString()
@@ -1809,6 +1847,20 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		} else {
 			requireCredentialRequestEncryption = nil
 		}
+		credentialRequestEncryptionJwks := new(string)
+		if !r.CredentialIssuerMetadata.CredentialRequestEncryptionJwks.IsUnknown() && !r.CredentialIssuerMetadata.CredentialRequestEncryptionJwks.IsNull() {
+			*credentialRequestEncryptionJwks = r.CredentialIssuerMetadata.CredentialRequestEncryptionJwks.ValueString()
+		} else {
+			credentialRequestEncryptionJwks = nil
+		}
+		credentialRequestEncryptionEncValuesSupported := make([]string, 0, len(r.CredentialIssuerMetadata.CredentialRequestEncryptionEncValuesSupported))
+		for credentialRequestEncryptionEncValuesSupportedIndex := range r.CredentialIssuerMetadata.CredentialRequestEncryptionEncValuesSupported {
+			credentialRequestEncryptionEncValuesSupported = append(credentialRequestEncryptionEncValuesSupported, r.CredentialIssuerMetadata.CredentialRequestEncryptionEncValuesSupported[credentialRequestEncryptionEncValuesSupportedIndex].ValueString())
+		}
+		credentialRequestEncryptionZipValuesSupported := make([]string, 0, len(r.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported))
+		for credentialRequestEncryptionZipValuesSupportedIndex := range r.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported {
+			credentialRequestEncryptionZipValuesSupported = append(credentialRequestEncryptionZipValuesSupported, r.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported[credentialRequestEncryptionZipValuesSupportedIndex].ValueString())
+		}
 		credentialResponseEncryptionZipValuesSupported := make([]string, 0, len(r.CredentialIssuerMetadata.CredentialResponseEncryptionZipValuesSupported))
 		for credentialResponseEncryptionZipValuesSupportedIndex := range r.CredentialIssuerMetadata.CredentialResponseEncryptionZipValuesSupported {
 			credentialResponseEncryptionZipValuesSupported = append(credentialResponseEncryptionZipValuesSupported, r.CredentialIssuerMetadata.CredentialResponseEncryptionZipValuesSupported[credentialResponseEncryptionZipValuesSupportedIndex].ValueString())
@@ -1819,19 +1871,31 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		} else {
 			batchSize = nil
 		}
+		display := new(string)
+		if !r.CredentialIssuerMetadata.Display.IsUnknown() && !r.CredentialIssuerMetadata.Display.IsNull() {
+			*display = r.CredentialIssuerMetadata.Display.ValueString()
+		} else {
+			display = nil
+		}
 		credentialIssuerMetadata = &shared.CredentialIssuerMetadata{
 			AuthorizationServers:                           authorizationServers,
 			CredentialIssuer:                               credentialIssuer,
 			CredentialEndpoint:                             credentialEndpoint,
 			BatchCredentialEndpoint:                        batchCredentialEndpoint,
 			DeferredCredentialEndpoint:                     deferredCredentialEndpoint,
+			NotificationEndpoint:                           notificationEndpoint,
+			NonceEndpoint:                                  nonceEndpoint,
 			CredentialsSupported:                           credentialsSupported,
 			CredentialResponseEncryptionAlgValuesSupported: credentialResponseEncryptionAlgValuesSupported,
 			CredentialResponseEncryptionEncValuesSupported: credentialResponseEncryptionEncValuesSupported,
 			RequireCredentialResponseEncryption:            requireCredentialResponseEncryption,
 			RequireCredentialRequestEncryption:             requireCredentialRequestEncryption,
+			CredentialRequestEncryptionJwks:                credentialRequestEncryptionJwks,
+			CredentialRequestEncryptionEncValuesSupported:  credentialRequestEncryptionEncValuesSupported,
+			CredentialRequestEncryptionZipValuesSupported:  credentialRequestEncryptionZipValuesSupported,
 			CredentialResponseEncryptionZipValuesSupported: credentialResponseEncryptionZipValuesSupported,
 			BatchSize: batchSize,
+			Display:   display,
 		}
 	}
 	idTokenAudType := new(string)
@@ -1978,6 +2042,7 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		AuthenticationCallbackEndpoint:              authenticationCallbackEndpoint,
 		AuthenticationCallbackAPIKey:                authenticationCallbackAPIKey,
 		AuthenticationCallbackAPISecret:             authenticationCallbackAPISecret,
+		SupportedAcrs:                               supportedAcrs,
 		SupportedGrantTypes:                         supportedGrantTypes,
 		SupportedResponseTypes:                      supportedResponseTypes,
 		SupportedAuthorizationDetailsTypes:          supportedAuthorizationDetailsTypes,
@@ -2103,6 +2168,7 @@ func (r *ServiceResourceModel) ToSharedServiceInput(ctx context.Context) (*share
 		TrustAnchors:                                trustAnchors,
 		OpenidDroppedOnRefreshWithoutOfflineAccess:  openidDroppedOnRefreshWithoutOfflineAccess,
 		IDTokenDroppedOnIssueWithoutOpenid:          idTokenDroppedOnIssueWithoutOpenid,
+		ReturnFullPayload:                           returnFullPayload,
 		SupportedDocumentsCheckMethods:              supportedDocumentsCheckMethods,
 		RsResponseSigned:                            rsResponseSigned,
 		CnonceDuration:                              cnonceDuration,

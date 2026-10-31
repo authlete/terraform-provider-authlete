@@ -164,6 +164,7 @@ type ServiceDataSourceModel struct {
 	RequestObjectEncryptionEncMatchRequired     types.Bool                        `tfsdk:"request_object_encryption_enc_match_required"`
 	RequestObjectRequired                       types.Bool                        `tfsdk:"request_object_required"`
 	ResourceSignatureKeyID                      types.String                      `tfsdk:"resource_signature_key_id"`
+	ReturnFullPayload                           types.Bool                        `tfsdk:"return_full_payload"`
 	RevocationEndpoint                          types.String                      `tfsdk:"revocation_endpoint"`
 	RsResponseSigned                            types.Bool                        `tfsdk:"rs_response_signed"`
 	ScopeRequired                               types.Bool                        `tfsdk:"scope_required"`
@@ -477,6 +478,20 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 						Computed:    true,
 						Description: `The identifier of a credential request.`,
 					},
+					"credential_request_encryption_enc_values_supported": schema.ListAttribute{
+						Computed:    true,
+						ElementType: types.StringType,
+						Description: `The supported JWE ` + "`" + `enc` + "`" + ` algorithms for credential request encryption. This property corresponds to the ` + "`" + `credential_request_encryption.enc_values_supported` + "`" + ` metadata.`,
+					},
+					"credential_request_encryption_jwks": schema.StringAttribute{
+						Computed:    true,
+						Description: `The JWK Set document containing private keys for credential request encryption. The public part of this JWK Set is used as the value of the ` + "`" + `credential_request_encryption.jwks` + "`" + ` metadata when ` + "`" + `credentialRequestEncryptionEncValuesSupported` + "`" + ` is also set.`,
+					},
+					"credential_request_encryption_zip_values_supported": schema.ListAttribute{
+						Computed:    true,
+						ElementType: types.StringType,
+						Description: `The supported JWE ` + "`" + `zip` + "`" + ` (compression) algorithms for credential request encryption. This property corresponds to the ` + "`" + `credential_request_encryption.zip_values_supported` + "`" + ` metadata.`,
+					},
 					"credential_response_encryption_alg_values_supported": schema.ListAttribute{
 						Computed:    true,
 						ElementType: types.StringType,
@@ -499,6 +514,18 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 					"deferred_credential_endpoint": schema.StringAttribute{
 						Computed:    true,
 						Description: `The URL of the deferred credential endpoint of the credential issuer.`,
+					},
+					"display": schema.StringAttribute{
+						Computed:    true,
+						Description: `The display properties of the credential issuer in JSON array format. This property corresponds to the ` + "`" + `display` + "`" + ` metadata.`,
+					},
+					"nonce_endpoint": schema.StringAttribute{
+						Computed:    true,
+						Description: `The URL of the nonce endpoint of the credential issuer. This property corresponds to the ` + "`" + `nonce_endpoint` + "`" + ` metadata.`,
+					},
+					"notification_endpoint": schema.StringAttribute{
+						Computed:    true,
+						Description: `The URL of the notification endpoint of the credential issuer. This property corresponds to the ` + "`" + `notification_endpoint` + "`" + ` metadata.`,
 					},
 					"require_credential_request_encryption": schema.BoolAttribute{
 						Computed:    true,
@@ -1021,6 +1048,10 @@ func (r *ServiceDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 			"resource_signature_key_id": schema.StringAttribute{
 				Computed:    true,
 				Description: `The key ID of the key for signing introspection responses.`,
+			},
+			"return_full_payload": schema.BoolAttribute{
+				Computed:    true,
+				Description: `The flag indicating whether the ` + "`" + `/auth/authorization` + "`" + `, ` + "`" + `/auth/token/get/list` + "`" + ` and ` + "`" + `/client/authorization/get/list` + "`" + ` APIs return full representations of the service and its clients.`,
 			},
 			"revocation_endpoint": schema.StringAttribute{
 				Computed: true,
