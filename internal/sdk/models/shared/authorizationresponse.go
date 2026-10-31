@@ -54,7 +54,7 @@ type AuthorizationResponse struct {
 	ResultMessage *string `json:"resultMessage,omitzero"`
 	// The next action that the authorization server implementation should take.
 	Action *AuthorizationResponseAction `json:"action,omitzero"`
-	Client *ClientLimitedAuthorization  `json:"client,omitzero"`
+	Client *Client                      `json:"client,omitzero"`
 	// The display mode which the client application requests by `display` request parameter. When the authorization request does not have `display` request parameter, `PAGE` is set as the default value.
 	//
 	// It is ensured that the value of `display` is one of the supported display modes which are specified by `supportedDisplays` configuration parameter of the service. If the display mode specified by the authorization request is not supported, an error is raised.
@@ -263,7 +263,7 @@ func (a *AuthorizationResponse) GetAction() *AuthorizationResponseAction {
 	return a.Action
 }
 
-func (a *AuthorizationResponse) GetClient() *ClientLimitedAuthorization {
+func (a *AuthorizationResponse) GetClient() *Client {
 	if a == nil {
 		return nil
 	}

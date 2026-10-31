@@ -112,6 +112,7 @@ This property corresponds to `default_max_age` in [OpenID Connect Dynamic Client
 - `fapi_modes` (List of String) The FAPI modes for this client.
 - `front_channel_request_object_encryption_required` (Boolean) The flag indicating whether encryption of request object is required when the request object is passed through the front channel.
 - `grant_types` (List of String) A string array of grant types which the client application declares that it will restrict itself to using. This property corresponds to `grant_types` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
+- `haip_version` (String) The HAIP version to comply with. Valid values for this property are as follows: `"1.0"`. If this property is set, requests from this client undergo additional validation based on the specified version of the [HAIP](https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.html) specification.
 - `id_token_encryption_alg` (String) this is the 'alg' header value for encrypted JWT tokens. Depending upon the context, this refers to key transport scheme to be used by the client and by the server. For instance:
 - as `authorizationEncryptionAlg` value, it refers to the encoding algorithm used by server for transporting they keys on JARM objects
 - as `requestEncryptionAlg` value, it refers to the expected key transport encoding algorithm that server expect from client when encrypting a Request Object

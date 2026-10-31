@@ -158,6 +158,7 @@ func (r *ClientDataSourceModel) RefreshFromSharedClient(ctx context.Context, res
 		for _, v := range resp.GrantTypes {
 			r.GrantTypes = append(r.GrantTypes, types.StringValue(string(v)))
 		}
+		r.HaipVersion = types.StringPointerValue(resp.HaipVersion)
 		if resp.IDTokenEncryptionAlg != nil {
 			r.IDTokenEncryptionAlg = types.StringValue(string(*resp.IDTokenEncryptionAlg))
 		} else {
