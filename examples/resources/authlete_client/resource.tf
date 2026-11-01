@@ -71,6 +71,7 @@ resource "authlete_client" "my_client" {
   grant_types = [
     "CLIENT_CREDENTIALS"
   ]
+  haip_version                 = "...my_haip_version..."
   id_token_encryption_alg      = "A128GCMKW"
   id_token_encryption_enc      = "A256GCM"
   id_token_sign_alg            = "PS256"
