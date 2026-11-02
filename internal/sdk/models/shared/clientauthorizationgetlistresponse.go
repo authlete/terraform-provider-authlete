@@ -25,7 +25,7 @@ type ClientAuthorizationGetListResponse struct {
 	TotalCount *int `json:"totalCount,omitzero"`
 	// An array of clients.
 	//
-	Clients []ClientLimited `json:"clients,omitzero"`
+	Clients []Client `json:"clients,omitzero"`
 }
 
 func (c ClientAuthorizationGetListResponse) MarshalJSON() ([]byte, error) {
@@ -74,7 +74,7 @@ func (c *ClientAuthorizationGetListResponse) GetTotalCount() *int {
 	return c.TotalCount
 }
 
-func (c *ClientAuthorizationGetListResponse) GetClients() []ClientLimited {
+func (c *ClientAuthorizationGetListResponse) GetClients() []Client {
 	if c == nil {
 		return nil
 	}

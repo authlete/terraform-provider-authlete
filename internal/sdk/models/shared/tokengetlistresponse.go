@@ -16,8 +16,8 @@ type TokenGetListResponse struct {
 	End *int `json:"end,omitzero"`
 	// Unique ID of a client developer.
 	//
-	TotalCount *int           `json:"totalCount,omitzero"`
-	Client     *ClientLimited `json:"client,omitzero"`
+	TotalCount *int    `json:"totalCount,omitzero"`
+	Client     *Client `json:"client,omitzero"`
 	// Unique user ID of an end-user.
 	//
 	Subject *string `json:"subject,omitzero"`
@@ -58,7 +58,7 @@ func (t *TokenGetListResponse) GetTotalCount() *int {
 	return t.TotalCount
 }
 
-func (t *TokenGetListResponse) GetClient() *ClientLimited {
+func (t *TokenGetListResponse) GetClient() *Client {
 	if t == nil {
 		return nil
 	}
