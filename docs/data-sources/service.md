@@ -271,6 +271,7 @@ The value of this property is used as `registration_endpoint` property in the [O
 
 If this flag is set to `true` and the value of `traditionalRequestObjectProcessingApplied` is `false`, the value of `require_signed_request_object` server metadata of this service is reported as `true` in the discovery document. The metadata is defined in JAR (JWT Secured Authorization Request). That `require_signed_request_object` is `true` means that authorization requests which don't conform to the JAR specification are rejected.
 - `resource_signature_key_id` (String) The key ID of the key for signing introspection responses.
+- `return_full_payload` (Boolean) The flag indicating whether the `/auth/authorization`, `/auth/token/get/list` and `/client/authorization/get/list` APIs return full representations of the service and its clients.
 - `revocation_endpoint` (String) The [revocation endpoint](https://tools.ietf.org/html/rfc7009) of the service.
 
 A URL that starts with `https://`. For example, `https://example.com/auth/revocation`.
@@ -397,11 +398,17 @@ Read-Only:
 - `batch_size` (Number) The maximum array size for the `proofs` parameter in a credential request. This property corresponds to the `batch_credential_issuance.batch_size` metadata. If the value of this property is 2 or greater, the `batch_credential_issuance` parameter will appear in the response from the credential issuer metadata endpoint.
 - `credential_endpoint` (String) The URL of the credential endpoint of the credential issuer.
 - `credential_issuer` (String) The identifier of a credential request.
+- `credential_request_encryption_enc_values_supported` (List of String) The supported JWE `enc` algorithms for credential request encryption. This property corresponds to the `credential_request_encryption.enc_values_supported` metadata.
+- `credential_request_encryption_jwks` (String) The JWK Set document containing private keys for credential request encryption. The public part of this JWK Set is used as the value of the `credential_request_encryption.jwks` metadata when `credentialRequestEncryptionEncValuesSupported` is also set.
+- `credential_request_encryption_zip_values_supported` (List of String) The supported JWE `zip` (compression) algorithms for credential request encryption. This property corresponds to the `credential_request_encryption.zip_values_supported` metadata.
 - `credential_response_encryption_alg_values_supported` (List of String) The supported JWE `alg` algorithms for credential response encryption. This property corresponds to the `credential_response_encryption.alg_values_supported` metadata.
 - `credential_response_encryption_enc_values_supported` (List of String) The supported JWE `enc` algorithms for credential response encryption. This property corresponds to the `credential_response_encryption.enc_values_supported` metadata.
 - `credential_response_encryption_zip_values_supported` (List of String) The supported JWE `zip` (compression) algorithms for credential response encryption. This property corresponds to the `credential_response_encryption.zip_values_supported` metadata.
 - `credentials_supported` (String) A JSON object describing supported credential configurations. This property corresponds to the credential_configurations_supported metadata. Note: Due to a breaking change in December 2023, this was changed from a JSON array to a JSON object.
 - `deferred_credential_endpoint` (String) The URL of the deferred credential endpoint of the credential issuer.
+- `display` (String) The display properties of the credential issuer in JSON array format. This property corresponds to the `display` metadata.
+- `nonce_endpoint` (String) The URL of the nonce endpoint of the credential issuer. This property corresponds to the `nonce_endpoint` metadata.
+- `notification_endpoint` (String) The URL of the notification endpoint of the credential issuer. This property corresponds to the `notification_endpoint` metadata.
 - `require_credential_request_encryption` (Boolean) The boolean flag indicating whether credential request encryption is required. This property corresponds to the `credential_request_encryption.encryption_required` metadata. If this flag is `true`, every credential request to the credential issuer must be encrypted.
 - `require_credential_response_encryption` (Boolean) The boolean flag indicating whether credential response encryption is required. This property corresponds to the `credential_response_encryption.encryption_required metadata`. If this flag is `true`, every credential request to the credential issuer must include the `credential_response_encryption` property.
 
