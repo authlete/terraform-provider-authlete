@@ -12,11 +12,17 @@ type CredentialIssuerMetadata struct {
 	BatchSize                                      types.Int64    `tfsdk:"batch_size"`
 	CredentialEndpoint                             types.String   `tfsdk:"credential_endpoint"`
 	CredentialIssuer                               types.String   `tfsdk:"credential_issuer"`
+	CredentialRequestEncryptionEncValuesSupported  []types.String `tfsdk:"credential_request_encryption_enc_values_supported"`
+	CredentialRequestEncryptionJwks                types.String   `tfsdk:"credential_request_encryption_jwks"`
+	CredentialRequestEncryptionZipValuesSupported  []types.String `tfsdk:"credential_request_encryption_zip_values_supported"`
 	CredentialResponseEncryptionAlgValuesSupported []types.String `tfsdk:"credential_response_encryption_alg_values_supported"`
 	CredentialResponseEncryptionEncValuesSupported []types.String `tfsdk:"credential_response_encryption_enc_values_supported"`
 	CredentialResponseEncryptionZipValuesSupported []types.String `tfsdk:"credential_response_encryption_zip_values_supported"`
 	CredentialsSupported                           types.String   `tfsdk:"credentials_supported"`
 	DeferredCredentialEndpoint                     types.String   `tfsdk:"deferred_credential_endpoint"`
+	Display                                        types.String   `tfsdk:"display"`
+	NonceEndpoint                                  types.String   `tfsdk:"nonce_endpoint"`
+	NotificationEndpoint                           types.String   `tfsdk:"notification_endpoint"`
 	RequireCredentialRequestEncryption             types.Bool     `tfsdk:"require_credential_request_encryption"`
 	RequireCredentialResponseEncryption            types.Bool     `tfsdk:"require_credential_response_encryption"`
 }
