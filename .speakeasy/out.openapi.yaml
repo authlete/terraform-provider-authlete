@@ -9638,6 +9638,18 @@ components:
             The boolean flag to indicate whether a user code is required when this client makes a backchannel authentication request.
 
             This property corresponds to the `backchannel_user_code_parameter` metadata.
+        haipVersion:
+          type: string
+          nullable: true
+          description: |
+            The HAIP version to comply with. Valid values for this property are as follows: `"1.0"`. If this property is set, requests from this client undergo additional validation based on the specified version of the [HAIP](https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.html) specification.
+          x-mint:
+            metadata:
+              description: "The HAIP version to comply with. Valid values for this property are as follows: `\"1.0\"`. If this property is set, requests from this client undergo additional validation based on the specified version of the [HAIP](https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.html) specification."
+            content: |
+              <Accordion title="Full description" defaultOpen={false}>
+              Note that even if this property is not set, additional validation based on the HAIP specification is performed if the `Service`'s `haipVersion` is set or if a scope with the `haip` attribute is included in the request.
+              </Accordion>
         backchannelLogoutUri:
           type: string
           description: |
@@ -10330,7 +10342,6 @@ components:
           description: API secret for `basic` authentication at the authentication callback endpoint.
           x-speakeasy-param-sensitive: true
         supportedAcrs:
-          readOnly: true
           type: array
           nullable: true
           items:
@@ -10339,6 +10350,7 @@ components:
             Values of acrs (authentication context class references) that the service supports.
 
             The value of this property is used as `acr_values_supported` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
+          readOnly: false
         supportedGrantTypes:
           type: array
           nullable: true
@@ -11537,6 +11549,19 @@ components:
             The flag indicating whether to refrain from issuing an ID token when the `openid` scope has been removed from the scopes to be granted by the `scopes` request parameter of the `/auth/authorization/issue` API.
 
             Flows whose `response_type` contains `id_token`, and flows that requested Native SSO, are not affected, because both require an ID token.
+        returnFullPayload:
+          type: boolean
+          description: |
+            The flag indicating whether the `/auth/authorization`, `/auth/token/get/list` and `/client/authorization/get/list` APIs return full representations of the service and its clients.
+          x-mint:
+            metadata:
+              description: "The flag indicating whether the `/auth/authorization`, `/auth/token/get/list` and `/client/authorization/get/list` APIs return full representations of the service and its clients."
+            content: |
+              <Accordion title="Full description" defaultOpen={false}>
+              When this flag is `true`, those APIs return full representations. When this flag is `false`, those APIs return limited representations that contain only a subset of the properties. Properties omitted from a limited representation appear with their default values (e.g. `0`, `false` or `null`) after deserialization by SDKs, which does not reflect the actual configuration.
+
+              When this property is omitted from a `/service/create` request, the flag is `false`.
+              </Accordion>
         supportedDocumentsCheckMethods:
           type: array
           nullable: true
@@ -12008,6 +12033,16 @@ components:
         deferredCredentialEndpoint:
           type: string
           description: The URL of the deferred credential endpoint of the credential issuer.
+        notificationEndpoint:
+          type: string
+          format: uri
+          description: |
+            The URL of the notification endpoint of the credential issuer. This property corresponds to the `notification_endpoint` metadata.
+        nonceEndpoint:
+          type: string
+          format: uri
+          description: |
+            The URL of the nonce endpoint of the credential issuer. This property corresponds to the `nonce_endpoint` metadata.
         credentialsSupported:
           type: string
           description: |
@@ -12032,6 +12067,22 @@ components:
           type: boolean
           description: |
             The boolean flag indicating whether credential request encryption is required. This property corresponds to the `credential_request_encryption.encryption_required` metadata. If this flag is `true`, every credential request to the credential issuer must be encrypted.
+        credentialRequestEncryptionJwks:
+          type: string
+          description: |
+            The JWK Set document containing private keys for credential request encryption. The public part of this JWK Set is used as the value of the `credential_request_encryption.jwks` metadata when `credentialRequestEncryptionEncValuesSupported` is also set.
+        credentialRequestEncryptionEncValuesSupported:
+          type: array
+          items:
+            type: string
+          description: |
+            The supported JWE `enc` algorithms for credential request encryption. This property corresponds to the `credential_request_encryption.enc_values_supported` metadata.
+        credentialRequestEncryptionZipValuesSupported:
+          type: array
+          items:
+            type: string
+          description: |
+            The supported JWE `zip` (compression) algorithms for credential request encryption. This property corresponds to the `credential_request_encryption.zip_values_supported` metadata.
         credentialResponseEncryptionZipValuesSupported:
           type: array
           items:
@@ -12042,6 +12093,10 @@ components:
           type: integer
           description: |
             The maximum array size for the `proofs` parameter in a credential request. This property corresponds to the `batch_credential_issuance.batch_size` metadata. If the value of this property is 2 or greater, the `batch_credential_issuance` parameter will appear in the response from the credential issuer metadata endpoint.
+        display:
+          type: string
+          description: |
+            The display properties of the credential issuer in JSON array format. This property corresponds to the `display` metadata.
     audit_log_entry:
       type: object
       properties:
@@ -12325,48 +12380,6 @@ components:
           type: string
           description: |
             The old client secret.
-    client_limited:
-      type: object
-      properties:
-        number:
-          type: integer
-          format: int32
-          readOnly: true
-          description: |
-            The sequential number of the client. The value of this property is assigned by Authlete.
-        clientName:
-          type: string
-          description: |
-            The name of the client application. This property corresponds to `client_name` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
-        clientNames:
-          type: array
-          items:
-            $ref: '#/components/schemas/tagged_value'
-          description: |
-            Client names with language tags. If the client application has different names for different languages, this property can be used to register the names.
-        description:
-          type: string
-          description: The description about the client application.
-        descriptions:
-          type: array
-          items:
-            $ref: '#/components/schemas/tagged_value'
-          description: |
-            Descriptions about the client application with language tags. If the client application has different descriptions for different languages, this property can be used to register the descriptions.
-        clientId:
-          type: integer
-          format: int64
-          readOnly: true
-          description: The client identifier used in Authlete API calls. The value of this property is assigned by Authlete.
-        clientIdAlias:
-          type: string
-          description: |
-            The value of the client's `client_id` property used in OAuth and OpenID Connect calls. By default, this is a string version of the `clientId` property.
-        clientIdAliasEnabled:
-          type: boolean
-          description: Deprecated. Always set to `true`.
-        clientType:
-          $ref: '#/components/schemas/client_type'
     client_authorization_get_list_response:
       type: object
       properties:
@@ -12396,7 +12409,7 @@ components:
         clients:
           type: array
           items:
-            $ref: '#/components/schemas/client_limited'
+            $ref: '#/components/schemas/client'
           description: |
             An array of clients.
     client_authorization_get_list_request:
@@ -12599,297 +12612,6 @@ components:
             Options for [OAuth Client ID Metadata Document](https://datatracker.ietf.org/doc/draft-ietf-oauth-client-id-metadata-document/) (CIMD).
 
             These options allow per-request control over CIMD behavior, taking precedence over service-level configuration when provided.
-    client_limited_authorization:
-      type: object
-      properties:
-        number:
-          type: integer
-          format: int32
-          readOnly: true
-          description: |
-            The sequential number of the client. The value of this property is assigned by Authlete.
-        clientName:
-          type: string
-          description: |
-            The name of the client application. This property corresponds to `client_name` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
-        clientNames:
-          type: array
-          items:
-            $ref: '#/components/schemas/tagged_value'
-          description: |
-            Client names with language tags. If the client application has different names for different languages, this property can be used to register the names.
-        description:
-          type: string
-          description: The description about the client application.
-        descriptions:
-          type: array
-          items:
-            $ref: '#/components/schemas/tagged_value'
-          description: |
-            Descriptions about the client application with language tags. If the client application has different descriptions for different languages, this property can be used to register the descriptions.
-        clientId:
-          type: integer
-          format: int64
-          readOnly: true
-          description: The client identifier used in Authlete API calls. The value of this property is assigned by Authlete.
-        clientIdAlias:
-          type: string
-          description: |
-            The value of the client's `client_id` property used in OAuth and OpenID Connect calls. By default, this is a string version of the `clientId` property.
-        clientIdAliasEnabled:
-          type: boolean
-          description: Deprecated. Always set to `true`.
-        clientType:
-          $ref: '#/components/schemas/client_type'
-        logoUri:
-          type: string
-          description: |
-            The URL pointing to the logo image of the client application.
-
-            This property corresponds to `logo_uri` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
-        logoUris:
-          type: array
-          items:
-            $ref: '#/components/schemas/tagged_value'
-          description: |
-            Logo image URLs with language tags. If the client application has different logo images for different languages, this property can be used to register URLs of the images.
-        tosUri:
-          type: string
-          description: |
-            The URL pointing to the "Terms Of Service" page.
-
-            This property corresponds to `tos_uri` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
-        tosUris:
-          type: array
-          items:
-            $ref: '#/components/schemas/tagged_value'
-          description: |
-            URLs of "Terms Of Service" pages with language tags.
-
-            If the client application has different "Terms Of Service" pages for different languages, this property can be used to register the URLs.
-        policyUri:
-          type: string
-          description: |
-            The URL pointing to the page which describes the policy as to how end-user's profile data is used.
-
-            This property corresponds to `policy_uri` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
-        policyUris:
-          type: array
-          items:
-            $ref: '#/components/schemas/tagged_value'
-          description: |
-            URLs of policy pages with language tags. If the client application has different policy pages for different languages, this property can be used to register the URLs.
-        serviceNumber:
-          type: integer
-          format: int32
-          readOnly: true
-          description: |
-            The sequential number of the service of the client application. The value of this property is assigned by Authlete.
-        defaultMaxAge:
-          type: integer
-          format: int32
-          description: |
-            The default maximum authentication age in seconds. This value is used when an authorization request from the client application does not have `max_age` request parameter.
-
-            This property corresponds to `default_max_age` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
-        authTimeRequired:
-          type: boolean
-          description: |
-            The flag to indicate whether this client requires `auth_time` claim to be embedded in the ID token.
-
-            This property corresponds to `require_auth_time` in [OpenID Connect Dynamic Client Registration 1.0, 2. Client Metadata](https://openid.net/specs/openid-connect-registration-1_0.html#ClientMetadata).
-        createdAt:
-          type: integer
-          format: int64
-          readOnly: true
-          description: The time at which this client was created. The value is represented as milliseconds since the UNIX epoch (1970-01-01).
-        modifiedAt:
-          type: integer
-          format: int64
-          readOnly: true
-          description: The time at which this client was last modified. The value is represented as milliseconds since the UNIX epoch (1970-01-01).
-        tlsClientCertificateBoundAccessTokens:
-          type: boolean
-          description: |
-            The flag to indicate whether this client use TLS client certificate bound access tokens.
-        bcUserCodeRequired:
-          type: boolean
-          description: |
-            The boolean flag to indicate whether a user code is required when this client makes a backchannel authentication request.
-
-            This property corresponds to the `backchannel_user_code_parameter` metadata.
-        backchannelLogoutSessionRequired:
-          type: boolean
-          description: |
-            The flag indicating whether the client requires that a `sid` (session ID) claim be included in the logout token sent to `backchannelLogoutUri`.
-        dynamicallyRegistered:
-          type: boolean
-          readOnly: true
-          description: |
-            The flag to indicate whether this client has been registered dynamically. For more details, see [RFC 7591](https://datatracker.ietf.org/doc/html/rfc7591).
-        parRequired:
-          type: boolean
-          description: |
-            The flag to indicate whether this client is required to use the pushed authorization request endpoint. This property corresponds to the `require_pushed_authorization_requests` client metadata defined in "OAuth 2.0 Pushed Authorization Requests".
-        requestObjectRequired:
-          type: boolean
-          description: |
-            The flag to indicate whether authorization requests from this client are always required to utilize a request object by using either `request` or `request_uri` request parameter.
-
-            If this flag is set to `true` and the service's `traditionalRequestObjectProcessingApplied` is set to `false`, authorization requests from this client are processed as if `require_signed_request_object` client metadata of this client is `true`. The metadata is defined in "JAR (JWT Secured Authorization Request)".
-        frontChannelRequestObjectEncryptionRequired:
-          type: boolean
-          description: |
-            The flag indicating whether encryption of request object is required when the request object is passed through the front channel.
-          x-mint:
-            metadata:
-              description: "The flag indicating whether encryption of request object is required when the request object is passed through the front channel."
-            content: |
-              <Accordion title="Full description" defaultOpen={false}>
-              This flag does not affect the processing of request objects at the Pushed Authorization Request Endpoint, which is defined in [OAuth 2.0 Pushed Authorization Requests](https://datatracker.ietf.org/doc/rfc9126/). Unecrypted request objects are accepted at the endpoint even if this flag is `true`.
-
-              This flag does not indicate whether a request object is always required. There is a different flag, `requestObjectRequired`, for the purpose.
-
-              Even if this flag is `false`, encryption of request object is required if the `frontChannelRequestObjectEncryptionRequired` flag of the service is `true`.
-              </Accordion>
-        requestObjectEncryptionAlgMatchRequired:
-          type: boolean
-          description: |
-            The flag indicating whether the JWE alg of encrypted request object must match the `request_object_encryption_alg` client metadata.
-          x-mint:
-            metadata:
-              description: "The flag indicating whether the JWE alg of encrypted request object must match the `request_object_encryption_alg` client metadata."
-            content: |
-              <Accordion title="Full description" defaultOpen={false}>
-              The `request_object_encryption_alg` client metadata itself is defined in [OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html) as follows.
-
-              > request_object_encryption_alg
-              >
-              > OPTIONAL. JWE [JWE] alg algorithm [JWA] the RP is declaring that it may use for encrypting Request Objects sent to the OP. This parameter SHOULD be included when symmetric encryption will be used, since this signals to the OP that a client_secret value needs to be returned from which the symmetric key will be derived, that might not otherwise be returned. The RP MAY still use other supported encryption algorithms or send unencrypted Request Objects, even when this parameter is present. If both signing and encryption are requested, the Request Object will be signed then encrypted, with the result being a Nested JWT, as defined in [JWT]. The default, if omitted, is that the RP is not declaring whether it might encrypt any Request Objects.
-
-              The point here is "The RP MAY still use other supported encryption algorithms or send unencrypted Request Objects, even when this parameter is present."
-
-              The property that represents the client metadata is `requestEncryptionAlg`. See the description of `requestEncryptionAlg` for details.
-
-              Even if this flag is `false`, the match is required if the `requestObjectEncryptionAlgMatchRequired` flag of the service is `true`.
-              </Accordion>
-        requestObjectEncryptionEncMatchRequired:
-          type: boolean
-          description: |
-            The flag indicating whether the JWE enc of encrypted request object must match the `request_object_encryption_enc` client metadata.
-          x-mint:
-            metadata:
-              description: "The flag indicating whether the JWE enc of encrypted request object must match the `request_object_encryption_enc` client metadata."
-            content: |
-              <Accordion title="Full description" defaultOpen={false}>
-              The `request_object_encryption_enc` client metadata itself is defined in [OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html) as follows.
-
-              > request_object_encryption_enc
-              >
-              > OPTIONAL. JWE enc algorithm [JWA] the RP is declaring that it may use for encrypting Request Objects sent to the OP. If request_object_encryption_alg is specified, the default for this value is A128CBC-HS256. When request_object_encryption_enc is included, request_object_encryption_alg MUST also be provided.
-
-              The property that represents the client metadata is `requestEncryptionEnc`. See the description of `requestEncryptionEnc`  for details.
-
-              Even if this flag is `false`, the match is required if the `requestObjectEncryptionEncMatchRequired` flag of the service is `true`.
-              </Accordion>
-        singleAccessTokenPerSubject:
-          type: boolean
-          description: |
-            If `Enabled` is selected, an attempt to issue a new access token invalidates existing access tokens that are associated with the same combination of subject and client.
-
-            Note that, however, attempts by Client Credentials Flow do not invalidate existing access tokens because access tokens issued by Client Credentials Flow are not associated with any end-user's subject.
-
-            Even if `Disabled` is selected here, single access token per subject is effective if `singleAccessTokenPerSubject` of the `Service` this client belongs to is Enabled.
-        pkceRequired:
-          type: boolean
-          description: |
-            The flag to indicate whether the use of Proof Key for Code Exchange (PKCE) is always required for authorization requests by Authorization Code Flow.
-
-            If `true`, `code_challenge` request parameter is always required for authorization requests using Authorization Code Flow.
-
-            See [RFC 7636](https://tools.ietf.org/html/rfc7636) (Proof Key for Code Exchange by OAuth Public Clients) for details about `code_challenge` request parameter.
-        pkceS256Required:
-          type: boolean
-          description: |
-            The flag to indicate whether `S256` is always required as the code challenge method whenever [PKCE (RFC 7636)](https://tools.ietf.org/html/rfc7636) is used.
-
-            If this flag is set to `true`, `code_challenge_method=S256` must be included in the authorization request whenever it includes the `code_challenge` request parameter. Neither omission of the `code_challenge_method` request parameter nor use of plain (`code_challenge_method=plain`) is allowed.
-        rsRequestSigned:
-          type: boolean
-          description: |
-            The flag indicating whether this service signs responses from the resource server.
-        dpopRequired:
-          type: boolean
-          description: |
-            If the DPoP is required for this client
-        locked:
-          type: boolean
-          description: |
-            The flag which indicates whether this client is locked.
-        mtlsEndpointAliasesUsed:
-          type: boolean
-          description: |
-            The flag indicating whether the client intends to prefer mutual TLS endpoints over non-MTLS endpoints.
-
-            This property corresponds to the `use_mtls_endpoint_aliases` client metadata that is defined in [FAPI 2.0 Security Profile, 8.1.1. use_mtls_endpoint_aliases](https://openid.bitbucket.io/fapi/fapi-2_0-security-profile.html#section-8.1.1).
-        inScopeForTokenMigration:
-          type: boolean
-          description: |
-            The flag indicating whether this client is in scope for token migration operations.
-        trustChainExpiresAt:
-          type: integer
-          format: int64
-          description: |
-            the expiration time of the trust chain that was used when this client was registered or updated by the mechanism defined in OpenID Connect Federation 1.0. The value is represented as milliseconds elapsed since the Unix epoch (1970-01-01).
-        trustChainUpdatedAt:
-          type: integer
-          format: int64
-          description: |
-            the time at which the trust chain was updated by the mechanism defined in OpenID Connect Federation 1.0
-        automaticallyRegistered:
-          type: boolean
-          description: |
-            The flag indicating whether this client was registered by the "automatic" client registration of OIDC Federation.
-        explicitlyRegistered:
-          type: boolean
-          description: |
-            The flag indicating whether this client was registered by the "explicit" client registration of OIDC Federation.
-        credentialResponseEncryptionRequired:
-          type: boolean
-          description: True if credential responses to this client must be always encrypted.
-        metadataDocumentLocation:
-          type: string
-          format: uri
-          description: |
-            Location of the Client ID Metadata Document that was used for this client. This property is set when client metadata was retrieved via the OAuth Client ID Metadata Document (CIMD) mechanism.
-        metadataDocumentExpiresAt:
-          type: integer
-          format: int64
-          description: |
-            Expiration time of the metadata document (UNIX time in milliseconds).
-        metadataDocumentUpdatedAt:
-          type: integer
-          format: int64
-          description: |
-            Last-updated time of the metadata document (UNIX time in milliseconds).
-        discoveredByMetadataDocument:
-          type: boolean
-          description: |
-            Indicates whether this client was discovered via a Client ID Metadata Document.
-        clientSource:
-          type: string
-          description: |
-            Source of this client record.
-          enum:
-            - DYNAMIC_REGISTRATION
-            - AUTOMATIC_REGISTRATION
-            - EXPLICIT_REGISTRATION
-            - METADATA_DOCUMENT
-            - STATIC_REGISTRATION
-        entityId:
-          type: string
-          description: |
-            the entity ID of this client.
     grant_management_action:
       type: string
       description: |
@@ -12950,7 +12672,7 @@ components:
             - INTERACTION
           description: The next action that the authorization server implementation should take.
         client:
-          $ref: '#/components/schemas/client_limited_authorization'
+          $ref: '#/components/schemas/client'
         display:
           $ref: '#/components/schemas/display'
         maxAge:
@@ -16403,7 +16125,7 @@ components:
           description: |
             Unique ID of a client developer.
         client:
-          $ref: '#/components/schemas/client_limited'
+          $ref: '#/components/schemas/client'
         subject:
           type: string
           description: |
