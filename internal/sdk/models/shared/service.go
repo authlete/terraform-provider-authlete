@@ -301,6 +301,8 @@ type Service struct {
 	ServiceOwnerNumber *int `json:"serviceOwnerNumber,omitzero"`
 	// The maximum number of client applications that a developer can have.
 	//
+	//
+	// Deprecated: This will be removed in a future release, please migrate away from it as soon as possible.
 	ClientsPerDeveloper *int `json:"clientsPerDeveloper,omitzero"`
 	// The endpoint for developer authentication callbacks. This is used when developers log into the developer portal.
 	//
@@ -346,13 +348,19 @@ type Service struct {
 	//
 	// The user authentication at the authorization endpoint provided by Authlete is performed by making a `POST` request to this endpoint.
 	//
+	//
+	// Deprecated: This will be removed in a future release, please migrate away from it as soon as possible.
 	AuthenticationCallbackEndpoint *string `json:"authenticationCallbackEndpoint,omitzero"`
 	// API key for basic authentication at the authentication callback endpoint.
 	//
 	// If the value is not empty, Authlete generates Authorization header for Basic authentication when making a request to the authentication callback endpoint.
 	//
+	//
+	// Deprecated: This will be removed in a future release, please migrate away from it as soon as possible.
 	AuthenticationCallbackAPIKey *string `json:"authenticationCallbackApiKey,omitzero"`
 	// API secret for `basic` authentication at the authentication callback endpoint.
+	//
+	// Deprecated: This will be removed in a future release, please migrate away from it as soon as possible.
 	AuthenticationCallbackAPISecret *string `json:"authenticationCallbackApiSecret,omitzero"`
 	// Values of acrs (authentication context class references) that the service supports.
 	//
@@ -921,6 +929,8 @@ type Service struct {
 	ResourceSignatureKeyID *string `json:"resourceSignatureKeyId,omitzero"`
 	// The default length of user PINs.
 	//
+	//
+	// Deprecated: This will be removed in a future release, please migrate away from it as soon as possible.
 	UserPinLength *int `json:"userPinLength,omitzero"`
 	// The supported `prompt` values.
 	//
@@ -2443,6 +2453,8 @@ type ServiceInput struct {
 	ClientAssertionAudRestrictedToIssuer *bool `json:"clientAssertionAudRestrictedToIssuer,omitzero" form:"name=clientAssertionAudRestrictedToIssuer"`
 	// The maximum number of client applications that a developer can have.
 	//
+	//
+	// Deprecated: This will be removed in a future release, please migrate away from it as soon as possible.
 	ClientsPerDeveloper *int `json:"clientsPerDeveloper,omitzero" form:"name=clientsPerDeveloper"`
 	// Social login services (SNS) that this service supports for developer authentication.
 	//
@@ -2456,13 +2468,19 @@ type ServiceInput struct {
 	//
 	// The user authentication at the authorization endpoint provided by Authlete is performed by making a `POST` request to this endpoint.
 	//
+	//
+	// Deprecated: This will be removed in a future release, please migrate away from it as soon as possible.
 	AuthenticationCallbackEndpoint *string `json:"authenticationCallbackEndpoint,omitzero" form:"name=authenticationCallbackEndpoint"`
 	// API key for basic authentication at the authentication callback endpoint.
 	//
 	// If the value is not empty, Authlete generates Authorization header for Basic authentication when making a request to the authentication callback endpoint.
 	//
+	//
+	// Deprecated: This will be removed in a future release, please migrate away from it as soon as possible.
 	AuthenticationCallbackAPIKey *string `json:"authenticationCallbackApiKey,omitzero" form:"name=authenticationCallbackApiKey"`
 	// API secret for `basic` authentication at the authentication callback endpoint.
+	//
+	// Deprecated: This will be removed in a future release, please migrate away from it as soon as possible.
 	AuthenticationCallbackAPISecret *string `json:"authenticationCallbackApiSecret,omitzero" form:"name=authenticationCallbackApiSecret"`
 	// Values of acrs (authentication context class references) that the service supports.
 	//
@@ -2993,6 +3011,8 @@ type ServiceInput struct {
 	ResourceSignatureKeyID *string `json:"resourceSignatureKeyId,omitzero" form:"name=resourceSignatureKeyId"`
 	// The default length of user PINs.
 	//
+	//
+	// Deprecated: This will be removed in a future release, please migrate away from it as soon as possible.
 	UserPinLength *int `json:"userPinLength,omitzero" form:"name=userPinLength"`
 	// The supported `prompt` values.
 	//
