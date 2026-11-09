@@ -49,21 +49,21 @@ func (e *ResponseMode) UnmarshalJSON(data []byte) error {
 	}
 }
 
-// ClientClientSource - Source of this client record.
-type ClientClientSource string
+// ClientSource - Source of this client record.
+type ClientSource string
 
 const (
-	ClientClientSourceDynamicRegistration   ClientClientSource = "DYNAMIC_REGISTRATION"
-	ClientClientSourceAutomaticRegistration ClientClientSource = "AUTOMATIC_REGISTRATION"
-	ClientClientSourceExplicitRegistration  ClientClientSource = "EXPLICIT_REGISTRATION"
-	ClientClientSourceMetadataDocument      ClientClientSource = "METADATA_DOCUMENT"
-	ClientClientSourceStaticRegistration    ClientClientSource = "STATIC_REGISTRATION"
+	ClientSourceDynamicRegistration   ClientSource = "DYNAMIC_REGISTRATION"
+	ClientSourceAutomaticRegistration ClientSource = "AUTOMATIC_REGISTRATION"
+	ClientSourceExplicitRegistration  ClientSource = "EXPLICIT_REGISTRATION"
+	ClientSourceMetadataDocument      ClientSource = "METADATA_DOCUMENT"
+	ClientSourceStaticRegistration    ClientSource = "STATIC_REGISTRATION"
 )
 
-func (e ClientClientSource) ToPointer() *ClientClientSource {
+func (e ClientSource) ToPointer() *ClientSource {
 	return &e
 }
-func (e *ClientClientSource) UnmarshalJSON(data []byte) error {
+func (e *ClientSource) UnmarshalJSON(data []byte) error {
 	var v string
 	if err := json.Unmarshal(data, &v); err != nil {
 		return err
@@ -78,10 +78,10 @@ func (e *ClientClientSource) UnmarshalJSON(data []byte) error {
 	case "METADATA_DOCUMENT":
 		fallthrough
 	case "STATIC_REGISTRATION":
-		*e = ClientClientSource(v)
+		*e = ClientSource(v)
 		return nil
 	default:
-		return fmt.Errorf("invalid value for ClientClientSource: %v", v)
+		return fmt.Errorf("invalid value for ClientSource: %v", v)
 	}
 }
 
@@ -406,6 +406,9 @@ type Client struct {
 	// This property corresponds to the `backchannel_user_code_parameter` metadata.
 	//
 	BcUserCodeRequired *bool `json:"bcUserCodeRequired,omitzero"`
+	// The HAIP version to comply with. Valid values for this property are as follows: `"1.0"`. If this property is set, requests from this client undergo additional validation based on the specified version of the [HAIP](https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.html) specification.
+	//
+	HaipVersion *string `json:"haipVersion,omitzero"`
 	// The backchannel logout URI for this client. Used by the service to deliver logout tokens when OpenID Connect Back-Channel Logout 1.0 is triggered.
 	//
 	BackchannelLogoutURI *string `json:"backchannelLogoutUri,omitzero"`
@@ -532,7 +535,7 @@ type Client struct {
 	DiscoveredByMetadataDocument *bool `json:"discoveredByMetadataDocument,omitzero"`
 	// Source of this client record.
 	//
-	ClientSource *ClientClientSource `json:"clientSource,omitzero"`
+	ClientSource *ClientSource `json:"clientSource,omitzero"`
 	// The SPIFFE ID of the client. Used for SPIFFE-based client authentication (`SPIFFE_JWT`). Corresponds to the `spiffe_id` client metadata parameter.
 	//
 	SpiffeID *string `json:"spiffeId,omitzero"`
@@ -1028,6 +1031,13 @@ func (c *Client) GetBcUserCodeRequired() *bool {
 	return c.BcUserCodeRequired
 }
 
+func (c *Client) GetHaipVersion() *string {
+	if c == nil {
+		return nil
+	}
+	return c.HaipVersion
+}
+
 func (c *Client) GetBackchannelLogoutURI() *string {
 	if c == nil {
 		return nil
@@ -1287,7 +1297,7 @@ func (c *Client) GetDiscoveredByMetadataDocument() *bool {
 	return c.DiscoveredByMetadataDocument
 }
 
-func (c *Client) GetClientSource() *ClientClientSource {
+func (c *Client) GetClientSource() *ClientSource {
 	if c == nil {
 		return nil
 	}
@@ -1600,6 +1610,9 @@ type ClientInput struct {
 	// This property corresponds to the `backchannel_user_code_parameter` metadata.
 	//
 	BcUserCodeRequired *bool `json:"bcUserCodeRequired,omitzero" form:"name=bcUserCodeRequired"`
+	// The HAIP version to comply with. Valid values for this property are as follows: `"1.0"`. If this property is set, requests from this client undergo additional validation based on the specified version of the [HAIP](https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.html) specification.
+	//
+	HaipVersion *string `json:"haipVersion,omitzero" form:"name=haipVersion"`
 	// The backchannel logout URI for this client. Used by the service to deliver logout tokens when OpenID Connect Back-Channel Logout 1.0 is triggered.
 	//
 	BackchannelLogoutURI *string `json:"backchannelLogoutUri,omitzero" form:"name=backchannelLogoutUri"`
@@ -2095,6 +2108,13 @@ func (c *ClientInput) GetBcUserCodeRequired() *bool {
 		return nil
 	}
 	return c.BcUserCodeRequired
+}
+
+func (c *ClientInput) GetHaipVersion() *string {
+	if c == nil {
+		return nil
+	}
+	return c.HaipVersion
 }
 
 func (c *ClientInput) GetBackchannelLogoutURI() *string {

@@ -93,6 +93,12 @@ type CredentialIssuerMetadata struct {
 	BatchCredentialEndpoint *string `json:"batchCredentialEndpoint,omitzero"`
 	// The URL of the deferred credential endpoint of the credential issuer.
 	DeferredCredentialEndpoint *string `json:"deferredCredentialEndpoint,omitzero"`
+	// The URL of the notification endpoint of the credential issuer. This property corresponds to the `notification_endpoint` metadata.
+	//
+	NotificationEndpoint *string `json:"notificationEndpoint,omitzero"`
+	// The URL of the nonce endpoint of the credential issuer. This property corresponds to the `nonce_endpoint` metadata.
+	//
+	NonceEndpoint *string `json:"nonceEndpoint,omitzero"`
 	// A JSON object describing supported credential configurations. This property corresponds to the credential_configurations_supported metadata. Note: Due to a breaking change in December 2023, this was changed from a JSON array to a JSON object.
 	//
 	CredentialsSupported *string `json:"credentialsSupported,omitzero"`
@@ -108,12 +114,24 @@ type CredentialIssuerMetadata struct {
 	// The boolean flag indicating whether credential request encryption is required. This property corresponds to the `credential_request_encryption.encryption_required` metadata. If this flag is `true`, every credential request to the credential issuer must be encrypted.
 	//
 	RequireCredentialRequestEncryption *bool `json:"requireCredentialRequestEncryption,omitzero"`
+	// The JWK Set document containing private keys for credential request encryption. The public part of this JWK Set is used as the value of the `credential_request_encryption.jwks` metadata when `credentialRequestEncryptionEncValuesSupported` is also set.
+	//
+	CredentialRequestEncryptionJwks *string `json:"credentialRequestEncryptionJwks,omitzero"`
+	// The supported JWE `enc` algorithms for credential request encryption. This property corresponds to the `credential_request_encryption.enc_values_supported` metadata.
+	//
+	CredentialRequestEncryptionEncValuesSupported []string `json:"credentialRequestEncryptionEncValuesSupported,omitzero"`
+	// The supported JWE `zip` (compression) algorithms for credential request encryption. This property corresponds to the `credential_request_encryption.zip_values_supported` metadata.
+	//
+	CredentialRequestEncryptionZipValuesSupported []string `json:"credentialRequestEncryptionZipValuesSupported,omitzero"`
 	// The supported JWE `zip` (compression) algorithms for credential response encryption. This property corresponds to the `credential_response_encryption.zip_values_supported` metadata.
 	//
 	CredentialResponseEncryptionZipValuesSupported []string `json:"credentialResponseEncryptionZipValuesSupported,omitzero"`
 	// The maximum array size for the `proofs` parameter in a credential request. This property corresponds to the `batch_credential_issuance.batch_size` metadata. If the value of this property is 2 or greater, the `batch_credential_issuance` parameter will appear in the response from the credential issuer metadata endpoint.
 	//
 	BatchSize *int64 `json:"batchSize,omitzero"`
+	// The display properties of the credential issuer in JSON array format. This property corresponds to the `display` metadata.
+	//
+	Display *string `json:"display,omitzero"`
 }
 
 func (c CredentialIssuerMetadata) MarshalJSON() ([]byte, error) {
@@ -162,6 +180,20 @@ func (c *CredentialIssuerMetadata) GetDeferredCredentialEndpoint() *string {
 	return c.DeferredCredentialEndpoint
 }
 
+func (c *CredentialIssuerMetadata) GetNotificationEndpoint() *string {
+	if c == nil {
+		return nil
+	}
+	return c.NotificationEndpoint
+}
+
+func (c *CredentialIssuerMetadata) GetNonceEndpoint() *string {
+	if c == nil {
+		return nil
+	}
+	return c.NonceEndpoint
+}
+
 func (c *CredentialIssuerMetadata) GetCredentialsSupported() *string {
 	if c == nil {
 		return nil
@@ -197,6 +229,27 @@ func (c *CredentialIssuerMetadata) GetRequireCredentialRequestEncryption() *bool
 	return c.RequireCredentialRequestEncryption
 }
 
+func (c *CredentialIssuerMetadata) GetCredentialRequestEncryptionJwks() *string {
+	if c == nil {
+		return nil
+	}
+	return c.CredentialRequestEncryptionJwks
+}
+
+func (c *CredentialIssuerMetadata) GetCredentialRequestEncryptionEncValuesSupported() []string {
+	if c == nil {
+		return nil
+	}
+	return c.CredentialRequestEncryptionEncValuesSupported
+}
+
+func (c *CredentialIssuerMetadata) GetCredentialRequestEncryptionZipValuesSupported() []string {
+	if c == nil {
+		return nil
+	}
+	return c.CredentialRequestEncryptionZipValuesSupported
+}
+
 func (c *CredentialIssuerMetadata) GetCredentialResponseEncryptionZipValuesSupported() []string {
 	if c == nil {
 		return nil
@@ -209,6 +262,13 @@ func (c *CredentialIssuerMetadata) GetBatchSize() *int64 {
 		return nil
 	}
 	return c.BatchSize
+}
+
+func (c *CredentialIssuerMetadata) GetDisplay() *string {
+	if c == nil {
+		return nil
+	}
+	return c.Display
 }
 
 type Service struct {
@@ -820,6 +880,9 @@ type Service struct {
 	// Flows whose `response_type` contains `id_token`, and flows that requested Native SSO, are not affected, because both require an ID token.
 	//
 	IDTokenDroppedOnIssueWithoutOpenid *bool `json:"idTokenDroppedOnIssueWithoutOpenid,omitzero"`
+	// The flag indicating whether the `/auth/authorization`, `/auth/token/get/list` and `/client/authorization/get/list` APIs return full representations of the service and its clients.
+	//
+	ReturnFullPayload *bool `json:"returnFullPayload,omitzero"`
 	// Supported document check methods. This property corresponds to the `documents_check_methods_supported` server metadata which was added by the fourth implementer's draft of OpenID Connect for Identity Assurance 1.0.
 	//
 	SupportedDocumentsCheckMethods []string `json:"supportedDocumentsCheckMethods,omitzero"`
@@ -2069,6 +2132,13 @@ func (s *Service) GetIDTokenDroppedOnIssueWithoutOpenid() *bool {
 	return s.IDTokenDroppedOnIssueWithoutOpenid
 }
 
+func (s *Service) GetReturnFullPayload() *bool {
+	if s == nil {
+		return nil
+	}
+	return s.ReturnFullPayload
+}
+
 func (s *Service) GetSupportedDocumentsCheckMethods() []string {
 	if s == nil {
 		return nil
@@ -2394,6 +2464,11 @@ type ServiceInput struct {
 	AuthenticationCallbackAPIKey *string `json:"authenticationCallbackApiKey,omitzero" form:"name=authenticationCallbackApiKey"`
 	// API secret for `basic` authentication at the authentication callback endpoint.
 	AuthenticationCallbackAPISecret *string `json:"authenticationCallbackApiSecret,omitzero" form:"name=authenticationCallbackApiSecret"`
+	// Values of acrs (authentication context class references) that the service supports.
+	//
+	// The value of this property is used as `acr_values_supported` property in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
+	//
+	SupportedAcrs []string `json:"supportedAcrs,omitzero" form:"name=supportedAcrs"`
 	// Values of `grant_type` request parameter that the service supports.
 	//
 	// The value of this property is used as `grant_types_supported property` in the [OpenID Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
@@ -2877,6 +2952,9 @@ type ServiceInput struct {
 	// Flows whose `response_type` contains `id_token`, and flows that requested Native SSO, are not affected, because both require an ID token.
 	//
 	IDTokenDroppedOnIssueWithoutOpenid *bool `json:"idTokenDroppedOnIssueWithoutOpenid,omitzero" form:"name=idTokenDroppedOnIssueWithoutOpenid"`
+	// The flag indicating whether the `/auth/authorization`, `/auth/token/get/list` and `/client/authorization/get/list` APIs return full representations of the service and its clients.
+	//
+	ReturnFullPayload *bool `json:"returnFullPayload,omitzero" form:"name=returnFullPayload"`
 	// Supported document check methods. This property corresponds to the `documents_check_methods_supported` server metadata which was added by the fourth implementer's draft of OpenID Connect for Identity Assurance 1.0.
 	//
 	SupportedDocumentsCheckMethods []string `json:"supportedDocumentsCheckMethods,omitzero" form:"name=supportedDocumentsCheckMethods"`
@@ -3095,6 +3173,13 @@ func (s *ServiceInput) GetAuthenticationCallbackAPISecret() *string {
 		return nil
 	}
 	return s.AuthenticationCallbackAPISecret
+}
+
+func (s *ServiceInput) GetSupportedAcrs() []string {
+	if s == nil {
+		return nil
+	}
+	return s.SupportedAcrs
 }
 
 func (s *ServiceInput) GetSupportedGrantTypes() []GrantType {
@@ -3970,6 +4055,13 @@ func (s *ServiceInput) GetIDTokenDroppedOnIssueWithoutOpenid() *bool {
 		return nil
 	}
 	return s.IDTokenDroppedOnIssueWithoutOpenid
+}
+
+func (s *ServiceInput) GetReturnFullPayload() *bool {
+	if s == nil {
+		return nil
+	}
+	return s.ReturnFullPayload
 }
 
 func (s *ServiceInput) GetSupportedDocumentsCheckMethods() []string {
