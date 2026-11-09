@@ -95,6 +95,12 @@ jobs:
       - name: Check a missing service is treated as gone
         run: python3 scripts/patch-missing-service.py --check
 
+      # The example is generated from the schema, so it sets every attribute the
+      # service has, deprecated ones included. Left alone, the configuration a
+      # newcomer copies from the registry warns five times on its first plan.
+      - name: Check the registry example sets no deprecated attributes
+        run: python3 scripts/patch-deprecated-example.py --check
+
       - name: Build
         run: go build ./...
 

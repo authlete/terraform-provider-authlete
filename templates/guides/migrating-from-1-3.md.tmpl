@@ -464,12 +464,33 @@ deprecated and always true.
 
 `supported_acrs` was on this list in 3.0.0 and should not have been. The API
 description marked it read-only, the server accepts it on create and update,
-and 1.3.x let you set it. It is settable again from 3.0.1. If you are on
+and 1.3.x let you set it. It is settable again from 3.1.0. If you are on
 3.0.0, set it in the Management Console until you upgrade.
 
 Other attributes are read-only in 3.0 too, but those did not exist in 1.3.17,
 so nothing you are migrating can be setting them. The resource pages list them
 under "Read-Only".
+
+## Settings deprecated in 3.1.0
+
+Five service attributes are marked deprecated. They still work, and Terraform
+warns when a configuration names one:
+
+| Attribute |
+| --- |
+| `authentication_callback_endpoint` |
+| `authentication_callback_api_key` |
+| `authentication_callback_api_secret` |
+| `clients_per_developer` |
+| `user_pin_length` |
+
+These belong to features Authlete 3.0 does not act on, so setting them has no
+effect on the server. Remove them from your configuration to clear the warning.
+Doing so does not change behaviour, because there is no behaviour behind them.
+
+Take them out rather than leaving them with the values 1.3.x needed. A future
+release removes the attributes, and a configuration that still names them will
+then fail to validate rather than warn.
 
 ## What did not change
 

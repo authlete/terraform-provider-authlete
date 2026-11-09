@@ -224,9 +224,49 @@ supported_scopes = [
 A fix is expected in a patch release. Until then an explicit description on a
 standard scope is the one thing to avoid, rather than something to work around.
 
+## `return_full_payload` is not kept when a service is created
+
+Setting `return_full_payload = true` on a **new** service does not reach
+Authlete. The service is created with `false`, and the provider records `true`
+in state, so state and the server disagree until the next refresh.
+
+```
+apply   service created, server holds false, state says true
+plan    ~ return_full_payload = false -> true
+apply   server holds true
+plan    No changes.
+```
+
+The cause is the IdP that creates services, which does not carry the field yet.
+The Console and the SDKs behave the same way. An upcoming IdP release fixes it.
+
+**Apply twice when creating a service with this set**, or apply and then plan to
+confirm. One apply alone leaves the feature off while state reports it on, with
+nothing to indicate the difference. The same applies after any replacement of
+the service.
+
+Updating an existing service works first time. Adding the attribute to a service
+that already exists is an update, not a create, so nothing special is needed.
+
+This setting also requires **Authlete server 3.0.39 or later**. Older servers do
+not support `returnFullPayload` at all.
+
+## OpenTofu writes the credential request encryption key to debug logs
+
+With `TF_LOG=DEBUG`, OpenTofu writes `credential_request_encryption_jwks` into
+the debug log in full, private keys included. Terraform does not.
+
+The attribute is marked sensitive, which keeps it out of plan output, out of
+apply output and out of `terraform show`. Debug logging is a different path and
+is not covered.
+
+**Remove the key material before sharing an OpenTofu debug log**, or capture the
+log from Terraform instead. This holds for any run that touches a service with
+that attribute set, whether or not the run changes it.
+
 ## Secrets and private keys are held in Terraform state
 
-Terraform stores every attribute in state, and a string attribute whole. Seven
+Terraform stores every attribute in state, and a string attribute whole. Eight
 attributes hold key material or a shared secret, so each of them is in your
 state file in plain text:
 
@@ -235,6 +275,7 @@ state file in plain text:
 | `jwks` | `authlete_service` |
 | `federation_jwks` | `authlete_service` |
 | `credential_jwks` | `authlete_service` |
+| `credential_request_encryption_jwks` | `authlete_service`, inside `credential_issuer_metadata` |
 | `authentication_callback_api_secret` | `authlete_service` |
 | `developer_authentication_callback_api_secret` | `authlete_service` |
 | `client_secret` | `authlete_client` |
