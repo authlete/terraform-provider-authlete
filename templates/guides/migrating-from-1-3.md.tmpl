@@ -14,6 +14,39 @@ from you rather than a rename.
 
 Read it before upgrading. Two of these change where your private keys live.
 
+## If you are already on 3.0.0
+
+The rest of this guide is about coming from 1.3.x. If you are on 3.0.0, only
+this section applies to you.
+
+**Check these settings before and after you upgrade:**
+
+- `return_full_payload`
+- `supported_acrs`
+- everything under `credential_issuer_metadata`
+
+3.0.0 reset them to their defaults whenever it updated a service, including
+values you had set in the Management Console. `return_full_payload` and the
+credential issuer metadata settings were not in the 3.0.0 schema at all, and
+`supported_acrs` was read-only, so none of them was in the update request
+Terraform sent. Authlete replaces a service wholesale on update, so anything
+absent from the request went back to its default.
+
+Any apply that changed the service did this. It did not need `-refresh=false`
+and it did not need you to mention the attribute.
+
+3.1.0 carries all of them, so it stops happening. It cannot restore what was
+already lost. Read these settings in the Console, and set them again in your
+configuration if they are not what you expect.
+
+Two further notes for this upgrade:
+
+- Setting `return_full_payload` on a **new** service needs two applies. See the
+  "Known limitations" guide for why.
+- `credential_issuer_metadata` now contains a sensitive attribute, so an output
+  of the whole block is refused where 3.0.0 allowed it. The "Known limitations"
+  guide gives the two ways out.
+
 ## Start here: move the version pin
 
 Nothing else in this guide takes effect until Terraform is actually running
