@@ -48,11 +48,11 @@ See [RFC 6749 (OAuth 2.0), 7.1. Access Token Types](https://tools.ietf.org/html/
 The clock skew is taken into consideration when time-related claims in a JWT (e.g. `exp`, `iat`, `nbf`) are verified.
 - `attestation_challenge_time_window` (Number) The time window of attestation challenges in seconds. This is used for OAuth 2.0 Attestation-Based Client Authentication.
 - `attributes` (Attributes List) The attributes of this service. (see [below for nested schema](#nestedatt--attributes))
-- `authentication_callback_api_key` (String) API key for basic authentication at the authentication callback endpoint.
+- `authentication_callback_api_key` (String, Deprecated) API key for basic authentication at the authentication callback endpoint.
 
 If the value is not empty, Authlete generates Authorization header for Basic authentication when making a request to the authentication callback endpoint.
-- `authentication_callback_api_secret` (String, Sensitive) API secret for `basic` authentication at the authentication callback endpoint.
-- `authentication_callback_endpoint` (String) A Web API endpoint for user authentication which is to be prepared on the service side.
+- `authentication_callback_api_secret` (String, Sensitive, Deprecated) API secret for `basic` authentication at the authentication callback endpoint.
+- `authentication_callback_endpoint` (String, Deprecated) A Web API endpoint for user authentication which is to be prepared on the service side.
 
 The endpoint must be implemented if you do not implement the UI at the authorization endpoint but use the one provided by Authlete.
 
@@ -90,7 +90,7 @@ The value of this property is used as `authorization_endpoint` property in the [
 - `client_attester_roots_only` (Boolean) The flag indicating whether only client authentication validated via attester roots is accepted.
 - `client_id_alias_enabled` (Boolean) Deprecated. Always `true`.
 - `client_id_metadata_document_supported` (Boolean) Indicates whether the Client ID Metadata Document (CIMD) mechanism is supported. When `true`, the service will attempt to retrieve client metadata via CIMD where applicable.
-- `clients_per_developer` (Number) The maximum number of client applications that a developer can have.
+- `clients_per_developer` (Number, Deprecated) The maximum number of client applications that a developer can have.
 - `cnonce_duration` (Number) The duration of `c_nonce`.
 - `created_at` (Number) The time at which this service was created. The value is represented as milliseconds since the UNIX epoch (`1970-01-01`).
 - `credential_duration` (Number) The default duration of verifiable credentials in seconds.
@@ -375,7 +375,7 @@ If this property is empty, client registration fails regardless of whether its t
 
 The value of this property is used as `userinfo_endpoint` property in the [OpenID Provider Metadata](http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
 - `user_info_signature_key_id` (String) The key ID to identify a JWK used for user info signature using an asymmetric key.
-- `user_pin_length` (Number) The default length of user PINs.
+- `user_pin_length` (Number, Deprecated) The default length of user PINs.
 - `verifiable_credentials_enabled` (Boolean) Get the flag indicating whether the feature of Verifiable Credentials for this service is enabled or not.
 - `verified_claims_validation_schema_set` (String) The verified claims validation schema set.
 

@@ -27,9 +27,6 @@ resource "authlete_service" "my_service" {
       value = "...my_value..."
     }
   ]
-  authentication_callback_api_key    = "...my_authentication_callback_api_key..."
-  authentication_callback_api_secret = "...my_authentication_callback_api_secret..."
-  authentication_callback_endpoint   = "https://adolescent-dream.com"
   authority_hints = [
     "..."
   ]
@@ -62,7 +59,6 @@ resource "authlete_service" "my_service" {
   client_attester_roots_enabled         = false
   client_attester_roots_only            = false
   client_id_metadata_document_supported = true
-  clients_per_developer                 = 9
   cnonce_duration                       = 10
   credential_duration                   = 9
   credential_issuer_metadata = {
@@ -323,7 +319,6 @@ resource "authlete_service" "my_service" {
   user_code_length                        = 5
   user_info_endpoint                      = "https://burdensome-jogging.net"
   user_info_signature_key_id              = "...my_user_info_signature_key_id..."
-  user_pin_length                         = 6
   verifiable_credentials_enabled          = false
   verified_claims_validation_schema_set   = "standard"
 }
@@ -356,11 +351,11 @@ See [RFC 6749 (OAuth 2.0), 7.1. Access Token Types](https://tools.ietf.org/html/
 The clock skew is taken into consideration when time-related claims in a JWT (e.g. `exp`, `iat`, `nbf`) are verified.
 - `attestation_challenge_time_window` (Number) The time window of attestation challenges in seconds. This is used for OAuth 2.0 Attestation-Based Client Authentication.
 - `attributes` (Attributes List) The attributes of this service. (see [below for nested schema](#nestedatt--attributes))
-- `authentication_callback_api_key` (String) API key for basic authentication at the authentication callback endpoint.
+- `authentication_callback_api_key` (String, Deprecated) API key for basic authentication at the authentication callback endpoint.
 
 If the value is not empty, Authlete generates Authorization header for Basic authentication when making a request to the authentication callback endpoint.
-- `authentication_callback_api_secret` (String, Sensitive) API secret for `basic` authentication at the authentication callback endpoint.
-- `authentication_callback_endpoint` (String) A Web API endpoint for user authentication which is to be prepared on the service side.
+- `authentication_callback_api_secret` (String, Sensitive, Deprecated) API secret for `basic` authentication at the authentication callback endpoint.
+- `authentication_callback_endpoint` (String, Deprecated) A Web API endpoint for user authentication which is to be prepared on the service side.
 
 The endpoint must be implemented if you do not implement the UI at the authorization endpoint but use the one provided by Authlete.
 
@@ -397,7 +392,7 @@ The value of this property is used as `authorization_endpoint` property in the [
 - `client_attester_roots_enabled` (Boolean) The flag indicating whether the attester roots for Client Attestation JWT x5c chain validation are enabled.
 - `client_attester_roots_only` (Boolean) The flag indicating whether only client authentication validated via attester roots is accepted.
 - `client_id_metadata_document_supported` (Boolean) Indicates whether the Client ID Metadata Document (CIMD) mechanism is supported. When `true`, the service will attempt to retrieve client metadata via CIMD where applicable.
-- `clients_per_developer` (Number) The maximum number of client applications that a developer can have.
+- `clients_per_developer` (Number, Deprecated) The maximum number of client applications that a developer can have.
 - `cnonce_duration` (Number) The duration of `c_nonce`.
 - `credential_duration` (Number) The default duration of verifiable credentials in seconds.
 - `credential_issuer_metadata` (Attributes) (see [below for nested schema](#nestedatt--credential_issuer_metadata))
@@ -651,7 +646,7 @@ If this property is empty, client registration fails regardless of whether its t
 
 The value of this property is used as `userinfo_endpoint` property in the [OpenID Provider Metadata](http://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
 - `user_info_signature_key_id` (String) The key ID to identify a JWK used for user info signature using an asymmetric key.
-- `user_pin_length` (Number) The default length of user PINs.
+- `user_pin_length` (Number, Deprecated) The default length of user PINs.
 - `verifiable_credentials_enabled` (Boolean) Get the flag indicating whether the feature of Verifiable Credentials for this service is enabled or not.
 - `verified_claims_validation_schema_set` (String) The verified claims validation schema set. must be one of ["standard", "standard+id_document"]
 
