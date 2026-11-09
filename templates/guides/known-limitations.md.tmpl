@@ -264,6 +264,44 @@ is not covered.
 log from Terraform instead. This holds for any run that touches a service with
 that attribute set, whether or not the run changes it.
 
+## Outputting a whole block that contains a secret is refused
+
+`credential_issuer_metadata` holds `credential_request_encryption_jwks`, which
+is private key material and is marked sensitive. Terraform treats a block
+containing a sensitive attribute as sensitive in its entirety, so an output of
+the whole block is refused:
+
+```
+output "metadata" {
+  value = authlete_service.example.credential_issuer_metadata
+}
+```
+
+```
+Error: Output refers to sensitive values
+```
+
+This worked in 3.0.0, where the attribute did not exist. Either name the
+attribute you want:
+
+```
+output "credential_endpoint" {
+  value = authlete_service.example.credential_issuer_metadata.credential_endpoint
+}
+```
+
+or accept the whole block and mark the output accordingly:
+
+```
+output "metadata" {
+  value     = authlete_service.example.credential_issuer_metadata
+  sensitive = true
+}
+```
+
+The second keeps the key out of console output but still writes it wherever the
+output is consumed, so prefer the first unless you genuinely need every field.
+
 ## Secrets and private keys are held in Terraform state
 
 Terraform stores every attribute in state, and a string attribute whole. Eight
