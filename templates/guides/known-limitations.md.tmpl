@@ -299,8 +299,25 @@ output "metadata" {
 }
 ```
 
-The second keeps the key out of console output but still writes it wherever the
-output is consumed, so prefer the first unless you genuinely need every field.
+Nothing is withheld by the second form. The output still holds every field, the
+key included, and `terraform output -json metadata` prints all of it. `sensitive`
+governs console display, so the key stops appearing in plan and apply output and
+still reaches anything that consumes the output.
+
+If you want the block rather than one field, and not the key, build it from the
+fields you need:
+
+```
+output "metadata" {
+  value = {
+    credential_issuer   = authlete_service.example.credential_issuer_metadata.credential_issuer
+    credential_endpoint = authlete_service.example.credential_issuer_metadata.credential_endpoint
+    nonce_endpoint      = authlete_service.example.credential_issuer_metadata.nonce_endpoint
+  }
+}
+```
+
+That output is not sensitive, because nothing sensitive is in it.
 
 ## Secrets and private keys are held in Terraform state
 
