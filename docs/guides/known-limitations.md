@@ -74,23 +74,53 @@ Clients work the same way.
 
 Change one attribute on a service or a client and the plan shows most of the
 others as `(known after apply)`. Measured on a service: 178 of them for a
-single rename.
+single edit to `description`.
 
 ```
-~ service_name = "example" -> "example-renamed"
+~ description  = "example" -> "example (edited)"
 ~ metadata     = [ ... ]   -> (known after apply)
-~ modified_at  = 1791977830000 -> (known after apply)
+~ modified_at  = 1793256893601 -> (known after apply)
 # and so on
 ```
 
-**Nothing is changing in those.** Authlete computes them, and Terraform cannot
-know what the API will return until the apply has happened, so it reports them
-as not yet known rather than guessing.
+Lists are rendered differently again, as though their contents were being
+emptied:
+
+```
+~ supported_prompt_values = [
+    - "NONE",
+    - "LOGIN",
+    - "CONSENT",
+    - "SELECT_ACCOUNT",
+    - "CREATE",
+  ] -> (known after apply)
+```
+
+**Nothing is being removed and nothing in those is changing.** The `-` lines
+are how Terraform draws a known list becoming unknown; the arrow on the
+closing bracket is the whole of what it means. Applying the plan above left
+every one of those lists exactly as it was, changed only `description`, and
+the next plan reported no changes.
+
+Terraform marks an attribute unknown when it is computed, carries no value in
+your configuration, and anything else on the resource has changed. Authlete's
+service has 209 attributes that are optional and computed, so one edit makes
+all of them unknown at once. It is Terraform describing what it cannot predict,
+not the provider proposing a change.
 
 The values are correct afterwards, and resources that depend on this one are not
 dragged into the change: identifiers, timestamps and secrets are stable, so a
 module consuming a client secret plans nothing when the service is edited. The
 plan output is simply verbose.
+
+The provider already settles the narrower case where a plan contains nothing
+but these unknowns, which is what makes a reordered list and a fresh import
+plan clean. Doing the same next to a genuine edit means deciding attribute by
+attribute which values Authlete recalculates, and `modified_at` shows why that
+has to be exact: it moves on every update, so holding it at its old value
+would fail the apply outright rather than merely printing an untidy plan. A
+narrower fix is a candidate for a later release. Until then the verbosity is
+expected and safe to read past.
 
 ## Scope order is not the order you wrote
 
