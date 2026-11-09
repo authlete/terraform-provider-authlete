@@ -571,9 +571,14 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 						Description: `The supported JWE ` + "`" + `enc` + "`" + ` algorithms for credential request encryption. This property corresponds to the ` + "`" + `credential_request_encryption.enc_values_supported` + "`" + ` metadata.`,
 					},
 					"credential_request_encryption_jwks": schema.StringAttribute{
+						CustomType:  customtypes.JWKSType{},
 						Computed:    true,
 						Optional:    true,
+						Sensitive:   true,
 						Description: `The JWK Set document containing private keys for credential request encryption. The public part of this JWK Set is used as the value of the ` + "`" + `credential_request_encryption.jwks` + "`" + ` metadata when ` + "`" + `credentialRequestEncryptionEncValuesSupported` + "`" + ` is also set.`,
+						Validators: []validator.String{
+							custom_stringvalidators.ValidJWKSet(),
+						},
 					},
 					"credential_request_encryption_zip_values_supported": schema.ListAttribute{
 						Computed:    true,

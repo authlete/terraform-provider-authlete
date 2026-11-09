@@ -114,7 +114,9 @@ func (r *ServiceResourceModel) RefreshFromSharedService(ctx context.Context, res
 			for _, v := range resp.CredentialIssuerMetadata.CredentialRequestEncryptionEncValuesSupported {
 				r.CredentialIssuerMetadata.CredentialRequestEncryptionEncValuesSupported = append(r.CredentialIssuerMetadata.CredentialRequestEncryptionEncValuesSupported, types.StringValue(v))
 			}
-			r.CredentialIssuerMetadata.CredentialRequestEncryptionJwks = types.StringPointerValue(resp.CredentialIssuerMetadata.CredentialRequestEncryptionJwks)
+			credentialRequestEncryptionJwksValuable, credentialRequestEncryptionJwksDiags := customtypes.JWKSType{}.ValueFromString(ctx, types.StringPointerValue(resp.CredentialIssuerMetadata.CredentialRequestEncryptionJwks))
+			diags.Append(credentialRequestEncryptionJwksDiags...)
+			r.CredentialIssuerMetadata.CredentialRequestEncryptionJwks = credentialRequestEncryptionJwksValuable.(customtypes.JWKS)
 			r.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported = make([]types.String, 0, len(resp.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported))
 			for _, v := range resp.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported {
 				r.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported = append(r.CredentialIssuerMetadata.CredentialRequestEncryptionZipValuesSupported, types.StringValue(v))

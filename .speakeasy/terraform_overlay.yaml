@@ -224,6 +224,18 @@ actions:
     update:
       x-speakeasy-param-sensitive: true
 
+  # credentialRequestEncryptionJwks arrived with the credential request
+  # encryption settings and was not concealed, although its own description
+  # says it holds private keys. Review found it printing in full in plan
+  # output, in apply output and in terraform show, on the resource and on the
+  # data source. It sits inside credentialIssuerMetadata rather than at the
+  # top of the service, which is why the guard that exists for exactly this
+  # did not see it.
+  - target: $.components.schemas.credential_issuer_metadata.properties.credentialRequestEncryptionJwks
+    description: Conceal the credential request encryption JWK Set, documented as holding private keys
+    update:
+      x-speakeasy-param-sensitive: true
+
   - target: $.components.schemas.service.properties.authenticationCallbackApiSecret
     description: Conceal the authentication callback secret
     update:
@@ -308,6 +320,23 @@ actions:
   # without showing anything that would explain it.
   - target: $.components.schemas.service.properties.credentialJwks
     description: Compare the credential JWK Set by meaning, not bytes
+    update:
+      x-speakeasy-terraform-custom-type:
+        imports:
+          - "github.com/authlete/terraform-provider-authlete/v3/internal/provider/customtypes"
+        schemaType: customtypes.JWKSType{}
+        valueType: customtypes.JWKS
+      x-speakeasy-plan-validators:
+        - ValidJWKSet
+
+  # The same set again. Authlete returns it with the JSON members in its own
+  # order, so compared byte for byte it plans a change on every run, and the
+  # change reprints the private keys each time. Private like credentialJwks,
+  # not public like a client's: the description says the public part is what
+  # Authlete publishes as metadata, so what is stored here is the private
+  # half.
+  - target: $.components.schemas.credential_issuer_metadata.properties.credentialRequestEncryptionJwks
+    description: Compare the credential request encryption JWK Set by meaning, not bytes
     update:
       x-speakeasy-terraform-custom-type:
         imports:

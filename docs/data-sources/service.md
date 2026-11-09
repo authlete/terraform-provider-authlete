@@ -399,7 +399,7 @@ Read-Only:
 - `credential_endpoint` (String) The URL of the credential endpoint of the credential issuer.
 - `credential_issuer` (String) The identifier of a credential request.
 - `credential_request_encryption_enc_values_supported` (List of String) The supported JWE `enc` algorithms for credential request encryption. This property corresponds to the `credential_request_encryption.enc_values_supported` metadata.
-- `credential_request_encryption_jwks` (String) The JWK Set document containing private keys for credential request encryption. The public part of this JWK Set is used as the value of the `credential_request_encryption.jwks` metadata when `credentialRequestEncryptionEncValuesSupported` is also set.
+- `credential_request_encryption_jwks` (String, Sensitive) The JWK Set document containing private keys for credential request encryption. The public part of this JWK Set is used as the value of the `credential_request_encryption.jwks` metadata when `credentialRequestEncryptionEncValuesSupported` is also set.
 - `credential_request_encryption_zip_values_supported` (List of String) The supported JWE `zip` (compression) algorithms for credential request encryption. This property corresponds to the `credential_request_encryption.zip_values_supported` metadata.
 - `credential_response_encryption_alg_values_supported` (List of String) The supported JWE `alg` algorithms for credential response encryption. This property corresponds to the `credential_response_encryption.alg_values_supported` metadata.
 - `credential_response_encryption_enc_values_supported` (List of String) The supported JWE `enc` algorithms for credential response encryption. This property corresponds to the `credential_response_encryption.enc_values_supported` metadata.
