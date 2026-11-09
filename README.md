@@ -1,14 +1,21 @@
-# terraform-provider-authlete 3.0.0
+# terraform-provider-authlete
 
 Manage [Authlete](https://www.authlete.com) services and OAuth 2.0 / OpenID
 Connect clients with Terraform.
 
 > [!NOTE]
-> 3.0.0 is the first general release of the 3.x line.
+> The 3.x line is the current one. See the
+> [registry page](https://registry.terraform.io/providers/authlete/authlete/latest)
+> for the latest release and the
+> [release notes](https://github.com/authlete/terraform-provider-authlete/releases)
+> for what changed in each.
 >
 > Coming from 1.3.x? v1.3.17 is the last release of that line, and 3.x is
 > not an upgrade of it: your configuration and your state both need changes.
->  Read the [migration guide](https://registry.terraform.io/providers/authlete/authlete/latest/docs/guides/migrating-from-1-3) before you change the version constraint.
+> Read the [migration guide](https://registry.terraform.io/providers/authlete/authlete/latest/docs/guides/migrating-from-1-3) before you change the version constraint.
+>
+> Already on 3.0.0? The migration guide has a section for you: 3.0.0 reset
+> several settings whenever it updated a service, and later releases do not.
 >
 > Please report any issue you run into.
 
@@ -38,7 +45,7 @@ API. This table is what states the mapping.
 <!-- Start Table of Contents [toc] -->
 ## Table of Contents
 <!-- $toc-max-depth=2 -->
-* [terraform-provider-authlete 3.0.0](#terraform-provider-authlete-300)
+* [terraform-provider-authlete](#terraform-provider-authlete)
   * [Requirements](#requirements)
   * [Installation](#installation)
   * [Usage](#usage)
