@@ -47,10 +47,12 @@ var (
 // has none. The framework finds it through ResourceWithModifyPlan, so no
 // generated file needs patching.
 func (r *ServiceResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	absorbSettledUnknowns(ctx, req, resp)
 	keepPriorWhenNothingChanged(req, resp)
 }
 
 func (r *ClientResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	absorbSettledUnknowns(ctx, req, resp)
 	keepPriorWhenNothingChanged(req, resp)
 }
 
