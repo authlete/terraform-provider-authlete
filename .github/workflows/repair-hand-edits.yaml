@@ -1,11 +1,15 @@
-# Repairs the hand edit in provider.go after a regeneration.
+# Repairs the hand edits under internal/provider after a regeneration.
 #
-# Speakeasy's Generate workflow can drop our one hand edit -- the line that wraps
-# the HTTP transport so idp_host and organization_id actually take effect. The
-# file still compiles without it, so nothing obvious breaks.
+# Speakeasy's Generate workflow can drop any of them. None of these failures
+# breaks the build, which is the whole problem: the provider still compiles,
+# lints and generates while quietly missing an edit.
 #
-# This workflow runs after Generate finishes, checks the edit, and if it is
-# missing opens a pull request that puts it back.
+# This workflow runs after Generate finishes, checks every patch script, and if
+# any is missing opens a pull request that puts them back. The same scripts are
+# checked on every pull request by test.yaml, so a regeneration branch that
+# nothing repaired still fails before it can be merged.
+#
+# Keep this list and the one in test.yaml in step with scripts/patch-*.
 #
 # It uses workflow_run rather than pull_request deliberately: Generate
 # authenticates with GITHUB_TOKEN, and GitHub does not trigger pull_request
@@ -56,6 +60,8 @@ jobs:
              && ./scripts/patch-debug-response.sh --check \
              && python3 scripts/patch-resource-server-url.py --check \
              && python3 scripts/patch-deprecated-example.py --check \
+             && python3 scripts/patch-list-order.py --check \
+             && python3 scripts/patch-missing-service.py --check \
              && python3 scripts/fill-keep-order-stubs.py --check; then
             echo "needs_repair=false" >> "$GITHUB_OUTPUT"
           else
@@ -74,6 +80,8 @@ jobs:
           ./scripts/patch-debug-response.sh
           python3 scripts/patch-resource-server-url.py
           python3 scripts/patch-deprecated-example.py
+          python3 scripts/patch-list-order.py
+          python3 scripts/patch-missing-service.py
           python3 scripts/fill-keep-order-stubs.py
 
           fix_branch="repair/provider-patch-${GITHUB_RUN_ID}"
@@ -83,8 +91,8 @@ jobs:
           git add -A internal/provider
           git commit -m "Re-apply the post-generation patches
 
-          The last regeneration dropped one or both of the edits that survive
-          through Speakeasy's three-way merge. Neither failure breaks the build,
+          The last regeneration dropped at least one of the edits that survive
+          through Speakeasy's three-way merge. None of them breaks the build,
           which is why they are caught here.
 
           provider.go: without the transport wrapper, idp_host and
@@ -95,8 +103,11 @@ jobs:
           set to [] reads back as null, so the configuration plans the same
           change forever.
 
-          Re-applied with scripts/patch-provider.sh and
-          scripts/patch-empty-lists.sh."
+          The Read functions: without the list-order patch, Authlete's order
+          overwrites the configured one in state, so every plan reports the
+          resource as changing.
+
+          Re-applied with the scripts/patch-* scripts."
           git push origin "$fix_branch"
 
           gh pr create \
@@ -110,8 +121,10 @@ jobs:
           - \`provider.go\`: without the transport wrapper, \`idp_host\` and \`organization_id\` are accepted and silently ignored, so service create and delete go to Authlete's shared cloud regardless of configuration.
           - the \`*_sdk.go\` reads: without the empty-list mapping, a list explicitly set to \`[]\` reads back as null, so the configuration plans the same change forever.
 
-          Re-applied automatically with \`scripts/patch-provider.sh\` and \`scripts/patch-empty-lists.sh\`. Merge this into \`$BASE\` before merging that branch."
+          - the \`Read\` functions: without the list-order patch, Authlete's order overwrites the configured one in state, so every plan reports the resource as changing.
+
+          Re-applied automatically with the \`scripts/patch-*\` scripts. Merge this into \`$BASE\` before merging that branch."
 
       - name: Nothing to do
         if: steps.check.outputs.needs_repair == 'false'
-        run: echo "Both patches are present on ${{ steps.target.outputs.branch }}."
+        run: echo "Every patch is present on ${{ steps.target.outputs.branch }}."
