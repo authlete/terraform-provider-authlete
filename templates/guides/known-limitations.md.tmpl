@@ -70,27 +70,54 @@ is written down here.
 
 Clients work the same way.
 
-## Plans show many attributes as "known after apply"
+## Plans show a few attributes as "known after apply"
 
-Change one attribute on a service or a client and the plan shows most of the
-others as `(known after apply)`. Measured on a service: 178 of them for a
-single rename.
+Change one attribute on a service or a client and the plan shows a small number
+of others as `(known after apply)`. Measured on a one-line edit: 15 of them on a
+service, 24 on a client.
 
 ```
-~ service_name = "example" -> "example-renamed"
-~ metadata     = [ ... ]   -> (known after apply)
-~ modified_at  = 1791977830000 -> (known after apply)
+~ description = "example" -> "example (edited)"
+~ modified_at = 1793256893601 -> (known after apply)
 # and so on
 ```
 
-**Nothing is changing in those.** Authlete computes them, and Terraform cannot
-know what the API will return until the apply has happened, so it reports them
-as not yet known rather than guessing.
+**Nothing is changing in those.** They are the attributes Authlete owns and the
+provider never sends, so Terraform cannot know what the API will return until
+the apply has happened. `modified_at` is the clearest case: it moves on every
+update, whatever else you changed.
+
+Everything your configuration is able to set is planned at the value it already
+holds, so an edit shows up as the edit it is.
+
+Two attributes on a client stay unknown even though you can set them:
+`custom_metadata`, and `extension`, which holds `requestable_scopes`. Authlete
+rebuilds both from the service whenever a client is written, dropping a
+requestable scope the service no longer defines and a custom metadata key it no
+longer declares. The result cannot be predicted, so the provider waits for the
+response rather than guessing.
+
+Where one of the remaining attributes is a list, Terraform draws it as though
+its contents were being emptied:
+
+```
+~ supported_prompt_values = [
+    - "NONE",
+    - "LOGIN",
+    - "CONSENT",
+  ] -> (known after apply)
+```
+
+**Nothing is being removed.** The `-` lines are how Terraform draws a known list
+becoming unknown; the arrow on the closing bracket is the whole of what it
+means.
 
 The values are correct afterwards, and resources that depend on this one are not
 dragged into the change: identifiers, timestamps and secrets are stable, so a
-module consuming a client secret plans nothing when the service is edited. The
-plan output is simply verbose.
+module consuming a client secret plans nothing when the service is edited.
+
+Earlier releases reported nearly every attribute this way, 178 of them on a
+service, which buried the change you had actually made.
 
 ## Scope order is not the order you wrote
 

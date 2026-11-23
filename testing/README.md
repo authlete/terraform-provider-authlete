@@ -24,6 +24,7 @@ in effect" warning on every command; that is expected.
 ./run.sh reorder     # reordering a list already in state must plan nothing
 ./run.sh gone        # only a real deletion may drop a resource from state
 ./run.sh statekeys   # keys read back from Authlete must never be rejected
+./run.sh drift       # state after a real update must match what Authlete holds
 ./run.sh show        # dump current state
 ```
 

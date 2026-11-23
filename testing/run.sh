@@ -10,6 +10,7 @@
 #   ./run.sh reorder     # reordering a list already in state must plan nothing
 #   ./run.sh gone        # only a real deletion may drop a resource from state
 #   ./run.sh statekeys   # keys read back from Authlete must never be rejected
+#   ./run.sh drift       # state after a real update must match what Authlete holds
 #   ./run.sh show        # print current state
 #
 # Terraform finds the Authlete provider through a dev_overrides block written to
@@ -83,14 +84,14 @@ command -v "$TF" >/dev/null 2>&1 || die \
 command -v go >/dev/null 2>&1 || die "go not found on PATH."
 
 case "$MODE" in
-  validate|plan|apply|destroy|show|import|regress|regress-destroy|negative|reorder|gone|statekeys) ;;
-  *) die "unknown mode '$MODE'. Use one of: validate, plan, apply, destroy, show, import, regress, regress-destroy, negative, reorder, gone, statekeys" ;;
+  validate|plan|apply|destroy|show|import|regress|regress-destroy|negative|reorder|gone|statekeys|drift) ;;
+  *) die "unknown mode '$MODE'. Use one of: validate, plan, apply, destroy, show, import, regress, regress-destroy, negative, reorder, gone, statekeys, drift" ;;
 esac
 
 # validate and plan for not-yet-created resources need no live credentials, so a
 # placeholder keeps the provider's Configure step happy without implying access.
 if [[ -z "${AUTHLETE_TOKEN:-}" ]]; then
-  if [[ "$MODE" == "apply" || "$MODE" == "destroy" || "$MODE" == "import" || "$MODE" == "regress" || "$MODE" == "regress-destroy" ]]; then
+  if [[ "$MODE" == "apply" || "$MODE" == "destroy" || "$MODE" == "import" || "$MODE" == "regress" || "$MODE" == "regress-destroy" || "$MODE" == "drift" ]]; then
     die "AUTHLETE_TOKEN is not set, and '$MODE' talks to the live API.
   Export an Organization Token first:
     export AUTHLETE_TOKEN='...'
@@ -834,6 +835,103 @@ PY
   v1.3.17 is stuck. v1.3.17 set it for all of them: see _ = d.Set("jwks", nil)
   in its client.go.'
     fi
+    ;;
+  drift)
+    # Regression guard for the plan modifier in
+    # internal/provider/settled_unknowns.go.
+    #
+    # That modifier answers an unknown from prior state, so a wrong answer is
+    # not a broken apply: it is written into state as though Authlete had
+    # returned it, and only a later refresh reveals it. The attributes Authlete
+    # rebuilds when the object is written are excluded there by hand, because
+    # nothing in the schema marks them out, and this is how a missing one is
+    # meant to be found.
+    #
+    # The update has to be a real one. A plan that changes nothing never
+    # reaches the write path at all, so the client is renamed between the two
+    # applies.
+    cat <<EOF
+
+  This creates one real service and one client in the Authlete organization
+  the token belongs to, and removes them again at the end.
+
+EOF
+    if [[ "${ASSUME_YES:-}" != "1" ]]; then
+      read -r -p "Continue? [y/N] " reply
+      [[ "$reply" == "y" || "$reply" == "Y" ]] || die "aborted"
+    fi
+
+    workdir=$(mktemp -d)
+    # -var is repeated on the destroy on purpose. A variable with no value
+    # makes Terraform prompt, and a prompt in a cleanup trap hangs the run for
+    # as long as anyone lets it.
+    trap 'say "Removing the drift probe"; ( cd "$workdir" && "$TF" destroy -auto-approve -no-color -var phase=after >/dev/null 2>&1 ); rm -rf "$workdir"' EXIT
+
+    cat > "$workdir/main.tf" <<TF
+terraform {
+  required_providers { authlete = { source = "authlete/authlete" } }
+}
+provider "authlete" {
+  organization_id = $AUTHLETE_ORGANIZATION_ID
+}
+
+variable "phase" {
+  type    = string
+  default = "after"
+}
+
+# The probe turns on a scope and a custom metadata key, puts both on the
+# client, and then takes them off the service again. Authlete drops what the
+# service no longer declares, so after the second apply the client holds less
+# than it did -- and the client's configuration no longer mentions either, so
+# both attributes plan as unknown and the modifier is what decides their value.
+resource "authlete_service" "s" {
+  service_name = "${TF_VAR_name_prefix:-tftest}-drift"
+  issuer       = "https://drift.example.com"
+  description  = "Drift probe, phase \${var.phase}"
+
+  supported_scopes = var.phase == "before" ? [{ name = "openid" }, { name = "tftest-custom" }] : [{ name = "openid" }]
+
+  supported_custom_client_metadata = var.phase == "before" ? ["tftest_key"] : ["tftest_other"]
+}
+
+resource "authlete_client" "c" {
+  service_id    = tostring(authlete_service.s.api_key)
+  client_name   = "${TF_VAR_name_prefix:-tftest}-drift-\${var.phase}"
+  redirect_uris = ["https://drift.example.com/callback"]
+
+  # Set in the first phase and absent in the second, so what Authlete holds in
+  # the second apply comes from the plan, not from the configuration.
+  custom_metadata = var.phase == "before" ? jsonencode({ tftest_key = "stored-value" }) : null
+
+  extension = var.phase == "before" ? { requestable_scopes_enabled = true, requestable_scopes = ["openid", "tftest-custom"] } : null
+}
+TF
+
+    say "Creating the probe"
+    ( cd "$workdir" && "$TF" apply -auto-approve -no-color -var phase=before >/dev/null ) \
+      || die "the first apply failed. If it says 'upgrade your plan', the
+  organization is still holding a service a recent destroy removed; wait and
+  run it again."
+
+    say "Renaming the client, so the second apply is a real update"
+    ( cd "$workdir" && "$TF" apply -auto-approve -no-color -var phase=after >/dev/null ) \
+      || die "the second apply failed"
+
+    say "Comparing state with what Authlete holds"
+    python3 compare-state-to-api.py "$workdir/terraform.tfstate" \
+      "${AUTHLETE_SERVER_URL:-https://us.authlete.com}" "$AUTHLETE_TOKEN" \
+      || die "FAIL: state records values Authlete did not return.
+  Each attribute listed above is one the provider predicted and Authlete then
+  rewrote. Add its root to serverRecomputedRoots in
+  internal/provider/settled_unknowns.go."
+
+    say "Re-planning, which must report nothing"
+    if ! ( cd "$workdir" && "$TF" plan -no-color -detailed-exitcode -var phase=after >/dev/null 2>&1 ); then
+      ( cd "$workdir" && "$TF" plan -no-color -var phase=after 2>&1 | grep -E "^ +[~+-] |^Plan:" | head -20 )
+      die "FAIL: the plan after the apply is not empty."
+    fi
+    say "PASS: state matches Authlete and the plan that follows is empty."
     ;;
   regress-destroy)
     cd "$TESTING_DIR/regressions"
