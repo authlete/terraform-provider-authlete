@@ -5,14 +5,14 @@ management:
   docVersion: 3.0.16
   speakeasyVersion: 1.795.1
   generationVersion: 2.932.9
-  releaseVersion: 3.1.0
-  configChecksum: e2ce279b1f415288deecbdd8a444eb46
+  releaseVersion: 3.1.1
+  configChecksum: 1e0685e9cc38ff3285ae036cebe89963
   repoURL: https://github.com/authlete/terraform-provider-authlete.git
   installationURL: https://github.com/authlete/terraform-provider-authlete
 persistentEdits:
-  generation_id: 92c8faed-79fe-4b07-8535-5446553d0308
-  pristine_commit_hash: 450480e0966fc2d59844c6882b1aa9fc9da9bd7f
-  pristine_tree_hash: 84e803b1fa201f490bba8dbc46531b0f28add207
+  generation_id: 1b7a0da8-3886-44a7-8b3b-f91b5f6fbbaa
+  pristine_commit_hash: 09b0778b0b2c7adbe94fa10c32b5a753db3b44ae
+  pristine_tree_hash: 6bb673b9f4b4f74d1125a1c4be3b78221dd12e5c
 features:
   terraform:
     additionalDependencies: 0.1.0
@@ -51,8 +51,8 @@ trackedFiles:
     pristine_git_object: a7612b46be14c305cfcda66b10ebdea5e948143c
   examples/provider/provider.tf:
     id: 954e955c0240
-    last_write_checksum: sha1:50671777df2df50a53062c7fde96213c3743259a
-    pristine_git_object: a2bf2c9e4c5fe92d945b0ea9bf747985bfb6258a
+    last_write_checksum: sha1:0452dcd640e79b2f0b4dc9ba35d786402fc0b03e
+    pristine_git_object: eae2d621f3886b78604c8875b3edf5865ae90f79
   examples/resources/authlete_client/import-by-string-id.tf:
     id: 9efa3322fdf0
     last_write_checksum: sha1:2b9b0b56ea4e5c910964d78d3896cc058fdfd4fd
@@ -375,8 +375,8 @@ trackedFiles:
     pristine_git_object: 2ac211fbb61135424e32c37edaaa44db9581ef20
   internal/sdk/authlete.go:
     id: 81104225f83a
-    last_write_checksum: sha1:f0b65109bcc58043cf204b58ddcabc39697eb5b2
-    pristine_git_object: 2841c36a515a96c91817befe09d94cebc8b73ca4
+    last_write_checksum: sha1:9e23b0d9b44d9d5b75a7df820b95a0797293ef34
+    pristine_git_object: 89de214d0a300e9c37873df270ab9f463e7ef3e7
   internal/sdk/authorizationendpoint.go:
     id: 372506d1dfd3
     last_write_checksum: sha1:bf8191bf8f7b132d0dafa27af52a4534865520dc
