@@ -242,3 +242,45 @@ func TestAttributesRecomputedOnWriteAreLeftAlone(t *testing.T) {
 		t.Errorf("settable = %v, want prior state: an ordinary setting is unaffected", got)
 	}
 }
+
+// Everything above calls absorbSettledUnknowns directly, which leaves the two
+// lines that actually invoke it untested: delete them from settled_plan.go and
+// the suite still passes while the provider quietly stops absorbing anything.
+//
+// Speakeasy does not generate ModifyPlan, so a regeneration cannot drop this;
+// a careless edit or a bad merge can. These drive the resources' own method.
+func TestModifyPlanIsWiredToAbsorb(t *testing.T) {
+	state := absorbValue(strVal("stored"), strVal("server-made"), strVal("before"), listOf("a", "b"))
+	config := absorbValue(strNull(), strNull(), strVal("after"), tftypes.NewValue(listType(), nil))
+	plan := absorbValue(strUnknown(), strUnknown(), strVal("after"), listUnknown())
+
+	modify := func(fn func(context.Context, resource.ModifyPlanRequest, *resource.ModifyPlanResponse)) tftypes.Value {
+		req := resource.ModifyPlanRequest{
+			State:  tfsdk.State{Raw: state, Schema: absorbSchema},
+			Config: tfsdk.Config{Raw: config, Schema: absorbSchema},
+			Plan:   tfsdk.Plan{Raw: plan, Schema: absorbSchema},
+		}
+		resp := resource.ModifyPlanResponse{Plan: tfsdk.Plan{Raw: plan, Schema: absorbSchema}}
+		fn(context.Background(), req, &resp)
+		return resp.Plan.Raw
+	}
+
+	for _, tc := range []struct {
+		name   string
+		modify func(context.Context, resource.ModifyPlanRequest, *resource.ModifyPlanResponse)
+	}{
+		{"service", (&ServiceResource{}).ModifyPlan},
+		{"client", (&ClientResource{}).ModifyPlan},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got := modify(tc.modify)
+
+			if settable := attrOf(t, got, "settable"); !settable.Equal(strVal("stored")) {
+				t.Errorf("settable = %v, want prior state: ModifyPlan does not call absorbSettledUnknowns", settable)
+			}
+			if derived := attrOf(t, got, "derived"); derived.IsKnown() {
+				t.Errorf("derived = %v, want it left unknown", derived)
+			}
+		})
+	}
+}
