@@ -447,6 +447,49 @@ regard to order, so a list Authlete returns rearranged does not show a diff.
 matched on scope name rather than on the whole entry, so an edit to a
 description is still a change.
 
+## Attributes that were renamed
+
+These attributes keep their meaning but not their name. A configuration that
+still uses the 1.3.x name fails `terraform validate` with an unsupported
+argument error, so none of them can pass unnoticed.
+
+On a service:
+
+| 1.3.x | 3.0 |
+| --- | --- |
+| `iss_response_suppressed` | `iss_suppressed` |
+| `ignore_port_loopback_redirect` | `loopback_redirection_uri_variable` |
+| `jwks_endpoint` | `jwks_uri` |
+| `token_expiration_link` | `token_expiration_linked` |
+| `supported_authorization_detail_types` | `supported_authorization_details_types` |
+| `front_channel_encryption_request_obj_required` | `front_channel_request_object_encryption_required` |
+| `encryption_alg_req_obj_match` | `request_object_encryption_alg_match_required` |
+| `encryption_enc_alg_req_obj_match` | `request_object_encryption_enc_match_required` |
+
+On a client, the reference to its service changed shape as well as name.
+`service_api_key` became `service_id`, which takes the service's `api_key`,
+and `service_api_secret` is gone:
+
+```terraform
+resource "authlete_client" "example" {
+  service_id = authlete_service.example.api_key   # was service_api_key = ...id
+  # service_api_secret: remove
+}
+```
+
+`trust_anchors` on a service changed from a block to a list attribute, and
+each anchor's `jwk` blocks became one `jwks` string holding the anchor's public
+key set, the same way the service's own keys did:
+
+```terraform
+trust_anchors = [
+  {
+    entity_id = "https://ta.example.com"
+    jwks      = file("ta-jwks.json")
+  },
+]
+```
+
 ## Attributes that are now read-only
 
 Some attributes that 1.3.x let you set are server-owned in 3.0 and are reported
