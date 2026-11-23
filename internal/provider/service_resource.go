@@ -348,21 +348,24 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `The attributes of this service.`,
 			},
 			"authentication_callback_api_key": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
+				Computed:           true,
+				Optional:           true,
+				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
 				MarkdownDescription: `API key for basic authentication at the authentication callback endpoint.` + "\n" +
 					`` + "\n" +
 					`If the value is not empty, Authlete generates Authorization header for Basic authentication when making a request to the authentication callback endpoint.`,
 			},
 			"authentication_callback_api_secret": schema.StringAttribute{
-				Computed:    true,
-				Optional:    true,
-				Sensitive:   true,
-				Description: `API secret for ` + "`" + `basic` + "`" + ` authentication at the authentication callback endpoint.`,
+				Computed:           true,
+				Optional:           true,
+				Sensitive:          true,
+				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
+				Description:        `API secret for ` + "`" + `basic` + "`" + ` authentication at the authentication callback endpoint.`,
 			},
 			"authentication_callback_endpoint": schema.StringAttribute{
-				Computed: true,
-				Optional: true,
+				Computed:           true,
+				Optional:           true,
+				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
 				MarkdownDescription: `A Web API endpoint for user authentication which is to be prepared on the service side.` + "\n" +
 					`` + "\n" +
 					`The endpoint must be implemented if you do not implement the UI at the authorization endpoint but use the one provided by Authlete.` + "\n" +
@@ -513,9 +516,10 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `Indicates whether the Client ID Metadata Document (CIMD) mechanism is supported. When ` + "`" + `true` + "`" + `, the service will attempt to retrieve client metadata via CIMD where applicable.`,
 			},
 			"clients_per_developer": schema.Int32Attribute{
-				Computed:    true,
-				Optional:    true,
-				Description: `The maximum number of client applications that a developer can have.`,
+				Computed:           true,
+				Optional:           true,
+				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
+				Description:        `The maximum number of client applications that a developer can have.`,
 			},
 			"cnonce_duration": schema.Int64Attribute{
 				Computed:    true,
@@ -1818,9 +1822,10 @@ func (r *ServiceResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Description: `The key ID to identify a JWK used for user info signature using an asymmetric key.`,
 			},
 			"user_pin_length": schema.Int32Attribute{
-				Computed:    true,
-				Optional:    true,
-				Description: `The default length of user PINs.`,
+				Computed:           true,
+				Optional:           true,
+				DeprecationMessage: `This will be removed in a future release, please migrate away from it as soon as possible`,
+				Description:        `The default length of user PINs.`,
 			},
 			"verifiable_credentials_enabled": schema.BoolAttribute{
 				Computed:    true,

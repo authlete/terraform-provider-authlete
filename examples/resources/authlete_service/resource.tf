@@ -12,9 +12,6 @@ resource "authlete_service" "my_service" {
       value = "...my_value..."
     }
   ]
-  authentication_callback_api_key    = "...my_authentication_callback_api_key..."
-  authentication_callback_api_secret = "...my_authentication_callback_api_secret..."
-  authentication_callback_endpoint   = "https://adolescent-dream.com"
   authority_hints = [
     "..."
   ]
@@ -47,7 +44,6 @@ resource "authlete_service" "my_service" {
   client_attester_roots_enabled         = false
   client_attester_roots_only            = false
   client_id_metadata_document_supported = true
-  clients_per_developer                 = 9
   cnonce_duration                       = 10
   credential_duration                   = 9
   credential_issuer_metadata = {
@@ -308,7 +304,6 @@ resource "authlete_service" "my_service" {
   user_code_length                        = 5
   user_info_endpoint                      = "https://burdensome-jogging.net"
   user_info_signature_key_id              = "...my_user_info_signature_key_id..."
-  user_pin_length                         = 6
   verifiable_credentials_enabled          = false
   verified_claims_validation_schema_set   = "standard"
 }
